@@ -1,0 +1,114 @@
+# ERDL Actions — eyewear 行业 Action 定义
+# 
+# 核心理念：LLM 无论输出什么格式（FC/XML/文本），
+# Action Guard 统一解析为 Action 并路由到对应 Service。
+#
+# 使用方式：
+#   在 ERDL Registry 注册后，Action Guard 自动加载。
+#   可通过环境变量 ERDL_ACTION_GUARD=false 禁用。
+
+namespace: industry.eyewear
+module:
+  version: "1.5.0"
+  extends: eyewear
+
+actions:
+  promote_drafts:
+    description: "将草稿池中的草稿入库——转为正式 SPU/SKU 商品"
+    agentTypes: [product_listing]
+    params:
+      draftIds:
+        required: true
+        type: string_array
+        description: "要入库的草稿ID列表"
+      taskId:
+        description: "关联的 Agent 任务ID"
+      packageName:
+        description: "入库批次名称（不填自动生成）"
+
+  draft_create:
+    description: "在草稿池创建 SPU/SKU 草稿"
+    agentTypes: [product_listing]
+    params:
+      spuName:
+        required: true
+      gender:
+        required: true
+        enum: [female, male, unisex, limited]
+      shapeCode:
+        required: true
+      seriesCode:
+        required: true
+      structureStandardCode:
+        required: true
+      spuDescription: {}
+      skus:
+        isArray: true
+
+  query_erp_data:
+    description: "查询 ERP 系统数据"
+    params:
+      data_type:
+        type: enum
+        values: [all, spu, sku, shapes, colors, materials, effects, series, rules]
+        default: all
+
+  query_knowledge:
+    description: "查询知识库"
+    params:
+      keyword:
+        required: true
+
+  erdl_crud:
+    description: "读写 ERDL Entity 数据"
+    params:
+      action:
+        required: true
+        enum: [create, read, update, delete]
+      entity:
+        required: true
+      values:
+        type: object
+      where:
+        type: object
+      select:
+        type: string_array
+
+  aesthetics_check:
+    description: "美学校验（只调用1次即可得到最终判定）"
+    params:
+      shapeCode:
+        required: true
+      colorCode:
+        required: true
+      gender: {}
+      seriesCode: {}
+      skinToneEffect: {}
+      faceShapeEffect: {}
+
+  read_file:
+    description: "读取工作区内文件内容。支持 .md .txt .json .csv .xlsx .docx .pdf .html .sql .erdl 等格式。自动检测并解析为文本/结构化数据。"
+    agentTypes: [product_listing, content_creation, customer_service, tech_support]
+    params:
+      path:
+        description: "文件路径（相对于工作区根目录 mj/）"
+        required: true
+      maxLines:
+        description: "最大返回行数（0=不限制）"
+        type: number
+        default: 0
+
+  list_files:
+    description: "列出工作区内目录的文件列表。支持通配符过滤（如 *.md）。"
+    agentTypes: [product_listing, content_creation, customer_service, tech_support]
+    params:
+      dir:
+        description: "目录路径（相对于工作区根目录 mj/）"
+        required: true
+      pattern:
+        description: "文件名通配符过滤（如 *.md, *.json）"
+        default: ""
+      recursive:
+        description: "是否递归遍历子目录（true=遍历子文件夹，false=只看当前层）"
+        type: boolean
+        default: false

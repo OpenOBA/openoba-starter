@@ -1,0 +1,32 @@
+﻿name: erdl-crud
+version: 1.0.0
+display_name: 数据库读写
+description: 通过 ERDL 协议对 ERP 数据库执行增删改查操作
+category: core
+author: 秒镜科技
+pricing:
+  model: free
+permissions:
+  database:
+    read: [product_spu, product_sku, inventory, orders, customers, dict_effect_tag, dict_sku_color, structure_standard, draft]
+    write: [draft, inventory_document]
+    forbidden: [user, role, permission, cognitive_log, agent_task]
+kb_refs: []
+tool:
+  name: erdl_crud
+  description: 对 ERP 数据库执行 CRUD 操作。entity 参数必须使用 ERDL 注册的 Entity 名称
+  required: [action, entity]
+  parameters:
+    action:
+      type: string
+      enum: [create, read, update, delete]
+      description: 操作类型
+    entity:
+      type: string
+      description: ERDL Entity 名称(如 ProductSpu/InventoryDocument)
+    values:
+      type: object
+      description: 写入/更新时的数据
+    filters:
+      type: object
+      description: 查询/删除时的过滤条件

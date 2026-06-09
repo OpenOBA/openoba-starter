@@ -1,0 +1,21 @@
+name: tsc-check
+version: 1.0.0
+display_name: TypeScript 编译检查
+description: Agent 运行 TypeScript 编译器检查代码 — 代码生成的免费守卫
+category: core
+author: 秒镜科技
+pricing:
+  model: free
+permissions:
+  shell:
+    allow: ["npx tsc --noEmit"]
+kb_refs: []
+tool:
+  name: tsc_check
+  description: 运行 npx tsc --noEmit 检查 TypeScript 代码。返回编译结果（错误数量、错误详情）。修改代码后应立即调用此工具验证，确保无编译错误。
+  required: []
+  parameters:
+    project:
+      type: string
+      description: 检查范围：'backend' | 'frontend' | 'both'。默认 'both'
+      enum: [backend, frontend, both]

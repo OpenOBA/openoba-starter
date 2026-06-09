@@ -1,0 +1,13 @@
+/* 全局：所有弹窗内输入框宽度 100% */
+.el-dialog .el-input,
+.el-dialog .el-select,
+.el-dialog .el-date-editor,
+.el-dialog .el-textarea,
+.el-dialog .el-input-number {
+  width: 100% !important;
+}
+
+/* el-image 图片预览层 — z-index 必须超过所有 el-dialog 和 el-tab-pane */
+body > .el-image-viewer__wrapper {
+  z-index: 9999 !important;
+}

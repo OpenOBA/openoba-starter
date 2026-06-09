@@ -1,0 +1,27 @@
+name: csv-exporter
+version: 1.1.0
+display_name: 数据导出
+description: 将查询结果/分析数据导出为CSV/Markdown表格/JSON文件。支持对象数组和二维数组两种格式，自动识别
+category: external
+author: 秒镜科技
+pricing:
+  model: free
+permissions:
+  filesystem:
+    write: [uploads/]
+kb_refs: []
+tool:
+  name: csv_export
+  description: 将数据导出为CSV/Markdown/JSON文件。data支持格式: [{col:val}]对象数组或[[col,col],[val,val]]二维数组(自动识别)。ertl_crud查询结果可直接传入
+  required: [data, format]
+  parameters:
+    data:
+      type: array
+      description: 数据。支持[{col:val}]对象数组或[["c1","c2"],["v1","v2"]]二维数组
+    format:
+      type: string
+      enum: [csv, markdown, json]
+      description: 导出格式
+    filename:
+      type: string
+      description: 文件名(不含扩展名，默认自动生成)

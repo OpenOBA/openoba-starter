@@ -1,0 +1,20 @@
+name: import-analyzer
+version: 1.0.0
+display_name: 导入文件解析
+description: 解析上传的CSV/JSON文件，返回列名、行数、预览数据。用于批量导入前的文件分析
+category: external
+author: 秒镜科技
+pricing:
+  model: free
+permissions:
+  filesystem:
+    read: [uploads/imports/]
+kb_refs: []
+tool:
+  name: import_analyze
+  description: 解析上传的CSV/JSON文件，返回列名、行数、前3行预览。用于批量导入前的文件结构分析
+  required: [filePath]
+  parameters:
+    filePath:
+      type: string
+      description: 文件路径，如 /uploads/imports/data.csv

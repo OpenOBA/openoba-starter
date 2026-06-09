@@ -1,0 +1,43 @@
+name: web-search
+version: 1.0.0
+display_name: 网络搜索
+description: 搜索互联网获取实时信息、新闻、图片、视频。使用 DuckDuckGo 搜索 API。用于市场调研、行业资讯、竞品分析
+category: external
+author: OpenOBA
+pricing:
+  model: free
+permissions:
+  network:
+    - domain: ["*"]
+    - max_rps: 3
+kb_refs: []
+tool:
+  name: web_search
+  description: 搜索互联网获取信息。支持网页搜索、新闻搜索、图片搜索、视频搜索。返回搜索结果列表（标题/URL/摘要）
+  required: [query]
+  parameters:
+    query:
+      type: string
+      description: 搜索关键词
+    type:
+      type: string
+      enum: [web, news, images, videos]
+      description: 搜索类型（web=网页/news=新闻/images=图片/videos=视频）
+      default: web
+    max_results:
+      type: number
+      description: 最大返回结果数（默认10，最大20）
+      default: 10
+    time_range:
+      type: string
+      enum: [d, w, m, y]
+      description: 时间范围（d=天/w=周/m=月/y=年）
+      default: w
+    country:
+      type: string
+      description: 地区代码（如 cn/us/jp，默认空=全球）
+      default: ""
+    language:
+      type: string
+      description: 语言代码（如 zh-CN/en-US，默认空=自动）
+      default: ""

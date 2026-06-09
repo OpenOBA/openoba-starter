@@ -1,0 +1,33 @@
+node_modules/
+dist/
+.env
+*.log
+.DS_Store
+Thumbs.db
+coverage/
+.turbo/
+uploads/
+*.bak
+*.bak-*
+
+# 元镜自动生成的知识文件（启动时重建）
+knowledge/
+
+# 备份目录
+openoba-starter-backup-*/
+openoba-core/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 临时文件
+tmp/
+temp/
+tmp-core/
+
+# CORE tgz 包（通过 npm registry 分发，不进仓库）
+*.tgz
+packages/core/

@@ -1,0 +1,21 @@
+﻿name: query-erp-data
+version: 1.0.0
+display_name: ERP 数据查询
+description: 查询 ERP 系统中的真实业务数据—SPU/SKU/订单/库存/客户等
+category: core
+author: 秒镜科技
+pricing:
+  model: free
+permissions:
+  database:
+    read: [product_spu, product_sku, product_set, inventory, orders, customers, dict_effect_tag, dict_sku_color, structure_standard]
+kb_refs: []
+tool:
+  name: query_erp_data
+  description: 查询 ERP 系统中的真实业务数据。支持 all/spu/sku/shapes/colors/materials/effects/series/rules 等数据类型
+  required: [data_type]
+  parameters:
+    data_type:
+      type: string
+      enum: [all, spu, sku, shapes, colors, materials, effects, series, rules]
+      description: 数据类型。all=全部

@@ -1,0 +1,31 @@
+﻿name: draft-list
+version: 1.0.0
+display_name: 草稿查询
+description: 查询草稿池中的草稿列表，支持按状态/性别/框型/系列筛选
+category: core
+author: 秒镜科技
+pricing:
+  model: free
+permissions:
+  database:
+    read: [draft_spu, draft]
+kb_refs: []
+tool:
+  name: draft_list
+  description: 查询草稿池中的草稿列表。可按状态/性别/来源筛选。用于查看已创建的草稿及审核状态
+  required: []
+  parameters:
+    status:
+      type: string
+      enum: [draft, reviewed, approved, published, rejected]
+      description: 草稿状态
+    gender:
+      type: string
+      enum: [female, male, unisex, limited]
+    source:
+      type: string
+      enum: [ai, manual]
+      description: 来源(ai=AI生成/manual=人工创建)
+    pageSize:
+      type: number
+      description: 每页数量(默认20)

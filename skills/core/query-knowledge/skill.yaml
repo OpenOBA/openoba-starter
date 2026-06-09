@@ -1,0 +1,20 @@
+﻿name: query-knowledge
+version: 1.0.0
+display_name: 知识库检索
+description: 查询秒镜知识库中的行业经验、专业知识、操作指南
+category: core
+author: 秒镜科技
+pricing:
+  model: free
+permissions:
+  database:
+    read: [knowledge_entry]
+kb_refs: []
+tool:
+  name: query_knowledge
+  description: 查询知识库中的行业经验。按关键词检索公开和专用知识条目
+  required: [keyword]
+  parameters:
+    keyword:
+      type: string
+      description: 检索关键词

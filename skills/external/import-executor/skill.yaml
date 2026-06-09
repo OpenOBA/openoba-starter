@@ -1,0 +1,25 @@
+name: import-executor
+version: 1.0.0
+display_name: 导入执行
+description: 执行批量数据导入。将标准化后的数据校验并写入ERP数据库。自动跳过无效行，返回导入统计
+category: external
+author: 秒镜科技
+pricing:
+  model: free
+permissions:
+  database:
+    write: [product_spu, product_sku, customer, inventory, draft]
+kb_refs: []
+tool:
+  name: import_execute
+  description: 执行批量数据导入。自动normalize→validate→逐条写入。返回imported/skipped/errors统计
+  required: [entity, data]
+  parameters:
+    entity:
+      type: string
+      description: 目标Entity名称
+    data:
+      type: array
+      items:
+        type: object
+      description: 已标准化的数据数组(来自import_map映射后的数据)

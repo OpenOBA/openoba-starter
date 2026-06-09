@@ -1,0 +1,38 @@
+name: data-analyzer
+version: 1.0.0
+display_name: 数据分析
+description: 对查询结果进行统计分析(汇总/排序/TopN/趋势)。用于销售分析/库存预警/客户洞察
+category: external
+author: 秒镜科技
+pricing:
+  model: free
+permissions:
+  database:
+    read: [product_spu, product_sku, orders, inventory, customers]
+kb_refs: []
+tool:
+  name: data_analyze
+  description: 对数据进行统计分析。支持summarize(汇总统计)、topN(排名)、trend(趋势)、filter(筛选)
+  required: [operation, data]
+  parameters:
+    operation:
+      type: string
+      enum: [summarize, topN, trend, filter]
+      description: 分析操作类型
+    data:
+      type: array
+      description: JSON数组格式的原始数据
+      items:
+        type: object
+    field:
+      type: string
+      description: 分析的目标字段名
+    topCount:
+      type: number
+      description: topN操作时返回前N条(默认5)
+    filterField:
+      type: string
+      description: 筛选字段名
+    filterValue:
+      type: string
+      description: 筛选值

@@ -1,0 +1,21 @@
+name: git-diff
+version: 1.0.0
+display_name: Git 工作区变更
+description: Agent 查看 Git 工作区变更 — 代码修改前的安全检查
+category: core
+author: 秒镜科技
+pricing:
+  model: free
+permissions:
+  shell:
+    allow: ["git diff", "git status", "git diff --stat"]
+kb_refs: []
+tool:
+  name: git_diff
+  description: 查看 Git 工作区改动。修改代码前调用此工具了解当前变更状态。修改代码后调用此工具查看 diff 确认改动正确。
+  required: []
+  parameters:
+    mode:
+      type: string
+      enum: [stat, diff, status]
+      description: stat(变更统计) / diff(完整差异) / status(文件状态)。默认 stat

@@ -1,0 +1,4 @@
+-- ⚠️  WARNING ⚠️
+-- 此文件仅用于首次安装创建数据库表结构
+-- 不要在已有生产数据库上执行，使用增量迁移脚本
+-- 执行方式: mysql -u root -p <database> < init-structure.sql

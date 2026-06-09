@@ -1,0 +1,47 @@
+name: query-era-knowledge
+display_name: 元镜 · 系统知识查询
+version: 1.0.0
+category: core
+author: 秒镜科技
+description: |
+  查询 ERA 系统的完整架构知识。数据由元镜（Meta-Mirror）引擎在系统启动时
+  自动扫描源码生成，确保永远与当前代码同步。
+
+  Agent 在以下场景自动调用：
+  - 用户询问"有哪些表/模块/API"
+  - 需要生成新代码前，了解当前系统结构
+  - 需要修改代码前，评估影响范围
+  - 需要理解某个实体的字段和关系
+
+tool:
+  name: query_era_knowledge
+  description: |
+    查询 ERA 系统知识。元镜引擎自动扫描源码生成，永不过时。
+    
+    支持按范围（scope）和具体目标（target）筛选。
+    每次只返回目标范围的最小知识子集。
+  parameters:
+    scope:
+      type: string
+      enum:
+        - architecture
+        - entities
+        - entity
+        - apis
+        - rules
+        - conventions
+        - search
+      description: |
+        查询范围：
+        - architecture: 系统架构总览（技术栈、模块清单、目录结构）
+        - entities: 所有实体的索引表（84个）
+        - entity: 某个具体实体的完整字段、关系、约束（需配合 target）
+        - apis: API 端点索引
+        - rules: 业务规则汇总
+        - conventions: 编码/命名约定
+        - search: 全文搜索（需配合 target 关键词）
+    target:
+      type: string
+      description: |
+        查询目标。entity scope 时为表名（如 "order"/"product_spu"），
+        search 时为关键词。

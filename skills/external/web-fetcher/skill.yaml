@@ -1,0 +1,29 @@
+name: web-fetcher
+version: 1.0.0
+display_name: 网页抓取
+description: 抓取任意网页内容，提取正文/标题/链接。用于竞品分析/市场调研/信息采集
+category: external
+author: 秒镜科技
+pricing:
+  model: free
+permissions:
+  network:
+    - domain: "*"
+    - max_rps: 5
+kb_refs: []
+tool:
+  name: web_fetch
+  description: 抓取指定URL的网页内容，返回纯文本/标题/链接。用于竞品分析、市场调研、信息采集
+  required: [url]
+  parameters:
+    url:
+      type: string
+      description: 要抓取的网页URL
+    extractMode:
+      type: string
+      enum: [text, markdown]
+      description: 提取模式(text=纯文本/markdown=格式化)
+      default: text
+    maxChars:
+      type: number
+      description: 最大返回字符数(默认5000)

@@ -1,0 +1,5 @@
+/**
+ * Website 模块 DTO
+ * 官网前台专用响应格式 — 轻量、扁平、前端友好
+ * 不走 admin TransformInterceptor，直接返回 data
+ */

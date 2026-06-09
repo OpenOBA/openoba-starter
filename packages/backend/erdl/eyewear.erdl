@@ -1,0 +1,468 @@
+# 秒镜科技 · Live-ERDL V1.3
+#
+# 命名空间：industry.eyewear
+# 模块：眼镜行业商品管理
+#
+# V1.3 新增：Entity 物理映射（table / dbColumn / primaryKey）
+#  Agent 操作语义字段 → ERDL 实体代理引擎翻译为 SQL → 数据库
+#
+
+namespace: industry.eyewear
+
+module:
+  version: "1.3.0"
+  extends: "erd.base"
+
+# ============================================
+# Entity 定义 — V1.3 含物理映射
+# ============================================
+entities:
+
+  # ── 商品 SPU ──
+  ProductSpu:
+    table: "product_spu"
+    primaryKey: "spu_id"
+    properties:
+      spuId: { type: "UUID", dbColumn: "spu_id", required: true }
+      spuCode: { type: "String", dbColumn: "spu_code", required: true, maxLength: 64 }
+      spuName: { type: "String", dbColumn: "spu_name", required: true, maxLength: 256 }
+      categoryId: { type: "UUID", dbColumn: "category_id" }
+      structureCode: { type: "String", dbColumn: "structure_standard_code", maxLength: 64 }
+      seriesCode: { type: "String", dbColumn: "series_code", maxLength: 64 }
+      gender: { type: "Enum", dbColumn: "gender", enum: ["female","male","unisex","limited"] }
+      status: { type: "String", dbColumn: "status" }
+      productTier: { type: "String", dbColumn: "product_tier", maxLength: 20 }
+      description: { type: "String", dbColumn: "description" }
+      mainImage: { type: "String", dbColumn: "main_image", maxLength: 512 }
+      images: { type: "JSON", dbColumn: "images" }
+      sceneTags: { type: "JSON", dbColumn: "scene_tags" }
+      attributes: { type: "JSON", dbColumn: "attributes" }
+      compatibilityLevels: { type: "JSON", dbColumn: "compatibility_levels" }
+      createdAt: { type: "DateTime", dbColumn: "created_at" }
+      updatedAt: { type: "DateTime", dbColumn: "updated_at" }
+    metadata:
+      knowledge: "product-knowledge"
+      icon: "glasses"
+      category: "product"
+
+  # ── 商品 SKU ──
+  ProductSku:
+    table: "product_sku"
+    primaryKey: "sku_id"
+    properties:
+      skuId: { type: "UUID", dbColumn: "sku_id", required: true }
+      skuCode: { type: "String", dbColumn: "sku_code", required: true, maxLength: 128 }
+      spuId: { type: "UUID", dbColumn: "spu_id", required: true }
+      skuName: { type: "String", dbColumn: "sku_name", maxLength: 256 }
+      colorCode: { type: "String", dbColumn: "color_code", maxLength: 64 }
+      retailPrice: { type: "Money(CNY)", dbColumn: "retail_price" }
+      costPrice: { type: "Money(CNY)", dbColumn: "cost_price" }
+      stockQuantity: { type: "Integer", dbColumn: "stock_quantity" }
+      status: { type: "String", dbColumn: "status" }
+      skinToneEffect: { type: "String", dbColumn: "skin_tone_effect", maxLength: 32 }
+      faceShapeEffect: { type: "String", dbColumn: "face_shape_effect", maxLength: 32 }
+      displayName: { type: "String", dbColumn: "display_name", maxLength: 256 }
+      frameShape: { type: "String", dbColumn: "frame_material", maxLength: 32 }
+      productTier: { type: "String", dbColumn: "product_tier", maxLength: 20 }
+      structureCode: { type: "String", dbColumn: "structure_standard_code", maxLength: 64 }
+      weightG: { type: "Decimal", dbColumn: "weight_g" }
+      barcode: { type: "String", dbColumn: "barcode", maxLength: 128 }
+      skuAttributes: { type: "JSON", dbColumn: "sku_attributes" }
+      createdAt: { type: "DateTime", dbColumn: "created_at" }
+      updatedAt: { type: "DateTime", dbColumn: "updated_at" }
+    metadata:
+      knowledge: "product-knowledge"
+      category: "product"
+
+  # ── 商品分类 ──
+  ProductCategory:
+    table: "product_category"
+    primaryKey: "category_id"
+    properties:
+      categoryId: { type: "UUID", dbColumn: "category_id", required: true }
+      categoryCode: { type: "String", dbColumn: "category_code", maxLength: 64 }
+      categoryName: { type: "String", dbColumn: "category_name", maxLength: 128 }
+      parentId: { type: "UUID", dbColumn: "parent_id" }
+      level: { type: "Integer", dbColumn: "level" }
+      sortOrder: { type: "Integer", dbColumn: "sort_order" }
+      isActive: { type: "Boolean", dbColumn: "is_active" }
+
+  # ── 商品套装 ──
+  ProductSet:
+    table: "product_set"
+    primaryKey: "set_id"
+    properties:
+      setId: { type: "UUID", dbColumn: "set_id", required: true }
+      setCode: { type: "String", dbColumn: "set_code", maxLength: 64 }
+      setName: { type: "String", dbColumn: "set_name", maxLength: 256 }
+      skuList: { type: "JSON", dbColumn: "sku_list" }
+      setPrice: { type: "Money(CNY)", dbColumn: "set_price" }
+      retailPrice: { type: "Money(CNY)", dbColumn: "retail_price" }
+      status: { type: "String", dbColumn: "status" }
+
+  # ── 客户 ──
+  Customer:
+    table: "customer"
+    primaryKey: "customer_id"
+    properties:
+      customerId: { type: "UUID", dbColumn: "customer_id", required: true }
+      customerCode: { type: "String", dbColumn: "customer_code", maxLength: 32 }
+      customerType: { type: "String", dbColumn: "customer_type", maxLength: 32 }
+      customerLevel: { type: "String", dbColumn: "customer_level", maxLength: 32 }
+      contactName: { type: "String", dbColumn: "contact_name", maxLength: 128 }
+      phone: { type: "String", dbColumn: "phone", maxLength: 32 }
+      email: { type: "String", dbColumn: "email", maxLength: 128 }
+      wechat: { type: "String", dbColumn: "wechat", maxLength: 128 }
+      companyName: { type: "String", dbColumn: "company_name", maxLength: 256 }
+      status: { type: "String", dbColumn: "status", maxLength: 32 }
+      totalOrders: { type: "Integer", dbColumn: "total_orders" }
+      totalAmount: { type: "Money(CNY)", dbColumn: "total_amount" }
+      createdAt: { type: "DateTime", dbColumn: "created_at" }
+
+  # ── 订单 ──
+  Order:
+    table: "order"
+    primaryKey: "order_id"
+    properties:
+      orderId: { type: "UUID", dbColumn: "order_id", required: true }
+      orderNo: { type: "String", dbColumn: "order_no", maxLength: 64 }
+      customerId: { type: "UUID", dbColumn: "customer_id" }
+      customerName: { type: "String", dbColumn: "customer_name", maxLength: 128 }
+      customerPhone: { type: "String", dbColumn: "customer_phone", maxLength: 32 }
+      customerType: { type: "String", dbColumn: "customer_type", maxLength: 16 }
+      status: { type: "String", dbColumn: "status", maxLength: 32 }
+      totalAmount: { type: "Money(CNY)", dbColumn: "total_amount" }
+      actualAmount: { type: "Money(CNY)", dbColumn: "actual_amount" }
+      discountAmount: { type: "Money(CNY)", dbColumn: "discount_amount" }
+      remark: { type: "String", dbColumn: "remark" }
+      createdAt: { type: "DateTime", dbColumn: "created_at" }
+
+  # ── 订单明细 ──
+  OrderItem:
+    table: "order_item"
+    primaryKey: "item_id"
+    properties:
+      itemId: { type: "UUID", dbColumn: "item_id", required: true }
+      orderId: { type: "UUID", dbColumn: "order_id" }
+      productType: { type: "String", dbColumn: "product_type", maxLength: 32 }
+      productId: { type: "UUID", dbColumn: "product_id" }
+      productName: { type: "String", dbColumn: "product_name", maxLength: 256 }
+      skuCode: { type: "String", dbColumn: "sku_code", maxLength: 64 }
+      quantity: { type: "Integer", dbColumn: "quantity" }
+      unitPrice: { type: "Money(CNY)", dbColumn: "unit_price" }
+      subtotal: { type: "Money(CNY)", dbColumn: "subtotal" }
+
+  # ── 库存（唯一权威数据源，Agent 只读）──
+  Inventory:
+    table: "inventory"
+    primaryKey: "id"
+    properties:
+      id: { type: "UUID", dbColumn: "id", required: true }
+      skuId: { type: "UUID", dbColumn: "sku_id" }
+      skuCode: { type: "String", dbColumn: "sku_code", maxLength: 128 }
+      currentQuantity: { type: "Integer", dbColumn: "current_quantity" }
+      availableQuantity: { type: "Integer", dbColumn: "available_quantity" }
+      lockedQuantity: { type: "Integer", dbColumn: "locked_quantity" }
+      warningQuantity: { type: "Integer", dbColumn: "warning_quantity" }
+
+  # -- InventoryDocument --
+  InventoryDocument:
+    table: "inventory_document"
+    primaryKey: "id"
+    properties:
+      id: { type: "UUID", dbColumn: "id", required: true }
+      docNo: { type: "String", dbColumn: "doc_no", required: true }
+      docType: { type: "Enum", dbColumn: "doc_type", enum: ["stock_in","stock_out","transfer","adjustment"] }
+      items: { type: "JSON", dbColumn: "items" }
+      totalQuantity: { type: "Integer", dbColumn: "total_quantity" }
+      source: { type: "String", dbColumn: "source" }
+      status: { type: "String", dbColumn: "status" }
+      remark: { type: "String", dbColumn: "remark" }
+      createdBy: { type: "String", dbColumn: "created_by" }
+
+  # ── 结构标准 ──
+  StructureStandard:
+    table: "structure_standard"
+    primaryKey: "structure_id"
+    properties:
+      structureId: { type: "UUID", dbColumn: "structure_id", required: true }
+      externalCode: { type: "String", dbColumn: "external_code", required: true, maxLength: 16 }
+      internalCode: { type: "String", dbColumn: "internal_code", maxLength: 64 }
+      shapeCode: { type: "String", dbColumn: "shape_code", required: true, maxLength: 8 }
+      seriesCode: { type: "String", dbColumn: "series_code", maxLength: 8 }
+      width: { type: "Decimal", dbColumn: "width", required: true }
+      height: { type: "Decimal", dbColumn: "height", required: true }
+      bridgeWidth: { type: "Integer", dbColumn: "bridge_width" }
+      circumference: { type: "Decimal", dbColumn: "circumference", required: true }
+      baseCurve: { type: "Integer", dbColumn: "base_curve" }
+      surfaceTypes: { type: "JSON", dbColumn: "surface_types" }
+      refractiveIndexes: { type: "JSON", dbColumn: "refractive_indexes" }
+      description: { type: "String", dbColumn: "description" }
+      materialCode: { type: "String", dbColumn: "material_code", maxLength: 16 }
+      status: { type: "String", dbColumn: "status", maxLength: 16 }
+      isDeleted: { type: "Boolean", dbColumn: "is_deleted" }
+
+  # ── 字典：效果词 ──
+  DictEffectTag:
+    table: "dict_effect_tag"
+    primaryKey: "effect_code"
+    properties:
+      effectCode: { type: "String", dbColumn: "effect_code", required: true, maxLength: 32 }
+      effectType: { type: "Enum", dbColumn: "effect_type", enum: ["skin_tone","face_shape"] }
+      effectName: { type: "String", dbColumn: "effect_name", required: true, maxLength: 32 }
+      targetValue: { type: "String", dbColumn: "target_value", maxLength: 32 }
+      recommendedColors: { type: "JSON", dbColumn: "recommended_colors" }
+      isActive: { type: "Boolean", dbColumn: "is_active" }
+      sortOrder: { type: "Integer", dbColumn: "sort_order" }
+    metadata: { category: "dict", agent_writable: true }
+
+  # ── 字典：SKU 色彩 ──
+  DictSkuColor:
+    table: "dict_sku_color"
+    primaryKey: "color_id"
+    properties:
+      colorId: { type: "UUID", dbColumn: "color_id", required: true }
+      colorCode: { type: "String", dbColumn: "color_code", maxLength: 64 }
+      colorName: { type: "String", dbColumn: "color_name", maxLength: 128 }
+      colorFamily: { type: "String", dbColumn: "color_family", maxLength: 32 }
+      hexValue: { type: "String", dbColumn: "hex_value", maxLength: 32 }
+      isActive: { type: "Boolean", dbColumn: "is_active" }
+      sortOrder: { type: "Integer", dbColumn: "sort_order" }
+    metadata: { category: "dict" }
+
+  # ── 知识条目 ──
+  KnowledgeEntry:
+    table: "knowledge_entry"
+    primaryKey: "id"
+    properties:
+      id: { type: "UUID", dbColumn: "id", autoGenerate: true }
+      title: { type: "String", dbColumn: "title", required: true, maxLength: 255 }
+      type: { type: "Enum", dbColumn: "type", enum: ["DOCUMENT","EXPERIENCE","CASE","DATA","FAQ","POLICY","STRATEGY"] }
+      content: { type: "String", dbColumn: "content" }
+      tags: { type: "JSON", dbColumn: "tags" }
+      visibility: { type: "String", dbColumn: "visibility", maxLength: 16 }
+      contributor: { type: "String", dbColumn: "contributor", maxLength: 100 }
+      status: { type: "String", dbColumn: "status", maxLength: 16 }
+    metadata: { category: "knowledge" }
+
+  # ── Agent 记忆 ──
+  AgentMemory:
+    table: "agent_memory"
+    primaryKey: "memory_id"
+    properties:
+      memoryId: { type: "UUID", dbColumn: "memory_id", autoGenerate: true }
+      title: { type: "String", dbColumn: "title", required: true, maxLength: 255 }
+      content: { type: "String", dbColumn: "content", required: true }
+      category: { type: "Enum", dbColumn: "category", enum: ["lesson","rule","discovery","preference","context"] }
+      severity: { type: "Enum", dbColumn: "severity", enum: ["critical","warning","info","success"] }
+      scope: { type: "String", dbColumn: "scope" }
+      scopeValue: { type: "String", dbColumn: "scope_value" }
+      version: { type: "Integer", dbColumn: "version" }
+      hitCount: { type: "Integer", dbColumn: "hit_count" }
+      status: { type: "String", dbColumn: "status", maxLength: 16 }
+    metadata: { category: "agent", agent_writable: true }
+
+  # ── 草稿 SPU ──
+  DraftSpu:
+    table: "draft_spu"
+    primaryKey: "draft_id"
+    properties:
+      draftId: { type: "UUID", dbColumn: "draft_id", required: true }
+      batchId: { type: "UUID", dbColumn: "batch_id" }
+      gender: { type: "Enum", dbColumn: "gender", enum: ["female","male","unisex","limited"] }
+      shapeCode: { type: "String", dbColumn: "shape_code", maxLength: 16 }
+      seriesCode: { type: "String", dbColumn: "series_code", maxLength: 16 }
+      structureCode: { type: "String", dbColumn: "structure_standard_code", maxLength: 32 }
+      spuName: { type: "String", dbColumn: "spu_name", maxLength: 200 }
+      status: { type: "String", dbColumn: "status", maxLength: 20 }
+      aestheticScore: { type: "Integer", dbColumn: "aesthetic_score" }
+      aestheticLevel: { type: "String", dbColumn: "aesthetic_level", maxLength: 16 }
+    metadata: { category: "draft" }
+
+  # ── 副品 S-SKU ──
+  SubSku:
+    table: "sub_sku"
+    primaryKey: "id"
+    properties:
+      id: { type: "UUID", dbColumn: "id", required: true }
+      code: { type: "String", dbColumn: "code", maxLength: 50 }
+      name: { type: "String", dbColumn: "name", maxLength: 200 }
+      categoryId: { type: "UUID", dbColumn: "category_id" }
+      price: { type: "Money(CNY)", dbColumn: "price" }
+      costPrice: { type: "Money(CNY)", dbColumn: "cost_price" }
+      stock: { type: "Integer", dbColumn: "stock" }
+      specValues: { type: "JSON", dbColumn: "spec_values" }
+      isActive: { type: "Boolean", dbColumn: "is_active" }
+    metadata: { category: "product" }
+
+
+# ============================================
+# V1.2 别名映射 — 行业黑话 → 语义字段
+# ============================================
+aliases:
+  ProductSpu:
+    "框形": "seriesCode"
+    "框型": "seriesCode"
+    "镜框形状": "seriesCode"
+    "款式": "spuName"
+    "款": "spuName"
+    "型号": "spuName"
+    "等级": "productTier"
+    "档次": "productTier"
+    "定位": "productTier"
+  ProductSku:
+    "色号": "colorCode"
+    "花色": "colorCode"
+    "配色": "colorCode"
+    "卖价": "retailPrice"
+    "售价": "retailPrice"
+    "报价": "retailPrice"
+    "成本": "costPrice"
+    "进货价": "costPrice"
+    "库存": "stockQuantity"
+    "重量": "weightG"
+  StructureStandard:
+    "编号": "externalCode"
+    "外编": "externalCode"
+    "对外编号": "externalCode"
+    "内编": "internalCode"
+    "对内编号": "internalCode"
+    "造型": "shapeCode"
+    "框形": "shapeCode"
+    "框型": "shapeCode"
+    "系列": "seriesCode"
+    "宽度": "width"
+    "高度": "height"
+    "鼻梁": "bridgeWidth"
+    "鼻梁宽度": "bridgeWidth"
+    "周长": "circumference"
+    "弧度": "baseCurve"
+    "基弧": "baseCurve"
+    "球面": "surfaceTypes"
+    "球面类型": "surfaceTypes"
+    "折射率": "refractiveIndexes"
+    "描述": "description"
+    "说明": "description"
+    "材质": "materialCode"
+  Customer:
+    "姓名": "contactName"
+    "客户名": "contactName"
+    "电话": "phone"
+    "手机号": "phone"
+    "级别": "customerLevel"
+    "等级": "customerLevel"
+    "类型": "customerType"
+  Order:
+    "订单号": "orderNo"
+    "单号": "orderNo"
+    "总价": "totalAmount"
+    "实付": "actualAmount"
+    "优惠": "discountAmount"
+    "状态": "status"
+
+
+# ============================================
+# Rulesets — 规则集
+# ============================================
+rulesets:
+  PricingRules:
+    policies:
+      - name: "会员等级折扣-VIP"
+        priority: 1
+        trigger: "Product.price.calculate"
+        tier: policy
+        entity: ProductSku
+        condition:
+          logic: AND
+          conditions:
+            - field: "customer.tier"
+              operator: eq
+              value: "VIP"
+        actions:
+          - type: calculate
+            params:
+              formula: "retailPrice * 0.8"
+      - name: "会员等级折扣-SVIP"
+        priority: 1
+        trigger: "Product.price.calculate"
+        tier: policy
+        entity: ProductSku
+        condition:
+          logic: AND
+          conditions:
+            - field: "customer.tier"
+              operator: eq
+              value: "SVIP"
+        actions:
+          - type: calculate
+            params:
+              formula: "retailPrice * 0.7"
+    validations:
+      - name: "零售价必须大于0"
+        priority: 10
+        tier: validation
+        entity: ProductSku
+        condition:
+          logic: AND
+          conditions:
+            - field: "retailPrice"
+              operator: gte
+              value: 1
+        actions:
+          - type: validate
+            params:
+              error: "零售价必须大于 0"
+      - name: "售价不低于成本1.2倍"
+        priority: 10
+        tier: validation
+        entity: ProductSku
+        condition:
+          logic: AND
+          conditions:
+            - field: "costPrice"
+              operator: gt
+              value: 0
+            - field: "retailPrice"
+              operator: gte
+              value: 1
+        actions:
+          - type: validate
+            params:
+              error: "零售价必须至少是成本价的1.2倍"
+
+
+# ============================================
+# Live-ERDL 同步 + 语义层
+# ============================================
+sync_policy:
+  dict_pulse:
+    mode: "on-demand"
+    source:
+      type: "dict"
+      table: "dict_effect_tag"
+      fields: ["effect_code", "effect_name", "effect_type"]
+    transform: "passthrough"
+    target: "system_prompt"
+  color_pulse:
+    mode: "on-demand"
+    source:
+      type: "dict"
+      table: "dict_sku_color"
+      fields: ["color_code", "color_name", "color_family"]
+    transform: "passthrough"
+    target: "system_prompt"
+
+semantic_layer:
+  dictionaries:
+    - name: "效果词映射"
+      source: "dict_effect_tag"
+      mapping_engine: "llm_bridge"
+  hotword_rules:
+    detect_from: ["social_listener", "search_log"]
+    normalize_to: "effect_tag"
+    confidence_threshold: 0.7
+
+evolution_rules:
+  auto_expand: false
+  threshold: 100
+  review_workflow: "human_approve"

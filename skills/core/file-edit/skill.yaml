@@ -1,0 +1,35 @@
+name: file-edit
+version: 1.0.0
+display_name: 文件编辑
+description: 精准编辑文件 — Agent 可读取、修改、覆写项目中的源代码文件
+category: core
+author: 秒镜科技
+pricing:
+  model: free
+permissions:
+  filesystem:
+    read: true
+    write: true
+    allowPatterns: ["src/**", "skills/**", "erdl/**", "packages/**"]
+kb_refs: []
+tool:
+  name: file_edit
+  description: 精准编辑文件。支持三种操作：read(读取文件内容)、replace(替换文件中的文本)、write(完整覆写文件)。replace 操作使用 old_str → new_str 精确替换，old_str 必须与文件内容完全匹配（包括空白和缩进）。一次调用只做一种操作。
+  required: [operation, filePath]
+  parameters:
+    operation:
+      type: string
+      enum: [read, replace, write]
+      description: 操作类型
+    filePath:
+      type: string
+      description: 文件路径（相对于项目根目录或绝对路径）
+    old_str:
+      type: string
+      description: replace 操作时：要替换的原文本（必须与文件完全匹配，含空白和缩进）
+    new_str:
+      type: string
+      description: replace 操作时：替换后的新文本
+    content:
+      type: string
+      description: write 操作时：完整文件内容

@@ -1,0 +1,34 @@
+name: aesthetics-check
+version: 1.0.0
+display_name: 美学校验
+description: 对产出内容进行美学校验—用于小红书笔记/产品详情页/营销文案生成时验证美学效果。不在SPU创建阶段自动调用
+category: core
+author: 秒镜科技
+pricing:
+  model: free
+permissions:
+  database:
+    read: [dict_effect_tag, dict_sku_color, structure_standard]
+kb_refs: []
+tool:
+  name: aesthetics_check
+  description: 对内容产出进行美学校验(框型+脸型+色彩+肤色组合)。用于小红书笔记/产品详情页/营销文案生成时验证美学合理性，非SPU创建阶段使用
+  required: [shapeCode, colorCode]
+  parameters:
+    shapeCode:
+      type: string
+      description: 框型编码
+    seriesCode:
+      type: string
+      description: 系列编码
+    gender:
+      type: string
+    colorCode:
+      type: string
+      description: 色号
+    skinToneEffect:
+      type: string
+      description: 肤色效果词
+    faceShapeEffect:
+      type: string
+      description: 脸型效果词

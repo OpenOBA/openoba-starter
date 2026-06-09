@@ -1,0 +1,50 @@
+﻿name: draft-create
+version: 1.0.0
+display_name: 草稿创建
+description: 在草稿池中创建 SPU/SKU 草稿，含自动美学校验和效果词容错
+category: core
+author: 秒镜科技
+pricing:
+  model: free
+permissions:
+  database:
+    write: [draft_spu, draft_sku, draft]
+kb_refs: []
+tool:
+  name: draft_create
+  description: 在草稿池中创建 SPU/SKU 草稿。草稿需人工审核后才能上架。创建后可调 aesthetics_check 校验
+  required: [spuName, gender, shapeCode, seriesCode, structureStandardCode]
+  parameters:
+    spuName:
+      type: string
+      description: SPU 名称(必填)
+    gender:
+      type: string
+      enum: [female, male, unisex, limited]
+    shapeCode:
+      type: string
+      description: 框型编码(RND/OVL/SQR/REC/CAT/HEX/BRC/AVT)
+    seriesCode:
+      type: string
+      description: 系列编码(CLS/BUS/FSH/SPT/VNT)
+    structureStandardCode:
+      type: string
+      description: 结构标准编码(如 S4844-RND)
+    spuDescription:
+      type: string
+      description: SPU 描述文案
+    skus:
+      type: array
+      description: SKU 列表
+      items:
+        type: object
+        properties:
+          colorCode:
+            type: string
+            description: 色号编码
+          skinToneEffect:
+            type: string
+            description: 肤色效果词
+          faceShapeEffect:
+            type: string
+            description: 脸型效果词

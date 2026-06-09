@@ -1,0 +1,50 @@
+# Live-ERDL V1.2: 行业黑话映射示例
+# 
+# aliases 区块：将行业术语/口语/黑话 → 映射到 ERDL 标准字段
+# 运行时自然积累：Agent 遇到未知词 → 询问 → 确认 → 自动沉淀
+# 
+
+namespace: industry.demo
+
+entities:
+  FrameProduct:
+    properties:
+      modelName:
+        type: "String"
+        required: true
+      frameShape:
+        type: "Enum"
+        enum: ["Round", "Square", "CatEye", "Aviator", "Oval"]
+      material:
+        type: "String"
+        required: true
+      retailPrice:
+        type: "Money(CNY)"
+      colorName:
+        type: "String"
+        maxLength: 64
+
+# ── V1.2 新增：别名映射区块 ──
+# 格式：Entity名 → { 行业术语 → 标准字段名 }
+aliases:
+  FrameProduct:
+    # 材质相关
+    "料子": "material"
+    "原料": "material"
+    "材质": "material"
+    # 价格相关
+    "卖价": "retailPrice"
+    "报价": "retailPrice"
+    "吊牌价": "retailPrice"
+    # 颜色相关
+    "色号": "colorName"
+    "花色": "colorName"
+    "配色": "colorName"
+    # 款式相关
+    "款": "modelName"
+    "款式": "modelName"
+    "型号": "modelName"
+    # 框型相关
+    "框形": "frameShape"
+    "框型": "frameShape"
+    "镜框形状": "frameShape"

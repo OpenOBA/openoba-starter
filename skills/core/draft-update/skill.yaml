@@ -1,0 +1,34 @@
+﻿name: draft-update
+version: 1.0.0
+display_name: 草稿修订
+description: 修改已有草稿的内容(文本/JSON/标签)，支持多轮迭代
+category: core
+author: 秒镜科技
+pricing:
+  model: free
+permissions:
+  database:
+    write: [draft, draft_spu]
+kb_refs: []
+tool:
+  name: draft_update
+  description: 更新已有草稿。接受通用 draft ID(优先)或旧 draft_spu ID(回退)。可修改 body_text/body_json/tags
+  required: [draftId]
+  parameters:
+    draftId:
+      type: string
+      description: 草稿 UUID(draft_create 返回的 🔑 通用草稿 ID)
+    title:
+      type: string
+      description: 更新后的标题
+    bodyText:
+      type: string
+      description: 更新后的文本内容
+    bodyJson:
+      type: object
+      description: 更新后的结构化数据
+    tags:
+      type: array
+      description: 更新后的标签
+      items:
+        type: string

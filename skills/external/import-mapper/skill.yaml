@@ -1,0 +1,25 @@
+name: import-mapper
+version: 1.0.0
+display_name: 字段映射
+description: 将外部文件列名自动映射到ERDL Entity字段。支持精确/别名/模糊三级匹配，返回映射结果和置信度
+category: external
+author: 秒镜科技
+pricing:
+  model: free
+permissions:
+  database:
+    read: [product_spu, product_sku, customer, structure_standard]
+kb_refs: []
+tool:
+  name: import_map
+  description: 将外部文件列名映射到ERDL Entity字段。3级匹配：精确→别名→模糊。返回每个列的映射目标+置信度+匹配方法
+  required: [columns, entity]
+  parameters:
+    columns:
+      type: array
+      items:
+        type: string
+      description: 从import_analyze获得的列名列表
+    entity:
+      type: string
+      description: 目标Entity名称，如 ProductSpu/Customer/Inventory

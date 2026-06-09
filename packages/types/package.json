@@ -1,0 +1,16 @@
+{
+  "name": "@openoba/types",
+  "version": "0.1.0",
+  "description": "OpenOBA shared TypeScript types — enums and interfaces for CORE ↔ ERP decoupling",
+  "author": "OpenOBA",
+  "license": "MIT",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rimraf dist",
+    "prepublishOnly": "npm run build"
+  }
+}

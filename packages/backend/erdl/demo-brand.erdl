@@ -1,0 +1,81 @@
+namespace: industry.demo
+module:
+  version: "1.0.0"
+  description: "新品牌「镜界」入驻秒镜 — 3款镜框上线"
+
+entities:
+  FrameProduct:
+    properties:
+      modelName:
+        type: "String"
+        required: true
+        maxLength: 50
+      frameShape:
+        type: "Enum"
+        enum: ["Round", "Square", "CatEye", "Aviator", "Oval", "Rectangle", "Butterfly"]
+        required: true
+      material:
+        type: "Enum"
+        enum: ["TR90", "钛合金", "板材", "金属"]
+        required: true
+      retailPrice:
+        type: "Money(CNY)"
+        required: true
+      costPrice:
+        type: "Money(CNY)"
+        required: true
+      stock:
+        type: "Integer"
+        required: true
+    metadata:
+      category: "eyewear"
+      brand: "镜界"
+
+rulesets:
+  BrandPricing:
+    policies:
+      - name: "镜界品牌新品8折"
+        priority: 5
+        trigger: "Product.price.calculate"
+        tier: policy
+        entity: FrameProduct
+        condition:
+          logic: AND
+          conditions:
+            - field: "customer.tier"
+              operator: eq
+              value: "NEW"
+        actions:
+          - type: calculate
+            params:
+              formula: "retailPrice * 0.8"
+    validations:
+      - name: "不能亏本卖"
+        priority: 1
+        entity: FrameProduct
+        condition:
+          logic: AND
+          conditions:
+            - field: "retailPrice"
+              operator: lt
+              value: "costPrice"
+        message: "售价不能低于成本价"
+
+agents:
+  BrandAdvisor:
+    capabilities:
+      - style_matching
+      - face_shape_analysis
+    knowledgeBases:
+      - frame-catalog
+      - face-shape-guide
+
+knowledgeBases:
+  frame-catalog:
+    sources:
+      - type: "text"
+        content: "镜界品牌镜框目录：猫眼款-CateyePro 钛合金 ¥599、方形款-SquareX TR90 ¥399、圆框款-RoundLite 金属 ¥299"
+  face-shape-guide:
+    sources:
+      - type: "text"
+        content: "圆脸适合方形/猫眼框；方脸适合圆形/椭圆框；长脸适合大框圆形；鹅蛋脸适合任何框型"

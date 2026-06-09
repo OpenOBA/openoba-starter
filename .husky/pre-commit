@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 [pre-commit] Running ESLint..."
+
+cd packages/backend
+npx eslint "src/**/*.ts" --max-warnings 200 --quiet
+if [ $? -ne 0 ]; then
+  echo "❌ [pre-commit] ESLint failed — commit aborted"
+  exit 1
+fi
+
+echo "✅ [pre-commit] ESLint passed"
+
+echo "🔍 [pre-commit] Running tsc --noEmit..."
+npx tsc --noEmit
+if [ $? -ne 0 ]; then
+  echo "❌ [pre-commit] TypeScript check failed — commit aborted"
+  exit 1
+fi
+
+echo "✅ [pre-commit] All checks passed"
