@@ -94,7 +94,7 @@
       "json",
       "ts"
     ],
-    "rootDir": "src",
+    "rootDir": ".",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
@@ -103,7 +103,7 @@
       "**/*.(t|j)s"
     ],
     "moduleNameMapper": {
-      "^@openoba/core/(.+)$": "<rootDir>/../../../node_modules/@openoba/core/dist/$1",
+      "^@openoba/core/(.+)$": "<rootDir>/node_modules/@openoba/core/dist/$1",
       "^@/(.*)$": "<rootDir>/$1"
     },
     "coverageDirectory": "../coverage",

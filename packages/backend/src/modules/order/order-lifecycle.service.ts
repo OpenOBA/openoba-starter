@@ -1,4 +1,4 @@
-﻿import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common'
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, DataSource } from 'typeorm'
 import * as crypto from 'crypto'
@@ -23,12 +23,13 @@ import {
 import { TransactionType } from '../inventory/entity/inventory-transaction.entity'
 
 /**
- * 璁㈠崟鐢熷懡鍛ㄦ湡瀛?Service
+ * 订单生命周期子 Service
  *
- * 璐熻矗锛氭敮浠?/ 鍙戣揣 / 鍙栨秷锛堜簨鍔℃牳蹇冿紝鍚法 Service Inventory 璋冪敤锛? *
- * 鈿狅笍 createPayment 鍜?createShipment 鍚?`.then()` 鍓綔鐢ㄩ摼
- *   浜嬪姟鍐呯殑搴撳瓨鎿嶄綔鐢辨湰 Service 瀹屾垚
- *   浜嬪姟澶栫殑鍓綔鐢紙浼氬憳鏇存柊 / 瀹㈡埛妗ｆ娌夋穩锛夌敱涓?Service 澶勭悊
+ * 负责：支付 / 发货 / 取消（事务核心，含跨 Service Inventory 调用）
+ *
+ * ⚠️ createPayment 和 createShipment 含 `.then()` 副作用链
+ *   事务内的库存操作由本 Service 完成
+ *   事务外的副作用（会员更新 / 客户档案沉淀）由主 Service 处理
  */
 @Injectable()
 export class OrderLifecycleService {
@@ -45,7 +46,7 @@ export class OrderLifecycleService {
     private dataSource: DataSource,
   ) {}
 
-  // ===== 鍙栨秷璁㈠崟 =====
+  // ===== 取消订单 =====
   async cancelOrder(id: string, ensureExistsFn: () => Promise<any>, remark?: string, operator?: string) {
     const order = await ensureExistsFn()
     const VALID_TRANSITIONS: Record<string, string[]> = {
@@ -59,14 +60,14 @@ export class OrderLifecycleService {
     }
     const allowed = VALID_TRANSITIONS[order.status]
     if (!allowed || !allowed.includes(ORDER_STATUS.cancelled)) {
-      throw new BadRequestException(`璁㈠崟鐘舵€?${order.status} 涓嶅彲鍙栨秷`)
+      throw new BadRequestException(`订单状态 ${order.status} 不可取消`)
     }
     const oldStatus = order.status
     const isShippedOrDelivered = oldStatus === ORDER_STATUS.shipped || oldStatus === ORDER_STATUS.delivered
 
     await this.dataSource.transaction(async (manager) => {
       await manager.update(Order, id, { status: ORDER_STATUS.cancelled, internalRemark: null } as any)
-      await manager.insert(OrderLog, { orderId: id, action: 'cancel', oldStatus, newStatus: ORDER_STATUS.cancelled, operator: operator || 'system', remark: remark || '鍙栨秷璁㈠崟' })
+      await manager.insert(OrderLog, { orderId: id, action: 'cancel', oldStatus, newStatus: ORDER_STATUS.cancelled, operator: operator || 'system', remark: remark || '取消订单' })
 
       const items = await manager.find(this.itemRepo.target, { where: { orderId: id } })
       for (const item of items) {
@@ -82,19 +83,19 @@ export class OrderLifecycleService {
             })
           }
         } catch (e: unknown) {
-          this.logger.error(`鍙栨秷璁㈠崟 ${id} SKU ${item.productId} 搴撳瓨澶勭悊澶辫触: ${(e as Error).message}`)
+          this.logger.error(`取消订单 ${id} SKU ${item.productId} 库存处理失败: ${(e as Error).message}`)
           throw e
         }
       }
     })
 
-    this.logger.log(`璁㈠崟 ${id} 宸插彇娑堬紙${isShippedOrDelivered ? '搴撳瓨鍥炴粴' : '搴撳瓨閲婃斁'}锛塦)
+    this.logger.log(`订单 ${id} 已取消（${isShippedOrDelivered ? '库存回滚' : '库存释放'}）`)
   }
 
-  // ===== 鏀粯 =====
+  // ===== 支付 =====
   async createPayment(dto: CreatePaymentDto) {
     if (!dto.amount || dto.amount <= 0) {
-      throw new BadRequestException('鏀粯閲戦蹇呴』澶т簬 0')
+      throw new BadRequestException('支付金额必须大于 0')
     }
 
     const paymentNo = `PAY-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${crypto.randomUUID().substring(0, 8).toUpperCase()}`
@@ -104,11 +105,11 @@ export class OrderLifecycleService {
         where: { orderId: dto.orderId },
         lock: { mode: 'pessimistic_write' },
       })
-      if (!order) throw new NotFoundException('璁㈠崟涓嶅瓨鍦?)
+      if (!order) throw new NotFoundException('订单不存在')
 
       const payableStatuses: string[] = [ORDER_STATUS.pending, ORDER_STATUS.confirmed]
       if (!payableStatuses.includes(order.status as string)) {
-        throw new BadRequestException(`璁㈠崟鐘舵€?${order.status} 涓嶅彲鏀粯`)
+        throw new BadRequestException(`订单状态 ${order.status} 不可支付`)
       }
 
       const existingPayments = await manager.find(OrderPayment, {
@@ -118,7 +119,7 @@ export class OrderLifecycleService {
       const remaining = Number(order.actualAmount) - alreadyPaid
 
       if (dto.amount > remaining) {
-        throw new BadRequestException('鏀粯閲戦瓒呰繃鍓╀綑鏈粯')
+        throw new BadRequestException('支付金额超过剩余未付')
       }
 
       await manager.insert(OrderPayment, { ...dto, paymentNo, status: PAYMENT_RECORD_STATUS.paid, paidAt: new Date() })
@@ -130,9 +131,9 @@ export class OrderLifecycleService {
       if (paymentStatus === PAYMENT_STATUS.paid) updateData.status = ORDER_STATUS.paid
       await manager.update(Order, dto.orderId, updateData)
 
-      await manager.insert(OrderLog, { orderId: dto.orderId, action: 'pay', oldStatus: order.status, newStatus: ORDER_STATUS.paid, operator: 'system', remark: '鏀粯瀹屾垚' })
+      await manager.insert(OrderLog, { orderId: dto.orderId, action: 'pay', oldStatus: order.status, newStatus: ORDER_STATUS.paid, operator: 'system', remark: '支付完成' })
 
-      // R7-P0淇锛氬簱瀛橀攣瀹氱撼鍏ヤ富浜嬪姟
+      // R7-P0修复：库存锁定纳入主事务
       if (paymentStatus === PAYMENT_STATUS.paid) {
         const items = await manager.find(OrderItem, { where: { orderId: dto.orderId } })
         for (const item of items) {
@@ -151,22 +152,22 @@ export class OrderLifecycleService {
     return this.payRepo.findOne({ where: { paymentNo } })
   }
 
-  // ===== 鍙戣揣 =====
+  // ===== 发货 =====
   async createShipment(dto: CreateShipmentDto) {
     return this.dataSource.transaction(async (manager) => {
       const order = await manager.findOne(Order, {
         where: { orderId: dto.orderId },
         lock: { mode: 'pessimistic_write' },
       })
-      if (!order) throw new NotFoundException('璁㈠崟涓嶅瓨鍦?)
+      if (!order) throw new NotFoundException('订单不存在')
       if (order.status !== ORDER_STATUS.paid && order.status !== ORDER_STATUS.confirmed) {
-        throw new BadRequestException(`璁㈠崟鐘舵€?${order.status} 涓嶅彲鍙戣揣`)
+        throw new BadRequestException(`订单状态 ${order.status} 不可发货`)
       }
 
       const oldStatus = order.status
       await manager.insert(OrderShipment, { ...dto, status: SHIPMENT_STATUS.shipped, shippedAt: new Date() })
       await manager.update(Order, dto.orderId, { status: ORDER_STATUS.shipped, logisticsStatusCode: LOGISTICS_STATUS.shipped })
-      await manager.insert(OrderLog, { orderId: dto.orderId, action: 'ship', oldStatus, newStatus: ORDER_STATUS.shipped, operator: dto.shipper || 'system', remark: `鍙戣揣锛?{dto.carrier} ${dto.trackingNo}` })
+      await manager.insert(OrderLog, { orderId: dto.orderId, action: 'ship', oldStatus, newStatus: ORDER_STATUS.shipped, operator: dto.shipper || 'system', remark: `发货：${dto.carrier} ${dto.trackingNo}` })
 
       const items = await manager.find(OrderItem, { where: { orderId: dto.orderId } })
       for (const item of items) {
@@ -178,7 +179,7 @@ export class OrderLifecycleService {
           skuId: item.productId, quantity: item.quantity,
           transactionType: TransactionType.SALE_OUT,
           referenceType: 'order', referenceId: dto.orderId,
-          remark: `璁㈠崟 ${dto.orderId} 鍙戣揣鍑哄簱`,
+          remark: `订单 ${dto.orderId} 发货出库`,
         })
       }
 
@@ -190,7 +191,7 @@ export class OrderLifecycleService {
     return this.shipRepo.findOne({ where: { orderId }, order: { createdAt: 'DESC' } })
   }
 
-  // ===== 瀹㈡埛闀滅墖妗ｆ =====
+  // ===== 客户镜片档案 =====
   async autoPopulateCustomerLens(orderId: string) {
     const order = await this.orderRepo.findOne({ where: { orderId } })
     if (!order?.customerId) return

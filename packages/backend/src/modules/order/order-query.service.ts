@@ -1,4 +1,4 @@
-﻿import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Order } from './entity/order.entity'
@@ -11,8 +11,8 @@ import { QueryOrderDto } from './dto/order.dto'
 import { ORDER_STATUS } from './order.constants'
 
 /**
- * 璁㈠崟鏌ヨ瀛?Service
- * 璐熻矗锛氬垪琛?璇︽儏/鏀粯/鐗╂祦/鏃ュ織/缁熻
+ * 订单查询子 Service
+ * 负责：列表/详情/支付/物流/日志/统计
  */
 @Injectable()
 export class OrderQueryService {
@@ -62,7 +62,7 @@ export class OrderQueryService {
 
   async findOneOrder(id: string) {
     const order = await this.orderRepo.findOne({ where: { orderId: id } })
-    if (!order) throw new NotFoundException('璁㈠崟涓嶅瓨鍦?)
+    if (!order) throw new NotFoundException('订单不存在')
 
     const [items, addresses, payments, shipments, logs] = await Promise.all([
       this.itemRepo.find({ where: { orderId: id }, order: { createdAt: 'ASC' } }),

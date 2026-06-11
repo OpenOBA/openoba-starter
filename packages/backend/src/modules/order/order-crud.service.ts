@@ -1,4 +1,4 @@
-﻿import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common'
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, DataSource } from 'typeorm'
 import * as crypto from 'crypto'
@@ -24,8 +24,9 @@ import {
 } from './order.constants'
 
 /**
- * 璁㈠崟 CRUD 瀛?Service
- * 璐熻矗锛氬垱寤鸿鍗曪紙浠锋牸寮曟搸 + QueryRunner浜嬪姟锛夈€佹洿鏂拌鍗曘€佺姸鎬佸彉鏇? */
+ * 订单 CRUD 子 Service
+ * 负责：创建订单（价格引擎 + QueryRunner事务）、更新订单、状态变更
+ */
 @Injectable()
 export class OrderCrudService {
   private readonly logger = new Logger(OrderCrudService.name)
@@ -74,7 +75,7 @@ export class OrderCrudService {
           })
         } catch (e) {
           this.logger.error(`Price engine failed for SKU ${skuId}:`, e instanceof Error ? (e as Error).message : String(e))
-          throw new BadRequestException(`SKU ${skuId} 浠锋牸璁＄畻澶辫触锛岃绋嶅悗閲嶈瘯`)
+          throw new BadRequestException(`SKU ${skuId} 价格计算失败，请稍后重试`)
         }
       } else {
         priceResult = {
@@ -157,7 +158,7 @@ export class OrderCrudService {
 
       for (const { item: orderItem, price } of pricedItems) {
         const skuId = orderItem.skuId || orderItem.productId || ''
-        if (!skuId) throw new Error('璁㈠崟琛岄」鐩繀椤绘彁渚?skuId 鎴?productId')
+        if (!skuId) throw new Error('订单行项目必须提供 skuId 或 productId')
         const unitPrice = price.finalPrice
         const qty = orderItem.quantity || 1
         const retailPrice = price.retailPrice
@@ -203,16 +204,16 @@ export class OrderCrudService {
         oldStatus: undefined,
         newStatus: ORDER_STATUS.pending,
         operator: orderData.createdBy || 'system',
-        remark: '鍒涘缓璁㈠崟',
+        remark: '创建订单',
       })
 
       await queryRunner.commitTransaction()
-      this.logger.log(`璁㈠崟鍒涘缓鎴愬姛: ${orderNo}`)
+      this.logger.log(`订单创建成功: ${orderNo}`)
       return { orderId }
     } catch (e: unknown) {
       await queryRunner.rollbackTransaction()
-      this.logger.error(`璁㈠崟鍒涘缓澶辫触 (${orderNo || '鏈煡缂栧彿'}): ${(e as Error).message}`)
-      throw new BadRequestException(`璁㈠崟鍒涘缓澶辫触: ${(e as Error).message}`)
+      this.logger.error(`订单创建失败 (${orderNo || '未知编号'}): ${(e as Error).message}`)
+      throw new BadRequestException(`订单创建失败: ${(e as Error).message}`)
     } finally {
       await queryRunner.release()
     }
@@ -238,7 +239,7 @@ export class OrderCrudService {
     const allowed = OrderCrudService.VALID_TRANSITIONS[order.status]
     if (!allowed || !allowed.includes(dto.status)) {
       throw new BadRequestException(
-        `璁㈠崟鐘舵€佷笉鍙粠 "${order.status}" 鍙樻洿涓?"${dto.status}"銆傚厑璁哥殑鍙樻洿: ${allowed?.join(', ') || '鏃?}`,
+        `订单状态不可从 "${order.status}" 变更为 "${dto.status}"。允许的变更: ${allowed?.join(', ') || '无'}`,
       )
     }
 

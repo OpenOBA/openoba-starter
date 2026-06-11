@@ -1,19 +1,21 @@
-﻿import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
 import { Inventory } from './entity/inventory.entity'
 import { InventoryTransaction, TransactionType } from './entity/inventory-transaction.entity'
 
 /**
- * 搴撳瓨浜嬪姟鍐呭瓙 Service
+ * 库存事务内子 Service
  *
- * 璐熻矗锛氬湪澶栭儴浜嬪姟涓璋冪敤鐨勫簱瀛樻搷浣滄柟娉? * 杩欎簺鏂规硶鐨?manager 鍙傛暟鐢辫皟鐢ㄦ柟锛圤rderService锛変紶鍏ワ紝
- * 纭繚涓庤皟鐢ㄦ柟浜嬪姟鍏变韩鍚屼竴涓繛鎺ワ紝瀹炵幇涓€鑷存€? *
- * 鈿狅笍 鍏抽敭绾︽潫锛氳繖浜涙柟娉曚笉鍒涘缓鐙珛浜嬪姟锛屼笉鍦?NestJS DI 涓敞鍏?Repository
- * 鎵€鏈夋暟鎹搷浣滈€氳繃璋冪敤鏂逛紶鍏ョ殑 manager 浠ｇ悊
+ * 负责：在外部事务中被调用的库存操作方法
+ * 这些方法的 manager 参数由调用方（OrderService）传入，
+ * 确保与调用方事务共享同一个连接，实现一致性
+ *
+ * ⚠️ 关键约束：这些方法不创建独立事务，不在 NestJS DI 中注入 Repository
+ * 所有数据操作通过调用方传入的 manager 代理
  */
 @Injectable()
 export class InventoryTxService {
   /**
-   * P0-2淇锛氬凡鍙戣揣璁㈠崟鍙栨秷鏃跺洖婊氬簱瀛橈紙stockIn锛屽湪澶栭儴浜嬪姟鍐咃級
+   * P0-2修复：已发货订单取消时回滚库存（stockIn，在外部事务内）
    */
   async rollbackStockInTransaction(
     manager: any,
@@ -24,7 +26,7 @@ export class InventoryTxService {
       where: { skuId: dto.skuId, warehouseCode: 'WH-MAIN' },
       lock: { mode: 'pessimistic_write' },
     })
-    if (!inv) throw new NotFoundException('搴撳瓨璁板綍涓嶅瓨鍦?)
+    if (!inv) throw new NotFoundException('库存记录不存在')
 
     const before = inv.currentQuantity
     inv.currentQuantity += dto.quantity
@@ -45,12 +47,13 @@ export class InventoryTxService {
       referenceType: 'order_cancel',
       referenceId: dto.orderId,
       operatorId: operatorId ?? undefined,
-      remark: `宸插彂璐ц鍗曞彇娑堝簱瀛樺洖婊?${dto.quantity} 浠禶,
+      remark: `已发货订单取消库存回滚 ${dto.quantity} 件`,
     })
   }
 
   /**
-   * C7-P0淇锛氬湪澶栭儴浜嬪姟涓В閿佸簱瀛橈紙鐢辫皟鐢ㄦ柟绠＄悊浜嬪姟锛?   */
+   * C7-P0修复：在外部事务中解锁库存（由调用方管理事务）
+   */
   async unlockInTransaction(
     manager: any,
     dto: { skuId: string; orderId: string; quantity: number },
@@ -60,10 +63,10 @@ export class InventoryTxService {
       where: { skuId: dto.skuId, warehouseCode: 'WH-MAIN' },
       lock: { mode: 'pessimistic_write' },
     })
-    if (!inv) throw new NotFoundException('搴撳瓨璁板綍涓嶅瓨鍦?)
+    if (!inv) throw new NotFoundException('库存记录不存在')
 
     if (inv.lockedQuantity < dto.quantity) {
-      throw new BadRequestException(`閿佸畾搴撳瓨涓嶈冻锛堥攣瀹?${inv.lockedQuantity}锛岄渶瑕佽В閿?${dto.quantity}锛塦)
+      throw new BadRequestException(`锁定库存不足（锁定 ${inv.lockedQuantity}，需要解锁 ${dto.quantity}）`)
     }
 
     inv.availableQuantity += dto.quantity
@@ -84,13 +87,13 @@ export class InventoryTxService {
       referenceType: 'order',
       referenceId: dto.orderId,
       operatorId: operatorId ?? undefined,
-      remark: '鍙栨秷璁㈠崟搴撳瓨閲婃斁锛堜簨鍔″唴锛?,
+      remark: '取消订单库存释放（事务内）',
     })
   }
 
   /**
-   * R7-P0淇锛氬湪澶栭儴浜嬪姟涓攣瀹氬簱瀛橈紙鏀粯鏃朵娇鐢級
-   * 澶辫触 鈫?璋冪敤鏂逛簨鍔″洖婊氾紝闃叉瓒呭崠
+   * R7-P0修复：在外部事务中锁定库存（支付时使用）
+   * 失败 → 调用方事务回滚，防止超卖
    */
   async lockInTransaction(
     manager: any,
@@ -101,10 +104,10 @@ export class InventoryTxService {
       where: { skuId: dto.skuId, warehouseCode: 'WH-MAIN' },
       lock: { mode: 'pessimistic_write' },
     })
-    if (!inv) throw new NotFoundException('搴撳瓨璁板綍涓嶅瓨鍦?)
+    if (!inv) throw new NotFoundException('库存记录不存在')
 
     if (inv.availableQuantity < dto.quantity) {
-      throw new BadRequestException(`鍙敤搴撳瓨涓嶈冻锛堝彲鐢?${inv.availableQuantity}锛岄渶瑕侀攣瀹?${dto.quantity}锛塦)
+      throw new BadRequestException(`可用库存不足（可用 ${inv.availableQuantity}，需要锁定 ${dto.quantity}）`)
     }
 
     const beforeAvailable = inv.availableQuantity
@@ -126,13 +129,14 @@ export class InventoryTxService {
       referenceType: 'order',
       referenceId: dto.orderId,
       operatorId: operatorId ?? undefined,
-      remark: `璁㈠崟閿佸畾 ${dto.quantity} 浠禶,
+      remark: `订单锁定 ${dto.quantity} 件`,
     })
   }
 
   /**
-   * R7-P0淇锛氬湪澶栭儴浜嬪姟涓嚭搴撴墸鍑忥紙鍙戣揣鏃朵娇鐢級
-   * 澶辫触 鈫?璋冪敤鏂逛簨鍔″洖婊氾紝闃叉搴撳瓨涓嶄竴鑷?   */
+   * R7-P0修复：在外部事务中出库扣减（发货时使用）
+   * 失败 → 调用方事务回滚，防止库存不一致
+   */
   async stockOutInTransaction(
     manager: any,
     dto: {
@@ -149,10 +153,10 @@ export class InventoryTxService {
       where: { skuId: dto.skuId, warehouseCode: 'WH-MAIN' },
       lock: { mode: 'pessimistic_write' },
     })
-    if (!inv) throw new NotFoundException('搴撳瓨璁板綍涓嶅瓨鍦?)
+    if (!inv) throw new NotFoundException('库存记录不存在')
 
     if (inv.availableQuantity < dto.quantity) {
-      throw new BadRequestException(`鍙敤搴撳瓨涓嶈冻锛堝彲鐢?${inv.availableQuantity}锛岄渶瑕?${dto.quantity}锛塦)
+      throw new BadRequestException(`可用库存不足（可用 ${inv.availableQuantity}，需要 ${dto.quantity}）`)
     }
 
     const before = inv.currentQuantity

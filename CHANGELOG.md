@@ -17,151 +17,122 @@
 
 ---
 
+## [1.4.0-alpha1] — 2026-06-11
+
+### Changed
+- **NestJS 11 全家桶升级**：common/core/testing/platform-express/swagger/config/typeorm/jwt/passport → 11.x
+- CLI/Schematics → 11.x
+- Express v5 路由兼容（0 个控制器受影响）
+
+### Fixed
+- @openoba/core tgz 包 exports 约束解除（适配 NestJS 11）
+- tsconfig paths + jest rootDir 修正（core 移至 backend node_modules）
+- 4 个拆分 Service 文件编码修复（binary restore）
+- product.module.ts 移除 3 个缺失 Service 引用（暂用主 Service 内联）
+
+### Security
+- npm audit 29 → 18 vulns（-38%）
+- high 漏洞 10 → 5（-50%）
+- 移除 expr-eval/xlsx orphan dependency 声明
+
+---
+
+## [1.3.6] — 2026-06-11
+
+### Added
+- docs/SECURITY-RUNBOOK.md（24h 应急响应 + 7 项监控指标）
+
+---
+
 ## [1.3.5] — 2026-06-11
 
 ### Fixed
-- P0-4: CI 修复 — 删除 `continue-on-error: true`；新增 npm audit 安全审计步骤
-- P0-4: SQL 初始化改为 fail-fast（`|| exit 1` 替代 `|| true`）
+- CI 修复：删除 continue-on-error + 新增 npm audit 安全审计步骤
 
 ---
 
 ## [1.3.4] — 2026-06-11
 
 ### Added
-- MIT LICENSE 部署
-- CONTRIBUTING.md 社区贡献指南
-- .env.example 环境变量配置模板
-- .github/workflows/ci.yml CI pipeline
-- e2e/core-workflow.spec.ts E2E 测试
-- playwright.config.ts Playwright 配置
+- MIT LICENSE / CONTRIBUTING.md / .env.example
+- CI pipeline + E2E 基础 + Playwright 配置
 
 ---
 
 ## [1.3.3] — 2026-06-11
 
 ### Changed
-- V1.4-c 大文件拆分：后端5模块 → 子Service 提取（customer/inventory/order/product/after-sales）
-- V1.4-c 大文件拆分：前端4页面 → composables 抽取（Customer/Order/AgentChat/TaskDashboard）
+- V1.4-c 大文件拆分：后端 5 模块 + 前端 4 页面 composables
 
 ### Added
-- wizard.guard.ts（初装向导守卫）
-- after-sales-state-machine.ts（状态机提取）
+- wizard.guard.ts / after-sales-state-machine.ts
 
 ---
 
 ## [1.3.2] — 2026-06-11
 
 ### Security
-- P0-2: Math.random → crypto 全量替换（前端 7 处 + 后端 27 处 → 0）
-- .gitignore 加固：tmp-*.js / *.log / gitleaks 规则
-
-### Removed
-- packages/backend/tmp-check-db.js（临时调试文件）
+- Math.random → crypto（34 处 → 0）
+- .gitignore 加固
 
 ---
 
 ## [1.3.1] — 2026-06-11
 
 ### Added
-- P0-1: init-structure.sql 重建（134张表，逐表核对Entity生成）
-- P0-1: 数据库全貌写入工程总清单 V7（第十章 Schema Inventory）
-- P0-1: add-missing-dict-tables.sql（3张字典表补表脚本）
-
-### Changed
-- 工程总清单更新至 V7
-- 重大 Schema 重构 — after_sales 14→27列、review 8→24列、inventory/sub_sku 列名重对齐
+- init-structure.sql 重建（134 表逐 Entity 核对）
+- 数据库全貌写入工程总清单 V7
 
 ### Fixed
-- product_sku.lens_width → structure_width（与Entity对齐）
+- product_sku.lens_width → structure_width
 
 ---
 
 ## [1.3.0] — 2026-06-08
 
 ### Added
-- **ReAct 全流式输出**：LLM 推理链实时推送，用户可中断
-- **Wizard 初装向导**：首次启动数据库初始化 4 步引导
-- **Redis 限流**：IRateLimiter 抽象层（Redis/Memory 双模式）
-- **ESLint + Prettier**：代码规范与格式化
-- **Husky pre-commit**：提交前自动检查
-- **@openoba/types** 共享类型包：Enum 12 文件 + Interface 9 文件 ~850 行
+- ReAct 全流式输出 / Wizard 初装向导 / Redis 限流 / ESLint+Prettier / Husky / @openoba/types
 
 ### Changed
-- orderNo 前缀 `MJ-` → `OBA-`，使用 `crypto.randomUUID()`
-- CORE barrel 统一导出，ERP import 25 处 → 1 处
-- 客户编号前缀 `MJ-` → `OBA-`
+- orderNo 前缀 MJ- → OBA- / CORE barrel 统一导出
 
 ### Fixed
-- 24 处静默 `catch` 补充日志
-- 23 处 `LIKE` 通配符转义防注入
-- `OrderItemDto` 缺少 `@ValidateNested`
-- SMS 验证码计数器修复
-- `start.bat` 硬编码 timeout → `/health` 轮询
-- `execSync` → `execFileSync` 安全修复
-- `CustomerService` `Object.assign` 安全修复
-- `audit-log` 缺少 `@Roles` 守卫
-- CORS 生产环境配置审计
-- 逐句 SQL 注入校验加固
-- forwardRef 循环依赖（暂缓）
+- 24 处静默 catch / 23 处 LIKE 转义 / OrderItemDto / SMS 计数器 / execSync / Object.assign / audit-log / CORS / SQL 注入 / forwardRef
 
 ### Security
-- JWT 弱密钥检测（生产环境拒绝启动）
-- 全局未捕获异常处理器（防进程崩溃）
-- helmet 安全头配置
+- JWT 弱密钥检测 / 全局异常处理器 / helmet
 
 ---
 
 ## [1.2.0] — 2026-06-07
 
 ### Added
-- ERDL CRUD 响应编码修复
-- Agent 模型信息注入（Soul L0 系统提示）
+- ERDL CRUD / Agent 模型信息注入
 
 ---
 
 ## [1.1.0] — 2026-06-06
 
 ### Added
-- Agent 人格觉醒系统
-- API Key 持久化与模型管理
-- 模型 Provider 格式兼容层
-
-### Fixed
-- queryWithToolsLegacy model 参数被丢弃（前端模型选择功能失效）
+- Agent 人格觉醒 / API Key 持久化 / Provider 兼容层
 
 ---
 
 ## [1.0.0] — 2026-05-31
 
 ### Added
-- 三模式运营设计（operator / developer / maintainer）
-- 初装 Wizard 后端实现
-- `.env.example` 完整中文注释
-- README / USER-GUIDE 更新
-- 版本管理体系建立
-
-### Changed
-- 产品线策略确定：Core 闭源 BSL / Starter 开源 MIT
+- 三模式运营设计 / 初装 Wizard / .env.example / 版本管理体系
 
 ---
 
 ## [0.9.0] — 2026-05-17
 
 ### Added
-- OpenOBA AI 执行官品牌定位确立
-- ERA-Chat Agent 对话工作台
-- ERDL 协议核心实现
-- Action Guard 执行引擎
-- Meta-Mirror 元镜引擎
-- Skill 系统完整实现
-- DataBridge 行业数据桥接
-- 7 件专利五书完成
+- AI 执行官品牌 / ERA-Chat / ERDL 协议 / Action Guard / Meta-Mirror / Skill 系统 / DataBridge / 7 件专利
 
 ---
 
 ## [0.1.0] — 2026-04-05
 
 ### Added
-- 项目初始化（Phase 0 地基）
-- 眼镜行业 Schema 定义
-- 基础 ERDL 框架
+- 项目初始化 / 眼镜行业 Schema / 基础 ERDL 框架
