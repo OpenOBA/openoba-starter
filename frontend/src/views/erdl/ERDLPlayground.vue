@@ -30,7 +30,7 @@
  </div>
  <div v-if="nlHint" class="nl-hint">
  <el-text type="info" size="small">
- 试试说：{{ nlHints[Math.floor(Math.random() * nlHints.length)] }}
+ 试试说：{{ randomHint }}
  </el-text>
  </div>
  </el-card>
@@ -178,6 +178,9 @@ const generating = ref(false)
 const generatedYaml = ref('')
 const generatedValid = ref(false)
 const nlHint = ref(true)
+const randomHint = ref(nlHints[0])
+const pickRandomHint = () => { const arr = new Uint32Array(1); crypto.getRandomValues(arr); randomHint.value = nlHints[arr[0] % nlHints.length] }
+pickRandomHint()
 
 const nlHints = [
  'VIP 会员打 8 折，SVIP 打 7 折',

@@ -518,7 +518,7 @@ function getTierColor(code: string): string {
 // ===== AI-BOS V2.0: Schema 驱动数据 =====
 const schemaData = ref<IndustrySchema | null>(null);
 const schemaLoading = ref(false);
-const loadSchema = async () => { try { const [fullSchema] = await Promise.all([getSchema("eyewear")]); schemaData.value = fullSchema; console.log("[AI-BOS] Schema:", fullSchema.industry, "v" + fullSchema.version); } catch (e) { console.warn("[AI-BOS] Schema 加载失败", e); } finally { schemaLoading.value = false; } };
+const loadSchema = async () => { try { const [fullSchema] = await Promise.all([getSchema("eyewear")]); schemaData.value = fullSchema; } catch (e) { console.warn("[AI-BOS] Schema 加载失败", e); } finally { schemaLoading.value = false; } };
 const schemaConfig = computed(() => schemaData.value?.config);
 const sceneTagOptions = computed(() => schemaConfig.value?.sceneTags || ["通勤","职场","约会","拍照","运动","旅行","休闲","派对"]);
 const genderOptions = computed(() => schemaConfig.value?.genderOptions || [{ value:"female",label:"女款"},{ value:"male",label:"男款"},{ value:"unisex",label:"中性"},{ value:"limited",label:"限量" }]);
@@ -808,7 +808,7 @@ function generateSetCode(): string {
   const y = now.getFullYear().toString().slice(-2);
   const m = String(now.getMonth() + 1).padStart(2, '0');
   const d = String(now.getDate()).padStart(2, '0');
-  const seq = Math.floor(Math.random() * 900 + 100);
+  const arr = new Uint32Array(1); crypto.getRandomValues(arr); const seq = (arr[0] % 900) + 100;
   return `SET${y}${m}${d}${seq}`;
 }
 

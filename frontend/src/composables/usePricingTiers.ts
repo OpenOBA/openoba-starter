@@ -46,7 +46,7 @@ export function usePricingTiers() {
         await updateTierPricing(tierForm.tierId, { tierName: tierForm.tierName, positioning: tierForm.positioning, sortOrder: tierForm.sortOrder });
         ElMessage.success('更新成功');
       } else {
-        tierForm.tierId = `tier-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        tierForm.tierId = `tier-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
         await createTierPricing({ ...tierForm, isActive: true });
         ElMessage.success('创建成功');
       }

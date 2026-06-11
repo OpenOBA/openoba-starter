@@ -4,7 +4,11 @@ dist/
 *.log
 .DS_Store
 Thumbs.db
+# 测试
 coverage/
+*.lcov
+test-results/
+playwright-report/
 .turbo/
 uploads/
 *.bak
@@ -23,7 +27,21 @@ openoba-core/
 *.swp
 *.swo
 
-# 临时文件
+# TypeScript 增量编译缓存
+*.tsbuildinfo
+
+# 本地覆盖配置
+*.local
+
+# 编辑器备份
+*~
+*.backup
+
+# 临时脚本（防止凭据泄露）
+tmp-*.js
+tmp-*.ts
+
+# 临时工作目录
 tmp/
 temp/
 tmp-core/

@@ -43,7 +43,8 @@ export function useProductSet(
     const y = now.getFullYear().toString().slice(-2);
     const m = String(now.getMonth() + 1).padStart(2, '0');
     const d = String(now.getDate()).padStart(2, '0');
-    const seq = Math.floor(Math.random() * 900 + 100);
+    const arr = new Uint32Array(1); crypto.getRandomValues(arr);
+    const seq = (arr[0] % 900) + 100;
     return `SET${y}${m}${d}${seq}`;
   }
 

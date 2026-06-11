@@ -8,16 +8,39 @@
 ## [Unreleased]
 
 ### Added
-- V1.3.1: P0-1 — init-structure.sql 重建（134张表，逐表核对Entity生成）
-- V1.3.1: P0-1 — 数据库全貌写入工程总清单 V7
-- V1.3.1: P0-1 — add-missing-dict-tables.sql（3张字典表补表脚本）
 
 ### Changed
-- V1.3.1: 工程总清单更新至 V7（第十章：数据库 Schema Inventory）
-- V1.3.1: 重大 Schema 重构 — after_sales 14→27列、review 8→24列、inventory/sub_sku 列名重对齐
 
 ### Fixed
-- V1.3.1: product_sku.lens_width → structure_width（与Entity对齐）
+
+### Security
+
+---
+
+## [1.3.2] — 2026-06-11
+
+### Security
+- P0-2: Math.random → crypto 全量替换（前端 7 处 + 后端 27 处 → 0）
+- .gitignore 加固：tmp-*.js / *.log / gitleaks 规则
+
+### Removed
+- packages/backend/tmp-check-db.js（临时调试文件）
+
+---
+
+## [1.3.1] — 2026-06-11
+
+### Added
+- P0-1: init-structure.sql 重建（134张表，逐表核对Entity生成）
+- P0-1: 数据库全貌写入工程总清单 V7（第十章 Schema Inventory）
+- P0-1: add-missing-dict-tables.sql（3张字典表补表脚本）
+
+### Changed
+- 工程总清单更新至 V7
+- 重大 Schema 重构 — after_sales 14→27列、review 8→24列、inventory/sub_sku 列名重对齐
+
+### Fixed
+- product_sku.lens_width → structure_width（与Entity对齐）
 
 ---
 

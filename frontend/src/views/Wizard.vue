@@ -189,7 +189,7 @@ async function createTables() {
     })
     // Simulate progress (SSE would be better, but polling progress is fine for wizard)
     const interval = setInterval(() => {
-      if (tableProgress.value < 90) { tableProgress.value += Math.random() * 15; tableProgressText.value = `正在创建表 (${Math.floor(tableProgress.value)}%)...` }
+      if (tableProgress.value < 90) { const arr = new Uint32Array(1); crypto.getRandomValues(arr); tableProgress.value += (arr[0] % 15); tableProgressText.value = `正在创建表 (${Math.floor(tableProgress.value)}%)...` }
     }, 300)
     const raw = await res.json()
     clearInterval(interval)
