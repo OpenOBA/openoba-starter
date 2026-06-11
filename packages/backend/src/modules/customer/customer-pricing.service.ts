@@ -1,11 +1,11 @@
-﻿import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { CustomerTierPricing } from './entity/customer-tier-pricing.entity'
 import { CreateTierPricingDto, UpdateTierPricingDto } from './dto/customer.dto'
 
 /**
- * 瀹㈡埛闃舵瀹氫环瀛?Service
+ * 客户阶梯定价子 Service
  */
 @Injectable()
 export class CustomerPricingService {
@@ -32,7 +32,7 @@ export class CustomerPricingService {
 
   async updateTierPricing(id: string, dto: UpdateTierPricingDto) {
     const existing = await this.pricingRepo.findOne({ where: { pricingId: id, isDeleted: false } })
-    if (!existing) throw new NotFoundException(`瀹氫环 ${id} 涓嶅瓨鍦╜)
+    if (!existing) throw new NotFoundException(`定价 ${id} 不存在`)
     if (dto.effectiveFrom) existing.effectiveFrom = new Date(dto.effectiveFrom)
     if (dto.effectiveTo) existing.effectiveTo = new Date(dto.effectiveTo)
     if (dto.agreementStart) existing.agreementStart = new Date(dto.agreementStart)
@@ -48,7 +48,7 @@ export class CustomerPricingService {
 
   async removeTierPricing(id: string) {
     const existing = await this.pricingRepo.findOne({ where: { pricingId: id, isDeleted: false } })
-    if (!existing) throw new NotFoundException(`瀹氫环 ${id} 涓嶅瓨鍦╜)
+    if (!existing) throw new NotFoundException(`定价 ${id} 不存在`)
     existing.isDeleted = true
     return this.pricingRepo.save(existing)
   }

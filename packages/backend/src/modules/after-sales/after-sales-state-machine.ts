@@ -1,4 +1,4 @@
-﻿import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { AfterSales } from './entity/after-sales.entity'
@@ -13,10 +13,13 @@ import {
 import { AFTER_SALES_STATUS, AFTER_SALES_TYPE } from './after-sales.constants'
 
 /**
- * 鍞悗鐘舵€佹満瀛?Service
+ * 售后状态机子 Service
  *
- * 璐熻矗鍞悗瀹℃牳锛坅pprove/reject锛夊拰娴佺▼澶勭悊锛坮eceive/refund/close/reopen锛? * 鎵€鏈夋搷浣滃湪澶栭儴浼犲叆鐨勪簨鍔?manager 涓墽琛岋紝纭繚鐘舵€佷竴鑷存€? *
- * 鈿狅笍 姝?Service 涓嶆敞鍏?DataSource锛屾墍鏈変簨鍔＄敱璋冪敤鏂癸紙涓?Service锛夌鐞? */
+ * 负责售后审核（approve/reject）和流程处理（receive/refund/close/reopen）
+ * 所有操作在外部传入的事务 manager 中执行，确保状态一致性
+ *
+ * ⚠️ 此 Service 不注入 DataSource，所有事务由调用方（主 Service）管理
+ */
 @Injectable()
 export class AfterSalesStateMachine {
   constructor(
@@ -25,7 +28,8 @@ export class AfterSalesStateMachine {
   ) {}
 
   /**
-   * 瀹℃牳鍞悗鍗曪紙鎵瑰噯/鎷掔粷锛?   */
+   * 审核售后单（批准/拒绝）
+   */
   async review(
     manager: any,
     id: string,
@@ -36,9 +40,9 @@ export class AfterSalesStateMachine {
       where: { id },
       lock: { mode: 'pessimistic_write' },
     })
-    if (!afterSales) throw new NotFoundException('鍞悗鍗曚笉瀛樺湪')
+    if (!afterSales) throw new NotFoundException('售后单不存在')
     if (afterSales.status !== AFTER_SALES_STATUS.pending) {
-      throw new BadRequestException(`鍞悗鍗曠姸鎬佷笉鍙鏍革紙褰撳墠鐘舵€侊細${afterSales.status}锛塦)
+      throw new BadRequestException(`售后单状态不可审核（当前状态：${afterSales.status}）`)
     }
 
     const fromStatus = afterSales.status
@@ -57,19 +61,21 @@ export class AfterSalesStateMachine {
     await manager.save(AfterSales, afterSales)
     await this.addLogInTx(manager, afterSales.id, 'review', fromStatus, toStatus, operatorId, dto.reviewNote)
 
-    // 鎵瑰噯閫€璐?鎹㈣揣鏃讹細鑷姩鍥炴粴搴撳瓨
+    // 批准退货/换货时：自动回滚库存
     const returnTypes: string[] = [AFTER_SALES_TYPE.return, AFTER_SALES_TYPE.exchange]
     if (dto.action === 'approve' && returnTypes.includes(afterSales.afterSalesType)) {
       await this.rollbackInventoryForReturn(afterSales, manager)
     }
 
-    // 鍥炲啓璁㈠崟鍞悗鐘舵€?    await manager.update(Order, afterSales.orderId, { afterSaleStatusCode: toStatus })
+    // 回写订单售后状态
+    await manager.update(Order, afterSales.orderId, { afterSaleStatusCode: toStatus })
 
     return afterSales
   }
 
   /**
-   * 娴佺▼澶勭悊锛堟敹璐?閫€娆?鍏抽棴/閲嶆柊鎵撳紑锛?   */
+   * 流程处理（收货/退款/关闭/重新打开）
+   */
   async process(
     manager: any,
     id: string,
@@ -80,7 +86,7 @@ export class AfterSalesStateMachine {
       where: { id },
       lock: { mode: 'pessimistic_write' },
     })
-    if (!afterSales) throw new NotFoundException('鍞悗鍗曚笉瀛樺湪')
+    if (!afterSales) throw new NotFoundException('售后单不存在')
 
     const fromStatus = afterSales.status
     let toStatus: string
@@ -89,7 +95,7 @@ export class AfterSalesStateMachine {
       case 'receive': {
         const validStatuses: string[] = [AFTER_SALES_STATUS.approved, AFTER_SALES_STATUS.returning]
         if (!validStatuses.includes(afterSales.status)) {
-          throw new BadRequestException('褰撳墠鐘舵€佷笉鍙‘璁ゆ敹璐?)
+          throw new BadRequestException('当前状态不可确认收货')
         }
         toStatus = AFTER_SALES_STATUS.received
         break
@@ -98,7 +104,7 @@ export class AfterSalesStateMachine {
       case 'refund': {
         const validStatuses: string[] = [AFTER_SALES_STATUS.received, AFTER_SALES_STATUS.approved]
         if (!validStatuses.includes(afterSales.status)) {
-          throw new BadRequestException('褰撳墠鐘舵€佷笉鍙€€娆?)
+          throw new BadRequestException('当前状态不可退款')
         }
         toStatus = AFTER_SALES_STATUS.refunded
         afterSales.refundMethod = dto.refundMethod || 'original'
@@ -116,26 +122,27 @@ export class AfterSalesStateMachine {
       case 'reopen': {
         const validStatuses: string[] = [AFTER_SALES_STATUS.closed, AFTER_SALES_STATUS.rejected]
         if (!validStatuses.includes(afterSales.status)) {
-          throw new BadRequestException('褰撳墠鐘舵€佷笉鍙噸鏂版墦寮€')
+          throw new BadRequestException('当前状态不可重新打开')
         }
         toStatus = AFTER_SALES_STATUS.pending
         break
       }
 
       default:
-        throw new BadRequestException(`鏈煡鎿嶄綔锛?{dto.action}`)
+        throw new BadRequestException(`未知操作：${dto.action}`)
     }
 
     afterSales.status = toStatus as any
     await manager.save(AfterSales, afterSales)
     await this.addLogInTx(manager, afterSales.id, dto.action, fromStatus, toStatus, operatorId, dto.note)
 
-    // H5淇锛氳嚜鍔ㄥ畬鎴?    if (toStatus === AFTER_SALES_STATUS.refunded) {
+    // H5修复：自动完成
+    if (toStatus === AFTER_SALES_STATUS.refunded) {
       afterSales.status = AFTER_SALES_STATUS.completed
       await manager.save(AfterSales, afterSales)
       await this.addLogInTx(
         manager, afterSales.id, 'auto_complete', toStatus, 'completed',
-        'system', '閫€娆惧畬鎴愬悗鑷姩鍏抽棴',
+        'system', '退款完成后自动关闭',
       )
     } else if (
       toStatus === AFTER_SALES_STATUS.received &&
@@ -145,18 +152,20 @@ export class AfterSalesStateMachine {
       await manager.save(AfterSales, afterSales)
       await this.addLogInTx(
         manager, afterSales.id, 'auto_complete', toStatus, 'completed',
-        'system', '浠呴€€娆炬敹璐у悗鑷姩鍏抽棴',
+        'system', '仅退款收货后自动关闭',
       )
     }
 
-    // 鍥炲啓璁㈠崟鍞悗鐘舵€?    await manager.update(Order, afterSales.orderId, { afterSaleStatusCode: toStatus })
+    // 回写订单售后状态
+    await manager.update(Order, afterSales.orderId, { afterSaleStatusCode: toStatus })
 
     return afterSales
   }
 
   /**
-   * 搴撳瓨鍥炴粴锛堥€€璐ф壒鍑嗘椂锛屽湪澶栭儴浜嬪姟 manager 涓搷浣滐級
-   * 4R06淇锛氫娇鐢ㄥ閮╩anager鐩存帴鎿嶄綔搴撳瓨锛岄伩鍏嶅祵濂椾簨鍔?   */
+   * 库存回滚（退货批准时，在外部事务 manager 中操作）
+   * 4R06修复：使用外部manager直接操作库存，避免嵌套事务
+   */
   private async rollbackInventoryForReturn(afterSales: AfterSales, manager: any) {
     let items = afterSales.items
     if (typeof items === 'string') {
@@ -178,7 +187,7 @@ export class AfterSalesStateMachine {
         if (!sku) {
           await this.addLogInTx(
             manager, afterSales.id, 'inventory_rollback_fail', null, null,
-            'system', `搴撳瓨鍥炴粴澶辫触锛歋KU ${item.skuId} 涓嶅瓨鍦╜,
+            'system', `库存回滚失败：SKU ${item.skuId} 不存在`,
           )
           continue
         }
@@ -197,19 +206,19 @@ export class AfterSalesStateMachine {
           quantityAfter: sku.currentQuantity,
           referenceType: 'after_sales',
           referenceId: afterSales.id,
-          remark: `鍞悗 ${afterSales.afterSalesNo} 閫€璐у叆搴擄細${item.skuCode || item.skuId} 脳 ${item.quantity}`,
+          remark: `售后 ${afterSales.afterSalesNo} 退货入库：${item.skuCode || item.skuId} × ${item.quantity}`,
         })
       } catch (err) {
         await this.addLogInTx(
           manager, afterSales.id, 'inventory_rollback_fail', null, null,
-          'system', `搴撳瓨鍥炴粴澶辫触锛?{item.skuCode || item.skuId} 脳 ${item.quantity}锛岃浜哄伐澶勭悊`,
+          'system', `库存回滚失败：${item.skuCode || item.skuId} × ${item.quantity}，请人工处理`,
         )
       }
     }
   }
 
   /**
-   * 浜嬪姟鍐呭啓鏃ュ織
+   * 事务内写日志
    */
   async addLogInTx(
     manager: any,

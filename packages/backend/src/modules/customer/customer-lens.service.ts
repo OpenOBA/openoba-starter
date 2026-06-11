@@ -1,4 +1,4 @@
-﻿import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, DataSource } from 'typeorm'
 import { Customer } from './entity/customer.entity'
@@ -8,8 +8,8 @@ import { CustomerConsumptionProfile } from './entity/customer-consumption-profil
 import { CUSTOMER_STATUS } from './entity/customer.entity'
 
 /**
- * 瀹㈡埛闀滅墖璧勪骇瀛?Service
- * 璐熻矗锛氶獙鍏夊鏂?/ 瀹㈡埛闀滅墖 / 娑堣垂妗ｆ
+ * 客户镜片资产子 Service
+ * 负责：验光处方 / 客户镜片 / 消费档案
  */
 @Injectable()
 export class CustomerLensService {
@@ -20,7 +20,7 @@ export class CustomerLensService {
     private dataSource: DataSource,
   ) {}
 
-  // ===== 楠屽厜澶勬柟 =====
+  // ===== 验光处方 =====
   async createPrescription(customerId: string, dto: any) {
     const id = `rx-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 6)}`
     return this.prescriptionRepo.save(
@@ -39,12 +39,12 @@ export class CustomerLensService {
 
   async removePrescription(id: string) {
     const existing = await this.prescriptionRepo.findOne({ where: { prescriptionId: id, isDeleted: false } })
-    if (!existing) throw new NotFoundException(`澶勬柟 ${id} 涓嶅瓨鍦╜)
+    if (!existing) throw new NotFoundException(`处方 ${id} 不存在`)
     existing.isDeleted = true
     return this.prescriptionRepo.save(existing)
   }
 
-  // ===== 瀹㈡埛闀滅墖 =====
+  // ===== 客户镜片 =====
   async createCustomerLens(customerId: string, dto: any) {
     const id = `cl-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 6)}`
     return this.customerLensRepo.save(
@@ -98,12 +98,12 @@ export class CustomerLensService {
 
   async removeCustomerLens(id: string) {
     const existing = await this.customerLensRepo.findOne({ where: { customerLensId: id, isDeleted: false } })
-    if (!existing) throw new NotFoundException(`瀹㈡埛闀滅墖 ${id} 涓嶅瓨鍦╜)
+    if (!existing) throw new NotFoundException(`客户镜片 ${id} 不存在`)
     existing.isDeleted = true
     return this.customerLensRepo.save(existing)
   }
 
-  // ===== 娑堣垂妗ｆ =====
+  // ===== 消费档案 =====
   async createConsumptionProfile(customerLensId: string, dto: any) {
     const id = `cp-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 6)}`
     return this.consumptionProfileRepo.save(
@@ -121,7 +121,7 @@ export class CustomerLensService {
 
   async removeConsumptionProfile(id: string) {
     const existing = await this.consumptionProfileRepo.findOne({ where: { consumptionProfileId: id, isDeleted: false } })
-    if (!existing) throw new NotFoundException(`娑堣垂妗ｆ ${id} 涓嶅瓨鍦╜)
+    if (!existing) throw new NotFoundException(`消费档案 ${id} 不存在`)
     existing.isDeleted = true
     return this.consumptionProfileRepo.save(existing)
   }

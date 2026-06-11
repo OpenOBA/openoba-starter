@@ -1,4 +1,4 @@
-﻿import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, DataSource } from 'typeorm'
 import { Inventory } from './entity/inventory.entity'
@@ -6,8 +6,9 @@ import { InventoryTransaction, TransactionType } from './entity/inventory-transa
 import { CreateInventoryDto, UpdateInventoryDto } from './dto/inventory.dto'
 
 /**
- * 搴撳瓨 CRUD 瀛?Service
- * 璐熻矗锛氬垱寤哄簱瀛樿褰曘€佹洿鏂伴璀﹂槇鍊? */
+ * 库存 CRUD 子 Service
+ * 负责：创建库存记录、更新预警阈值
+ */
 @Injectable()
 export class InventoryCrudService {
   constructor(
@@ -26,7 +27,7 @@ export class InventoryCrudService {
         where: { skuId: dto.skuId, warehouseCode },
         lock: { mode: 'pessimistic_write' },
       })
-      if (existing) throw new BadRequestException('璇?SKU 鐨勫簱瀛樿褰曞凡瀛樺湪')
+      if (existing) throw new BadRequestException('该 SKU 的库存记录已存在')
 
       const currentQty = dto.currentQuantity || 0
       const inv = this.inventoryRepo.create({
@@ -55,7 +56,7 @@ export class InventoryCrudService {
           quantityAfter: currentQty,
           referenceType: 'initial',
           operatorId: operatorId ?? undefined,
-          remark: '鏈熷垵瀵煎叆',
+          remark: '期初导入',
         })
       }
       return inv
@@ -64,7 +65,7 @@ export class InventoryCrudService {
 
   async update(id: string, dto: UpdateInventoryDto) {
     const inv = await this.inventoryRepo.findOne({ where: { id } })
-    if (!inv) throw new NotFoundException('搴撳瓨璁板綍涓嶅瓨鍦?)
+    if (!inv) throw new NotFoundException('库存记录不存在')
 
     if (dto.warningQuantity !== undefined) inv.warningQuantity = dto.warningQuantity
     return this.inventoryRepo.save(inv)

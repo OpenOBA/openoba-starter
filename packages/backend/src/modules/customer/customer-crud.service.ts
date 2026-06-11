@@ -1,4 +1,4 @@
-﻿import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Customer, CUSTOMER_TYPES } from './entity/customer.entity'
@@ -56,7 +56,7 @@ export class CustomerCrudService {
       .leftJoinAndSelect('c.lenses', 'l')
       .where('c.customer_id = :id AND c.is_deleted = :deleted', { id, deleted: false })
       .getOne()
-    if (!item) throw new NotFoundException(`瀹㈡埛 ${id} 涓嶅瓨鍦╜)
+    if (!item) throw new NotFoundException(`客户 ${id} 不存在`)
     return item
   }
 
@@ -78,7 +78,7 @@ export class CustomerCrudService {
 
   async update(id: string, dto: UpdateCustomerDto & { wechatId?: string; referralSource?: string; preferredStyle?: string }) {
     const existing = await this.customerRepo.findOne({ where: { customerId: id, isDeleted: false } })
-    if (!existing) throw new NotFoundException(`瀹㈡埛 ${id} 涓嶅瓨鍦╜)
+    if (!existing) throw new NotFoundException(`客户 ${id} 不存在`)
     Object.assign(existing, dto)
     if (dto.wechatId !== undefined) existing.wechat = dto.wechatId
     if (dto.wechat !== undefined) existing.wechat = dto.wechat
@@ -90,7 +90,7 @@ export class CustomerCrudService {
 
   async remove(id: string) {
     const existing = await this.customerRepo.findOne({ where: { customerId: id, isDeleted: false } })
-    if (!existing) throw new NotFoundException(`瀹㈡埛 ${id} 涓嶅瓨鍦╜)
+    if (!existing) throw new NotFoundException(`客户 ${id} 不存在`)
     existing.isDeleted = true
     return this.customerRepo.save(existing)
   }

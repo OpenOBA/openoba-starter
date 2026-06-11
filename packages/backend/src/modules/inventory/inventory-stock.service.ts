@@ -1,4 +1,4 @@
-﻿import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, DataSource } from 'typeorm'
 import { Inventory } from './entity/inventory.entity'
@@ -6,8 +6,9 @@ import { InventoryTransaction, TransactionType } from './entity/inventory-transa
 import { StockInDto, StockOutDto, LockStockDto, UnlockStockDto, AdjustStockDto } from './dto/inventory.dto'
 
 /**
- * 搴撳瓨鍑哄叆搴撳瓙 Service
- * 璐熻矗锛氬叆搴撱€佸嚭搴撱€侀攣瀹氥€佽В閿併€佺洏鐐硅皟鏁达紙鐙珛浜嬪姟锛? */
+ * 库存出入库子 Service
+ * 负责：入库、出库、锁定、解锁、盘点调整（独立事务）
+ */
 @Injectable()
 export class InventoryStockService {
   constructor(
@@ -24,7 +25,7 @@ export class InventoryStockService {
         where: { skuId: dto.skuId, warehouseCode: 'WH-MAIN' },
         lock: { mode: 'pessimistic_write' },
       })
-      if (!inv) throw new NotFoundException('搴撳瓨璁板綍涓嶅瓨鍦?)
+      if (!inv) throw new NotFoundException('库存记录不存在')
 
       const before = inv.currentQuantity
       inv.currentQuantity += dto.quantity
@@ -58,10 +59,10 @@ export class InventoryStockService {
         where: { skuId: dto.skuId, warehouseCode: 'WH-MAIN' },
         lock: { mode: 'pessimistic_write' },
       })
-      if (!inv) throw new NotFoundException('搴撳瓨璁板綍涓嶅瓨鍦?)
+      if (!inv) throw new NotFoundException('库存记录不存在')
 
       if (inv.availableQuantity < dto.quantity) {
-        throw new BadRequestException(`鍙敤搴撳瓨涓嶈冻锛堝彲鐢?${inv.availableQuantity}锛岄渶瑕?${dto.quantity}锛塦)
+        throw new BadRequestException(`可用库存不足（可用 ${inv.availableQuantity}，需要 ${dto.quantity}）`)
       }
 
       const before = inv.currentQuantity
@@ -96,10 +97,10 @@ export class InventoryStockService {
         where: { skuId: dto.skuId, warehouseCode: 'WH-MAIN' },
         lock: { mode: 'pessimistic_write' },
       })
-      if (!inv) throw new NotFoundException('搴撳瓨璁板綍涓嶅瓨鍦?)
+      if (!inv) throw new NotFoundException('库存记录不存在')
 
       if (inv.availableQuantity < dto.quantity) {
-        throw new BadRequestException(`鍙敤搴撳瓨涓嶈冻锛堝彲鐢?${inv.availableQuantity}锛岄渶瑕侀攣瀹?${dto.quantity}锛塦)
+        throw new BadRequestException(`可用库存不足（可用 ${inv.availableQuantity}，需要锁定 ${dto.quantity}）`)
       }
 
       inv.availableQuantity -= dto.quantity
@@ -120,7 +121,7 @@ export class InventoryStockService {
         referenceType: 'order',
         referenceId: dto.orderId,
         operatorId: operatorId ?? undefined,
-        remark: `璁㈠崟閿佸畾 ${dto.quantity} 浠禶,
+        remark: `订单锁定 ${dto.quantity} 件`,
       })
 
       return inv
@@ -133,10 +134,10 @@ export class InventoryStockService {
         where: { skuId: dto.skuId, warehouseCode: 'WH-MAIN' },
         lock: { mode: 'pessimistic_write' },
       })
-      if (!inv) throw new NotFoundException('搴撳瓨璁板綍涓嶅瓨鍦?)
+      if (!inv) throw new NotFoundException('库存记录不存在')
 
       if (inv.lockedQuantity < dto.quantity) {
-        throw new BadRequestException(`閿佸畾搴撳瓨涓嶈冻锛堥攣瀹?${inv.lockedQuantity}锛岄渶瑕佽В閿?${dto.quantity}锛塦)
+        throw new BadRequestException(`锁定库存不足（锁定 ${inv.lockedQuantity}，需要解锁 ${dto.quantity}）`)
       }
 
       inv.availableQuantity += dto.quantity
@@ -157,7 +158,7 @@ export class InventoryStockService {
         referenceType: 'order',
         referenceId: dto.orderId,
         operatorId: operatorId ?? undefined,
-        remark: `璁㈠崟瑙ｉ攣 ${dto.quantity} 浠禶,
+        remark: `订单解锁 ${dto.quantity} 件`,
       })
 
       return inv
@@ -170,7 +171,7 @@ export class InventoryStockService {
         where: { skuId: dto.skuId, warehouseCode: 'WH-MAIN' },
         lock: { mode: 'pessimistic_write' },
       })
-      if (!inv) throw new NotFoundException('搴撳瓨璁板綍涓嶅瓨鍦?)
+      if (!inv) throw new NotFoundException('库存记录不存在')
 
       const diff = dto.newQuantity - inv.currentQuantity
       const before = inv.currentQuantity
@@ -193,7 +194,7 @@ export class InventoryStockService {
         quantityAfter: dto.newQuantity,
         referenceType: 'adjust',
         operatorId: operatorId ?? undefined,
-        remark: dto.remark || `鐩樼偣璋冩暣锛?{before} 鈫?${dto.newQuantity}`,
+        remark: dto.remark || `盘点调整：${before} → ${dto.newQuantity}`,
       })
 
       return inv

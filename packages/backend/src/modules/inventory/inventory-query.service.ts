@@ -1,4 +1,4 @@
-﻿import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Inventory } from './entity/inventory.entity'
@@ -7,8 +7,9 @@ import { InventoryDocument } from './entity/inventory-document.entity'
 import { QueryInventoryDto, QueryTransactionDto } from './dto/inventory.dto'
 
 /**
- * 搴撳瓨鏌ヨ瀛?Service
- * 璐熻矗锛氬垎椤垫煡璇€佸崟鍝佹煡璇€佹祦姘存煡璇€佸崟鎹煡璇€佺粺璁? */
+ * 库存查询子 Service
+ * 负责：分页查询、单品查询、流水查询、单据查询、统计
+ */
 @Injectable()
 export class InventoryQueryService {
   constructor(
@@ -42,7 +43,7 @@ export class InventoryQueryService {
     const inv = await this.inventoryRepo.findOne({
       where: { skuId, warehouseCode },
     })
-    if (!inv) throw new NotFoundException('搴撳瓨璁板綍涓嶅瓨鍦?)
+    if (!inv) throw new NotFoundException('库存记录不存在')
     return inv
   }
 
@@ -50,7 +51,7 @@ export class InventoryQueryService {
     const inv = await this.inventoryRepo.findOne({
       where: { skuCode, warehouseCode },
     })
-    if (!inv) throw new NotFoundException('搴撳瓨璁板綍涓嶅瓨鍦?)
+    if (!inv) throw new NotFoundException('库存记录不存在')
     return inv
   }
 

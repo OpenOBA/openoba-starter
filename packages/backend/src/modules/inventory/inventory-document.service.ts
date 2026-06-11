@@ -1,4 +1,4 @@
-﻿import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common'
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, DataSource } from 'typeorm'
 import { Inventory } from './entity/inventory.entity'
@@ -6,9 +6,10 @@ import { InventoryTransaction, TransactionType } from './entity/inventory-transa
 import { InventoryDocument } from './entity/inventory-document.entity'
 
 /**
- * 搴撳瓨鍗曟嵁瀛?Service
+ * 库存单据子 Service
  *
- * 璐熻矗锛欰gent 鍒涘缓鐨勫崟鎹墽琛屽紩鎿? * 閾捐矾锛歱ending 鈫?confirmed 鈫?executed
+ * 负责：Agent 创建的单据执行引擎
+ * 链路：pending → confirmed → executed
  */
 @Injectable()
 export class InventoryDocumentService {
@@ -21,12 +22,14 @@ export class InventoryDocumentService {
   ) {}
 
   /**
-   * 纭鍗曟嵁锛坧ending 鈫?confirmed锛?   * H14淇锛氱姸鎬佹洿鏂?鎵ц鍦ㄥ悓涓€浜嬪姟涓紝鎵ц澶辫触鍒欏洖婊氱姸鎬?   */
+   * 确认单据（pending → confirmed）
+   * H14修复：状态更新+执行在同一事务中，执行失败则回滚状态
+   */
   async confirmDocument(docId: string, operatorId?: string): Promise<InventoryDocument> {
     return this.dataSource.transaction(async (manager) => {
       const doc = await manager.findOne(InventoryDocument, { where: { id: docId } })
-      if (!doc) throw new NotFoundException('鍗曟嵁涓嶅瓨鍦?)
-      if (doc.status !== 'pending') throw new BadRequestException('鍙兘纭寰呭鐞嗙殑鍗曟嵁')
+      if (!doc) throw new NotFoundException('单据不存在')
+      if (doc.status !== 'pending') throw new BadRequestException('只能确认待处理的单据')
 
       doc.status = 'confirmed'
       doc.confirmedBy = operatorId || 'system'
@@ -38,29 +41,32 @@ export class InventoryDocumentService {
   }
 
   /**
-   * 鎵ц搴撳瓨鍗曟嵁锛圓gent 鍒涘缓鍗曟嵁 鈫?纭鍚庢墽琛?鈫?鍏ヨ处锛?   *
-   * Agent 璋冪敤閾捐矾锛?   *   erdl_crud create InventoryDocument 鈫?pending
-   *   鈫?浜哄伐纭/鑷姩纭 鈫?confirmed
-   *   鈫?executeDocument() 鈫?stock_in/stock_out 鈫?executed
+   * 执行库存单据（Agent 创建单据 → 确认后执行 → 入账）
+   *
+   * Agent 调用链路：
+   *   erdl_crud create InventoryDocument → pending
+   *   → 人工确认/自动确认 → confirmed
+   *   → executeDocument() → stock_in/stock_out → executed
    */
   async executeDocument(docId: string, operatorId?: string): Promise<InventoryDocument> {
     const doc = await this.documentRepo.findOne({ where: { id: docId } })
-    if (!doc) throw new NotFoundException('鍗曟嵁涓嶅瓨鍦?)
-    if (doc.status !== 'confirmed') throw new BadRequestException('鍙兘鎵ц宸茬‘璁ょ殑鍗曟嵁')
+    if (!doc) throw new NotFoundException('单据不存在')
+    if (doc.status !== 'confirmed') throw new BadRequestException('只能执行已确认的单据')
 
     await this.dataSource.transaction(async (manager) => {
       await this.executeDocumentInTx(manager, docId, operatorId)
     })
 
     const updated = await this.documentRepo.findOne({ where: { id: docId } })
-    if (!updated) throw new NotFoundException('鍗曟嵁涓嶅瓨鍦?)
-    this.logger.log(`[Inventory] 鍗曟嵁 ${updated.docNo} 鎵ц瀹屾垚`)
+    if (!updated) throw new NotFoundException('单据不存在')
+    this.logger.log(`[Inventory] 单据 ${updated.docNo} 执行完成`)
     return updated
   }
 
   /**
-   * 鍗曟嵁鎵ц鏍稿績閫昏緫锛堝湪澶栭儴浜嬪姟涓繍琛岋級
-   * 4R05淇锛氱洿鎺ヤ娇鐢ㄥ閮ㄤ簨鍔anager锛屾秷闄ゅ祵濂椾簨鍔?   */
+   * 单据执行核心逻辑（在外部事务中运行）
+   * 4R05修复：直接使用外部事务manager，消除嵌套事务
+   */
   private async executeDocumentInTx(manager: any, docId: string, operatorId?: string): Promise<void> {
     const doc = await manager.findOne(InventoryDocument, { where: { id: docId } })
     if (!doc || doc.status !== 'confirmed') return
@@ -70,7 +76,7 @@ export class InventoryDocumentService {
         where: { skuCode: item.skuCode, warehouseCode: item.warehouseCode || 'WH-MAIN' },
         lock: { mode: 'pessimistic_write' },
       })
-      if (!sku) throw new NotFoundException(`SKU ${item.skuCode} 鏃犲簱瀛樿褰曪紝璇峰厛鍒濆鍖朻)
+      if (!sku) throw new NotFoundException(`SKU ${item.skuCode} 无库存记录，请先初始化`)
 
       const before = sku.currentQuantity
       const txType =
@@ -85,7 +91,7 @@ export class InventoryDocumentService {
         sku.availableQuantity += item.quantity
       } else if (doc.docType === 'stock_out') {
         if (sku.availableQuantity < item.quantity) {
-          throw new BadRequestException(`${item.skuCode} 鍙敤搴撳瓨涓嶈冻锛堝彲鐢?{sku.availableQuantity}锛岄渶瑕?{item.quantity}锛塦)
+          throw new BadRequestException(`${item.skuCode} 可用库存不足（可用${sku.availableQuantity}，需要${item.quantity}）`)
         }
         sku.currentQuantity -= item.quantity
         sku.availableQuantity -= item.quantity
@@ -105,7 +111,7 @@ export class InventoryDocumentService {
         referenceType: 'document',
         referenceId: doc.id,
         operatorId: operatorId ?? undefined,
-        remark: `鍗曟嵁鎵ц: ${doc.docNo} (${doc.docType})`,
+        remark: `单据执行: ${doc.docNo} (${doc.docType})`,
       })
 
       await manager.query('UPDATE product_sku SET stock_quantity = ? WHERE sku_code = ?', [

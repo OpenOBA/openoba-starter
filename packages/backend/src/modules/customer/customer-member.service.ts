@@ -1,4 +1,4 @@
-﻿import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, DataSource } from 'typeorm'
 import { Customer } from './entity/customer.entity'
@@ -12,8 +12,9 @@ import { MemberLevel } from '../product/entity/member-level.entity'
 import { LENS_STATUS } from '../order/order.constants'
 
 /**
- * 浼氬憳绯荤粺瀛?Service
- * 璐熻矗锛氫細鍛樼瓑绾с€佺Н鍒嗐€佷华琛ㄧ洏銆佽鍗曢泦鎴愶紙populateCustomerLensFromOrder, updateMemberAssetsAfterPayment锛? */
+ * 会员系统子 Service
+ * 负责：会员等级、积分、仪表盘、订单集成（populateCustomerLensFromOrder, updateMemberAssetsAfterPayment）
+ */
 @Injectable()
 export class CustomerMemberService {
   constructor(
@@ -45,7 +46,7 @@ export class CustomerMemberService {
       where: { customerId, isDeleted: false },
       select: ['customerId', 'customerCode', 'contactName', 'nickname', 'accountStatus', 'registeredAt', 'lastLoginAt', 'customerLevel', 'totalAmount', 'totalOrders', 'pointsBalance', 'pointsEarned', 'pointsUsed', 'memberSince', 'memberValidUntil', 'lastActiveAt'],
     })
-    if (!customer) throw new NotFoundException(`瀹㈡埛 ${customerId} 涓嶅瓨鍦╜)
+    if (!customer) throw new NotFoundException(`客户 ${customerId} 不存在`)
     return customer
   }
 
@@ -72,7 +73,7 @@ export class CustomerMemberService {
         const logId = `ml-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`
         await manager.save(MemberLevelLog, {
           logId, customerId: customer.customerId, oldLevel, newLevel,
-          triggerType: 'downgrade', triggerReason: '90澶╂棤娑堣垂鑷姩闄嶇骇', orderId: null,
+          triggerType: 'downgrade', triggerReason: '90天无消费自动降级', orderId: null,
         })
       })
 
@@ -164,7 +165,7 @@ export class CustomerMemberService {
           txnId, customerId: order.customerId, points: pointsEarned,
           balanceAfter: afterCustomer?.pointsBalance ?? pointsEarned,
           type: 'order_earn', refId: orderId,
-          description: `璁㈠崟 ${order.orderNo || orderId} 娑堣垂浜х敓绉垎锛?{multiplier}x 鍊嶇巼锛塦,
+          description: `订单 ${order.orderNo || orderId} 消费产生积分（${multiplier}x 倍率）`,
         })
       }
 
@@ -184,7 +185,7 @@ export class CustomerMemberService {
         const logId = `ml-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`
         await manager.save(MemberLevelLog, {
           logId, customerId: order.customerId, oldLevel: currentLevel, newLevel: highestLevel,
-          triggerType: 'upgrade', triggerReason: `绱娑堣垂 楼${newTotalAmount.toFixed(2)} 杈惧埌鍗囩骇闂ㄦ`, orderId,
+          triggerType: 'upgrade', triggerReason: `累计消费 ¥${newTotalAmount.toFixed(2)} 达到升级门槛`, orderId,
         })
       }
     })
