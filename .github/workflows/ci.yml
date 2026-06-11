@@ -1,0 +1,92 @@
+﻿name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  lint-and-typecheck:
+    name: Lint + TypeCheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - run: npm ci --install-strategy=nested
+
+      - name: Lint backend
+        run: npm run lint -w packages/backend
+        continue-on-error: true
+
+      - name: TypeCheck types
+        run: npm run build -w packages/types
+
+      - name: TypeCheck backend
+        run: npx tsc --noEmit -p packages/backend/tsconfig.json
+
+      - name: TypeCheck frontend
+        run: npx vue-tsc --noEmit -p frontend/tsconfig.json
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: openoba_starter
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - run: npm ci --install-strategy=nested
+
+      - name: Wait for MySQL
+        run: |
+          for i in {1..30}; do
+            if mysqladmin ping -h 127.0.0.1 -u root -proot --silent; then
+              echo "MySQL is ready"
+              break
+            fi
+            echo "Waiting for MySQL... ($i)"
+            sleep 2
+          done
+
+      - name: Init database
+        run: |
+          for f in database/*.sql; do
+            mysql -h 127.0.0.1 -u root -proot openoba_starter < "$f" || true
+          done
+        continue-on-error: true
+
+      - name: Run backend tests
+        run: npm test -w packages/backend -- --no-coverage
+        env:
+          NODE_ENV: test
+          APP_ENV: test
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_USERNAME: root
+          DB_PASSWORD: root
+          DB_DATABASE: openoba_starter
+          JWT_SECRET: ci-test-jwt-secret-ci-do-not-use-in-production
