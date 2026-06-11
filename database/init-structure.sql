@@ -2363,62 +2363,102 @@ CREATE TABLE IF NOT EXISTS `system_module_registry` (
 
 -- (first-time-only: `vision_prescription`)
 
--- (model_key) · 🆕 新增
-CREATE TABLE IF NOT EXISTS `model_key` (
-  `key_id` char(36) NOT NULL COMMENT 'UUID主键',
-  `provider` varchar(32) NOT NULL COMMENT 'Provider名称',
-  `api_key` varchar(512) NOT NULL COMMENT 'API密钥',
-  `is_active` tinyint(1) NOT NULL DEFAULT 1 COMMENT '是否启用',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`key_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='模型API密钥';
+-- (sys_model_key) · Core Entity 对齐
+CREATE TABLE IF NOT EXISTS `sys_model_key` (
+  `id` varchar(36) NOT NULL COMMENT 'UUID主键',
+  `provider_code` varchar(32) NOT NULL COMMENT 'Provider编码',
+  `agent_code` varchar(64) NOT NULL DEFAULT 'global' COMMENT 'Agent编码',
+  `label` varchar(64) DEFAULT NULL COMMENT '标签',
+  `api_key_enc` text NOT NULL COMMENT 'AES-256-GCM密文',
+  `iv` varchar(48) NOT NULL COMMENT '初始化向量',
+  `auth_tag` varchar(48) NOT NULL COMMENT '认证标签',
+  `base_url` varchar(256) DEFAULT NULL COMMENT '覆盖Provider默认baseUrl',
+  `is_enabled` tinyint(1) NOT NULL DEFAULT 1 COMMENT '是否启用',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_provider_agent` (`provider_code`, `agent_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Provider级别API Key';
 
--- (model_key_models) · 🆕 新增
-CREATE TABLE IF NOT EXISTS `model_key_models` (
-  `id` int NOT NULL AUTO_INCREMENT COMMENT '自增主键',
-  `key_id` char(36) NOT NULL COMMENT '密钥ID',
-  `model_name` varchar(128) NOT NULL COMMENT '模型名',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='密钥关联模型';
+-- (sys_model_key_models) · Core Entity 对齐
+CREATE TABLE IF NOT EXISTS `sys_model_key_models` (
+  `key_id` varchar(36) NOT NULL COMMENT '密钥ID',
+  `registry_id` varchar(36) NOT NULL COMMENT '模型注册ID',
+  `is_default` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否默认模型',
+  PRIMARY KEY (`key_id`, `registry_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Key关联模型';
 
--- (model_registry) · 🆕 新增
-CREATE TABLE IF NOT EXISTS `model_registry` (
-  `model_id` char(36) NOT NULL COMMENT 'UUID主键',
-  `model_name` varchar(128) NOT NULL COMMENT '模型名',
-  `provider` varchar(32) NOT NULL COMMENT 'Provider',
-  `is_active` tinyint(1) NOT NULL DEFAULT 1 COMMENT '是否启用',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`model_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='模型注册表';
+-- (sys_model_registry) · Core Entity 对齐
+CREATE TABLE IF NOT EXISTS `sys_model_registry` (
+  `id` varchar(36) NOT NULL COMMENT 'UUID主键',
+  `provider_code` varchar(32) NOT NULL COMMENT 'Provider编码',
+  `model_code` varchar(64) NOT NULL COMMENT '模型编码',
+  `model_name` varchar(64) NOT NULL COMMENT '模型显示名',
+  `category` enum('TEXT','VISION','IMAGE','VIDEO') NOT NULL COMMENT '模型类别',
+  `context_window` int NOT NULL DEFAULT 0 COMMENT '上下文窗口',
+  `max_tokens` int NOT NULL DEFAULT 0 COMMENT '最大输出token',
+  `supports_reasoning` tinyint(1) NOT NULL DEFAULT 0 COMMENT '支持推理',
+  `supports_streaming` tinyint(1) NOT NULL DEFAULT 1 COMMENT '支持流式',
+  `supports_tools` tinyint(1) NOT NULL DEFAULT 1 COMMENT '支持工具调用',
+  `cost_input` decimal(12,6) NOT NULL DEFAULT 0 COMMENT '输入成本/单位',
+  `cost_output` decimal(12,6) NOT NULL DEFAULT 0 COMMENT '输出成本/单位',
+  `cost_unit` varchar(10) NOT NULL DEFAULT '1M' COMMENT '计费单位',
+  `is_default` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否Provider默认',
+  `is_enabled` tinyint(1) NOT NULL DEFAULT 1 COMMENT '是否启用',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_provider` (`provider_code`),
+  INDEX `idx_category` (`category`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='模型注册中心';
 
--- (model_provider) · 🆕 新增
-CREATE TABLE IF NOT EXISTS `model_provider` (
-  `provider_id` char(36) NOT NULL COMMENT 'UUID主键',
-  `provider_name` varchar(64) NOT NULL COMMENT 'Provider名称',
-  `api_base` varchar(256) NOT NULL COMMENT 'API地址',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`provider_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='模型Provider';
+-- (sys_model_provider) · Core Entity 对齐
+CREATE TABLE IF NOT EXISTS `sys_model_provider` (
+  `id` varchar(36) NOT NULL COMMENT 'UUID主键',
+  `providerCode` varchar(32) NOT NULL COMMENT 'Provider编码',
+  `providerName` varchar(64) NOT NULL COMMENT 'Provider显示名',
+  `baseUrl` varchar(256) NOT NULL COMMENT 'API endpoint',
+  `apiType` varchar(20) NOT NULL DEFAULT 'openai' COMMENT 'API类型',
+  `description` varchar(256) DEFAULT NULL COMMENT '描述',
+  `iconUrl` varchar(256) DEFAULT NULL COMMENT '图标URL',
+  `isBuiltin` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否内置',
+  `isEnabled` tinyint(1) NOT NULL DEFAULT 1 COMMENT '是否启用',
+  `createdAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_providerCode` (`providerCode`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='模型提供方';
 
--- (token_usage) · 🆕 新增
-CREATE TABLE IF NOT EXISTS `token_usage` (
-  `usage_id` char(36) NOT NULL COMMENT 'UUID主键',
-  `model_name` varchar(128) NOT NULL COMMENT '模型名',
-  `tokens_in` int NOT NULL DEFAULT 0 COMMENT '输入token',
-  `tokens_out` int NOT NULL DEFAULT 0 COMMENT '输出token',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`usage_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Token使用统计';
+-- (sys_token_usage) · Core Entity 对齐
+CREATE TABLE IF NOT EXISTS `sys_token_usage` (
+  `id` varchar(36) NOT NULL COMMENT 'UUID主键',
+  `agentCode` varchar(64) NOT NULL COMMENT 'Agent编码',
+  `modelCode` varchar(64) NOT NULL COMMENT '模型编码',
+  `providerCode` varchar(32) NOT NULL COMMENT 'Provider编码',
+  `inputTokens` int NOT NULL DEFAULT 0 COMMENT '输入token',
+  `outputTokens` int NOT NULL DEFAULT 0 COMMENT '输出token',
+  `totalTokens` int NOT NULL DEFAULT 0 COMMENT '总token',
+  `costInput` decimal(12,6) NOT NULL DEFAULT 0 COMMENT '输入成本',
+  `costOutput` decimal(12,6) NOT NULL DEFAULT 0 COMMENT '输出成本',
+  `costTotal` decimal(12,6) NOT NULL DEFAULT 0 COMMENT '总成本',
+  `taskId` varchar(36) DEFAULT NULL COMMENT '关联Task',
+  `chatSessionId` varchar(36) DEFAULT NULL COMMENT '关联ChatSession',
+  `createdAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_agent_time` (`agentCode`, `createdAt`),
+  INDEX `idx_provider_time` (`providerCode`, `createdAt`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Token用量追踪';
 
--- (model_connection_log) · 🆕 新增
-CREATE TABLE IF NOT EXISTS `model_connection_log` (
-  `log_id` char(36) NOT NULL COMMENT 'UUID主键',
-  `provider` varchar(32) NOT NULL COMMENT 'Provider',
-  `status` varchar(16) NOT NULL DEFAULT 'unknown' COMMENT '连接状态',
-  `error_msg` text COMMENT '错误信息',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`log_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='模型连接日志';
+-- (sys_model_connection_log) · Core Entity 对齐
+CREATE TABLE IF NOT EXISTS `sys_model_connection_log` (
+  `id` varchar(36) NOT NULL COMMENT 'UUID主键',
+  `modelRegistryId` varchar(36) NOT NULL COMMENT '模型注册ID',
+  `status` enum('ok','timeout','auth_error','network_error','unknown') NOT NULL COMMENT '状态',
+  `latencyMs` int DEFAULT NULL COMMENT '延迟毫秒',
+  `errorMessage` varchar(500) DEFAULT NULL COMMENT '错误消息',
+  `testedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '测试时间',
+  PRIMARY KEY (`id`),
+  INDEX `idx_registry` (`modelRegistryId`),
+  INDEX `idx_tested` (`testedAt`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='模型连接测试日志';
 
