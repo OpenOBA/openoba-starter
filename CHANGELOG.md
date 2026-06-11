@@ -17,6 +17,18 @@
 
 ---
 
+## [1.3.3] — 2026-06-11
+
+### Changed
+- V1.4-c 大文件拆分：后端5模块 → 子Service 提取（customer/inventory/order/product/after-sales）
+- V1.4-c 大文件拆分：前端4页面 → composables 抽取（Customer/Order/AgentChat/TaskDashboard）
+
+### Added
+- wizard.guard.ts（初装向导守卫）
+- after-sales-state-machine.ts（状态机提取）
+
+---
+
 ## [1.3.2] — 2026-06-11
 
 ### Security
