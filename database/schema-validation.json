@@ -1,0 +1,343 @@
+﻿{
+  "ok": [
+    {
+      "table": "agent_memory",
+      "cols": 21,
+      "file": "@openoba/core"
+    },
+    {
+      "table": "model_connection_log",
+      "cols": 5,
+      "file": "@openoba/core"
+    },
+    {
+      "table": "model_key",
+      "cols": 6,
+      "file": "@openoba/core"
+    },
+    {
+      "table": "model_key_models",
+      "cols": 4,
+      "file": "@openoba/core"
+    },
+    {
+      "table": "model_provider",
+      "cols": 4,
+      "file": "@openoba/core"
+    },
+    {
+      "table": "model_registry",
+      "cols": 5,
+      "file": "@openoba/core"
+    },
+    {
+      "table": "token_usage",
+      "cols": 5,
+      "file": "@openoba/core"
+    }
+  ],
+  "errors": [
+    {
+      "table": "agent_registry",
+      "issue": "SQL缂哄垪(Entity鏈?",
+      "missing": [
+        "agent_id",
+        "agent_version",
+        "system_prompt",
+        "owner_id",
+        "config_json"
+      ],
+      "entityFile": "@openoba/core",
+      "sqlCols": 11,
+      "entityCols": 10
+    },
+    {
+      "table": "agent_task",
+      "issue": "SQL缂哄垪(Entity鏈?",
+      "missing": [
+        "task_id",
+        "session_id",
+        "description",
+        "user_id",
+        "priority",
+        "prompt",
+        "started_at",
+        "completed_at",
+        "result_summary"
+      ],
+      "entityFile": "@openoba/core",
+      "sqlCols": 20,
+      "entityCols": 14
+    },
+    {
+      "table": "cognitive_log",
+      "issue": "SQL缂哄垪(Entity鏈?",
+      "missing": [
+        "log_id",
+        "task_id",
+        "step",
+        "action",
+        "reasoning",
+        "tool_name",
+        "tool_input",
+        "tool_output",
+        "llm_provider"
+      ],
+      "entityFile": "@openoba/core",
+      "sqlCols": 11,
+      "entityCols": 11
+    },
+    {
+      "table": "deliverable_manifest",
+      "issue": "SQL缂哄垪(Entity鏈?",
+      "missing": [
+        "manifest_id",
+        "deliverable_type",
+        "file_path",
+        "target_env"
+      ],
+      "entityFile": "@openoba/core",
+      "sqlCols": 16,
+      "entityCols": 6
+    },
+    {
+      "table": "erdl_proposal",
+      "issue": "SQL缂哄垪(Entity鏈?",
+      "missing": [
+        "proposal_id",
+        "proposal_no",
+        "type",
+        "file_name",
+        "original_yaml",
+        "proposed_yaml",
+        "reason",
+        "submitted_by",
+        "submitted_at",
+        "resolved_at",
+        "updated_at"
+      ],
+      "entityFile": "@openoba/core",
+      "sqlCols": 10,
+      "entityCols": 14
+    },
+    {
+      "table": "erdl_rule_record",
+      "issue": "SQL缂哄垪(Entity鏈?",
+      "missing": [
+        "rule_id",
+        "rule_code",
+        "file_name",
+        "rule_yaml"
+      ],
+      "entityFile": "@openoba/core",
+      "sqlCols": 10,
+      "entityCols": 9
+    },
+    {
+      "table": "erdl_snapshot",
+      "issue": "SQL缂哄垪(Entity鏈?",
+      "missing": [
+        "snapshot_id",
+        "file_name",
+        "file_path",
+        "version"
+      ],
+      "entityFile": "@openoba/core",
+      "sqlCols": 8,
+      "entityCols": 6
+    },
+    {
+      "table": "knowledge_entry",
+      "issue": "SQL缂哄垪(Entity鏈?",
+      "missing": [
+        "entry_id",
+        "source_module",
+        "agent_id"
+      ],
+      "entityFile": "@openoba/core",
+      "sqlCols": 12,
+      "entityCols": 8
+    },
+    {
+      "table": "publish_package",
+      "issue": "SQL缂哄垪(Entity鏈?",
+      "missing": [
+        "package_id",
+        "package_type",
+        "version",
+        "content_json",
+        "published_at"
+      ],
+      "entityFile": "@openoba/core",
+      "sqlCols": 9,
+      "entityCols": 7
+    },
+    {
+      "table": "report_target",
+      "issue": "SQL缂哄垪(Entity鏈?",
+      "missing": [
+        "target_id",
+        "target_type",
+        "target_url",
+        "config_json"
+      ],
+      "entityFile": "@openoba/core",
+      "sqlCols": 9,
+      "entityCols": 5
+    },
+    {
+      "table": "skill_key_vault",
+      "issue": "SQL缂哄垪(Entity鏈?",
+      "missing": [
+        "vault_id",
+        "skill_code",
+        "key_value"
+      ],
+      "entityFile": "@openoba/core",
+      "sqlCols": 9,
+      "entityCols": 6
+    },
+    {
+      "table": "skill_registry",
+      "issue": "SQL缂哄垪(Entity鏈?",
+      "missing": [
+        "skill_id",
+        "skill_code",
+        "manifest_yaml",
+        "created_at"
+      ],
+      "entityFile": "@openoba/core",
+      "sqlCols": 24,
+      "entityCols": 8
+    },
+    {
+      "table": "system_module_registry",
+      "issue": "SQL缂哄垪(Entity鏈?",
+      "missing": [
+        "module_id",
+        "module_code",
+        "created_at"
+      ],
+      "entityFile": "@openoba/core",
+      "sqlCols": 9,
+      "entityCols": 6
+    }
+  ],
+  "warnings": [],
+  "noEntityTables": [
+    "advisory_report",
+    "aesthetic_compat_matrices",
+    "aesthetic_feedback",
+    "aesthetic_rules",
+    "after_sales",
+    "after_sales_log",
+    "color_design_project",
+    "color_material_mapping",
+    "color_palette_item",
+    "color_project_color",
+    "color_seasonal_palette",
+    "customer",
+    "customer_address",
+    "customer_consumption_profile",
+    "customer_contact",
+    "customer_lens",
+    "customer_login_log",
+    "customer_tier_pricing",
+    "dict_after_sale_reason",
+    "dict_after_sale_status",
+    "dict_audit_status",
+    "dict_brand",
+    "dict_code_spec",
+    "dict_compatibility_level",
+    "dict_contact_role",
+    "dict_customer_level",
+    "dict_customer_status",
+    "dict_customer_type",
+    "dict_effect_tag",
+    "dict_frame_material",
+    "dict_frame_type",
+    "dict_hinge",
+    "dict_lens_coating",
+    "dict_lens_function",
+    "dict_lens_material",
+    "dict_logistics_company",
+    "dict_logistics_status",
+    "dict_logistics_trace_type",
+    "dict_nose_pad",
+    "dict_order_status",
+    "dict_payment_method",
+    "dict_payment_scene",
+    "dict_payment_status",
+    "dict_product_status",
+    "dict_product_tier",
+    "dict_product_type",
+    "dict_promotion_status",
+    "dict_referral_source",
+    "dict_refractive_index",
+    "dict_review_status",
+    "dict_review_tag",
+    "dict_sku_color",
+    "dict_sku_status",
+    "dict_spu_color",
+    "dict_subscription_status",
+    "dict_surface_treatment",
+    "dict_unit",
+    "draft",
+    "draft_batch",
+    "draft_publish_batch",
+    "draft_sku",
+    "draft_spu",
+    "draft_task",
+    "external_barcode_mapping",
+    "inventory",
+    "inventory_document",
+    "inventory_transaction",
+    "lens_compatibility",
+    "lens_material",
+    "lens_series",
+    "lens_shape",
+    "lens_standard",
+    "lens_standard_attachment",
+    "member_level",
+    "member_level_log",
+    "member_pricing_rule",
+    "order",
+    "order_address",
+    "order_item",
+    "order_log",
+    "order_payment",
+    "order_shipment",
+    "points_transaction",
+    "price_history",
+    "product_category",
+    "product_set",
+    "product_sku",
+    "product_sku_image",
+    "product_spu",
+    "product_tier_pricing",
+    "promotion",
+    "promotion_sku",
+    "review",
+    "sku_effect_recommend",
+    "sms_verification_code",
+    "spec_template",
+    "structure_compatibility",
+    "structure_material",
+    "structure_series",
+    "structure_shape",
+    "structure_standard",
+    "structure_standard_attachment",
+    "sub_sku",
+    "sub_sku_category",
+    "sys_agent_manifest",
+    "sys_audit_log",
+    "sys_menu",
+    "sys_permission",
+    "sys_role",
+    "sys_role_permission",
+    "sys_user",
+    "sys_user_role",
+    "vision_prescription",
+    "wholesale_tier"
+  ]
+}
