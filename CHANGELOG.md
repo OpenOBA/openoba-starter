@@ -17,15 +17,35 @@
 
 ---
 
+## [1.4.0-alpha3] — 2026-06-11
+
+### Changed
+- **NestJS 11 重新升级**：前次 commit 未正确入版（package.json 声明仍为 10.x），本次修复
+- 根 package.json 新增 NestJS 7 包 devDeps → 根 node_modules（解决 workspaces hoisting）
+- tsconfig paths + jest rootDir 同步修正
+
+### Fixed
+- @openoba/core 移至 backend node_modules + exports 约束解除
+- uuid@11 补充 sub-sku 依赖
+
+### Known Issues
+- 2 个 spec 失败（order + pricing-engine）：依赖 Core 包 ERDLRuleEngine · P1 Core 重新编译后修复
+
+---
+
+## [1.4.0-alpha2] — 2026-06-11
+
+### Changed
+- xlsx: npm 0.18.5 → CDN 0.20.3（官方源·修复 Prototype Pollution）
+- expr-eval: 2019 停更 → mathjs 15.2.0（活跃维护·沙箱安全）
+- exceljs: 移除
+
+---
+
 ## [1.4.0-alpha1] — 2026-06-11
 
 ### Changed
-- **NestJS 11 全家桶升级**：common/core/testing/platform-express/swagger/config/typeorm/jwt/passport → 11.x
-- CLI/Schematics → 11.x
-- Express v5 路由兼容（0 个控制器受影响）
-
-### Fixed
-- @openoba/core tgz 包 exports 约束解除（适配 NestJS 11）
+- NestJS 11 升级（首次·未正确入版·被 alpha3 取代）
 - tsconfig paths + jest rootDir 修正（core 移至 backend node_modules）
 - 4 个拆分 Service 文件编码修复（binary restore）
 - product.module.ts 移除 3 个缺失 Service 引用（暂用主 Service 内联）
