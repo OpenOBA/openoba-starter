@@ -9,7 +9,6 @@
     "frontend"
   ],
   "dependencies": {
-    "@nestjs/typeorm": "^10.0.0",
     "typeorm": "^0.3.17"
   },
   "scripts": {
@@ -24,6 +23,12 @@
     "prepare": "husky"
   },
   "devDependencies": {
+    "@nestjs/common": "^11.1.26",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/jwt": "^11.0.2",
+    "@nestjs/passport": "^11.0.5",
+    "@nestjs/swagger": "^11.4.4",
+    "@nestjs/typeorm": "^11.0.1",
     "husky": "^9.1.7"
   }
 }
