@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, Index } from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm'
 // TASK-013 Batch 4: 硬编码替换 — Entity enum/default 保持字符串字面值（TypeORM 编译期限制），注释指向常量
 import { AFTER_SALES_STATUS, AFTER_SALES_TYPE, AFTER_SALES_REASON, REFUND_METHOD, APPLICANT_TYPE } from '../after-sales.constants'
 
@@ -103,6 +103,6 @@ export class AfterSales {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date
 
-  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  @Column({ name: 'is_deleted', type: 'tinyint', default: 0, nullable: false })
   deletedAt: Date
 }

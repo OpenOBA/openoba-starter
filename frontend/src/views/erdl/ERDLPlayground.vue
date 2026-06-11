@@ -178,9 +178,6 @@ const generating = ref(false)
 const generatedYaml = ref('')
 const generatedValid = ref(false)
 const nlHint = ref(true)
-const randomHint = ref(nlHints[0])
-const pickRandomHint = () => { const arr = new Uint32Array(1); crypto.getRandomValues(arr); randomHint.value = nlHints[arr[0] % nlHints.length] }
-pickRandomHint()
 
 const nlHints = [
  'VIP 会员打 8 折，SVIP 打 7 折',
@@ -189,6 +186,9 @@ const nlHints = [
  '新增黄金会员等级，年消费 10000 以上自动升级',
  '根据客户类型计算价格：零售原价，批发 85 折',
 ]
+
+const arr = new Uint32Array(1); crypto.getRandomValues(arr);
+const randomHint = ref(nlHints[arr[0] % nlHints.length])
 
 // ============================================
 // 编辑器
