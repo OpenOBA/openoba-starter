@@ -4,6 +4,11 @@ import { Inventory } from './entity/inventory.entity'
 import { InventoryTransaction } from './entity/inventory-transaction.entity'
 import { InventoryDocument } from './entity/inventory-document.entity'
 import { InventoryService } from './inventory.service'
+import { InventoryQueryService } from './inventory-query.service'
+import { InventoryCrudService } from './inventory-crud.service'
+import { InventoryStockService } from './inventory-stock.service'
+import { InventoryTxService } from './inventory-tx.service'
+import { InventoryDocumentService } from './inventory-document.service'
 import { InventoryController } from './inventory.controller'
 import { ToolRegistry } from '@openoba/core/dist/modules/tool-registry/tool-registry.service'
 import { registerInventoryTools } from '../tool-registry/tools/inventory.tools'
@@ -11,7 +16,14 @@ import { registerInventoryTools } from '../tool-registry/tools/inventory.tools'
 @Module({
   imports: [TypeOrmModule.forFeature([Inventory, InventoryTransaction, InventoryDocument])],
   controllers: [InventoryController],
-  providers: [InventoryService],
+  providers: [
+    InventoryService,
+    InventoryQueryService,
+    InventoryCrudService,
+    InventoryStockService,
+    InventoryTxService,
+    InventoryDocumentService,
+  ],
   exports: [InventoryService],
 })
 export class InventoryModule implements OnModuleInit {

@@ -10,13 +10,14 @@ import { CustomerLens } from '../customer/entity/customer-lens.entity'
 import { CustomerConsumptionProfile } from '../customer/entity/customer-consumption-profile.entity'
 import { Customer } from '../customer/entity/customer.entity'
 import { MemberLevelLog } from '../customer/entity/member-level-log.entity'
-// PointsTransaction managed by CustomerService
 import { MemberLevel } from '../product/entity/member-level.entity'
 import { InventoryModule } from '../inventory/inventory.module'
 import { ProductModule } from '../product/product.module'
-// P2修复：注入CustomerService替代直接操作Customer repo
 import { CustomerModule } from '../customer/customer.module'
 import { OrderService } from './order.service'
+import { OrderQueryService } from './order-query.service'
+import { OrderCrudService } from './order-crud.service'
+import { OrderLifecycleService } from './order-lifecycle.service'
 import { OrderController } from './order.controller'
 import { ToolRegistry } from '@openoba/core/dist/modules/tool-registry/tool-registry.service'
 import { registerOrderTools } from '../tool-registry/tools/order.tools'
@@ -24,24 +25,15 @@ import { registerOrderTools } from '../tool-registry/tools/order.tools'
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      Order,
-      OrderItem,
-      OrderAddress,
-      OrderPayment,
-      OrderShipment,
-      OrderLog,
-      CustomerLens,
-      CustomerConsumptionProfile,
-      Customer,
-      MemberLevelLog,
-      MemberLevel,
+      Order, OrderItem, OrderAddress, OrderPayment, OrderShipment, OrderLog,
+      CustomerLens, CustomerConsumptionProfile, Customer, MemberLevelLog, MemberLevel,
     ]),
     InventoryModule,
     CustomerModule,
-    ProductModule, // PricingEngineService dependency resolved
+    ProductModule,
   ],
   controllers: [OrderController],
-  providers: [OrderService],
+  providers: [OrderService, OrderQueryService, OrderCrudService, OrderLifecycleService],
   exports: [OrderService],
 })
 export class OrderModule implements OnModuleInit {

@@ -27,6 +27,7 @@ import { LlmConfigController } from './llm-config.controller'
 import { EntitySyncService } from './entity-sync.service'
 import { WizardController } from './wizard.controller'
 import { WizardService } from './wizard.service'
+import { WizardGuard } from '../../common/guards/wizard.guard'
 
 // 🔑 从 Core 包引入 ModelKey 体系（启动时从 DB 解密加载 Key 到 process.env）
 import { ModelKey } from '@openoba/core/dist/modules/system/model-key.entity'
