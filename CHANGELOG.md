@@ -17,6 +17,26 @@
 
 ---
 
+## [1.3.5] — 2026-06-11
+
+### Fixed
+- P0-4: CI 修复 — 删除 `continue-on-error: true`；新增 npm audit 安全审计步骤
+- P0-4: SQL 初始化改为 fail-fast（`|| exit 1` 替代 `|| true`）
+
+---
+
+## [1.3.4] — 2026-06-11
+
+### Added
+- MIT LICENSE 部署
+- CONTRIBUTING.md 社区贡献指南
+- .env.example 环境变量配置模板
+- .github/workflows/ci.yml CI pipeline
+- e2e/core-workflow.spec.ts E2E 测试
+- playwright.config.ts Playwright 配置
+
+---
+
 ## [1.3.3] — 2026-06-11
 
 ### Changed

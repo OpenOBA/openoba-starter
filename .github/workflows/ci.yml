@@ -22,7 +22,9 @@ jobs:
 
       - name: Lint backend
         run: npm run lint -w packages/backend
-        continue-on-error: true
+
+      - name: Security audit
+        run: npm audit --audit-level=moderate
 
       - name: TypeCheck types
         run: npm run build -w packages/types
@@ -75,9 +77,8 @@ jobs:
       - name: Init database
         run: |
           for f in database/*.sql; do
-            mysql -h 127.0.0.1 -u root -proot openoba_starter < "$f" || true
+            mysql -h 127.0.0.1 -u root -proot openoba_starter < "$f" || exit 1
           done
-        continue-on-error: true
 
       - name: Run backend tests
         run: npm test -w packages/backend -- --no-coverage
