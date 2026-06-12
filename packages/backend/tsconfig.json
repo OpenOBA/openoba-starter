@@ -13,7 +13,9 @@
     "target": "ES2021",
     "sourceMap": true,
     "outDir": "./dist",
+    "rootDir": "./src",
     "baseUrl": "./",
+    "ignoreDeprecations": "6.0",
     "incremental": true,
     "skipLibCheck": true,
     "strict": true,
@@ -23,10 +25,10 @@
     "noFallthroughCasesInSwitch": true,
     "paths": {
       "@/*": ["src/*"],
-      "@openoba/core/index": ["node_modules/@openoba/core/dist/index"],
-      "@openoba/core/*": ["node_modules/@openoba/core/dist/*"],
-      "@openoba/types": ["../../../node_modules/@openoba/types/dist"],
-      "@openoba/types/*": ["../../../node_modules/@openoba/types/dist/*"]
+      "@openoba/core/index": ["../../node_modules/@openoba/core/dist/index"],
+      "@openoba/core/*": ["../../node_modules/@openoba/core/dist/*"],
+      "@openoba/types": ["../../node_modules/@openoba/types/dist"],
+      "@openoba/types/*": ["../../node_modules/@openoba/types/dist/*"]
     }
   }
 }

@@ -88,7 +88,7 @@ async function bootstrap() {
     const config = new DocumentBuilder()
       .setTitle('OpenOBA API')
       .setDescription('OpenOBA 企业 AI 执行官 API 文档')
-      .setVersion('1.3.0')
+      .setVersion('1.4.0-alpha7')
       .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'access-token')
       .build()
     const document = SwaggerModule.createDocument(app, config)
@@ -100,7 +100,7 @@ async function bootstrap() {
     res.json({
       status: 'ok',
       service: 'OpenOBA',
-      version: '1.3.0',
+      version: '1.4.0-alpha7',
       timestamp: new Date().toISOString(),
     })
   })

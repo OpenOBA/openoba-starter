@@ -1,6 +1,6 @@
 {
   "name": "openoba-starter",
-  "version": "1.3.0",
+  "version": "1.4.0-alpha7",
   "private": true,
   "description": "OpenOBA Starter — AI Executive Officer with Eyewear Reference Implementation",
   "workspaces": [
@@ -14,7 +14,9 @@
     "@nestjs/platform-socket.io": "^11.1.26",
     "@nestjs/schedule": "^6.1.3",
     "@nestjs/websockets": "^11.1.26",
-    "typeorm": "^0.3.17"
+    "expr-eval": "^2.0.2",
+    "typeorm": "^0.3.17",
+    "uuid": "^11.0.0"
   },
   "scripts": {
     "build:backend": "npm run build -w packages/backend",
