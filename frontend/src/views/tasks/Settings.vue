@@ -447,13 +447,13 @@ const about = reactive({
 })
 
 async function loadAbout() {
-  // 版本信息：尝试从后端获取，失败则用默认值
+  // 版本信息：从版本接口获取
   try {
-    const res = await request.get('/eros/tasks/stats')
-    about.version = '1.3.0'
+    const res = await request.get('/system/version/check', { params: { current: '1.4.0-alpha7' } })
+    about.version = res?.currentVersion || '1.4.0-alpha7'
     about.deployMode = 'operator'
   } catch {
-    about.version = '1.3.0'
+    about.version = '1.4.0-alpha7'
     about.deployMode = 'operator'
   }
 
