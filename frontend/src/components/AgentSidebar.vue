@@ -70,7 +70,7 @@ function selectAgent(agent: AgentEntry) {
 }
 
 // 版本信息
-const versionText = ref('v1.0.0')
+const versionText = ref('v1.4.0-alpha7')
 const hasUpdate = ref(false)
 const latestVersion = ref('')
 
@@ -81,7 +81,7 @@ async function loadVersion() {
     hasUpdate.value = res?.hasUpdate || false
     latestVersion.value = res?.latestVersion || ''
   } catch {
-    versionText.value = 'v1.0.0'
+    versionText.value = 'v1.4.0-alpha7'
   }
 }
 
