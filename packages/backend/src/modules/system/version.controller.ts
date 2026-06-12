@@ -37,8 +37,8 @@ export class VersionController {
       this.logger.warn(`GitHub 也不可达: ${(err as Error).message}`)
     }
 
-    // 完全离线：静默降级
-    return { hasUpdate: false, currentVersion: cur, latestVersion: null, downloadUrl: null, channel: 'offline', deployMode }
+    // 完全离线：静默降级，不触发更新提示
+    return { hasUpdate: false, currentVersion: cur, latestVersion: cur, downloadUrl: null, channel: 'offline', deployMode }
   }
 
   /**
@@ -103,7 +103,7 @@ export class VersionController {
             const release = JSON.parse(data)
             const latest = (release.tag_name || '').replace(/^v/, '')
             resolve({
-              hasUpdate: latest !== current.replace(/^v/, ''),
+              hasUpdate: this.isNewerVersion(latest, current.replace(/^v/, '')),
               currentVersion: current,
               latestVersion: latest || null,
               changelog: release.body || null,
@@ -118,5 +118,23 @@ export class VersionController {
       req.on('timeout', () => { req.destroy(); reject(new Error('timeout')) })
       req.end()
     })
+  }
+
+  /** 比较版本号：仅当 latest > current 时返回 true */
+  private isNewerVersion(latest: string, current: string): boolean {
+    const l = this.parseVersion(latest)
+    const c = this.parseVersion(current)
+    if (!l || !c) return false
+    for (let i = 0; i < 3; i++) {
+      if ((l[i] || 0) > (c[i] || 0)) return true
+      if ((l[i] || 0) < (c[i] || 0)) return false
+    }
+    return false
+  }
+
+  private parseVersion(v: string): number[] | null {
+    const m = v.match(/^(\d+)\.(\d+)\.(\d+)/)
+    if (!m) return null
+    return [parseInt(m[1]), parseInt(m[2]), parseInt(m[3])]
   }
 }
