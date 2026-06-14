@@ -208,56 +208,164 @@
 
       <!-- 9. API Key -->
       <el-tab-pane label="API Key" name="apikey">
-        <el-form label-width="140px" size="small">
+        <div style="min-height:360px">
           <el-alert
-            title="配置 LLM 调用方式。两种方式任选其一，OpenOBA Key 自动覆盖 LLM 直连 Key。"
+            title="配置 LLM 调用方式。已保存的 Key 会加密存储到数据库，进程重启不丢失。ERA-Chat 首页可选择模型。"
             type="info"
             :closable="false"
             style="margin-bottom:16px"
           />
 
-          <!-- 方案1：LLM 直连 Key -->
-          <el-divider content-position="left">LLM 直连 Key</el-divider>
-          <el-form-item label="Provider">
-            <el-select v-model="apiKey.llmProvider" style="width:200px" placeholder="选择 LLM 提供商">
-              <el-option label="DeepSeek" value="deepseek" />
-              <el-option label="Qwen / 阿里云百炼" value="qwen" />
-              <el-option label="OpenAI" value="openai" />
-              <el-option label="自定义" value="custom" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="API Key">
-            <el-input v-model="apiKey.llmKey" type="password" show-password placeholder="sk-..." />
-          </el-form-item>
-          <el-form-item v-if="apiKey.llmProvider === 'custom'" label="Base URL">
-            <el-input v-model="apiKey.llmBaseUrl" placeholder="https://your-llm-api.com/v1" />
-          </el-form-item>
-          <el-form-item>
-            <el-button size="small" type="primary" @click="testLlmConnection" :loading="testingLlm">测试连接</el-button>
-            <el-button size="small" @click="saveLlmKey">保存</el-button>
-            <el-button size="small" @click="addMoreProvider">添加更多</el-button>
-            <span v-if="llmStatus" :style="{ color: llmStatus === 'ok' ? '#67c23a' : '#e6a23c', marginLeft: '8px', fontSize: '12px' }">{{ llmStatusText }}</span>
-          </el-form-item>
+          <!-- LLM 密钥列表 -->
+          <el-divider content-position="left">LLM 密钥管理</el-divider>
 
-          <!-- 方案2：OpenOBA Key -->
+          <el-table
+            :data="keyRows"
+            size="small"
+            border
+            stripe
+            style="width:100%"
+            :header-cell-style="{ background:'#f5f7fa', color:'#606266', fontWeight:600 }"
+          >
+            <el-table-column label="Provider" width="130">
+              <template #default="{ row }">
+                <div style="display:flex;align-items:center;gap:4px">
+                  <span style="font-weight:600;color:#303133">{{ row.provider }}</span>
+                  <el-tag v-if="row.isBuiltin === false" size="small" type="info">自定义</el-tag>
+                </div>
+              </template>
+            </el-table-column>
+
+            <el-table-column label="模型 / URL" min-width="200">
+              <template #default="{ row }">
+                <div style="font-weight:500;color:#303133">{{ row.model }}</div>
+                <div style="font-size:11px;color:#909399;word-break:break-all">{{ row.baseUrl }}</div>
+              </template>
+            </el-table-column>
+
+            <el-table-column label="API Key" min-width="180">
+              <template #default="{ row }">
+                <template v-if="row.editing">
+                  <el-input
+                    v-model="row.editKey"
+                    type="password"
+                    show-password
+                    size="small"
+                    placeholder="sk-..."
+                    @keyup.enter="doSaveKey(row)"
+                  />
+                </template>
+                <template v-else>
+                  <span v-if="row.maskedKey" style="font-family:monospace;color:#67c23a">
+                    {{ row.maskedKey }}
+                  </span>
+                  <span v-else style="color:#c0c4cc">未配置</span>
+                </template>
+              </template>
+            </el-table-column>
+
+            <el-table-column label="操作" width="200" align="center">
+              <template #default="{ row }">
+                <el-button
+                  v-if="!row.editing"
+                  size="small"
+                  text
+                  type="primary"
+                  @click="startEditKey(row)"
+                >
+                  <el-icon><Edit /></el-icon>
+                </el-button>
+                <el-button
+                  v-if="row.editing"
+                  size="small"
+                  type="primary"
+                  :loading="row.saving"
+                  @click="doSaveKey(row)"
+                >
+                  保存
+                </el-button>
+                <el-button
+                  v-if="row.editing"
+                  size="small"
+                  @click="cancelEditKey(row)"
+                >
+                  取消
+                </el-button>
+                <el-button
+                  v-if="!row.editing && row.hasKey"
+                  size="small"
+                  text
+                  @click="doSetDefault(row)"
+                  :type="row.isDefault ? 'warning' : 'info'"
+                  :title="row.isDefault ? '当前默认' : '设为默认'"
+                >
+                  <el-icon><StarFilled v-if="row.isDefault" /><Star v-else /></el-icon>
+                </el-button>
+                <el-button
+                  v-if="!row.editing && row.hasKey"
+                  size="small"
+                  text
+                  type="danger"
+                  @click="doDeleteKey(row)"
+                >
+                  <el-icon><Delete /></el-icon>
+                </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <div style="margin-top:12px">
+            <el-button size="small" @click="showAddProvider = true">
+              <el-icon><Plus /></el-icon> 添加 Provider
+            </el-button>
+          </div>
+
+          <!-- 添加 Provider 弹窗 -->
+          <el-dialog v-model="showAddProvider" title="添加 Provider" width="480px" :close-on-click-modal="false">
+            <el-form :model="addProviderForm" label-width="110px" size="small">
+              <el-form-item label="Provider 名称" required>
+                <el-input v-model="addProviderForm.name" placeholder="例如: 本地 Ollama" />
+              </el-form-item>
+              <el-form-item label="Provider 代码" required>
+                <el-input v-model="addProviderForm.code" placeholder="ollama（小写字母/数字/短横）" />
+              </el-form-item>
+              <el-form-item label="Base URL" required>
+                <el-input v-model="addProviderForm.baseUrl" placeholder="http://localhost:11434/v1" />
+              </el-form-item>
+              <el-form-item label="默认模型名" required>
+                <el-input v-model="addProviderForm.modelName" placeholder="llama3.2" />
+              </el-form-item>
+              <el-form-item label="初始 API Key">
+                <el-input v-model="addProviderForm.apiKey" type="password" show-password placeholder="可选" />
+              </el-form-item>
+            </el-form>
+            <template #footer>
+              <el-button size="small" @click="showAddProvider = false">取消</el-button>
+              <el-button size="small" type="primary" @click="doAddProvider" :loading="addingProvider">添加</el-button>
+            </template>
+          </el-dialog>
+
+          <!-- OpenOBA Key -->
           <el-divider content-position="left">OpenOBA Key</el-divider>
-          <el-form-item label="License Key">
-            <el-input v-model="apiKey.obaKey" placeholder="OBA-XXXX-XXXX-XXXX" @blur="obaKeyFormatted" />
-          </el-form-item>
-          <el-form-item>
-            <el-button size="small" type="primary" @click="activateObaKey" :loading="activatingOba">验证并激活</el-button>
-            <span v-if="obaStatus === 'active'" style="color:#67c23a;margin-left:8px;font-size:12px">✅ 已激活 · 中转版</span>
-            <span v-if="obaStatus === 'error'" style="color:#e6a23c;margin-left:8px;font-size:12px">{{ obaError }}</span>
-          </el-form-item>
-          <template v-if="obaStatus === 'active'">
-            <el-form-item label="Token 配额">
-              <span style="font-size:12px;color:#606266">{{ obaQuota }}</span>
+          <el-form label-width="100px" size="small">
+            <el-form-item label="License Key">
+              <el-input v-model="apiKey.obaKey" placeholder="OBA-XXXX-XXXX-XXXX" @blur="obaKeyFormatted" style="width:320px" />
             </el-form-item>
-            <el-form-item label="席位">
-              <span style="font-size:12px;color:#606266">{{ obaSeats }}</span>
+            <el-form-item>
+              <el-button size="small" type="primary" @click="activateObaKey" :loading="activatingOba">验证并激活</el-button>
+              <span v-if="obaStatus === 'active'" style="color:#67c23a;margin-left:8px;font-size:12px">✅ 已激活 · 中转版</span>
+              <span v-if="obaStatus === 'error'" style="color:#e6a23c;margin-left:8px;font-size:12px">{{ obaError }}</span>
             </el-form-item>
-          </template>
-        </el-form>
+            <template v-if="obaStatus === 'active'">
+              <el-form-item label="Token 配额">
+                <span style="font-size:12px;color:#606266">{{ obaQuota }}</span>
+              </el-form-item>
+              <el-form-item label="席位">
+                <span style="font-size:12px;color:#606266">{{ obaSeats }}</span>
+              </el-form-item>
+            </template>
+          </el-form>
+        </div>
       </el-tab-pane>
 
       <!-- 10. 关于 -->
@@ -294,6 +402,7 @@
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useERASettings } from '@/composables/useERASettings'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Edit, Star, StarFilled, Delete, Plus } from '@element-plus/icons-vue'
 import request from '@/api/request'
 
 const { settings: s, resetToDefaults, resetSection } = useERASettings()
@@ -301,11 +410,200 @@ const { settings: s, resetToDefaults, resetSection } = useERASettings()
 const activeTab = ref('workspace')
 
 // ═══════════════════════════
-// API Key 配置
+// API Key 列表式管理 (P1-1)
 // ═══════════════════════════
-const LLM_KEY_STORAGE = 'openoba_llm_config'
 
-// ── 动态模型列表 ──
+interface KeyRow {
+  keyId: string
+  providerCode: string
+  provider: string
+  model: string
+  modelCode: string
+  baseUrl: string
+  maskedKey: string
+  hasKey: boolean
+  isDefault: boolean
+  isBuiltin: boolean | null
+  editing: boolean
+  editKey: string
+  saving: boolean
+}
+
+const keyRows = ref<KeyRow[]>([])
+
+async function loadKeyRows() {
+  try {
+    // 合并 providers 和 keys 两个接口的数据
+    const [providersRes, keysRes] = await Promise.all([
+      request.get('/system/llm/providers') as Promise<any>,
+      request.get('/system/llm/keys') as Promise<any>,
+    ])
+
+    const providers = providersRes?.success ? providersRes.providers : []
+    const keys = Array.isArray(keysRes) ? keysRes : (keysRes?.keys || [])
+
+    const rows: KeyRow[] = []
+
+    for (const p of providers) {
+      // 找到该 provider 的已配置 key
+      const keyInfo = keys.find((k: any) => k.providerCode === p.providerCode)
+      const hasKey = p.hasKey || keyInfo?.hasKey || false
+
+      for (const m of (p.models || [])) {
+        const modelKeyInfo = keyInfo?.models?.find((mk: any) => mk.modelCode === m.modelCode || mk.modelCode === m.id)
+        const isDefault = m.isDefault || modelKeyInfo?.isDefault || false
+
+        rows.push({
+          keyId: keyInfo?.id || '',
+          providerCode: p.providerCode || p.id,
+          provider: p.providerName || p.name,
+          model: m.modelName || m.name,
+          modelCode: m.modelCode || m.id,
+          baseUrl: p.baseUrl || '',
+          maskedKey: hasKey ? '●●●●****' : '',
+          hasKey,
+          isDefault: !!isDefault,
+          isBuiltin: p.isBuiltin !== false ? true : false,
+          editing: false,
+          editKey: '',
+          saving: false,
+        })
+      }
+    }
+
+    keyRows.value = rows
+  } catch {
+    // fall through, keep empty
+  }
+}
+
+function startEditKey(row: KeyRow) {
+  row.editKey = ''
+  row.editing = true
+}
+
+function cancelEditKey(row: KeyRow) {
+  row.editing = false
+  row.editKey = ''
+}
+
+async function doSaveKey(row: KeyRow) {
+  if (!row.editKey) {
+    ElMessage.warning('请输入 API Key')
+    return
+  }
+  row.saving = true
+  try {
+    const res: any = await request.post('/system/llm/config', {
+      provider: row.providerCode,
+      apiKey: row.editKey,
+      modelCode: row.modelCode,
+    })
+    if (res?.success === false) {
+      ElMessage.error(res?.error || '保存失败')
+      return
+    }
+    row.hasKey = true
+    row.maskedKey = '●●●●****'
+    row.editing = false
+    row.editKey = ''
+    ElMessage.success(`${row.provider} · ${row.model} Key 已保存`)
+    await loadKeyRows()
+  } catch {
+    ElMessage.error('保存失败')
+  } finally {
+    row.saving = false
+  }
+}
+
+async function doSetDefault(row: KeyRow) {
+  try {
+    const res: any = await request.post('/system/llm/config/set-default', {
+      provider: row.providerCode,
+      modelCode: row.modelCode,
+    })
+    if (res?.success === false) {
+      ElMessage.error(res?.error || '设置失败')
+      return
+    }
+    ElMessage.success(`${row.provider} · ${row.model} 已设为默认`)
+    await loadKeyRows()
+  } catch {
+    ElMessage.error('设置失败')
+  }
+}
+
+async function doDeleteKey(row: KeyRow) {
+  try {
+    await ElMessageBox.confirm(
+      `确定删除 ${row.provider} · ${row.model} 的 Key？`,
+      '确认删除',
+      { type: 'warning' },
+    )
+  } catch {
+    return // 取消
+  }
+  try {
+    await request.delete(`/system/llm/config/${row.keyId}`)
+    row.hasKey = false
+    row.maskedKey = ''
+    ElMessage.success('已删除')
+    await loadKeyRows()
+  } catch {
+    ElMessage.error('删除失败')
+  }
+}
+
+// ── 添加 Provider ──
+const showAddProvider = ref(false)
+const addingProvider = ref(false)
+const addProviderForm = reactive({
+  name: '',
+  code: '',
+  baseUrl: '',
+  modelName: '',
+  apiKey: '',
+})
+
+async function doAddProvider() {
+  if (!addProviderForm.name || !addProviderForm.code || !addProviderForm.baseUrl || !addProviderForm.modelName) {
+    ElMessage.warning('请填写所有必填项')
+    return
+  }
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(addProviderForm.code)) {
+    ElMessage.warning('Provider 代码只能包含小写字母、数字和短横')
+    return
+  }
+  addingProvider.value = true
+  try {
+    const res: any = await request.post('/system/llm/config', {
+      provider: addProviderForm.code,
+      apiKey: addProviderForm.apiKey || '',
+      baseUrl: addProviderForm.baseUrl,
+      modelCode: addProviderForm.modelName,
+      providerName: addProviderForm.name,
+      customProviderCode: addProviderForm.code,
+    })
+    if (res?.success === false) {
+      ElMessage.error(res?.error || '添加失败')
+      return
+    }
+    ElMessage.success(`Provider "${addProviderForm.name}" 已添加`)
+    showAddProvider.value = false
+    addProviderForm.name = ''
+    addProviderForm.code = ''
+    addProviderForm.baseUrl = ''
+    addProviderForm.modelName = ''
+    addProviderForm.apiKey = ''
+    await loadKeyRows()
+  } catch {
+    ElMessage.error('添加失败')
+  } finally {
+    addingProvider.value = false
+  }
+}
+
+// ── 动态模型列表（Agent 行为 tab 用） ──
 const availableModels = ref<Array<{ id: string; name: string }>>([])
 const builtinProviders = ref<Array<{ id: string; name: string }>>([])
 const loadingModels = ref(false)
@@ -318,107 +616,45 @@ async function fetchModels() {
       const allModels: Array<{ id: string; name: string }> = []
       for (const p of res.providers) {
         for (const m of p.models) {
-          allModels.push({ id: m.id, name: p.name + ' · ' + m.name })
+          allModels.push({ id: m.id || m.modelCode, name: (p.providerName || p.name) + ' · ' + (m.modelName || m.name) })
         }
       }
       availableModels.value = allModels
-      builtinProviders.value = res.providers.map((p: any) => ({ id: p.id, name: p.name }))
+      builtinProviders.value = res.providers.map((p: any) => ({ id: p.id || p.providerCode, name: p.providerName || p.name }))
     }
   } catch { /* 静默 */ }
   finally { loadingModels.value = false }
 }
 
+// ── OpenOBA Key ──
+const LLM_KEY_STORAGE = 'openoba_llm_config'
+
 const apiKey = reactive({
-  llmProvider: 'deepseek',
-  llmKey: '',
-  llmBaseUrl: '',
   obaKey: '',
 })
 
-// 任何字段变化时自动持久化
-watch(() => [apiKey.llmProvider, apiKey.llmKey, apiKey.llmBaseUrl, apiKey.obaKey], () => {
-  persistLlmConfig()
-}, { deep: false })
-const testingLlm = ref(false)
-const llmStatus = ref('')
-const llmStatusText = ref('')
+watch(() => apiKey.obaKey, () => {
+  try { localStorage.setItem(LLM_KEY_STORAGE, JSON.stringify({ obaKey: apiKey.obaKey })) } catch { /* ignore */ }
+})
+
 const activatingOba = ref(false)
 const obaStatus = ref('')
 const obaError = ref('')
 const obaQuota = ref('')
 const obaSeats = ref('')
 
-// 从 localStorage 恢复 API Key
 function loadLlmConfig() {
   try {
     const saved = localStorage.getItem(LLM_KEY_STORAGE)
     if (saved) {
       const config = JSON.parse(saved)
-      if (config.llmProvider) apiKey.llmProvider = config.llmProvider
-      if (config.llmKey) apiKey.llmKey = config.llmKey
-      if (config.llmBaseUrl) apiKey.llmBaseUrl = config.llmBaseUrl
       if (config.obaKey) apiKey.obaKey = config.obaKey
     }
   } catch { /* ignore */ }
 }
 
-// 持久化 API Key 到 localStorage
-function persistLlmConfig() {
-  try {
-    localStorage.setItem(LLM_KEY_STORAGE, JSON.stringify({
-      llmProvider: apiKey.llmProvider,
-      llmKey: apiKey.llmKey,
-      llmBaseUrl: apiKey.llmBaseUrl,
-      obaKey: apiKey.obaKey,
-    }))
-  } catch { /* ignore */ }
-}
-
-onMounted(() => { loadLlmConfig(); fetchModels() })
-
-async function testLlmConnection() {
-  testingLlm.value = true
-  llmStatus.value = ''
-  try {
-    await request.post('/system/llm/test', {
-      provider: apiKey.llmProvider,
-      apiKey: apiKey.llmKey,
-      baseUrl: apiKey.llmBaseUrl || undefined,
-    })
-    llmStatus.value = 'ok'
-    llmStatusText.value = '✅ 连接成功'
-  } catch {
-    llmStatus.value = 'error'
-    llmStatusText.value = '❌ 连接失败'
-  } finally {
-    testingLlm.value = false
-  }
-}
-
-async function saveLlmKey() {
-  persistLlmConfig()
-  try {
-    const res: any = await request.post('/system/llm/config', {
-      provider: apiKey.llmProvider,
-      apiKey: apiKey.llmKey,
-      baseUrl: apiKey.llmBaseUrl || undefined,
-    })
-    if (res?.success === false) {
-      ElMessage.error(res?.error || '保存失败')
-      return
-    }
-    ElMessage.success('LLM Key 已保存')
-  } catch {
-    ElMessage.error('保存失败')
-  }
-}
-
 function obaKeyFormatted() {
   apiKey.obaKey = apiKey.obaKey.toUpperCase().trim()
-}
-
-function addMoreProvider() {
-  ElMessage.info('更多 LLM 提供商即将支持')
 }
 
 async function activateObaKey() {
@@ -429,7 +665,7 @@ async function activateObaKey() {
     obaStatus.value = 'active'
     obaQuota.value = res.quota || '-'
     obaSeats.value = res.seats || '-'
-    persistLlmConfig()
+    localStorage.setItem(LLM_KEY_STORAGE, JSON.stringify({ obaKey: apiKey.obaKey }))
     ElMessage.success('OpenOBA Key 已激活')
   } catch (e: any) {
     obaStatus.value = 'error'
@@ -480,7 +716,7 @@ async function resetToDefaultsConfirm() {
   } catch { /* cancelled */ }
 }
 
-onMounted(loadAbout)
+onMounted(() => { loadLlmConfig(); fetchModels(); loadKeyRows(); loadAbout() })
 </script>
 
 <style scoped>
