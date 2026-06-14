@@ -46,6 +46,9 @@ tmp/
 temp/
 tmp-core/
 
-# CORE tgz 包（通过 npm registry 分发，不进仓库）
+# CORE tgz 包
 *.tgz
-packages/core/
+# 旧 CORE 源码（已搬迁至 packages/core/src/）— 排除外部遗留
+openoba-core/
+# 通过 npm workspaces 管理的 node_modules symlink（不直接跟踪）
+node_modules/@openoba/

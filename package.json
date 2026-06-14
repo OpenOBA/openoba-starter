@@ -5,6 +5,7 @@
   "description": "OpenOBA Starter — AI Executive Officer with Eyewear Reference Implementation",
   "workspaces": [
     "packages/backend",
+    "packages/core",
     "packages/types",
     "frontend"
   ],

@@ -42,25 +42,25 @@ export declare class ModelRegistryService implements OnModuleInit {
     } | null>;
     setDefaultModel(keyId: string, registryId: string): Promise<void>;
     deleteKey(id: string): Promise<void>;
-    getEnabledProvidersWithModels(): Promise<Array<{
+    getEnabledProvidersWithModels(): Promise<{
         providerCode: string;
         providerName: string;
         baseUrl: string;
         isBuiltin: boolean;
         hasKey: boolean;
-        models: Array<{
+        models: {
             id: string;
             modelCode: string;
             modelName: string;
             category: string;
             contextWindow: number;
             maxTokens: number;
-            supportsReasoning: boolean;
+            supportsReasoning: number;
             costInput: number;
             costOutput: number;
             isDefault: boolean;
-        }>;
-    }>>;
+        }[];
+    }[]>;
     testConnection(dto: {
         providerCode: string;
         apiKey?: string;

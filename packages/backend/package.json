@@ -30,7 +30,7 @@
     "@nestjs/swagger": "^11.4.4",
     "@nestjs/typeorm": "^11.0.1",
     "@nestjs/websockets": "^11.1.26",
-    "@openoba/core": "file:../../openoba-core-1.0.0.tgz",
+    "@openoba/core": "*",
     "axios": "^1.15.2",
     "bcryptjs": "^2.4.3",
     "cheerio": "^1.2.0",
@@ -107,7 +107,7 @@
       "**/*.(t|j)s"
     ],
     "moduleNameMapper": {
-      "^@openoba/core/(.+)$": "<rootDir>/node_modules/@openoba/core/dist/$1",
+      "^@openoba/core/(.+)$": "<rootDir>/../../packages/core/dist/$1",
       "^@/(.*)$": "<rootDir>/$1"
     },
     "coverageDirectory": "../coverage",

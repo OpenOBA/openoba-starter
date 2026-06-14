@@ -29,6 +29,14 @@ const model_connection_log_entity_1 = require("./model-connection-log.entity");
 const uuid_1 = require("uuid");
 const ALGO = 'aes-256-gcm';
 let ModelRegistryService = ModelRegistryService_1 = class ModelRegistryService {
+    providerRepo;
+    registryRepo;
+    keyRepo;
+    keyModelsRepo;
+    usageRepo;
+    logRepo;
+    logger = new common_1.Logger(ModelRegistryService_1.name);
+    vaultKey = null;
     constructor(providerRepo, registryRepo, keyRepo, keyModelsRepo, usageRepo, logRepo) {
         this.providerRepo = providerRepo;
         this.registryRepo = registryRepo;
@@ -36,8 +44,6 @@ let ModelRegistryService = ModelRegistryService_1 = class ModelRegistryService {
         this.keyModelsRepo = keyModelsRepo;
         this.usageRepo = usageRepo;
         this.logRepo = logRepo;
-        this.logger = new common_1.Logger(ModelRegistryService_1.name);
-        this.vaultKey = null;
     }
     async onModuleInit() {
         try {
