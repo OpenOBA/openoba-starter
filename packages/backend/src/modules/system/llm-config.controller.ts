@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Logger, UseGuards } from '@nestjs/common'
+import { Controller, Post, Get, Delete, Body, Param, Logger, UseGuards } from '@nestjs/common'
 import { request as httpsRequest } from 'https'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { RolesGuard } from '../../common/guards/roles.guard'
@@ -17,34 +17,23 @@ export class LlmConfigController {
 
   constructor(private readonly modelRegistry: ModelRegistryService) {}
 
-  @Post('llm/config')
-  async saveLlmConfig(@Body() body: { provider: string; apiKey: string; baseUrl?: string }) {
-    const provider = body.provider || 'deepseek'
-
-    // 主路径：AES 加密写入数据库
-    try {
-      await this.modelRegistry.saveOrUpdateKey({
-        providerCode: provider,
-        apiKey: body.apiKey,
-        baseUrl: body.baseUrl,
-      })
-      this.logger.log(`LLM Key saved to DB: provider=${provider}`)
-    } catch (e: unknown) {
-      this.logger.warn(`DB write failed (Key still in memory): ${(e as Error).message}`)
-    }
-
-    // 后备：写入 process.env 提供运行时兼容
-    const providerDef = BUILTIN_LLM_PROVIDERS.find((p: any) => p.id === provider)
-    if (providerDef && body.apiKey) {
-      process.env[providerDef.apiKeyEnv] = body.apiKey
-    }
-
-    this.logger.log(`LLM config saved: provider=${provider}`)
-    return { success: true, provider }
-  }
+  // ============================================================
+  //  P1-1: 数据库优先 — Provider 列表（ERA-Chat 下拉框 + Settings 列表共用）
+  // ============================================================
 
   @Get('llm/providers')
   async getProviders() {
+    try {
+      const dbProviders = await this.modelRegistry.getEnabledProvidersWithModels()
+      if (dbProviders && dbProviders.length > 0) {
+        this.logger.log(`Providers from DB: ${dbProviders.length}`)
+        return { success: true, count: dbProviders.length, providers: dbProviders }
+      }
+    } catch (e: unknown) {
+      this.logger.warn(`DB Provider 读取失败，降级为硬编码: ${(e as Error).message}`)
+    }
+
+    // 兜底：硬编码（首次启动无 DB 数据时）
     const available = getAvailableProviders()
     const list = available.map((p: any) => ({
       id: p.id,
@@ -58,13 +47,28 @@ export class LlmConfigController {
     return { success: true, count: list.length, providers: list }
   }
 
+  // ============================================================
+  //  P1-1: 已配置 Key 列表（Settings 列表展示用）
+  // ============================================================
+
   @Get('llm/keys')
   async getKeys() {
+    try {
+      const dbKeys = await this.modelRegistry.getProviderKeys()
+      if (dbKeys && dbKeys.length > 0) {
+        this.logger.log(`Keys from DB: ${dbKeys.length}`)
+        return dbKeys
+      }
+    } catch (e: unknown) {
+      this.logger.warn(`DB Keys 读取失败: ${(e as Error).message}`)
+    }
+
+    // 兜底：硬编码
     const available = getAvailableProviders()
     const list = available.map((p: any) => ({
       id: p.id,
       providerCode: p.id,
-      agentCode: 'tanghaoran',
+      agentCode: 'global',
       label: p.name,
       hasKey: true,
       baseUrl: p.baseUrl || null,
@@ -82,8 +86,116 @@ export class LlmConfigController {
     return list
   }
 
+  // ============================================================
+  //  P1-1: 保存/更新 Key（支持自定义 Provider）
+  // ============================================================
+
+  @Post('llm/config')
+  async saveLlmConfig(
+    @Body()
+    body: {
+      provider: string
+      apiKey: string
+      baseUrl?: string
+      modelCode?: string
+      label?: string
+      providerName?: string
+      customProviderCode?: string
+    },
+  ) {
+    const provider = body.provider || 'deepseek'
+
+    // 自定义 Provider：写入 sys_model_provider + sys_model_registry
+    if (body.customProviderCode && body.providerName) {
+      try {
+        await this.modelRegistry.saveOrUpdateKey({
+          providerCode: body.customProviderCode,
+          apiKey: body.apiKey || '',
+          baseUrl: body.baseUrl,
+          label: body.label,
+        })
+        this.logger.log(`Custom Provider Key saved: ${body.customProviderCode}`)
+        if (body.apiKey && body.modelCode) {
+          try {
+            const kd = await this.modelRegistry.getKeyWithDecrypted(body.customProviderCode)
+            if (kd) {
+              const models = await (this.modelRegistry as any).registryRepo?.find({
+                where: { providerCode: body.customProviderCode, modelCode: body.modelCode },
+              })
+              if (models?.length) {
+                await this.modelRegistry.setDefaultModel(kd.key.id, models[0].id)
+              }
+            }
+          } catch { /* model linking best-effort */ }
+        }
+        return { success: true, provider: body.customProviderCode, custom: true }
+      } catch (e: unknown) {
+        this.logger.warn(`Custom Provider save failed: ${(e as Error).message}`)
+        return { success: false, error: (e as Error).message }
+      }
+    }
+
+    // 标准 Provider：AES 加密写入 DB
+    try {
+      await this.modelRegistry.saveOrUpdateKey({
+        providerCode: provider,
+        apiKey: body.apiKey,
+        baseUrl: body.baseUrl,
+        label: body.label,
+      })
+      this.logger.log(`LLM Key saved to DB: provider=${provider}`)
+    } catch (e: unknown) {
+      this.logger.warn(`DB write failed (Key still in memory): ${(e as Error).message}`)
+    }
+
+    // 同步 process.env（运行时兼容 erdl-llm-bridge）
+    const providerDef = BUILTIN_LLM_PROVIDERS.find((p: any) => p.id === provider)
+    if (providerDef && body.apiKey) {
+      process.env[providerDef.apiKeyEnv] = body.apiKey
+    }
+
+    // 设置默认模型（如果指定了 modelCode）
+    if (body.modelCode && body.apiKey) {
+      try {
+        const kd = await this.modelRegistry.getKeyWithDecrypted(provider)
+        if (kd) {
+          const models = await (this.modelRegistry as any).getModels(provider)
+          const matched = models?.find((m: any) => m.modelCode === body.modelCode)
+          if (matched) {
+            await this.modelRegistry.setDefaultModel(kd.key.id, matched.id)
+            this.logger.log(`Default model set: ${provider}/${body.modelCode}`)
+          }
+        }
+      } catch { /* no-op */ }
+    }
+
+    this.logger.log(`LLM config saved: provider=${provider}`)
+    return { success: true, provider }
+  }
+
+  // ============================================================
+  //  P1-1: 测试连接（DB 优先）
+  // ============================================================
+
   @Post('llm/test')
   async testLlmConnection(@Body() body: { provider: string; apiKey: string; baseUrl?: string }) {
+    // 主路径：使用 ModelRegistryService
+    try {
+      const result = await this.modelRegistry.testConnection({
+        providerCode: body.provider,
+        apiKey: body.apiKey || undefined,
+        baseUrl: body.baseUrl || undefined,
+      })
+      return {
+        success: result.ok,
+        message: result.ok ? '连接成功' : (result.error || '连接失败'),
+        latencyMs: result.latencyMs,
+      }
+    } catch {
+      // fall through to fallback
+    }
+
+    // 兜底：硬编码 Provider
     const providerDef = BUILTIN_LLM_PROVIDERS.find((p: any) => p.id === body.provider)
     const apiKey = body.apiKey || (providerDef ? process.env[providerDef.apiKeyEnv] : '') || ''
     if (!apiKey) return { success: false, error: 'API Key 未配置' }
@@ -116,6 +228,45 @@ export class LlmConfigController {
       req.end()
     })
   }
+
+  // ============================================================
+  //  P1-1: 设置默认模型
+  // ============================================================
+
+  @Post('llm/config/set-default')
+  async setDefaultModel(@Body() body: { provider: string; modelCode: string }) {
+    try {
+      const kd = await this.modelRegistry.getKeyWithDecrypted(body.provider)
+      if (!kd) return { success: false, error: 'No key configured for this provider' }
+      const models = await (this.modelRegistry as any).getModels(body.provider)
+      const matched = models?.find((m: any) => m.modelCode === body.modelCode)
+      if (!matched) return { success: false, error: 'Model not found' }
+      await this.modelRegistry.setDefaultModel(kd.key.id, matched.id)
+      this.logger.log(`Default model set: ${body.provider}/${body.modelCode}`)
+      return { success: true }
+    } catch (e: unknown) {
+      return { success: false, error: (e as Error).message }
+    }
+  }
+
+  // ============================================================
+  //  P1-1: 删除 Key
+  // ============================================================
+
+  @Delete('llm/config/:id')
+  async deleteLlmConfig(@Param('id') id: string) {
+    try {
+      await this.modelRegistry.deleteKey(id)
+      this.logger.log(`LLM Key deleted: ${id}`)
+      return { success: true }
+    } catch (e: unknown) {
+      return { success: false, error: (e as Error).message }
+    }
+  }
+
+  // ============================================================
+  //  License 激活（占位）
+  // ============================================================
 
   @Post('license/activate')
   async activateLicense(@Body() body: { key: string }) {
