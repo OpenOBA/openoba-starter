@@ -3,6 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm'
 import { JwtService } from '@nestjs/jwt'
 import { AuthService } from './auth.service'
 import { User } from '../system/user/user.entity'
+import * as bcrypt from 'bcryptjs'
 
 function mockRepo() {
   return {
@@ -33,7 +34,6 @@ describe('AuthService', () => {
 
   describe('validateUser', () => {
     it('should return user on valid credentials', async () => {
-      const bcrypt = require('bcryptjs')
       const hash = await bcrypt.hash('password', 10)
       userRepo.findOne.mockResolvedValue({
         userId: 'u1', username: 'admin', realName: 'Admin', status: 'active',
@@ -47,7 +47,6 @@ describe('AuthService', () => {
     })
 
     it('should return null on wrong password', async () => {
-      const bcrypt = require('bcryptjs')
       const hash = await bcrypt.hash('password', 10)
       userRepo.findOne.mockResolvedValue({
         userId: 'u1', passwordHash: hash, roles: [],

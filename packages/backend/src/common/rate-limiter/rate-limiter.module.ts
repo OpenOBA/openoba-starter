@@ -10,14 +10,14 @@ import { MemoryRateLimiter } from './memory-rate-limiter'
   providers: [
     {
       provide: 'RATE_LIMITER',
-      useFactory: (): IRateLimiter => {
+      useFactory: async (): Promise<IRateLimiter> => {
         const redisUrl = process.env.REDIS_URL
 
         if (redisUrl) {
           const logger = new Logger('RateLimiterModule')
           try {
             // 动态 import ioredis（避免编译时未安装报错）
-            const Redis = require('ioredis')
+            const { default: Redis } = await import('ioredis')
             const redis = new Redis(redisUrl, {
               maxRetriesPerRequest: 1,
               lazyConnect: false,
@@ -33,7 +33,7 @@ import { MemoryRateLimiter } from './memory-rate-limiter'
             redis.on('connect', () => logger.log('Redis 限流已启用'))
             redis.on('error', (e: Error) => logger.warn(`Redis 错误: ${e.message}`))
 
-            const { RedisRateLimiter } = require('./redis-rate-limiter')
+            const { RedisRateLimiter } = await import('./redis-rate-limiter')
             return new RedisRateLimiter(redis)
           } catch (e: unknown) {
             logger.warn(`Redis 启用失败，使用 MemoryRateLimiter: ${(e as Error).message}`)

@@ -4,7 +4,7 @@
 echo "🔍 [pre-commit] Running ESLint..."
 
 cd packages/backend
-npx eslint "src/**/*.ts" --max-warnings 200 --quiet
+npx eslint "src/**/*.ts" --quiet
 if [ $? -ne 0 ]; then
   echo "❌ [pre-commit] ESLint failed — commit aborted"
   exit 1

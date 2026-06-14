@@ -134,7 +134,7 @@ export class EntitySyncService implements OnModuleInit {
     allSql: string
   }> {
     const migrations: Array<{ table: string; file: string; sql: string }> = []
-    const entityPattern = /entity[\/\\].*\.entity\.ts$/
+    const entityPattern = /entity[/\\].*\.entity\.ts$/
 
     for (const file of files) {
       if (!entityPattern.test(file) && !file.includes('.entity.ts')) continue

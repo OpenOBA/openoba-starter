@@ -3,7 +3,7 @@ import { Transform } from 'class-transformer'
 import { Type } from 'class-transformer'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 
-// ============ é¢è²å­å¸ DTO ============
+// ============ é¢è²å­å ¸ DTO ============
 
 export class CreateColorDto {
   @ApiProperty() @IsString() colorCode: string
@@ -65,7 +65,7 @@ export class CreateSpuDto {
   @ApiPropertyOptional() @IsOptional() @IsString() categoryId?: string
   @ApiPropertyOptional() @IsOptional() @IsString() seriesCode?: string
   @ApiPropertyOptional() @IsOptional() @IsString() gender?: string // æ¬¾å¼ï¼female/male/unisex/limited
-  @ApiPropertyOptional() @IsOptional() @IsArray() sceneTags?: string[] // ["éå¤", "æç§"]
+  @ApiPropertyOptional() @IsOptional() @IsArray() sceneTags?: string[] // ["éå¤", "æç §"]
   @ApiPropertyOptional() @IsOptional() @IsString() description?: string
   @ApiPropertyOptional() @IsOptional() @IsString() mainImage?: string
   @ApiPropertyOptional() @IsOptional() @IsArray() images?: string[]
@@ -117,14 +117,14 @@ export class CreateSkuDto {
   @ApiPropertyOptional() @IsOptional() @IsString() barcode?: string
   @ApiPropertyOptional() @IsOptional() @IsString() skuBarcode?: string
   @ApiPropertyOptional() @IsOptional() @IsString() ean13?: string
-  // V2.0: å±ç¤ºåï¼åç«¯èªå¨çæï¼åç«¯å¯éä¼ å¥ï¼
+  // V2.0: å±ç¤ºåï¼åç«¯èªå¨çæï¼åç«¯å¯éä¼ å ¥ï¼
   @ApiPropertyOptional() @IsOptional() @IsString() displayName?: string
 
   // Phase 8B: ææ¯åæ°ï¼å°ºå¯¸ï¼
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(28) @Max(70) @Type(() => Number) lensWidth?: number
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(12) @Max(30) @Type(() => Number) bridgeWidth?: number
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(120) @Max(160) @Type(() => Number) templeLength?: number
-  // â ï¸ 2026-04-24ï¼éæ¡é«åº¦å·²åºå¼ï¼ä¿çä»ç¨äºååå¼å®¹ï¼åç«¯å·²éè
+  // â ï¸ 2026-04-24ï¼éæ¡é«åº¦å·²åºå¼ï¼ä¿çä» ç¨äºååå ¼å®¹ï¼åç«¯å·²éè
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(100) @Max(180) @Type(() => Number) totalWidth?: number
   // Phase 8B: ææ¯åæ°ï¼æè´¨/ç±»åï¼
   @ApiPropertyOptional() @IsOptional() @IsString() frameMaterial?: string
@@ -132,7 +132,7 @@ export class CreateSkuDto {
   @ApiPropertyOptional() @IsOptional() @IsString() frameType?: string
   @ApiPropertyOptional() @IsOptional() @IsString() nosePadType?: string
   @ApiPropertyOptional() @IsOptional() @IsString() hingeType?: string
-  // Phase 8B: ææ¯åæ°ï¼å¶ä»ï¼
+  // Phase 8B: ææ¯åæ°ï¼å ¶ä»ï¼
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) @Type(() => Number) weightG?: number
   @ApiPropertyOptional() @IsOptional() @IsString() surfaceTreatment?: string
   @ApiPropertyOptional() @IsOptional() @IsArray() suitableFaceShapes?: string[]
@@ -191,7 +191,7 @@ export class UpdateSkuDto {
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(28) @Max(70) @Type(() => Number) lensWidth?: number
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(12) @Max(30) @Type(() => Number) bridgeWidth?: number
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(120) @Max(160) @Type(() => Number) templeLength?: number
-  // â ï¸ 2026-04-24ï¼éæ¡é«åº¦å·²åºå¼ï¼ä¿çä»ç¨äºååå¼å®¹ï¼åç«¯å·²éè
+  // â ï¸ 2026-04-24ï¼éæ¡é«åº¦å·²åºå¼ï¼ä¿çä» ç¨äºååå ¼å®¹ï¼åç«¯å·²éè
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(100) @Max(180) @Type(() => Number) totalWidth?: number
   @ApiPropertyOptional() @IsOptional() @IsString() frameMaterial?: string
   @ApiPropertyOptional() @IsOptional() @IsString() templeMaterial?: string
@@ -220,7 +220,7 @@ export class UpdateSkuDto {
   @ApiPropertyOptional() @IsOptional() techSpecExtra?: Record<string, any>
 }
 
-// ============ å¥è£ DTO ============
+// ============ å¥è£  DTO ============
 
 export class CreateSetDto {
   @ApiPropertyOptional() @IsOptional() @IsString() setCode?: string
@@ -300,7 +300,7 @@ export class UpdateSkuImageDto {
 
 export class QuerySkuImageDto {
   @ApiPropertyOptional() @IsOptional() @IsString() imageType?: string
-  @ApiPropertyOptional() @IsOptional() @IsString() skuCode?: string // å®ç½ï¿½?SKU ç¼ç æ¥è¯¢
+  @ApiPropertyOptional() @IsOptional() @IsString() skuCode?: string // å®ç½ï¿½?SKU ç¼ç æ¥è¯¢
   @ApiPropertyOptional() @IsOptional() @IsString() skuId?: string
 }
 

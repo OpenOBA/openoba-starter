@@ -61,14 +61,9 @@ export class CustomerAuthController {
   async login(@Body() dto: LoginCustomerDto, @Req() req: any) {
     const identifier = dto.phone || req.ip || 'unknown'
     await this.checkRateLimit(identifier)
-    try {
-      const result = await this.authService.login(dto)
-      await this.resetAttempts(identifier)
-      return result
-    } catch (e: any) {
-      // checkRateLimit 已在 attempt() 内计数
-      throw e
-    }
+    const result = await this.authService.login(dto)
+    await this.resetAttempts(identifier)
+    return result
   }
 
   // ===== SMS 验证码登录/注册 ⭐ =====
@@ -79,14 +74,9 @@ export class CustomerAuthController {
   async smsLogin(@Body() dto: SmsLoginDto, @Req() req: any) {
     const identifier = dto.phone || req.ip || 'unknown'
     await this.checkRateLimit(identifier)
-    try {
-      const result = await this.authService.smsLogin(dto)
-      await this.resetAttempts(identifier)
-      return result
-    } catch (e: any) {
-      // checkRateLimit 已在 attempt() 内计数
-      throw e
-    }
+    const result = await this.authService.smsLogin(dto)
+    await this.resetAttempts(identifier)
+    return result
   }
 
   @Post('sms-register')

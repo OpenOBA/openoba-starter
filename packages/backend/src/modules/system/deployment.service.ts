@@ -582,7 +582,7 @@ export class DeploymentService {
       database: process.env.DB_DATABASE || 'miaojing_erp',
     }
 
-    const mysql = require('mysql2/promise')
+    const mysql = await import('mysql2/promise')
     const conn = await mysql.createConnection(dbConfig)
     try {
       // 按分号分割多条 SQL

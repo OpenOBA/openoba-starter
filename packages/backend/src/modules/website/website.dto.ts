@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 
 /**
  * Website æ¨¡å DTO
- * å®ç½åå°ä¸ç¨ååºæ ¼å¼ ï¿½?è½»éãæå¹³ãåç«¯åï¿½? * ä¸èµ° admin TransformInterceptorï¼ç´æ¥è¿ï¿½?data
+ * å®ç½åå°ä¸ç¨ååºæ ¼å¼ ï¿½?è½»éãæå¹³ãåç«¯åï¿½? * ä¸èµ° admin TransformInterceptorï¼ç´æ¥è¿ï¿½?data
  */
 
 // ============ éç¨åé¡µ ============
@@ -57,11 +57,11 @@ export class SpuCardDto {
   stockStatus: 'in_stock' | 'low_stock' | 'out_of_stock'
   /** ä¸»å¾ */
   mainImage: string | null
-  /** éçæ åéç¹ */
+  /** éçæ åéç¹ */
   structureStandardCode: string
-  /** å¼å®¹çº§å«åè¡¨ */
+  /** å ¼å®¹çº§å«åè¡¨ */
   compatibilityLevels: string[]
-  /** å¼å®¹éæ¡æ°é ï¿½?CTA æé®æ¾ç¤º */
+  /** å ¼å®¹éæ¡æ°é ï¿½?CTA æé®æ¾ç¤º */
   compatibleFrameCount: number
   /** CTA è·³è½¬è·¯å¾ï¼åç«¯æ¼æ¥ï¼ */
   ctaCompatibleFramesUrl: string
@@ -69,14 +69,14 @@ export class SpuCardDto {
   productTier: string
   /** çº§å«ä¸­æåç§° */
   tierName: string
-  /** çº§å«å¾½ç« é¢è² */
+  /** çº§å«å¾½ç« é¢è² */
   tierIconColor: string
   /** SKU ç²¾ç®åè¡¨ï¼ç¨äºé¢è²åæ¢ï¼ */
   skus: SkuCardDto[]
 }
 
 /**
- * SPU å®æ´è¯¦æ ï¿½?ç¨äºååè¯¦æï¿½? */
+ * SPU å®æ´è¯¦æ  ï¿½?ç¨äºååè¯¦æ ï¿½? */
 export class SpuDetailDto {
   spuId: string
   spuCode: string
@@ -98,7 +98,7 @@ export class SpuDetailDto {
   stockStatus: 'in_stock' | 'low_stock' | 'out_of_stock'
   /** å®æ´ SKU åè¡¨ */
   skus: SkuDetailDto[]
-  /** å¼å®¹éæ¡æ°éï¼å®ï¿½?CTA çæ ¸å¿æ°æ®ï¼ */
+  /** å ¼å®¹éæ¡æ°éï¼å®ï¿½?CTA çæ ¸å¿æ°æ®ï¼ */
   compatibleFrameCount: number
   /** CTA è·³è½¬è·¯å¾ï¼åç«¯æ¼æ¥ï¼ */
   ctaCompatibleFramesUrl: string
@@ -106,7 +106,7 @@ export class SpuDetailDto {
   productTier: string
   /** çº§å«ä¸­æåç§° */
   tierName: string
-  /** çº§å«å¾½ç« é¢è² */
+  /** çº§å«å¾½ç« é¢è² */
   tierIconColor: string
   createdAt: Date
 }
@@ -138,7 +138,7 @@ export class SkuDetailDto {
     nosePad: string
     weight: string
     weightLabel: string
-    // â ï¸ 2026-04-24ï¼éæ¡é«åº¦å·²åºå¼ï¼ä¿çä»ç¨äºååå¼å®¹ï¼åç«¯å·²éèï¼è¿åç©ºå­ç¬¦ä¸²
+    // â ï¸ 2026-04-24ï¼éæ¡é«åº¦å·²åºå¼ï¼ä¿çä» ç¨äºååå ¼å®¹ï¼åç«¯å·²éèï¼è¿åç©ºå­ç¬¦ä¸²
     suitableFaceShapes: string[]
     surfaceTreatment: string
   }
@@ -146,7 +146,7 @@ export class SkuDetailDto {
     lensWidth: number | null
     bridgeWidth: number | null
     templeLength: number | null
-    // â ï¸ 2026-04-24ï¼éæ¡é«åº¦å·²åºå¼ï¼ä¿çä»ç¨äºååå¼å®¹ï¼è¿å null
+    // â ï¸ 2026-04-24ï¼éæ¡é«åº¦å·²åºå¼ï¼ä¿çä» ç¨äºååå ¼å®¹ï¼è¿å null
     totalWidth: number | null
     frameMaterial: { code: string; name: string } | null
     frameType: { code: string; name: string } | null
@@ -185,7 +185,7 @@ export class HomeResponseDto {
   bestsellers: SpuCardDto[]
   /** æ°åï¼æåå»ºæ¶é´æåºï¿½?*/
   newArrivals: SpuCardDto[]
-  /** åºæ¯æ ç­¾æ±æ»ï¼ç¨äºåºæ¯ç­éå¥å£ï¼ */
+  /** åºæ¯æ ç­¾æ±æ»ï¼ç¨äºåºæ¯ç­éå ¥å£ï¼ */
   sceneTags: string[]
   /** CDN åºç¡ URL */
   cdnBaseUrl: string
@@ -205,7 +205,7 @@ export class CategoryNodeDto {
   children: CategoryNodeDto[]
 }
 
-// ============ å¼å®¹éæ¡ ============
+// ============ å ¼å®¹éæ¡ ============
 
 export class CompatibleFrameDto {
   skuId: string
@@ -221,7 +221,7 @@ export class CompatibleFrameDto {
   stockStatus: 'in_stock' | 'low_stock' | 'out_of_stock'
 }
 
-// ============ å®ç½éç½® ============
+// ============ å®ç½é ç½® ============
 
 export class WebsiteConfigDto {
   cdnBaseUrl: string
