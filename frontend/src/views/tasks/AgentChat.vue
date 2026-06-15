@@ -27,34 +27,14 @@
     <!-- 主体三栏 -->
     <div class="chat-main">
       <!-- 左侧：任务信息 -->
-      <div class="chat-left" v-if="taskInfo">
-        <div class="left-card">
-          <div class="left-title">任务信息</div>
-          <div class="left-row" v-if="taskInfo.taskNo"><span class="left-k">编号</span><span class="left-v">{{ taskInfo.taskNo }}</span></div>
-          <div class="left-row"><span class="left-k">类型</span><span class="left-v">{{ typeLabel(taskInfo.type) }}</span></div>
-          <div class="left-row"><span class="left-k">状态</span><span class="left-v">{{ statusLabel(taskInfo.status) }}</span></div>
-          <div class="left-row" v-if="taskInfo.createdBy"><span class="left-k">创建人</span><span class="left-v">{{ taskInfo.createdBy }}</span></div>
-          <div class="left-row" v-if="taskInfo.agentId"><span class="left-k">Agent</span><span class="left-v">{{ taskInfo.agentId }}</span></div>
-        </div>
-        <div class="left-divider"></div>
-        <!-- 历史任务列表 -->
-        <div class="history-tasks">
-          <div class="left-title">历史任务</div>
-          <div v-if="historyLoading" class="history-loading">加载中...</div>
-          <div v-else-if="historyTasks.length === 0" class="history-empty">暂无历史任务</div>
-          <div
-            v-else
-            v-for="t in historyTasks"
-            :key="t.id"
-            class="history-item"
-            :class="{ current: t.id === taskId }"
-            @click="switchToTask(t.id)"
-          >
-            <div class="history-title">{{ (t.title || '').substring(0, 30) }}{{ (t.title || '').length > 30 ? '...' : '' }}</div>
-            <div class="history-meta">
-              <el-tag :type="historyStatusType(t.status)" size="small">{{ historyStatusLabel(t.status) }}</el-tag>
-              <span class="history-time">{{ formatHistoryTime(t.createdAt) }}</span>
-            </div>
+      <!-- 左侧：任务信息 + 历史任务 → P1-3b 独立组件 -->
+      <AgentChatSidebar
+        :task-info="taskInfo"
+        :task-id="taskId"
+        :history-tasks="historyTasks"
+        :history-loading="historyLoading"
+        @switch-task="switchToTask"
+      />
           </div>
         </div>
       </div>
@@ -151,20 +131,8 @@
       </div>
 
       <!-- 右侧：认知日志 -->
-      <div class="chat-right">
-        <div class="right-title">日志</div>
-        <div class="log-list" v-if="logs.length > 0">
-          <div v-for="log in logs.slice(0, 20)" :key="log.id" class="log-line">
-            <span class="log-dot" :style="{ background: log.level === 'error' ? '#f56c6c' : log.level === 'warn' ? '#e6a23c' : '#409eff' }"></span>
-            <span class="log-actor">{{ log.actor }}</span>
-            <span class="log-title">{{ log.title }}</span>
-            <span class="log-time">{{ formatLogTime(log.createdAt) }}</span>
-          </div>
-        </div>
-        <div v-else class="log-empty">暂无记录</div>
-      </div>
-    </div>
-  </div>
+      <!-- 右侧：认知日志 → P1-3b 独立组件 -->
+      <AgentChatLogPanel :logs="logs" />
 </template>
 
 <script setup lang="ts">
@@ -220,6 +188,8 @@ import { useWsClient } from '@/composables/useWsClient'
 import { useERASettings } from '@/composables/useERASettings'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
+import AgentChatSidebar from '@/components/AgentChatSidebar.vue'
+import AgentChatLogPanel from '@/components/AgentChatLogPanel.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -312,23 +282,6 @@ function switchToTask(newId: string) {
   router.push('/chat/' + newId)
 }
 
-function historyStatusType(s) {
-  const m: Record<string, string> = { drafted: 'info', executing: 'primary', completed: 'success', proposed: 'warning', delivered: 'success', published: 'success', cancelled: 'danger', aborted: 'danger' }
-  return m[s] || 'info'
-}
-function historyStatusLabel(s) {
-  const m: Record<string, string> = { drafted: '草稿', executing: '执行中', completed: '已完成', proposed: '待审批', delivered: '已交付', published: '已发布', cancelled: '已取消', aborted: '已中止' }
-  return m[s] || s
-}
-function formatHistoryTime(t) {
-  if (!t) return ''
-  const d = new Date(t)
-  const now = new Date()
-  const diff = now.getTime() - d.getTime()
-  if (diff < 86400000) return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-  if (diff < 604800000) return Math.floor(diff / 86400000) + '天前'
-  return d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })
-}
 
 // ── 加载任务 → localStorage 优先 ──
 async function loadTask() {
@@ -738,19 +691,6 @@ async function handleAbort() {
 }
 
 // ── 辅助 ──
-function formatLogTime(ts: string | number): string {
-  const d = new Date(Number(ts))
-  if (isNaN(d.getTime())) return '-'
-  return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-}
-
-const statusLabel = (s: TaskStatus) => ({
-  drafted:'草稿', proposed:'待同意', revised:'修订中', executing:'执行中',
-  delivered:'已交付', completed:'已完成', cancelled:'已取消', aborted:'已中止',
-}[s] || s) as string
-
-const typeLabel = (t: string) => ({ product_listing:'商品上架', content_creation:'内容创作', customer_service:'客服', tech_support:'技术' }[t] || t)
-
 // ── M2: 共享 SSE/WS 事件处理（统一时间线版）──
 function handleSSEEvent(json: ChatSSEEvent, msgIdx: number) {
   if (!messages.value[msgIdx]) return

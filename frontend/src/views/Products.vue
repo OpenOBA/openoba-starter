@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="products-page">
     <el-tabs v-model="activeTab" type="card">
       <!-- SPU -->
@@ -164,91 +164,15 @@
         </div>
       </el-tab-pane>
 
-      <!-- SKU 图片 -->
+      <!-- SKU 图片 → P1-3c 独立组件 -->
       <el-tab-pane label="SKU 图片" name="sku-image">
-        <div class="tab-content">
-          <div class="toolbar">
-            <el-select v-model="imageSearch.skuId" placeholder="选择 SKU" clearable filterable style="width: 280px" @change="loadSkuImages" :loading="skuSelectLoading" :disabled="skuSelectLoading">
-              <el-option v-for="s in skuListForSelect" :key="s.skuId" :label="`${s.skuCode} - ${s.skuName || '-'}`" :value="s.skuId" />
-            </el-select>
-            <el-button type="primary" @click="loadSkuImages">刷新</el-button>
-            <el-button type="success" @click="openImageDialog()" :disabled="!imageSearch.skuId">+ 新增</el-button>
-            <el-button type="warning" @click="openBatchDialog()" :disabled="!imageSearch.skuId">批量上传</el-button>
-          </div>
-
-          <div class="image-type-tabs">
-            <el-radio-group v-model="imageSearch.imageType" @change="loadSkuImages">
-              <el-radio-button label="">全部</el-radio-button>
-              <el-radio-button label="main">主图</el-radio-button>
-              <el-radio-button label="gallery">图集</el-radio-button>
-              <el-radio-button label="detail">详情</el-radio-button>
-              <el-radio-button label="lifestyle">场景</el-radio-button>
-              <el-radio-button label="360view">360°</el-radio-button>
-              <el-radio-button label="website_banner">横幅</el-radio-button>
-            </el-radio-group>
-          </div>
-
-          <el-table :data="sortedImageList" v-loading="imageLoading" stripe row-key="imageId">
-            <el-table-column label="" width="40">
-              <template #default="{ $index }">
-                <el-icon class="drag-handle" style="cursor: grab; color: #909399"><Rank /></el-icon>
-              </template>
-            </el-table-column>
-            <el-table-column label="预览" width="100">
-              <template #default="{ row }">
-                <el-image :src="row.imageUrl" fit="cover" style="width: 60px; height: 60px; border-radius: 4px; cursor: pointer" @click="previewImage(row.imageUrl)" />
-              </template>
-            </el-table-column>
-            <el-table-column prop="imageUrl" label="URL" min-width="200" show-overflow-tooltip />
-            <el-table-column label="类型" width="90">
-              <template #default="{ row }">
-                <el-tag :type="{ main: 'danger', gallery: 'primary', detail: 'info', lifestyle: 'success', '360view': 'warning', website_banner: 'warning' }[row.imageType] || 'info'" size="small">
-                  {{ { main: '主图', gallery: '图集', detail: '详情', lifestyle: '场景', '360view': '360°', website_banner: '横幅' }[row.imageType] || row.imageType }}
-                </el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column label="主图" width="60">
-              <template #default="{ row }">
-                <el-tag v-if="row.isPrimary" type="danger" size="small"></el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column label="状态" width="70">
-              <template #default="{ row }">
-                <el-tag :type="row.isActive ? 'success' : 'danger'" size="small">{{ row.isActive ? '启用' : '禁用' }}</el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column prop="altText" label="替代文本" min-width="120" show-overflow-tooltip />
-            <el-table-column label="操作" width="220" fixed="right">
-              <template #default="{ row, $index }">
-                <el-button link type="info" size="small" @click="moveImage($index, -1)" :disabled="$index === 0" title="上移">↑</el-button>
-                <el-button link type="info" size="small" @click="moveImage($index, 1)" :disabled="$index === sortedImageList.length - 1" title="下移">↓</el-button>
-                <el-button link type="primary" @click="openImageDialog(row)">编辑</el-button>
-                <el-popconfirm title="确认删除？" @confirm="handleDeleteImage(row.imageId)">
-                  <template #reference><el-button link type="danger">删除</el-button></template>
-                </el-popconfirm>
-              </template>
-            </el-table-column>
-          </el-table>
-
-          <div v-if="hasReordered" class="save-order-bar">
-            <el-button type="primary" @click="handleSaveOrder">保存排序</el-button>
-            <el-button @click="cancelReorder">取消</el-button>
-          </div>
-        </div>
+        <SkuImagePanel
+          :sku-list-for-select="skuListForSelect"
+          :sku-select-loading="skuSelectLoading"
+          @refresh="loadSkusAll"
+        />
       </el-tab-pane>
-
-      <!-- SKU 图片预览全屏层 -->
-      <div v-if="previewVisible" class="fullscreen-preview" @click="previewVisible=false" @wheel.prevent="onPreviewWheel">
-        <div class="preview-toolbar">
-          <span class="preview-zoom">{{ Math.round(previewScale * 100) }}%</span>
-          <el-button circle size="small" @click.stop="previewScale=Math.min(3, previewScale+0.25)">+</el-button>
-          <el-button circle size="small" @click.stop="previewScale=Math.max(0.25, previewScale-0.25)">−</el-button>
-          <el-button circle size="small" @click.stop="previewScale=1; previewVisible=false">✕</el-button>
-        </div>
-        <img :src="previewSrc" :style="{ transform: `scale(${previewScale})` }" @click.stop />
-      </div>
-
-      <!-- 套装 -->
+<!-- 套装 -->
       <el-tab-pane label="套装管理" name="set">
         <div class="tab-content">
           <div class="toolbar">
@@ -315,91 +239,15 @@
     />
 
     <!-- Set Dialog -->
-    <el-dialog v-model="setDialogVisible" :title="setForm.setId ? '编辑套装' : '新增套装'" width="760px">
-      <el-form :model="setForm" label-width="110px">
-        <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="套装编码">
-              <el-input v-model="setForm.setCode" :disabled="!!setForm.setId" placeholder="新建时自动生成" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="套装名称">
-              <el-input v-model="setForm.setName" placeholder="如：职场通勤套装" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="商品品类">
-              <el-select v-model="setForm.categoryId" placeholder="选择品类" clearable filterable>
-                <el-option v-for="c in categoryList" :key="c.categoryId" :label="c.categoryName" :value="c.categoryId" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="状态">
-              <el-select v-model="setForm.status">
-                <el-option label="草稿" value="draft" />
-                <el-option label="在售" value="on_sale" />
-                <el-option label="下架" value="off_sale" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <!-- SKU 多选（带复选框） -->
-        <el-form-item label="选择 SKU">
-          <el-select v-model="selectedSkuIds" multiple filterable collapse-tags collapse-tags-tooltip placeholder="搜索并勾选 SKU" style="width:100%" @change="onSkuSelectionChange">
-            <el-option v-for="s in skuListForSelect" :key="s.skuId" :label="`${s.skuCode} - ${s.skuName || s.colorCode || ''}`" :value="s.skuId">
-              <span style="float:left">{{ s.skuCode }} - {{ s.skuName || s.colorCode || '-' }}</span>
-              <span style="float:right;color:#e6a23c">¥{{ Number(s.retailPrice || 0).toFixed(2) }}</span>
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <!-- 已选 SKU 列表明细 -->
-        <div v-if="selectedSkuRows.length" class="selected-sku-section">
-          <div class="selected-sku-header">已选 SKU（{{ selectedSkuRows.length }} 件）</div>
-          <div class="selected-sku-list">
-            <div v-for="s in selectedSkuRows" :key="s.skuId" class="selected-sku-item">
-              <span class="sku-code">{{ s.skuCode }}</span>
-              <span class="sku-name">{{ s.skuName || s.colorCode || '-' }}</span>
-              <span class="sku-retail">¥{{ Number(s.retailPrice || 0).toFixed(2) }}</span>
-              <el-button link type="danger" size="small" @click="removeSku(s.skuId)">×</el-button>
-            </div>
-          </div>
-          <div class="selected-sku-total">
-            <span>原价（{{ selectedSkuRows.length }} 件商品）</span>
-            <span class="total-price">¥{{ totalRetailPrice.toFixed(2) }}</span>
-          </div>
-        </div>
-        <!-- 折扣率 ↔ 套装价联动 -->
-        <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="折扣率">
-              <el-input-number v-model="setForm.discountRate" :precision="2" :min="0" :max="1" :step="0.05" style="width:100%" @change="onDiscountRateChange" />
-              <span style="margin-left:6px;font-size:13px;color:#909399">{{ discountRatePercent }}</span>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="套装价">
-              <el-input-number v-model="setForm.setPrice" :precision="2" :min="0" style="width:100%" @change="onSetPriceChange" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item label="描述">
-          <el-input v-model="setForm.description" type="textarea" :rows="2" placeholder="套装描述、适合场景等" />
-        </el-form-item>
-        <el-form-item label="主图 URL" v-if="setForm.mainImage || setForm.setId">
-          <el-input v-model="setForm.mainImage" placeholder="可选" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="setDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveSet">保存</el-button>
-      </template>
-    </el-dialog>
-
-    
+    <!-- Set Dialog → P1-3c 独立组件 -->
+    <SetDialog
+      :visible="setDialogVisible"
+      :edit-row="setEditRow"
+      :sku-list-for-select="skuListForSelect"
+      :category-list="categoryList"
+      @close="setDialogVisible = false"
+      @saved="loadSets"
+    />
     <!-- 批量上传 Dialog -->
     <el-dialog v-model="batchDialogVisible" title="批量上传图片" width="640px">
       <el-tabs v-model="batchTab">
@@ -496,7 +344,8 @@ import {
 import { getCategoriesFlat } from '@/api/category';
 import { getStructureList } from '@/api/structure';
 import { getSchema, type IndustrySchema } from '@/api/schema';
-import SpuDialog from '@/components/SpuDialog.vue';
+import SpuDialog from '@/components/SpuDialog.vue'
+import SetDialog from '@/components/SetDialog.vue';
 import SkuDialog from '@/components/SkuDialog.vue';
 import SubSkuTab from './products/SubSkuTab.vue';
 
@@ -746,386 +595,43 @@ const loadCategoryList = async () => {
   catch { categoryList.value = []; }
 };
 
-// ===== Set =====
+
+// ===== Set (P1-3c: 弹窗逻辑已迁移至 SetDialog.vue) =====
 const setList = ref<any[]>([]);
 const setLoading = ref(false);
 const setDialogVisible = ref(false);
-const setForm = reactive<any>({ setId: '', setCode: '', setName: '', setPrice: 0, originalTotalPrice: 0, discountRate: 0, retailPrice: 0, status: 'draft', categoryId: '', description: '', mainImage: '' });
-const selectedSkuIds = ref<string[]>([]);
-const selectedSkuRows = computed(() => skuListForSelect.value.filter((s: Record<string, unknown>) => selectedSkuIds.value.includes(s.skuId)));
-// 统一零售价 = 所选 SKU 零售价自动累加（价格锚点 = 原价）
-const totalRetailPrice = computed(() => selectedSkuRows.value.reduce((sum: number, s: any) => sum + (Number(s.retailPrice) || 0), 0));
-const discountRatePercent = computed(() => {
-  if (setForm.discountRate == null) return '-';
-  return (setForm.discountRate * 100).toFixed(0) + '%';
-});
-
-// SKU 选择变化：自动设原价，按折扣率算套装价
-const onSkuSelectionChange = () => {
-  const retail = totalRetailPrice.value;
-  setForm.retailPrice = retail;
-  setForm.originalTotalPrice = retail; // 价格锚点 = 统一零售价 = 原价
-  if (retail > 0 && !setForm.setId && setForm.discountRate > 0) {
-    setForm.setPrice = parseFloat((retail * setForm.discountRate).toFixed(2));
-  } else if (retail > 0 && !setForm.setId) {
-    // 默认 75 折
-    setForm.discountRate = 0.75;
-    setForm.setPrice = parseFloat((retail * 0.75).toFixed(2));
-  } else if (retail > 0 && setForm.setPrice > 0) {
-    setForm.discountRate = parseFloat((setForm.setPrice / retail).toFixed(2));
-  } else {
-    setForm.setPrice = 0;
-    setForm.discountRate = 0;
-  }
-};
-
-// 删除已选 SKU
-const removeSku = (skuId: string) => {
-  selectedSkuIds.value = selectedSkuIds.value.filter(id => id !== skuId);
-  onSkuSelectionChange();
-};
-
-// 改折扣率 → 自动算套装价（价格锚点 = 原价）
-const onDiscountRateChange = (val: number | undefined) => {
-  const retail = totalRetailPrice.value;
-  if (retail > 0 && val && val > 0) {
-    setForm.setPrice = parseFloat((retail * val).toFixed(2));
-  }
-};
-
-// 改套装价 → 自动反推折扣率
-const onSetPriceChange = (val: number | undefined) => {
-  const retail = totalRetailPrice.value;
-  if (retail > 0 && val && val > 0) {
-    setForm.discountRate = parseFloat((val / retail).toFixed(2));
-  }
-};
-
-// 套装编码生成
-// 已废弃：setCode 现在由后端 createSet 自动生成（SET + 6位自增序号），不再前端随机
-function generateSetCode(): string {
-  const now = new Date();
-  const y = now.getFullYear().toString().slice(-2);
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  const arr = new Uint32Array(1); crypto.getRandomValues(arr); const seq = (arr[0] % 900) + 100;
-  return `SET${y}${m}${d}${seq}`;
-}
+const setEditRow = ref<Record<string, unknown> | null>(null);
 
 const loadSets = async () => {
   setLoading.value = true;
-  try { const res = await getSets({}); setList.value = Array.isArray(res.items) ? res.items.map((i) => ({ ...i })) : (Array.isArray(res) ? res : []); }
-  catch (e: unknown) { ElMessage.error((e as any)?.message || '加载失败'); }
+  try { const res = await getSets({}); setList.value = Array.isArray(res.items) ? res.items : (res.data?.items || []); }
+  catch { setList.value = []; }
   finally { setLoading.value = false; }
 };
+
 const openSetDialog = (row?: any) => {
-  if (row) {
-    // 白名单赋值，避免传 createdAt/updatedAt/isDeleted
-    setForm.setId = row.setId || '';
-    setForm.setCode = row.setCode || '';
-    setForm.setName = row.setName || '';
-    setForm.setPrice = Number(row.setPrice) || 0;
-    setForm.originalTotalPrice = Number(row.originalTotalPrice) || 0;
-    setForm.discountRate = Number(row.discountRate) || 0;
-    setForm.retailPrice = Number(row.retailPrice) || 0;
-    setForm.status = row.status || 'draft';
-    setForm.categoryId = row.categoryId || '';
-    setForm.description = row.description || '';
-    setForm.mainImage = row.mainImage || '';
-    selectedSkuIds.value = Array.isArray(row.skuList) ? [...row.skuList] : [];
-  } else {
-    setForm.setId = '';
-    setForm.setCode = '';  // 后端自动生成 SET 编码，前端不再随机生成
-    setForm.setName = '';
-    setForm.setPrice = 0;
-    setForm.originalTotalPrice = 0;
-    setForm.discountRate = 0;
-    setForm.retailPrice = 0;
-    setForm.status = 'draft';
-    setForm.categoryId = '';
-    setForm.description = '';
-    setForm.mainImage = '';
-    selectedSkuIds.value = [];
-  }
+  setEditRow.value = row || null;
   setDialogVisible.value = true;
 };
-const handleSaveSet = async () => {
-  // 白名单传参，避免传多余字段
-  const payload: Record<string, unknown> = {
-    setName: setForm.setName,
-    skuList: selectedSkuIds.value,
-    setPrice: setForm.setPrice,
-    originalTotalPrice: setForm.originalTotalPrice,
-    discountRate: setForm.discountRate,
-    retailPrice: setForm.retailPrice,
-  };
-  if (setForm.categoryId) payload.categoryId = setForm.categoryId;
-  if (setForm.description) payload.description = setForm.description;
-  if (setForm.mainImage) payload.mainImage = setForm.mainImage;
-  if (setForm.status) payload.status = setForm.status;
-  if (!setForm.setId && setForm.setCode) payload.setCode = setForm.setCode;
-  try {
-    if (setForm.setId) await updateSet(setForm.setId, payload); else await createSet(payload);
-    ElMessage.success('保存成功'); setDialogVisible.value = false; loadSets();
-  } catch (e: unknown) { ElMessage.error((e as any)?.message || '保存失败'); }
-};
-const batchEditSets = () => { if(setSelection.value.length===1) openSetDialog(setSelection.value[0]); else if(setSelection.value.length>1) ElMessage.warning('暂仅支持单条编辑'); };
-const batchDeleteSets = async () => { try { for(const r of setSelection.value) await deleteSet(r.setId); ElMessage.success(setSelection.value.length+' 条已删除'); setSelection.value=[]; loadSets(); } catch { ElMessage.error('删除失败'); } };
+
+const batchEditSets = () => { if (setSelection.value.length === 1) openSetDialog(setSelection.value[0]); else ElMessage.warning("请只勾选一个套装进行编辑"); };
+const batchDeleteSets = async () => { try { for (const r of setSelection.value) await deleteSet(r.setId); ElMessage.success("已删除"); setSelection.value=[]; loadSets(); } catch(e:unknown){ ElMessage.error((e as any)?.message || "批量删除失败"); } };
 const handleDeleteSet = async (id: string) => {
-  try { await deleteSet(id); ElMessage.success('已删除'); loadSets(); } catch (e: unknown) { ElMessage.error((e as any)?.message || '删除失败'); }
+  try { await deleteSet(id); ElMessage.success("已删除"); loadSets(); } catch (e: unknown) { ElMessage.error((e as any)?.message || "删除失败"); }
 };
 
-// ===== SKU 图片 =====
-const skuImageList = ref<any[]>([]);
-const imageLoading = ref(false);
-const skuListForSelect = ref<any[]>([]);  // 图片Tab下拉用全量列表
-const skuSelectLoading = ref(false);       // 图片Tab下拉独立loading
-const imageSearch = reactive({ skuId: '', imageType: '' });
-const imageDialogVisible = ref(false);
-const imageForm = reactive<any>({ imageId: '', skuId: '', imageUrl: '', imageType: 'gallery', sortOrder: 0, isPrimary: false, isActive: true, altText: '', width: null, height: null });
-const imageFileInput = ref<HTMLInputElement | null>(null);
-const imageUploading = ref(false);
 
-// 批量上传
-const batchDialogVisible = ref(false);
-const batchText = ref('');
-const batchTab = ref('url');
-const batchFileInput = ref<HTMLInputElement | null>(null);
-const batchFileList = ref<any[]>([]);
-const batchUploading = ref(false);
-const batchUploadedCount = ref(0);
+// ===== SKU 列表（供 SkuImagePanel + SetDialog 使用）=====
+const skuListForSelect = ref<any[]>([]);
+const skuSelectLoading = ref(false);
 
-// 排序相关
-const hasReordered = ref(false);
-const originalOrder = ref<any[]>([]);
-
-// 计算属性：按 sortOrder 排序的列表
-const sortedImageList = computed(() => {
-  return [...skuImageList.value].sort((a, b) => a.sortOrder - b.sortOrder);
-});
-
-const loadSkuImages = async () => {
-  if (!imageSearch.skuId) { skuImageList.value = []; return; }
-  imageLoading.value = true;
-  hasReordered.value = false;
+// 全量加载 SKU（套装多选/图片下拉框用）
+const loadSkusAll = async () => {
   try {
-    const res = await getSkuImages({ skuId: imageSearch.skuId, imageType: imageSearch.imageType });
-    skuImageList.value = Array.isArray(res) ? res : [];
-    originalOrder.value = [...skuImageList.value];
-  } catch (e: unknown) { ElMessage.error((e as any)?.message || '加载失败'); }
-  finally { imageLoading.value = false; }
-};
-const openImageDialog = (row?: any) => {
-  if (row) {
-    // 白名单赋值，避免传 createdAt/updatedAt/isDeleted/createdBy
-    imageForm.imageId = row.imageId || '';
-    imageForm.skuId = row.skuId || '';
-    imageForm.imageUrl = row.imageUrl || '';
-    imageForm.imageType = row.imageType || 'gallery';
-    imageForm.sortOrder = row.sortOrder != null ? row.sortOrder : 0;
-    imageForm.isPrimary = row.isPrimary || false;
-    imageForm.isActive = row.isActive != null ? row.isActive : true;
-    imageForm.altText = row.altText || '';
-    imageForm.width = row.width || null;
-    imageForm.height = row.height || null;
-  } else {
-    imageForm.imageId = '';
-    imageForm.skuId = imageSearch.skuId;
-    imageForm.imageUrl = '';
-    imageForm.imageType = 'gallery';
-    imageForm.sortOrder = skuImageList.value.length;
-    imageForm.isPrimary = false;
-    imageForm.isActive = true;
-    imageForm.altText = '';
-    imageForm.width = null;
-    imageForm.height = null;
-  }
-  imageDialogVisible.value = true;
-};
-const handleSaveImage = async () => {
-  if (!imageForm.imageUrl?.trim()) { ElMessage.warning('请输入图片 URL'); return; }
-  // 白名单传参
-  const payload: Record<string, unknown> = {
-    imageUrl: imageForm.imageUrl,
-    imageType: imageForm.imageType || 'gallery',
-    sortOrder: imageForm.sortOrder,
-    isPrimary: imageForm.isPrimary || false,
-    isActive: imageForm.isActive != null ? imageForm.isActive : true,
-    altText: imageForm.altText || '',
-    width: imageForm.width || null,
-    height: imageForm.height || null,
-  };
-  if (!imageForm.imageId) payload.skuId = imageForm.skuId;
-  try {
-    if (imageForm.imageId) await updateSkuImage(imageForm.imageId, payload);
-    else await createSkuImage(payload);
-    ElMessage.success('保存成功'); imageDialogVisible.value = false; loadSkuImages();
-  } catch (e: unknown) { ElMessage.error((e as any)?.message || '保存失败'); }
-};
-const handleDeleteImage = async (id: string) => {
-  try { await deleteSkuImage(id); ElMessage.success('已删除'); loadSkuImages(); } catch (e: unknown) { ElMessage.error((e as any)?.message || '删除失败'); }
-};
-
-// 图片预览（替代 Element Plus image-viewer z-index 问题）
-const previewSrc = ref('');
-const previewVisible = ref(false);
-const previewScale = ref(1);
-const previewImage = (url: string) => { previewSrc.value = url; previewVisible.value = true; previewScale.value = 1; };
-const onPreviewWheel = (e: WheelEvent) => { previewScale.value = Math.min(3, Math.max(0.25, previewScale.value + (e.deltaY < 0 ? 0.1 : -0.1))); };
-
-// 文件上传相关
-const beforeUpload = (file: File) => {
-  const isImage = file.type.startsWith('image/');
-  const isLt10M = file.size / 1024 / 1024 < 10;
-  if (!isImage) { ElMessage.error('只能上传图片文件!'); return false; }
-  if (!isLt10M) { ElMessage.error('图片大小不能超过 10MB!'); return false; }
-  return true;
-};
-
-// 简单文件选择（替代 el-upload）
-const triggerImageFileSelect = () => { imageFileInput.value?.click(); };
-const onImageFileSelect = async (e: Event) => {
-  const input = e.target as HTMLInputElement;
-  const file = input.files?.[0];
-  if (!file) return;
-  const isValid = beforeUpload(file);
-  if (!isValid) return;
-  imageUploading.value = true;
-  try {
-    const res = await uploadImage(file);
-    if (res?.data?.url || res?.url) {
-      imageForm.imageUrl = res.data?.url || res.url;
-      ElMessage.success('上传成功');
-    } else {
-      ElMessage.error(res?.message || '上传失败');
-    }
-  } catch (e: unknown) {
-    ElMessage.error((e as any)?.message || '上传失败');
-  } finally {
-    imageUploading.value = false;
-    input.value = ''; // 重置，允许重新选同一文件
-  }
-};
-// 批量上传
-const openBatchDialog = () => { batchText.value = ''; batchTab.value = 'url'; batchFileList.value = []; batchUploadedCount.value = 0; batchUploading.value = false; batchDialogVisible.value = true; };
-const handleBatchUpload = async () => {
-  if (!batchText.value.trim()) { ElMessage.warning('请输入图片 URL'); return; }
-  const lines = batchText.value.split('\n').filter(l => l.trim());
-  const images: Record<string, unknown>[] = [];
-  for (const line of lines) {
-    const parts = line.split('|').map(p => p.trim());
-    if (!parts[0]) continue;
-    images.push({
-      imageUrl: parts[0],
-      imageType: parts[1] || 'gallery',
-      sortOrder: parseInt(parts[2] || '0'),
-      isPrimary: (parts[3] || 'N').toUpperCase() === 'Y',
-      altText: parts[4] || '',
-      isActive: true,
-    });
-  }
-  if (images.length === 0) { ElMessage.warning('没有有效的图片数据'); return; }
-  try {
-    await batchCreateSkuImages({ skuId: imageSearch.skuId, images });
-    ElMessage.success(`成功上传 ${images.length} 张图片`);
-    batchDialogVisible.value = false; loadSkuImages();
-  } catch (e: unknown) { ElMessage.error((e as any)?.message || '上传失败'); }
-};
-
-// 批量本地文件上传
-const triggerBatchFileSelect = () => { batchFileInput.value?.click(); };
-const onBatchFileSelect = (e: Event) => {
-  const input = e.target as HTMLInputElement;
-  const files = input.files;
-  if (!files || files.length === 0) return;
-  batchFileList.value = Array.from(files).map(f => ({ file: f, name: f.name, status: 'pending' }));
-  batchUploadedCount.value = 0;
-  input.value = ''; // 重置
-};
-
-const startBatchFileUpload = async () => {
-  batchUploading.value = true;
-  batchUploadedCount.value = 0;
-  let successCount = 0;
-  let failCount = 0;
-  for (let i = 0; i < batchFileList.value.length; i++) {
-    const item = batchFileList.value[i];
-    item.status = 'uploading';
-    try {
-      const res = await uploadImage(item.file);
-      const url = res?.data?.url || res?.url;
-      if (url) {
-        await createSkuImage({
-          skuId: imageSearch.skuId,
-          imageUrl: url,
-          imageType: 'gallery',
-          sortOrder: skuImageList.value.length + i + 1,
-          isPrimary: false,
-          isActive: true,
-        });
-        item.status = 'success';
-        successCount++;
-      } else {
-        item.status = 'error';
-        failCount++;
-      }
-    } catch (e: unknown) {
-      item.status = 'error';
-      failCount++;
-    }
-    batchUploadedCount.value = successCount;
-  }
-  batchUploading.value = false;
-  if (successCount > 0) {
-    ElMessage.success(`成功上传 ${successCount} 张图片${failCount > 0 ? `，${failCount} 张失败` : ''}`);
-    batchDialogVisible.value = false;
-    loadSkuImages();
-  } else {
-    ElMessage.error('所有图片上传失败');
-  }
-};
-
-// 拖拽排序保存
-const handleSaveOrder = async () => {
-  const orderedIds = sortedImageList.value.map(img => img.imageId);
-  try {
-    await reorderSkuImages({ skuId: imageSearch.skuId, imageType: imageSearch.imageType || undefined, orderedIds });
-    ElMessage.success('排序已保存');
-    hasReordered.value = false;
-    loadSkuImages();
-  } catch (e: unknown) { ElMessage.error((e as any)?.message || '排序失败'); }
-};
-const cancelReorder = () => { hasReordered.value = false; skuImageList.value = [...originalOrder.value]; };
-
-// 上下移动排序
-const moveImage = (index: number, direction: number) => {
-  const newIndex = index + direction;
-  if (newIndex < 0 || newIndex >= sortedImageList.value.length) return;
-  // 交换 sortOrder
-  const a = sortedImageList.value[index];
-  const b = sortedImageList.value[newIndex];
-  const tempSort = a.sortOrder;
-  a.sortOrder = b.sortOrder;
-  b.sortOrder = tempSort;
-  // 触发响应式更新
-  skuImageList.value = [...skuImageList.value];
-  hasReordered.value = true;
-};
-
-// 图片Tab：加载全量SKU列表用于下拉选择器
-const loadSkusForSelect = async () => {
-  skuSelectLoading.value = true;
-  try {
-    const res = await getSkus({ pageSize: 99999 });
-    if (Array.isArray(res)) skuListForSelect.value = res;
-    else if (res?.items) skuListForSelect.value = res.items;
-  } catch { /* 忽略 */ }
-  finally { skuSelectLoading.value = false; }
-};
-
-// Tab 切换懒加载：只加载当前 Tab 需要的数据
-// ⚠️ 必须在所有 loader 函数定义之后，否则 TDZ 报错
-const TAB_LOADERS: Record<string, (() => void)[]> = {
+    const res = await getSkus({ pageSize: 9999 });
+    skuListForSelect.value = Array.isArray(res) ? res : (res as any)?.items || [];
+  } catch { /* ignore */ }
+};TAB_LOADERS: Record<string, (() => void)[]> = {
   spu: [loadSpus],
   sku: [loadSkus],
   set: [loadSets],

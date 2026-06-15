@@ -1,4 +1,4 @@
-﻿import { useDict } from '@/composables/useDict'
+import { useDict } from '@/composables/useDict'
 
 const orderStatusDict = useDict('dict_order_status')
 const paymentStatusDict = useDict('dict_payment_status')
@@ -15,15 +15,15 @@ export function useOrderUtils() {
   }
 
   function statusLabel(s: string): string {
-    return orderStatusDict.labels.value[s] || { pending: '寰呭鐞?, confirmed: '宸茬‘璁?, paid: '宸叉敮浠?, shipped: '宸插彂璐?, completed: '宸插畬鎴?, cancelled: '宸插彇娑? }[s] || s
+    return orderStatusDict.labels.value[s] || { pending: '待处理', confirmed: '已确认', paid: '已支付', shipped: '已发货', completed: '已完成', cancelled: '已取消' }[s] || s
   }
 
   function orderTypeLabel(t: string): string {
-    return customerTypeDict.labels.value[t] || { retail: '闆跺敭', wholesale: '鎵瑰彂', partner: '鍚堜綔' }[t] || t
+    return customerTypeDict.labels.value[t] || { retail: '零售', wholesale: '批发', partner: '合作' }[t] || t
   }
 
   function payLabel(s: string): string {
-    return paymentStatusDict.labels.value[s] || { unpaid: '鏈敮浠?, paid: '宸叉敮浠?, partial: '閮ㄥ垎鏀粯' }[s] || s
+    return paymentStatusDict.labels.value[s] || { unpaid: '未支付', paid: '已支付', partial: '部分支付' }[s] || s
   }
 
   function fulfillmentTag(t: string): string {
@@ -32,7 +32,7 @@ export function useOrderUtils() {
   }
 
   function fulfillmentLabel(t: string): string {
-    const m: Record<string, string> = { frame_only: '瑁告', lens_and_frame: '鐪奸暅', lens_only: '鍗曢暅鐗? }
+    const m: Record<string, string> = { frame_only: '框架', lens_and_frame: '眼镜', lens_only: '单片' }
     return m[t] || t
   }
 
@@ -42,7 +42,7 @@ export function useOrderUtils() {
   }
 
   function lensStatusLabel(s: string): string {
-    const m: Record<string, string> = { not_needed: '涓嶉渶瑕?, pending: '寰呭鏂?, processing: '鍔犲伐涓?, completed: '宸插畬鎴?, self_supplied: '瀹㈡埛鑷厤' }
+    const m: Record<string, string> = { not_needed: '不需要', pending: '待处方', processing: '加工中', completed: '已完成', self_supplied: '客户自配' }
     return m[s] || s
   }
 

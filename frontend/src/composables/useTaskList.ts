@@ -1,4 +1,4 @@
-﻿import { ref } from 'vue'
+import { ref } from 'vue'
 import { queryTasks } from '@/api/task-engine'
 import type { AgentTask, TaskStatus } from '@/api/task-engine'
 
@@ -38,9 +38,9 @@ export function useTaskList() {
 
   function statusLabel(s: TaskStatus): string {
     return {
-      drafted: '鑽夌', proposed: '寰呭鎵?, revised: '寰呬慨鏀?,
-      executing: '鎵ц涓?, delivered: '宸蹭氦浠?, published: '宸插彂甯?,
-      completed: '宸插畬鎴?, cancelled: '宸插彇娑?, aborted: '宸蹭腑姝?, escalated: '宸插崌绾?,
+      drafted: '草稿', proposed: '待审批', revised: '待修改',
+      executing: '执行中', delivered: '已交付', published: '已发布',
+      completed: '已完成', cancelled: '已取消', aborted: '已中止', escalated: '已升级',
     }[s] || s
   }
 
@@ -59,7 +59,7 @@ export function useTaskList() {
     const now = new Date()
     const diff = now.getTime() - d.getTime()
     if (diff < 86400000) return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-    if (diff < 604800000) return Math.floor(diff / 86400000) + '澶╁墠'
+    if (diff < 604800000) return Math.floor(diff / 86400000) + '天前'
     return d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })
   }
 

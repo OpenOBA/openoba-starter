@@ -1,4 +1,4 @@
-﻿import { ref, reactive } from 'vue'
+import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import { createOrder } from '@/api/order'
 import { getCustomerLensSummary } from '@/api/customer'
@@ -67,8 +67,8 @@ export function useOrderCreate() {
       if (res?.lenses?.length > 0) {
         const activeLens = res.lenses.find((l: any) => l.status === 'active') || res.lenses[0]
         const code = activeLens.lensStandardCode
-        const rxInfo = activeLens.prescription ? `鐞冮暅: OD${activeLens.prescription.odSphere}/OS${activeLens.prescription.osSphere}` : ''
-        historyLensNotice.value = `馃敩 璇ュ鎴峰巻鍙查暅鐗囷細${code}${rxInfo ? ' | ' + rxInfo : ''}`
+        const rxInfo = activeLens.prescription ? `球镜: OD${activeLens.prescription.odSphere}/OS${activeLens.prescription.osSphere}` : ''
+        historyLensNotice.value = `🔩 该客户历史镜片：${code}${rxInfo ? ' | ' + rxInfo : ''}`
         const matched = lensOptions.value.find((l) => l.externalCode === code)
         if (matched) createForm.structureStandardCode = matched.structureId
       }
@@ -77,24 +77,24 @@ export function useOrderCreate() {
 
   function calcActual(): string {
     const itemsTotal = createForm.items.reduce((s, i) => s + i.quantity * i.unitPrice, 0)
-    return `楼${(itemsTotal - createForm.discountAmount + createForm.shippingFee).toFixed(2)}`
+    return `¥${(itemsTotal - createForm.discountAmount + createForm.shippingFee).toFixed(2)}`
   }
 
   async function submitCreate(onSuccess: () => void) {
-    if (!createForm.customerId) return ElMessage.warning('璇烽€夋嫨瀹㈡埛')
-    if (!createForm.structureStandardCode) return ElMessage.warning('璇烽€夋嫨缁撴瀯鏍囧噯锛堢粨鏋勯敋鐐瑰師鍒欙細姣忕瑪璁㈠崟蹇呴』鎼哄甫锛?)
-    if (!createForm.items.length) return ElMessage.warning('璇锋坊鍔犲晢鍝?)
+    if (!createForm.customerId) return ElMessage.warning('请选择客户')
+    if (!createForm.structureStandardCode) return ElMessage.warning('请选择结构标准（结构锚点原则：每笔订单必须携带）')
+    if (!createForm.items.length) return ElMessage.warning('请添加商品')
     for (const item of createForm.items) {
       if (!item.structureStandardCode) item.structureStandardCode = createForm.structureStandardCode
     }
     submitting.value = true
     try {
       await createOrder({ ...createForm })
-      ElMessage.success('璁㈠崟鍒涘缓鎴愬姛')
+      ElMessage.success('订单创建成功')
       createVisible.value = false
       onSuccess()
     } catch (e: unknown) {
-      ElMessage.error((e as any).message || '鍒涘缓澶辫触')
+      ElMessage.error((e as any).message || '创建失败')
     } finally {
       submitting.value = false
     }

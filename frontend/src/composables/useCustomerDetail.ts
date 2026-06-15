@@ -1,4 +1,4 @@
-﻿import { ref, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
   getCustomerList, getCustomerDetail, getContacts, getAddresses,
@@ -7,7 +7,7 @@ import {
 } from '@/api/customer'
 
 /**
- * 瀹㈡埛璇︽儏 composable 鈥?璇︽儏鎶藉眽 + 鎵€鏈?Tab 閫昏緫
+ * 客户详情 composable — 详情抽屉 + 所有 Tab 逻辑
  */
 export function useCustomerDetail() {
   const detail = ref<any>(null)
@@ -25,7 +25,7 @@ export function useCustomerDetail() {
   const pointsTransactions = ref<any[]>([])
   const activeTab = ref('basic')
 
-  // 浼氬憳鍗囩骇杩涘害
+  // 会员升级进度
   const upgradeProgress = computed(() => {
     if (!detail.value) return 0
     const thresholds: Record<string, number> = { normal: 500, vip: 2000, svip: 5000, gold: 5000 }
@@ -36,18 +36,18 @@ export function useCustomerDetail() {
   })
 
   const nextLevelInfo = computed(() => {
-    if (!detail.value) return '鈥?
+    if (!detail.value) return '—'
     const levels: Record<string, { next: string; threshold: number }> = {
       normal: { next: 'VIP', threshold: 500 },
       vip: { next: 'SVIP', threshold: 2000 },
       svip: { next: 'Gold', threshold: 5000 },
-      gold: { next: '鏈€楂?, threshold: 5000 },
+      gold: { next: '最高', threshold: 5000 },
     }
     const info = levels[detail.value.customerLevel || 'normal']
-    if (!info) return '鈥?
-    if (info.next === '鏈€楂?) return '宸叉槸鏈€楂樼瓑绾?
+    if (!info) return '—'
+    if (info.next === '最高') return '已是最高等级'
     const remaining = Math.max(0, info.threshold - Number(detail.value.totalAmount || 0))
-    return `楼${remaining.toFixed(0)} 杈?${info.next}`
+    return `¥${remaining.toFixed(0)} 达 ${info.next}`
   })
 
   async function openDetail(row: Record<string, unknown>) {
