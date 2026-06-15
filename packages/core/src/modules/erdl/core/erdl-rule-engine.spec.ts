@@ -1,5 +1,5 @@
 /**
- * 秒镜科技 · ERDL — ERDL Rule Engine 单元测试
+ * OpenOBA · ERDL Rule Engine 单元测试
  *
  * @file erdl-rule-engine.spec.ts
  * @author 唐浩然
@@ -147,6 +147,303 @@ describe('ERDLRuleEngine', () => {
 
       expect(result.valid).toBe(false)
       expect(result.errors).toContain('价格必须大于 0')
+    })
+
+    // ============================================
+    // P1-2 新增测试：从 5 → 15+ it()
+    // ============================================
+
+    it('should skip inactive rules', async () => {
+      mockRegistry.getRulesByTrigger.mockReturnValue([
+        {
+          id: 'rule-disabled',
+          name: 'Disabled Discount',
+          namespace: 'com.test',
+          entity: 'Product',
+          trigger: 'Product.price.calculate',
+          priority: 1,
+          tier: 'policy' as const,
+          condition: { logic: 'AND' as const, conditions: [] },
+          actions: [{ type: 'calculate' as const, params: { formula: '0' } }],
+          isActive: false,
+          createdAt: new Date(),
+          version: 1,
+        },
+      ])
+
+      const result = await engine.evaluate('Product.price.calculate', { retailPrice: 100 })
+      expect(result.matched).toBe(false)
+    })
+
+    it('should chain through rules: first unmatched → second matched', async () => {
+      mockRegistry.getRulesByTrigger.mockReturnValue([
+        {
+          id: 'rule-a',
+          name: 'Rule A (will not match)',
+          namespace: 'com.test',
+          entity: 'Product',
+          trigger: 'Product.price.calculate',
+          priority: 1,
+          tier: 'policy' as const,
+          condition: { logic: 'AND' as const, conditions: [{ field: 'customer.tier', operator: 'eq' as const, value: 'VIP' }] },
+          actions: [{ type: 'calculate' as const, params: { formula: 'retailPrice * 0.8' } }],
+          isActive: true,
+          createdAt: new Date(),
+          version: 1,
+        },
+        {
+          id: 'rule-b',
+          name: 'Rule B (should match)',
+          namespace: 'com.test',
+          entity: 'Product',
+          trigger: 'Product.price.calculate',
+          priority: 2,
+          tier: 'policy' as const,
+          condition: { logic: 'AND' as const, conditions: [{ field: 'customer.tier', operator: 'eq' as const, value: 'NORMAL' }] },
+          actions: [{ type: 'calculate' as const, params: { formula: 'retailPrice * 0.95' } }],
+          isActive: true,
+          createdAt: new Date(),
+          version: 1,
+        },
+      ])
+
+      const result = await engine.evaluate('Product.price.calculate', {
+        retailPrice: 200,
+        customer: { tier: 'NORMAL' },
+      })
+
+      expect(result.matched).toBe(true)
+      expect(result.ruleName).toBe('Rule B (should match)')
+      expect(result.result).toBe(190) // 200 * 0.95
+    })
+
+    it('should evaluate nested OR conditions', async () => {
+      mockRegistry.getRulesByTrigger.mockReturnValue([
+        {
+          id: 'rule-or',
+          name: 'OR Discount',
+          namespace: 'com.test',
+          entity: 'Product',
+          trigger: 'Product.price.calculate',
+          priority: 1,
+          tier: 'policy' as const,
+          condition: {
+            logic: 'OR' as const,
+            conditions: [
+              { field: 'customer.tier', operator: 'eq' as const, value: 'VIP' },
+              { field: 'customer.tier', operator: 'eq' as const, value: 'AGENT' },
+            ],
+          },
+          actions: [{ type: 'calculate' as const, params: { formula: 'retailPrice * 0.85' } }],
+          isActive: true,
+          createdAt: new Date(),
+          version: 1,
+        },
+      ])
+
+      const result = await engine.evaluate('Product.price.calculate', {
+        retailPrice: 100,
+        customer: { tier: 'AGENT' },
+      })
+      expect(result.matched).toBe(true)
+      expect(result.result).toBe(85)
+    })
+
+    it('should evaluate deeply nested AND+OR conditions', async () => {
+      mockRegistry.getRulesByTrigger.mockReturnValue([
+        {
+          id: 'rule-nested',
+          name: 'Nested Condition Discount',
+          namespace: 'com.test',
+          entity: 'Product',
+          trigger: 'Product.price.calculate',
+          priority: 1,
+          tier: 'policy' as const,
+          condition: {
+            logic: 'AND' as const,
+            conditions: [
+              {
+                logic: 'OR' as const,
+                conditions: [
+                  { field: 'customer.tier', operator: 'eq' as const, value: 'VIP' },
+                  { field: 'customer.tier', operator: 'eq' as const, value: 'AGENT' },
+                ],
+              },
+              { field: 'hasCoupon', operator: 'eq' as const, value: true },
+            ],
+          },
+          actions: [{ type: 'calculate' as const, params: { formula: 'retailPrice * 0.7' } }],
+          isActive: true,
+          createdAt: new Date(),
+          version: 1,
+        },
+      ])
+
+      // VIP + coupon → should match
+      const result = await engine.evaluate('Product.price.calculate', {
+        retailPrice: 100,
+        customer: { tier: 'VIP' },
+        hasCoupon: true,
+      })
+      expect(result.matched).toBe(true)
+      expect(result.result).toBe(70)
+
+      // NORMAL + coupon → should NOT match (OR fails)
+      mockRegistry.getRulesByTrigger.mockReturnValue([
+        {
+          id: 'rule-nested',
+          name: 'Nested Condition Discount',
+          namespace: 'com.test',
+          entity: 'Product',
+          trigger: 'Product.price.calculate',
+          priority: 1,
+          tier: 'policy' as const,
+          condition: {
+            logic: 'AND' as const,
+            conditions: [
+              {
+                logic: 'OR' as const,
+                conditions: [
+                  { field: 'customer.tier', operator: 'eq' as const, value: 'VIP' },
+                  { field: 'customer.tier', operator: 'eq' as const, value: 'AGENT' },
+                ],
+              },
+              { field: 'hasCoupon', operator: 'eq' as const, value: true },
+            ],
+          },
+          actions: [{ type: 'calculate' as const, params: { formula: 'retailPrice * 0.7' } }],
+          isActive: true,
+          createdAt: new Date(),
+          version: 1,
+        },
+      ])
+      const result2 = await engine.evaluate('Product.price.calculate', {
+        retailPrice: 100,
+        customer: { tier: 'NORMAL' },
+        hasCoupon: true,
+      })
+      expect(result2.matched).toBe(false)
+    })
+
+    it('should gracefully handle formula with property access (defense-in-depth)', async () => {
+      mockRegistry.getRulesByTrigger.mockReturnValue([
+        {
+          id: 'rule-danger',
+          name: 'Dangerous rule',
+          namespace: 'com.test',
+          entity: 'Product',
+          trigger: 'Product.price.calculate',
+          priority: 1,
+          tier: 'policy' as const,
+          condition: { logic: 'AND' as const, conditions: [] },
+          actions: [{ type: 'calculate' as const, params: { formula: 'constructor.prototype' } }],
+          isActive: true,
+          createdAt: new Date(),
+          version: 1,
+        },
+      ])
+      mockRegistry.getAllRules.mockReturnValue([])
+
+      // Formula errors are caught gracefully: matched=true, result=null
+      const result = await engine.evaluate('Product.price.calculate', { retailPrice: 100 })
+      expect(result.matched).toBe(true)
+      expect(result.ruleName).toBe('Dangerous rule')
+      expect(result.result).toBeNull()
+    })
+
+    it('should gracefully handle division by zero', async () => {
+      mockRegistry.getRulesByTrigger.mockReturnValue([
+        {
+          id: 'rule-divzero',
+          name: 'Divide by zero',
+          namespace: 'com.test',
+          entity: 'Product',
+          trigger: 'Product.price.calculate',
+          priority: 1,
+          tier: 'policy' as const,
+          condition: { logic: 'AND' as const, conditions: [] },
+          actions: [{ type: 'calculate' as const, params: { formula: 'retailPrice / x' } }],
+          isActive: true,
+          createdAt: new Date(),
+          version: 1,
+        },
+      ])
+
+      const result = await engine.evaluate('Product.price.calculate', { retailPrice: 100, x: 0 })
+      expect(result.matched).toBe(true)
+      expect(result.result).toBeNull()
+    })
+
+    it('should gracefully handle undefined variable', async () => {
+      mockRegistry.getRulesByTrigger.mockReturnValue([
+        {
+          id: 'rule-missing',
+          name: 'Missing variable',
+          namespace: 'com.test',
+          entity: 'Product',
+          trigger: 'Product.price.calculate',
+          priority: 1,
+          tier: 'policy' as const,
+          condition: { logic: 'AND' as const, conditions: [] },
+          actions: [{ type: 'calculate' as const, params: { formula: 'retailPrice * unknownVar' } }],
+          isActive: true,
+          createdAt: new Date(),
+          version: 1,
+        },
+      ])
+
+      const result = await engine.evaluate('Product.price.calculate', { retailPrice: 100 })
+      expect(result.matched).toBe(true)
+      expect(result.result).toBeNull()
+    })
+
+    it('should handle negative numbers and parentheses', async () => {
+      mockRegistry.getRulesByTrigger.mockReturnValue([
+        {
+          id: 'rule-complex',
+          name: 'Complex formula',
+          namespace: 'com.test',
+          entity: 'Product',
+          trigger: 'Product.price.calculate',
+          priority: 1,
+          tier: 'policy' as const,
+          condition: { logic: 'AND' as const, conditions: [] },
+          actions: [{ type: 'calculate' as const, params: { formula: '(retailPrice - 50) * (1 + a)' } }],
+          isActive: true,
+          createdAt: new Date(),
+          version: 1,
+        },
+      ])
+
+      const result = await engine.evaluate('Product.price.calculate', {
+        retailPrice: 300,
+        a: 0.1,
+      })
+      expect(result.result).toBeCloseTo(275, 0) // (300 - 50) * 1.1 = 275
+    })
+
+    it('should only match validation rules for the correct entity', () => {
+      mockRegistry.getAllRules.mockReturnValue([
+        {
+          id: 'rule-other-entity',
+          name: 'Different entity validation',
+          namespace: 'com.test',
+          entity: 'Order',
+          trigger: undefined,
+          priority: 10,
+          tier: 'validation' as const,
+          condition: { logic: 'AND', conditions: [{ field: 'total', operator: 'gt', value: 0 }] },
+          actions: [{ type: 'validate', params: { error: 'Total must be positive' } }],
+          isActive: true,
+          createdAt: new Date(),
+          version: 1,
+        },
+      ])
+
+      const result = engine.validate('ProductSpu', { price: -5 })
+      // Order 的校验规则不应该应用在 ProductSpu 上
+      expect(result.valid).toBe(true)
+      expect(result.errors).toHaveLength(0)
     })
   })
 })
