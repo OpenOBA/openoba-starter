@@ -14,6 +14,7 @@
 ### Fixed
 
 ### Security
+- **P1-1**: expr-eval@2.0.2 replaced with self-developed SafeExpr engine (GHSA-8gw3-rxh4-v6jx + GHSA-jc85-fpwf-qm7x)
 
 ---
 
