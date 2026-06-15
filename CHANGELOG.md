@@ -9,11 +9,22 @@
 
 ### Added
 - **开源合规文件补齐**：根目录新增 SECURITY.md / CODE_OF_CONDUCT.md / GOVERNANCE.md / CLA.md（均引用 `docs/open-source/policies/` 完整文档）
-- **CustomerDetailDrawer 组件**：Customers.vue 详情抽屉提取为独立组件（内部自管理 composable，策略 B）
+- **前端拆分 8 个新组件**：
+  - CustomerDetailDrawer (530行) — 客户详情抽屉（内部自管理 composable，策略 B）
+  - SetDialog (273行) — 套装编辑弹窗（SKU 多选 + 折扣联动）
+  - SkuImagePanel (374行) — SKU 图片管理面板（上传/排序/预览）
+  - AgentChatSidebar (125行) — Agent 聊天左栏（任务信息 + 历史）
+  - AgentChatLogPanel (58行) — Agent 聊天右栏（认知日志）
+  - EraChatWelcome (280行) — ERA-Chat 首页对话区
+  - TaskListPanel (165行) — 任务列表（筛选 + 表格 + 分页）
 - **Core test/.gitkeep**：jest 配置所需测试目录
 
 ### Changed
-- **Customers.vue 前端拆分**：1,356 行 → 410 行（-70%），详情抽屉 + 6 个子弹窗迁移至 `CustomerDetailDrawer.vue`
+- **前端大文件拆分**：4 个超 800 行 Vue 文件全部拆分 (-38%, 4,561→2,824 行)
+  - Customers.vue 1,356→410 (-70%)
+  - Products.vue 1,341→816 (-39%)
+  - AgentChat.vue 1,023→963 (-6%)
+  - TaskDashboard.vue 841→635 (-25%)
 
 ### Fixed
 - **P0-1: Core 许可证头修正**：36 个 TypeScript 源文件 `@license AGPL-3.0` → `@license BSL-1.1`
