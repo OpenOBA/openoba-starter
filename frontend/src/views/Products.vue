@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="products-page">
     <el-tabs v-model="activeTab" type="card">
       <!-- SPU -->
@@ -315,91 +315,15 @@
     />
 
     <!-- Set Dialog -->
-    <el-dialog v-model="setDialogVisible" :title="setForm.setId ? '编辑套装' : '新增套装'" width="760px">
-      <el-form :model="setForm" label-width="110px">
-        <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="套装编码">
-              <el-input v-model="setForm.setCode" :disabled="!!setForm.setId" placeholder="新建时自动生成" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="套装名称">
-              <el-input v-model="setForm.setName" placeholder="如：职场通勤套装" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="商品品类">
-              <el-select v-model="setForm.categoryId" placeholder="选择品类" clearable filterable>
-                <el-option v-for="c in categoryList" :key="c.categoryId" :label="c.categoryName" :value="c.categoryId" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="状态">
-              <el-select v-model="setForm.status">
-                <el-option label="草稿" value="draft" />
-                <el-option label="在售" value="on_sale" />
-                <el-option label="下架" value="off_sale" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <!-- SKU 多选（带复选框） -->
-        <el-form-item label="选择 SKU">
-          <el-select v-model="selectedSkuIds" multiple filterable collapse-tags collapse-tags-tooltip placeholder="搜索并勾选 SKU" style="width:100%" @change="onSkuSelectionChange">
-            <el-option v-for="s in skuListForSelect" :key="s.skuId" :label="`${s.skuCode} - ${s.skuName || s.colorCode || ''}`" :value="s.skuId">
-              <span style="float:left">{{ s.skuCode }} - {{ s.skuName || s.colorCode || '-' }}</span>
-              <span style="float:right;color:#e6a23c">¥{{ Number(s.retailPrice || 0).toFixed(2) }}</span>
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <!-- 已选 SKU 列表明细 -->
-        <div v-if="selectedSkuRows.length" class="selected-sku-section">
-          <div class="selected-sku-header">已选 SKU（{{ selectedSkuRows.length }} 件）</div>
-          <div class="selected-sku-list">
-            <div v-for="s in selectedSkuRows" :key="s.skuId" class="selected-sku-item">
-              <span class="sku-code">{{ s.skuCode }}</span>
-              <span class="sku-name">{{ s.skuName || s.colorCode || '-' }}</span>
-              <span class="sku-retail">¥{{ Number(s.retailPrice || 0).toFixed(2) }}</span>
-              <el-button link type="danger" size="small" @click="removeSku(s.skuId)">×</el-button>
-            </div>
-          </div>
-          <div class="selected-sku-total">
-            <span>原价（{{ selectedSkuRows.length }} 件商品）</span>
-            <span class="total-price">¥{{ totalRetailPrice.toFixed(2) }}</span>
-          </div>
-        </div>
-        <!-- 折扣率 ↔ 套装价联动 -->
-        <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="折扣率">
-              <el-input-number v-model="setForm.discountRate" :precision="2" :min="0" :max="1" :step="0.05" style="width:100%" @change="onDiscountRateChange" />
-              <span style="margin-left:6px;font-size:13px;color:#909399">{{ discountRatePercent }}</span>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="套装价">
-              <el-input-number v-model="setForm.setPrice" :precision="2" :min="0" style="width:100%" @change="onSetPriceChange" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item label="描述">
-          <el-input v-model="setForm.description" type="textarea" :rows="2" placeholder="套装描述、适合场景等" />
-        </el-form-item>
-        <el-form-item label="主图 URL" v-if="setForm.mainImage || setForm.setId">
-          <el-input v-model="setForm.mainImage" placeholder="可选" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="setDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveSet">保存</el-button>
-      </template>
-    </el-dialog>
-
-    
+    <!-- Set Dialog → P1-3c 独立组件 -->
+    <SetDialog
+      :visible="setDialogVisible"
+      :edit-row="setEditRow"
+      :sku-list-for-select="skuListForSelect"
+      :category-list="categoryList"
+      @close="setDialogVisible = false"
+      @saved="loadSets"
+    />
     <!-- 批量上传 Dialog -->
     <el-dialog v-model="batchDialogVisible" title="批量上传图片" width="640px">
       <el-tabs v-model="batchTab">
@@ -496,7 +420,8 @@ import {
 import { getCategoriesFlat } from '@/api/category';
 import { getStructureList } from '@/api/structure';
 import { getSchema, type IndustrySchema } from '@/api/schema';
-import SpuDialog from '@/components/SpuDialog.vue';
+import SpuDialog from '@/components/SpuDialog.vue'
+import SetDialog from '@/components/SetDialog.vue';
 import SkuDialog from '@/components/SkuDialog.vue';
 import SubSkuTab from './products/SubSkuTab.vue';
 
@@ -746,135 +671,30 @@ const loadCategoryList = async () => {
   catch { categoryList.value = []; }
 };
 
-// ===== Set =====
+
+// ===== Set (P1-3c: 弹窗逻辑已迁移至 SetDialog.vue) =====
 const setList = ref<any[]>([]);
 const setLoading = ref(false);
 const setDialogVisible = ref(false);
-const setForm = reactive<any>({ setId: '', setCode: '', setName: '', setPrice: 0, originalTotalPrice: 0, discountRate: 0, retailPrice: 0, status: 'draft', categoryId: '', description: '', mainImage: '' });
-const selectedSkuIds = ref<string[]>([]);
-const selectedSkuRows = computed(() => skuListForSelect.value.filter((s: Record<string, unknown>) => selectedSkuIds.value.includes(s.skuId)));
-// 统一零售价 = 所选 SKU 零售价自动累加（价格锚点 = 原价）
-const totalRetailPrice = computed(() => selectedSkuRows.value.reduce((sum: number, s: any) => sum + (Number(s.retailPrice) || 0), 0));
-const discountRatePercent = computed(() => {
-  if (setForm.discountRate == null) return '-';
-  return (setForm.discountRate * 100).toFixed(0) + '%';
-});
-
-// SKU 选择变化：自动设原价，按折扣率算套装价
-const onSkuSelectionChange = () => {
-  const retail = totalRetailPrice.value;
-  setForm.retailPrice = retail;
-  setForm.originalTotalPrice = retail; // 价格锚点 = 统一零售价 = 原价
-  if (retail > 0 && !setForm.setId && setForm.discountRate > 0) {
-    setForm.setPrice = parseFloat((retail * setForm.discountRate).toFixed(2));
-  } else if (retail > 0 && !setForm.setId) {
-    // 默认 75 折
-    setForm.discountRate = 0.75;
-    setForm.setPrice = parseFloat((retail * 0.75).toFixed(2));
-  } else if (retail > 0 && setForm.setPrice > 0) {
-    setForm.discountRate = parseFloat((setForm.setPrice / retail).toFixed(2));
-  } else {
-    setForm.setPrice = 0;
-    setForm.discountRate = 0;
-  }
-};
-
-// 删除已选 SKU
-const removeSku = (skuId: string) => {
-  selectedSkuIds.value = selectedSkuIds.value.filter(id => id !== skuId);
-  onSkuSelectionChange();
-};
-
-// 改折扣率 → 自动算套装价（价格锚点 = 原价）
-const onDiscountRateChange = (val: number | undefined) => {
-  const retail = totalRetailPrice.value;
-  if (retail > 0 && val && val > 0) {
-    setForm.setPrice = parseFloat((retail * val).toFixed(2));
-  }
-};
-
-// 改套装价 → 自动反推折扣率
-const onSetPriceChange = (val: number | undefined) => {
-  const retail = totalRetailPrice.value;
-  if (retail > 0 && val && val > 0) {
-    setForm.discountRate = parseFloat((val / retail).toFixed(2));
-  }
-};
-
-// 套装编码生成
-// 已废弃：setCode 现在由后端 createSet 自动生成（SET + 6位自增序号），不再前端随机
-function generateSetCode(): string {
-  const now = new Date();
-  const y = now.getFullYear().toString().slice(-2);
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  const arr = new Uint32Array(1); crypto.getRandomValues(arr); const seq = (arr[0] % 900) + 100;
-  return `SET${y}${m}${d}${seq}`;
-}
+const setEditRow = ref<Record<string, unknown> | null>(null);
 
 const loadSets = async () => {
   setLoading.value = true;
-  try { const res = await getSets({}); setList.value = Array.isArray(res.items) ? res.items.map((i) => ({ ...i })) : (Array.isArray(res) ? res : []); }
-  catch (e: unknown) { ElMessage.error((e as any)?.message || '加载失败'); }
+  try { const res = await getSets({}); setList.value = Array.isArray(res.items) ? res.items : (res.data?.items || []); }
+  catch { setList.value = []; }
   finally { setLoading.value = false; }
 };
+
 const openSetDialog = (row?: any) => {
-  if (row) {
-    // 白名单赋值，避免传 createdAt/updatedAt/isDeleted
-    setForm.setId = row.setId || '';
-    setForm.setCode = row.setCode || '';
-    setForm.setName = row.setName || '';
-    setForm.setPrice = Number(row.setPrice) || 0;
-    setForm.originalTotalPrice = Number(row.originalTotalPrice) || 0;
-    setForm.discountRate = Number(row.discountRate) || 0;
-    setForm.retailPrice = Number(row.retailPrice) || 0;
-    setForm.status = row.status || 'draft';
-    setForm.categoryId = row.categoryId || '';
-    setForm.description = row.description || '';
-    setForm.mainImage = row.mainImage || '';
-    selectedSkuIds.value = Array.isArray(row.skuList) ? [...row.skuList] : [];
-  } else {
-    setForm.setId = '';
-    setForm.setCode = '';  // 后端自动生成 SET 编码，前端不再随机生成
-    setForm.setName = '';
-    setForm.setPrice = 0;
-    setForm.originalTotalPrice = 0;
-    setForm.discountRate = 0;
-    setForm.retailPrice = 0;
-    setForm.status = 'draft';
-    setForm.categoryId = '';
-    setForm.description = '';
-    setForm.mainImage = '';
-    selectedSkuIds.value = [];
-  }
+  setEditRow.value = row || null;
   setDialogVisible.value = true;
 };
-const handleSaveSet = async () => {
-  // 白名单传参，避免传多余字段
-  const payload: Record<string, unknown> = {
-    setName: setForm.setName,
-    skuList: selectedSkuIds.value,
-    setPrice: setForm.setPrice,
-    originalTotalPrice: setForm.originalTotalPrice,
-    discountRate: setForm.discountRate,
-    retailPrice: setForm.retailPrice,
-  };
-  if (setForm.categoryId) payload.categoryId = setForm.categoryId;
-  if (setForm.description) payload.description = setForm.description;
-  if (setForm.mainImage) payload.mainImage = setForm.mainImage;
-  if (setForm.status) payload.status = setForm.status;
-  if (!setForm.setId && setForm.setCode) payload.setCode = setForm.setCode;
-  try {
-    if (setForm.setId) await updateSet(setForm.setId, payload); else await createSet(payload);
-    ElMessage.success('保存成功'); setDialogVisible.value = false; loadSets();
-  } catch (e: unknown) { ElMessage.error((e as any)?.message || '保存失败'); }
-};
-const batchEditSets = () => { if(setSelection.value.length===1) openSetDialog(setSelection.value[0]); else if(setSelection.value.length>1) ElMessage.warning('暂仅支持单条编辑'); };
-const batchDeleteSets = async () => { try { for(const r of setSelection.value) await deleteSet(r.setId); ElMessage.success(setSelection.value.length+' 条已删除'); setSelection.value=[]; loadSets(); } catch { ElMessage.error('删除失败'); } };
-const handleDeleteSet = async (id: string) => {
-  try { await deleteSet(id); ElMessage.success('已删除'); loadSets(); } catch (e: unknown) { ElMessage.error((e as any)?.message || '删除失败'); }
-};
 
+const batchEditSets = () => { if (setSelection.value.length === 1) openSetDialog(setSelection.value[0]); else ElMessage.warning("请只勾选一个套装进行编辑"); };
+const batchDeleteSets = async () => { try { for (const r of setSelection.value) await deleteSet(r.setId); ElMessage.success("已删除"); setSelection.value=[]; loadSets(); } catch(e:unknown){ ElMessage.error((e as any)?.message || "批量删除失败"); } };
+const handleDeleteSet = async (id: string) => {
+  try { await deleteSet(id); ElMessage.success("已删除"); loadSets(); } catch (e: unknown) { ElMessage.error((e as any)?.message || "删除失败"); }
+};
 // ===== SKU 图片 =====
 const skuImageList = ref<any[]>([]);
 const imageLoading = ref(false);
