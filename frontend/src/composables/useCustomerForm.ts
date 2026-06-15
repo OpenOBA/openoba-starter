@@ -1,4 +1,4 @@
-﻿import { ref, reactive } from 'vue'
+import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
   getCustomerList, createCustomer, updateCustomer, deleteCustomer,
@@ -6,7 +6,7 @@ import {
 import type { FormInstance } from 'element-plus'
 
 /**
- * 瀹㈡埛琛ㄥ崟 composable 鈥?鍒楄〃 / 鏂板 / 缂栬緫 / 鎵归噺鎿嶄綔
+ * 客户表单 composable — 列表 / 新增 / 编辑 / 批量操作
  */
 export function useCustomerForm(forceReloadDict: () => Promise<void>) {
   const loading = ref(false)
@@ -28,9 +28,9 @@ export function useCustomerForm(forceReloadDict: () => Promise<void>) {
   })
 
   const rules = {
-    customerType: [{ required: true, message: '璇烽€夋嫨瀹㈡埛绫诲瀷', trigger: 'change' }],
-    contactName: [{ required: true, message: '璇疯緭鍏ヨ仈绯讳汉濮撳悕', trigger: 'blur' }],
-    phone: [{ required: true, message: '璇疯緭鍏ヨ仈绯荤數璇?, trigger: 'blur' }],
+    customerType: [{ required: true, message: '请选择客户类型', trigger: 'change' }],
+    contactName: [{ required: true, message: '请输入联系人姓名', trigger: 'blur' }],
+    phone: [{ required: true, message: '请输入联系电话', trigger: 'blur' }],
   }
 
   function handleSelectionChange(rows: any[]) { selectedRows.value = rows }
@@ -69,23 +69,23 @@ export function useCustomerForm(forceReloadDict: () => Promise<void>) {
     saving.value = true
     try {
       const payload: any = { ...form, wechat: form.wechatId }
-      if (isEdit.value) { await updateCustomer(editId.value, payload); ElMessage.success('鏇存柊鎴愬姛') }
-      else { await createCustomer(payload); ElMessage.success('鍒涘缓鎴愬姛') }
+      if (isEdit.value) { await updateCustomer(editId.value, payload); ElMessage.success('更新成功') }
+      else { await createCustomer(payload); ElMessage.success('创建成功') }
       dialogVisible.value = false; loadData()
-    } catch (e: unknown) { console.error('淇濆瓨澶辫触:', e) }
+    } catch (e: unknown) { console.error('保存失败:', e) }
     finally { saving.value = false }
   }
 
   async function batchEdit() {
-    if (selectedRows.value.length === 0) { ElMessage.warning('璇峰厛鍕鹃€夊鎴?); return }
-    if (selectedRows.value.length > 1) { ElMessage.warning('鏆備粎鏀寔鍗曟潯缂栬緫锛岃鍙嬀閫変竴涓鎴?); return }
+    if (selectedRows.value.length === 0) { ElMessage.warning('请先勾选客户'); return }
+    if (selectedRows.value.length > 1) { ElMessage.warning('暂仅支持单条编辑，请只勾选一个客户'); return }
     openDialog(selectedRows.value[0])
   }
 
   async function batchDelete() {
-    if (selectedRows.value.length === 0) { ElMessage.warning('璇峰厛鍕鹃€夊鎴?); return }
+    if (selectedRows.value.length === 0) { ElMessage.warning('请先勾选客户'); return }
     for (const row of selectedRows.value) { await deleteCustomer(row.customerId) }
-    ElMessage.success(`宸插垹闄?${selectedRows.value.length} 鏉)
+    ElMessage.success(`已删除 ${selectedRows.value.length} 条`)
     selectedRows.value = []; loadData()
   }
 

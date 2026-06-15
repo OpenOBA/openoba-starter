@@ -1,4 +1,4 @@
-﻿import { ref, shallowRef, triggerRef, nextTick, computed } from 'vue'
+import { ref, shallowRef, triggerRef, nextTick, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getTask, getTaskLogs } from '@/api/task-engine'
 import { useWsClient } from '@/composables/useWsClient'
@@ -6,19 +6,21 @@ import { useERASettings } from '@/composables/useERASettings'
 import { useReActTimeline } from '@/composables/useReActTimeline'
 
 /**
- * AgentChat 鏍稿績缂栨帓 composable
+ * AgentChat 核心编排 composable
  *
- * 璐熻矗锛氫换鍔″姞杞斤紙localStorage涓夌骇鎭㈠锛夈€佹秷鎭彂閫侊紙WS浼樺厛+SSE闄嶇骇锛夈€佺紦瀛樸€佷腑姝? *
- * 鍐呴儴绠＄悊锛? *   - 14 涓姸鎬?ref
- *   - sendMsg 鍙岃矾锛圵S/socket 鍒嗘敮 + SSE/fetch 鍒嗘敮锛? *   - loadTask 涓夌骇鎭㈠
- *   - localStorage 缂撳瓨锛堝惈 ReAct 鐘舵€侊級
+ * 负责：任务加载（localStorage 三级恢复）、消息发送（WS 优先 + SSE 降级）、缓存、中止
+ * 内部管理：
+ *   - 14 个状态 ref
+ *   - sendMsg 双路（WS/socket 分支 + SSE/fetch 分支）
+ *   - loadTask 三级恢复
+ *   - localStorage 缓存（含 ReAct 状态）
  */
 export function useAgentChat() {
-  // 鈹€鈹€ 瀛?composables 鈹€鈹€
+  // ── 子 composables ──
   const ws = useWsClient()
   const { settings: eraSettings } = useERASettings()
 
-  // 鈹€鈹€ 鐘舵€?鈹€鈹€
+  // ── 状态 ──
   const taskId = ref('')
   const taskTitle = ref('')
   const taskDone = ref(false)
@@ -34,7 +36,7 @@ export function useAgentChat() {
   // ReAct handler
   const { handleSSEEvent } = useReActTimeline(messages, () => triggerRef(messages), () => saveReActCache(), usedModel)
 
-  // 鈹€鈹€ localStorage 缂撳瓨 鈹€鈹€
+  // ── localStorage 缓存 ──
   const LS_KEY = computed(() => 'chat-' + taskId.value)
 
   function saveReActCache() {
@@ -52,16 +54,16 @@ export function useAgentChat() {
       const trimmed = clean.slice(-50)
       localStorage.setItem(LS_KEY.value, JSON.stringify(trimmed))
     } catch (e) {
-      console.warn('localStorage 鍐欏叆澶辫触:', e)
+      console.warn('localStorage 写入失败:', e)
     }
   }
 
   function saveCache() { saveReActCache() }
 
-  // 鈹€鈹€ 浠诲姟鍔犺浇 鈹€鈹€
+  // ── 任务加载 ──
   async function loadTask() {
     if (!taskId.value || taskId.value === 'undefined') {
-      ElMessage.error('鏃犳晥浠诲姟')
+      ElMessage.error('无效任务')
       return
     }
     try {
@@ -71,7 +73,7 @@ export function useAgentChat() {
       taskDone.value = ['completed', 'cancelled', 'aborted'].includes(t.status)
       getTaskLogs(taskId.value).then((l) => { logs.value = l }).catch(() => {})
 
-      // 1. localStorage 缂撳瓨浼樺厛锛堝惈 ReAct 鐘舵€佹仮澶嶏級
+      // 1. localStorage 缓存优先（含 ReAct 状态恢复）
       const cached = localStorage.getItem(LS_KEY.value)
       if (cached) {
         try {
@@ -88,15 +90,15 @@ export function useAgentChat() {
             scrollBottom()
             return
           }
-        } catch { /* 缂撳瓨鎹熷潖 */ }
+        } catch { /* 缓存损坏 */ }
       }
 
-      // 2. fallback: proposals 鈫?鏋勫缓鍒濆瀵硅瘽
+      // 2. fallback: proposals → 构建初始对话
       const ctx = (t.context || {}) as Record<string, unknown>
       const proposals = (t.proposals || []) as any[]
 
       if (proposals.length > 0) {
-        const initMsg = String(ctx['浠诲姟涓讳綋'] || t.title)
+        const initMsg = String(ctx['任务主体'] || t.title)
         const built: any[] = [{
           role: 'human', content: initMsg,
           time: formatTime(t.createdAt),
@@ -116,8 +118,8 @@ export function useAgentChat() {
         return
       }
 
-      // 3. 鍏ㄦ柊浠诲姟
-      const initMsg = String(ctx['浠诲姟涓讳綋'] || t.title)
+      // 3. 全新任务
+      const initMsg = String(ctx['任务主体'] || t.title)
       if (initMsg) {
         messages.value = [{ role: 'human', content: initMsg, time: formatTime(t.createdAt) }]
         saveCache()
@@ -125,11 +127,11 @@ export function useAgentChat() {
       }
       scrollBottom()
     } catch {
-      ElMessage.error('鍔犺浇浠诲姟澶辫触')
+      ElMessage.error('加载任务失败')
     }
   }
 
-  // 鈹€鈹€ 娑堟伅鍙戦€?鈹€鈹€
+  // ── 消息发送 ──
   const pendingSendKeys = new Set<string>()
 
   async function sendMsg(text: string) {
@@ -143,7 +145,7 @@ export function useAgentChat() {
       time: formatTime(),
       streaming: true,
       toolCalls: [],
-      statusHint: 'Agent 姝ｅ湪鎬濊€?..',
+      statusHint: 'Agent 正在思考...',
     }
     messages.value.push(agentMsg)
     const msgIdx = messages.value.length - 1
@@ -151,7 +153,7 @@ export function useAgentChat() {
     isStreaming.value = true
     scrollBottom()
 
-    // M2: WS 浼樺厛璺緞
+    // M2: WS 优先路径
     if (ws.socket?.connected) {
       pendingSendKeys.delete(idempotencyKey)
 
@@ -162,7 +164,7 @@ export function useAgentChat() {
       ws.socket.off('chat.error')
 
       ws.socket.on('chat.started', (_payload: any) => {
-        messages.value[msgIdx].statusHint = 'Agent 姝ｅ湪鎬濊€?..'
+        messages.value[msgIdx].statusHint = 'Agent 正在思考...'
       })
 
       ws.socket.on('chat.event', (payload: any) => {
@@ -182,14 +184,14 @@ export function useAgentChat() {
 
       ws.socket.on('chat.aborted', (payload: any) => {
         if (payload.partialContent) messages.value[msgIdx].content = payload.partialContent
-        messages.value[msgIdx].content += '\n\n*[宸蹭腑姝*'
+        messages.value[msgIdx].content += '\n\n*[已中止]*'
         messages.value[msgIdx].streaming = false
         isStreaming.value = false; isLoading.value = false; agentLoading.value = false
         saveCache()
       })
 
       ws.socket.on('chat.error', (payload: any) => {
-        messages.value[msgIdx].content = (payload.message || '浼氳瘽澶辫触')
+        messages.value[msgIdx].content = (payload.message || '会话失败')
         messages.value[msgIdx].streaming = false
         isStreaming.value = false; isLoading.value = false; agentLoading.value = false
         saveReActCache()
@@ -204,7 +206,7 @@ export function useAgentChat() {
       return
     }
 
-    // M2: SSE 闄嶇骇璺緞
+    // M2: SSE 降级路径
     try {
       const token = localStorage.getItem('access_token') || ''
       pendingSendKeys.delete(idempotencyKey)
@@ -223,7 +225,7 @@ export function useAgentChat() {
       })
 
       if (!streamRes.ok) {
-        messages.value[msgIdx].content = '鈿狅笍 娴佽繛鎺ュけ璐?(' + streamRes.status + ')'
+        messages.value[msgIdx].content = '⚠️ 流连接失败 (' + streamRes.status + ')'
         messages.value[msgIdx].streaming = false
         isStreaming.value = false; isLoading.value = false; agentLoading.value = false
         saveCache()
@@ -240,7 +242,7 @@ export function useAgentChat() {
         const elapsed = Date.now() - lastEventTime
         if (elapsed > 35000) {
           if (messages.value[msgIdx]?.streaming) {
-            messages.value[msgIdx].statusHint = '鈿狅笍 杩炴帴涓柇锛屾鍦ㄩ噸杩?..'
+            messages.value[msgIdx].statusHint = '⚠️ 连接中断，正在重连...'
             triggerRef(messages)
           }
         }
@@ -269,7 +271,7 @@ export function useAgentChat() {
 
               if (json.type === 'done') {
                 messages.value[msgIdx].agentFooter = {
-                  name: json.agentName || 'AI 鎵ц瀹?,
+                  name: json.agentName || 'AI 执行官',
                   model: json.model || usedModel.value || '',
                   ts: formatFooterTime(),
                 }
@@ -296,14 +298,14 @@ export function useAgentChat() {
       }
       read()
     } catch {
-      messages.value[msgIdx].content = '鈿狅笍 鍙戦€佸け璐?
+      messages.value[msgIdx].content = '⚠️ 发送失败'
       messages.value[msgIdx].streaming = false
       isStreaming.value = false; isLoading.value = false; agentLoading.value = false
       saveCache()
     }
   }
 
-  // 鈹€鈹€ 涓 鈹€鈹€
+  // ── 中止 ──
   async function handleAbort() {
     const token = localStorage.getItem('access_token') || ''
     const lastMsg = messages.value[messages.value.length - 1]
@@ -320,17 +322,17 @@ export function useAgentChat() {
       })
       if (res.ok) {
         lastMsg.streaming = false
-        lastMsg.content += '\n\n*[宸蹭腑姝*'
+        lastMsg.content += '\n\n*[已中止]*'
         isStreaming.value = false; isLoading.value = false; agentLoading.value = false
         saveCache()
         triggerRef(messages)
       }
     } catch {
-      ElMessage.error('涓澶辫触锛岃鍒锋柊椤甸潰')
+      ElMessage.error('中止失败，请刷新页面')
     }
   }
 
-  // 鈹€鈹€ 杈呭姪 鈹€鈹€
+  // ── 辅助 ──
   function scrollBottom() {
     nextTick(() => {
       const el = document.querySelector('.chat-body') as HTMLElement
@@ -345,7 +347,7 @@ export function useAgentChat() {
 
   function formatFooterTime(): string {
     const now = new Date()
-    return `${now.getFullYear()}骞?{now.getMonth() + 1}鏈?{now.getDate()}鏃?${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+    return `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
   }
 
   return {

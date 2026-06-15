@@ -1,4 +1,4 @@
-﻿import { ref, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { getOrderStats } from '@/api/order'
 
 export function useOrderStats() {
@@ -19,12 +19,12 @@ export function useOrderStats() {
   const statCards = computed(() => {
     const s = ensureStats(stats.value)
     return [
-      { label: '鎬昏鍗?, value: s.total },
-      { label: '寰呭鐞?, value: s.pending },
-      { label: '宸叉敮浠?, value: s.paid },
-      { label: '鍙戣揣涓?, value: s.shipping },
-      { label: '宸插畬鎴?, value: s.completed },
-      { label: '浠婃棩閿€鍞?, value: `楼${(parseFloat(s.todaySales) || 0).toFixed(0)}` },
+      { label: '总订单', value: s.total },
+      { label: '待处理', value: s.pending },
+      { label: '已支付', value: s.paid },
+      { label: '发货中', value: s.shipping },
+      { label: '已完成', value: s.completed },
+      { label: '今日销售', value: `¥${(parseFloat(s.todaySales) || 0).toFixed(0)}` },
     ]
   })
 
