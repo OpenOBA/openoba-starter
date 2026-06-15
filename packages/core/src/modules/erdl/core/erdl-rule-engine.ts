@@ -20,7 +20,7 @@
  * - 执行规则动作（计算/校验/赋值）
  * - 提供表单校验接口
  *
- * 使用 expr-eval 库进行公式表达式求值。
+ * 使用 SafeExpr（自研安全表达式引擎）进行公式求值。零外部依赖，零代码注入风险。
  *
  * @example
  * ```typescript
@@ -33,7 +33,7 @@
  */
 
 import { Injectable, Logger } from '@nestjs/common'
-import { Parser as ExpressionParser } from 'expr-eval'
+import { SafeExpr } from './safe-expr'
 import { ERDLRegistry } from './erdl-registry'
 import {
   RuleDefinition,
@@ -86,7 +86,7 @@ export interface ValidationResult {
 @Injectable()
 export class ERDLRuleEngine {
   private readonly logger = new Logger(ERDLRuleEngine.name)
-  private readonly exprParser = new ExpressionParser()
+  private readonly exprParser = new SafeExpr()
 
   constructor(private readonly registry: ERDLRegistry) {}
 
@@ -254,8 +254,8 @@ export class ERDLRuleEngine {
           const formula = action.params.formula as string | undefined
           if (formula) {
             try {
-              // 安全白名单过滤：防止原型污染和代码注入
-              // expr-eval 仅用于内部管理员配置的 YAML 规则中的数学公式求值
+              // SafeExpr 自研表达式引擎替代 expr-eval（GHSA-8gw3 + GHSA-jc85）
+              // 仅支持纯四则运算，自动防御原型污染和代码注入
               this.validateFormula(formula)
               const flattened = this.flattenContext(context)
               lastResult = this.exprParser.evaluate(formula, flattened as Record<string, number>)
@@ -327,27 +327,16 @@ export class ERDLRuleEngine {
   }
 
   /**
-   * 公式安全白名单校验
+   * 公式安全白名单校验（纵深防御层）
    *
-   * 防止通过 ERDL YAML 配置注入恶意表达式（原型污染、代码执行等）。
-   * 仅允许纯数学运算和 Math.* 函数调用，拒绝所有属性访问链和危险标识符。
-   *
-   * 允许：
-   *   - 数字字面量（整数、小数）
-   *   - 变量名（由业务上下文提供，如 retailPrice）
-   *   - 运算符：+ - * / % ( ) ^
-   *   - Math.* 函数：Math.round(), Math.floor(), Math.ceil(), Math.abs() 等
-   *
-   * 拒绝：
-   *   - 属性访问链（如 constructor.constructor, __proto__）
-   *   - 方括号访问（如 obj['key']）
-   *   - 危险标识符：constructor, prototype, __proto__, this, global, process 等
+   * SafeExpr 词法分析器已天然防御代码注入（不解析 . [ ] 和函数调用），
+   * 此方法作为额外的纵深防御，在求值前再次拒绝危险标识符。
    *
    * @param formula 待校验的公式字符串
    * @throws Error 公式包含不安全内容时抛出
    */
   private validateFormula(formula: string): void {
-    // 1. 禁止属性访问链（如 a.b.c 或 a['b']）—— 阻断原型污染
+    // 禁止属性访问链和方括号（纵深防御：词法分析器也会拒绝这些字符）
     if (/\.(?!\d)/.test(formula)) {
       throw new Error(`[ERDL Security] Formula contains property access: ${formula}`)
     }
@@ -355,7 +344,7 @@ export class ERDLRuleEngine {
       throw new Error(`[ERDL Security] Formula contains bracket access: ${formula}`)
     }
 
-    // 2. 禁止危险标识符
+    // 禁止危险标识符（纵深防御：即使词法分析器将它们视为变量名，也拒绝）
     const DANGEROUS_IDENTIFIERS = [
       'constructor',
       'prototype',
@@ -375,25 +364,14 @@ export class ERDLRuleEngine {
       'Function',
     ]
 
-    // 提取公式中所有标识符（变量名）
     const identifiers = formula.match(/[a-zA-Z_$][a-zA-Z0-9_$]*/g) || []
     for (const id of identifiers) {
-      // Math.xxx 调用已在上面的点号检查中拦截，此处不重复处理
       if (DANGEROUS_IDENTIFIERS.includes(id)) {
         throw new Error(`[ERDL Security] Formula contains dangerous identifier "${id}": ${formula}`)
       }
     }
 
-    // 3. 允许 Math.xxx 函数调用（在属性访问检查之后单独放行）
-    // 注意：第1步已拦截所有 . 访问，包括 Math.round
-    // 如果业务需要 Math.* 函数，移除此限制或使用 Math 前缀白名单
-    // 当前阶段 ERDL 公式主要为简单四则运算，无需函数调用
-    if (formula.includes('Math.')) {
-      this.logger.warn(
-        `[ERDL Security] Math.* functions blocked by safety filter: ${formula}. ` +
-        'If Math functions are needed, consider pre-computing values in context.',
-      )
-      throw new Error(`[ERDL Security] Formula contains method call: ${formula}`)
-    }
+    // SafeExpr 词法分析器自动拒绝非运算符非标识符非数字的字符，
+    // 包括函数调用符 ( )、点号 .、方括号 [ ]，无需额外处理。
   }
 }
