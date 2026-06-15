@@ -1,17 +1,22 @@
-﻿import { ref, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/api/request'
 import { getTask, approveTask } from '@/api/task-engine'
 
 /**
- * 浠诲姟鎻愭绯荤粺 composable
+ * 任务提案系统 composable
  *
- * 璐熻矗锛氬悓鎰忔柟妗?/ 瀵煎嚭MD / 鎻掑叆鎵ц鎬荤粨 / 鎻愭鍚屾
+ * 负责：同意方案 / 导出MD / 插入执行总结 / 提案同步
  *
- * 渚濊禆澶栭儴娉ㄥ叆锛? *   - taskId 鈥?computed ref锛堝綋鍓嶄换鍔D锛? *   - taskDone 鈥?ref锛堜换鍔℃槸鍚︾粨鏉燂級
- *   - taskInfo 鈥?ref锛堜换鍔′俊鎭級
- *   - agentLoading 鈥?ref锛圓gent 鏄惁鍦ㄦ€濊€冧腑锛? *   - messages 鈥?shallowRef锛堟秷鎭垪琛紝鐢ㄤ簬鍒ゆ柇 hasAgentReply 鍜屾彃鍏ユ€荤粨锛? *   - triggerRef 鈥?鎵嬪姩瑙﹀彂 messages 鍝嶅簲
- *   - saveCache 鈥?淇濆瓨鍒?localStorage 鐨勫嚱鏁? */
+ * 依赖外部注入：
+ *   - taskId — computed ref（当前任务ID）
+ *   - taskDone — ref（任务是否结束）
+ *   - taskInfo — ref（任务信息）
+ *   - agentLoading — ref（Agent 是否在思考中）
+ *   - messages — shallowRef（消息列表，用于判断 hasAgentReply 和插入总结）
+ *   - triggerRef — 手动触发 messages 响应
+ *   - saveCache — 保存到 localStorage 的函数
+ */
 export function useTaskProposals(
   taskId: ReturnType<typeof import('vue').computed<any>>,
   taskDone: ReturnType<typeof import('vue').ref<boolean>>,
@@ -31,7 +36,8 @@ export function useTaskProposals(
   })
 
   function syncProposals(_proposals: Array<{ version: number; content: string; timestamp: string; status: string }>) {
-    // proposals 鍙湪 TaskDetail 鍘嗗彶妗ｆ涓煡鐪嬶紝姝ゅ嚱鏁颁粎鍋氱姸鎬佸悓姝?  }
+    // proposals 只在 TaskDetail 历史档案中查看，此函数仅做状态同步
+  }
 
   async function handleAgree() {
     agreeing.value = true
@@ -56,9 +62,9 @@ export function useTaskProposals(
       insertSummary(t, fileUrl, fileName)
       saveCache()
       triggerMessages()
-      ElMessage.success('宸插悓鎰忔柟妗?)
+      ElMessage.success('已同意方案')
     } catch {
-      ElMessage.error('鎿嶄綔澶辫触')
+      ElMessage.error('操作失败')
     } finally {
       agreeing.value = false
     }
@@ -67,14 +73,14 @@ export function useTaskProposals(
   function insertSummary(t: any, fileUrl: string, fileName: string) {
     const proposals = t.proposals || []
     const hasProposal = proposals.length > 0
-    const lines: string[] = ['**鏂规宸插悓鎰?路 鎵ц鎬荤粨**', '']
+    const lines: string[] = ['**方案已同意 · 执行总结**', '']
     if (hasProposal) {
       const last = proposals[proposals.length - 1]
-      const modelMatch = last.content?.match(/馃 浣跨敤妯″瀷: (.+)/)
-      const kbMatch = last.content?.match(/馃摎 寮曠敤鐭ヨ瘑: (.+)/)
-      if (modelMatch) lines.push(`**妯″瀷**锛?{modelMatch[1]}`)
-      if (kbMatch) lines.push(`**鐭ヨ瘑寮曠敤**锛?{kbMatch[1]}`)
-      lines.push(`**鐗堟湰**锛歏${last.version}`)
+      const modelMatch = last.content?.match(/🔻 使用模型: (.+)/)
+      const kbMatch = last.content?.match(/📎 引用知识: (.+)/)
+      if (modelMatch) lines.push(`**模型**：${modelMatch[1]}`)
+      if (kbMatch) lines.push(`**知识引用**：${kbMatch[1]}`)
+      lines.push(`**版本**：V${last.version}`)
     }
     const allTools: string[] = []
     for (const m of messages.value) {
@@ -84,12 +90,12 @@ export function useTaskProposals(
         }
       }
     }
-    if (allTools.length > 0) lines.push(`**璋冪敤宸ュ叿**锛?{allTools.join('銆?)}`)
-    lines.push(`**浠诲姟缂栧彿**锛歔${t.taskNo}](/tasks/${t.id})`)
-    lines.push(`**鍘嗗彶妗ｆ**锛歔鏌ョ湅鎻愭璁板綍](/tasks/${t.id})`)
+    if (allTools.length > 0) lines.push(`**调用工具**：${allTools.join('、')}`)
+    lines.push(`**任务编号**：[${t.taskNo}](/tasks/${t.id})`)
+    lines.push(`**历史档案**：[查看提案记录](/tasks/${t.id})`)
     if (fileUrl && fileName) {
       lines.push('')
-      lines.push(`**鏂规鏂囦欢**锛歔${fileName}](${fileUrl})  鈫?鍙抽敭鍙﹀瓨 / 鐢?Markdown 缂栬緫鍣ㄦ墦寮€`)
+      lines.push(`**方案文件**：[${fileName}](${fileUrl})  → 右键另存 / 用 Markdown 编辑器打开`)
     }
     lines.push('')
     lines.push(` ${new Date().toLocaleString('zh-CN')}`)
