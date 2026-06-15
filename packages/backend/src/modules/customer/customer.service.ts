@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common'
+﻿import { Injectable, NotFoundException, Logger } from '@nestjs/common'
+import * as crypto from 'crypto'
 import { InjectRepository, InjectDataSource } from '@nestjs/typeorm'
 import { Repository, DataSource } from 'typeorm'
 import { Customer, CUSTOMER_TYPES, CUSTOMER_STATUS } from './entity/customer.entity'
@@ -122,7 +123,7 @@ export class CustomerService {
   }
 
   async create(dto: CreateCustomerDto & { wechatId?: string; referralSource?: string; preferredStyle?: string }) {
-    const id = `cust-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+    const id = `cust-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 6)}`
     const type = dto.customerType || CUSTOMER_TYPES[0] // P1-10: default to retail if not provided
     const customerCode = await this.generateCustomerCode(type)
     // Sync wechatId → wechat
@@ -168,7 +169,7 @@ export class CustomerService {
   }
 
   async addContact(dto: CreateContactDto) {
-    const id = `con-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+    const id = `con-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 6)}`
     return this.contactRepo.save(this.contactRepo.create({ ...dto, contactId: id, isDeleted: false }))
   }
 
@@ -191,7 +192,7 @@ export class CustomerService {
   }
 
   async addAddress(dto: CreateAddressDto) {
-    const id = `addr-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+    const id = `addr-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 6)}`
     if (dto.isDefault) await this.addressRepo.update({ customerId: dto.customerId, isDeleted: false }, { isDefault: false })
     return this.addressRepo.save(this.addressRepo.create({ ...dto, addressId: id, isDeleted: false }))
   }
@@ -217,7 +218,7 @@ export class CustomerService {
   }
 
   async addTierPricing(dto: CreateTierPricingDto) {
-    const id = `price-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+    const id = `price-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 6)}`
     return this.pricingRepo.save(
       this.pricingRepo.create({
         ...dto,
@@ -292,7 +293,7 @@ export class CustomerService {
       prescriptionImages?: string[]
     },
   ) {
-    const id = `rx-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+    const id = `rx-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 6)}`
     return this.prescriptionRepo.save(
       this.prescriptionRepo.create({
         ...dto,
@@ -332,7 +333,7 @@ export class CustomerService {
       attributes?: Record<string, any>
     },
   ) {
-    const id = `cl-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+    const id = `cl-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 6)}`
     return this.customerLensRepo.save(
       this.customerLensRepo.create({
         ...dto,
@@ -429,7 +430,7 @@ export class CustomerService {
       attributes?: Record<string, any>
     },
   ) {
-    const id = `cp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+    const id = `cp-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 6)}`
     return this.consumptionProfileRepo.save(
       this.consumptionProfileRepo.create({
         ...dto,
@@ -528,7 +529,7 @@ export class CustomerService {
       await this.dataSource.transaction(async (manager) => {
         await manager.update(Customer, customer.customerId, { customerLevel: newLevel })
 
-        const logId = `ml-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`
+        const logId = `ml-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`
         await manager.save(MemberLevelLog, {
           logId,
           customerId: customer.customerId,
@@ -575,7 +576,7 @@ export class CustomerService {
           const allFrameOnly = orderItems.every((i) => i.orderFulfillmentType === 'frame_only')
           const lensStatus = allFrameOnly ? LENS_STATUS.pending : 'active'
 
-          customerLensId = `cl-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`
+          customerLensId = `cl-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`
           await manager.save(CustomerLens, this.customerLensRepo.create({
             customerLensId, customerId: order.customerId,
             structureStandardCode: structCode,
@@ -589,7 +590,7 @@ export class CustomerService {
         }
 
         for (const si of items.filter((i) => i.structureStandardCode === structCode)) {
-          const profileId = `cp-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`
+          const profileId = `cp-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`
           await manager.save(CustomerConsumptionProfile, {
             profileId, customerLensId,
             productSkuCode: si.skuCode || null, productName: si.productName || null,
@@ -637,7 +638,7 @@ export class CustomerService {
         const afterCustomer = await manager.findOne(Customer, {
           where: { customerId: order.customerId }, select: ['pointsBalance'],
         })
-        const txnId = `pt-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`
+        const txnId = `pt-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`
         await manager.save(PointsTransaction, {
           txnId, customerId: order.customerId, points: pointsEarned,
           balanceAfter: afterCustomer?.pointsBalance ?? pointsEarned,
@@ -665,7 +666,7 @@ export class CustomerService {
         await manager.update(Customer, order.customerId, { customerLevel: highestLevel })
         if (!customer.memberSince) await manager.update(Customer, order.customerId, { memberSince: now })
 
-        const logId = `ml-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`
+        const logId = `ml-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`
         await manager.save(MemberLevelLog, {
           logId, customerId: order.customerId, oldLevel: currentLevel, newLevel: highestLevel,
           triggerType: 'upgrade',

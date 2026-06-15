@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common'
+﻿import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common'
+import * as crypto from 'crypto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, Like, DataSource } from 'typeorm'
 import { StructureStandard } from '../structure/entity/structure-standard.entity'
@@ -300,7 +301,7 @@ export class ProductService {
         const oldVal = (current as any)[key] ?? null
         const newVal = dto[key]
         const history = this.priceHistoryRepo.create({
-          historyId: `ph-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          historyId: `ph-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`,
           skuId,
           priceType: type,
           oldValue: oldVal,

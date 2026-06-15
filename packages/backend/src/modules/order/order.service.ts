@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common'
+﻿import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, DataSource } from 'typeorm'
 import * as crypto from 'crypto'
@@ -688,7 +688,7 @@ export class OrderService {
       })
 
       // 写入等级变更日志
-      const logId = `ml-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`
+      const logId = `ml-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`
       await this.memberLevelLogRepo.save({
         logId,
         customerId: customer.customerId,
@@ -771,7 +771,7 @@ export class OrderService {
         const orderItems = items.filter(i => i.structureStandardCode === structCode)
         const allFrameOnly = orderItems.every(i => i.orderFulfillmentType === 'frame_only')
         await this.customerLensRepo.save(this.customerLensRepo.create({
-          customerLensId: `cl-${Date.now()}-${Math.random().toString(36).substring(2,8)}`,
+          customerLensId: `cl-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`,
           customerId: order.customerId, structureStandardCode: structCode,
           prescriptionId: order.prescriptionId || null, orderId,
           purchaseDate: new Date(), status: allFrameOnly ? 'pending' : 'active',

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Live-ERDL 热词服务 — 引擎层
  *
  * 提供热词雷达基础设施：定时扫描、认知日志存储、查询接口。
@@ -94,7 +94,7 @@ export class HotwordService implements OnModuleInit {
       if (this.seedWords.length > 0) {
         // 有行业映射 — 基于种子词库生成模拟热词
         hotwords = this.seedWords
-          .filter(() => Math.random() > 0.3)
+          .filter(() => crypto.randomInt(100) > 30)
           .slice(0, 6)
           .map((word, i) => {
             const trendRoll = (i + seed) % 3
@@ -104,7 +104,7 @@ export class HotwordService implements OnModuleInit {
               trend: (trendRoll === 0 ? 'up' : trendRoll === 1 ? 'new' : 'stable') as 'up' | 'new' | 'stable',
               source: ['小红书', '抖音', '微博', '微信'][i % 4],
               mappedTo: this.businessMap[word],
-              score: Math.round(70 + Math.random() * 30),
+              score: crypto.randomInt(31) + 70,
             }
           })
           .sort((a, b) => (b.score || 0) - (a.score || 0))

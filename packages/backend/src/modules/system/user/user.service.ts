@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common'
+﻿import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common'
+import * as crypto from 'crypto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, In } from 'typeorm'
 import * as bcrypt from 'bcryptjs'
@@ -23,7 +24,7 @@ export class UserService {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'
     let password = 'Mj'
     for (let i = 0; i < 6; i++) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length))
+      password += chars.charAt(crypto.randomInt(chars.length))
     }
     return password
   }

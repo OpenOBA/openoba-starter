@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 通用草稿池 Service
  *
  * 支持任意类型草稿的 CRUD + 状态流转 + 发布。
@@ -27,7 +27,7 @@ function uid(): string {
 
 function genDraftNo(): string {
   const date = new Date().toISOString().slice(0, 10).replace(/-/g, '')
-  const rand = Math.floor(1000 + Math.random() * 9000)
+  const rand = crypto.randomInt(9000) + 1000
   return `DFT-${date}-${rand}`
 }
 

@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
+﻿import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
+import * as crypto from 'crypto'
 import { InjectRepository, InjectDataSource } from '@nestjs/typeorm'
 import { Repository, Like, DataSource } from 'typeorm'
 import { StructureStandard } from './entity/structure-standard.entity'
@@ -138,7 +139,7 @@ export class StructureService {
   // ============ Attachments ============
 
   async addAttachment(dto: CreateAttachmentDto) {
-    const entity = this.attachRepo.create({ ...dto, attachmentId: `att-${Date.now()}-${Math.random().toString(36).slice(2, 8)}` })
+    const entity = this.attachRepo.create({ ...dto, attachmentId: `att-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}` })
     return this.attachRepo.save(entity)
   }
 
@@ -151,7 +152,7 @@ export class StructureService {
   async addCompatibility(dto: CreateCompatibilityDto) {
     const entity = this.compatRepo.create({
       ...dto,
-      compatId: `comp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      compatId: `comp-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`,
       isActive: true,
     })
     return this.compatRepo.save(entity)

@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common'
+﻿import { Injectable, NotFoundException, ConflictException } from '@nestjs/common'
+import * as crypto from 'crypto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { ProductTierPricing } from './entity/product-tier-pricing.entity'
@@ -149,7 +150,7 @@ export class PricingService {
   }
 
   private generateId() {
-    return `ph-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    return `ph-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`
   }
 
   // ====== 促销管理 ======
@@ -248,7 +249,7 @@ export class PricingService {
 
   async createMemberPricingRule(dto: CreateMemberPricingRuleDto) {
     const entity = this.memberPricingRuleRepo.create({
-      ruleId: `mpr-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      ruleId: `mpr-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 6)}`,
       ...dto,
     })
     return this.memberPricingRuleRepo.save(entity)

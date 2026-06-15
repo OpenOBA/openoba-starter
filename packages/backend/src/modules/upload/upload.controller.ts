@@ -1,4 +1,5 @@
-import { Controller, Post, UseInterceptors, UploadedFile, BadRequestException, Get, Param, Res, UseGuards } from '@nestjs/common'
+﻿import { Controller, Post, UseInterceptors, UploadedFile, BadRequestException, Get, Param, Res, UseGuards } from '@nestjs/common'
+import * as crypto from 'crypto'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { diskStorage } from 'multer'
 import { extname, join } from 'path'
@@ -30,7 +31,7 @@ export class UploadController {
         filename: (req, file, cb) => {
           const ext = extname(file.originalname).toLowerCase()
           const timestamp = Date.now()
-          const random = Math.random().toString(36).substring(2, 8)
+          const random = crypto.randomUUID().replace(/-/g, '').substring(0, 8)
           cb(null, `kb_${timestamp}_${random}${ext}`)
         },
       }),
@@ -67,7 +68,7 @@ export class UploadController {
         filename: (req, file, cb) => {
           const ext = extname(file.originalname).toLowerCase()
           const timestamp = Date.now()
-          const random = Math.random().toString(36).substring(2, 8)
+          const random = crypto.randomUUID().replace(/-/g, '').substring(0, 8)
           const filename = `img_${timestamp}_${random}${ext}`
           cb(null, filename)
         },
@@ -103,7 +104,7 @@ export class UploadController {
         filename: (req, file, cb) => {
           const ext = extname(file.originalname).toLowerCase()
           const timestamp = Date.now()
-          const random = Math.random().toString(36).substring(2, 8)
+          const random = crypto.randomUUID().replace(/-/g, '').substring(0, 8)
           const filename = `img_${timestamp}_${random}${ext}`
           cb(null, filename)
         },

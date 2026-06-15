@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+﻿import { Injectable, NotFoundException } from '@nestjs/common'
+import * as crypto from 'crypto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { ExternalBarcodeMapping } from './entity/external-barcode-mapping.entity'
@@ -39,7 +40,7 @@ export class ExternalBarcodeMappingService {
   }
 
   async create(dto: any) {
-    const mappingId = dto.mappingId || `ebm-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    const mappingId = dto.mappingId || `ebm-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`
     // 字段映射：请求用 barcode/skuId，Entity 用 externalBarcode/skuId
     const entity = this.repo.create({
       mappingId,

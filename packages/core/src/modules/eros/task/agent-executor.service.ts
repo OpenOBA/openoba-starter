@@ -4,7 +4,7 @@
  * @file AgentExecutorService
  * @author 唐浩然（秒镜 AI 联合创始人）
  * @since 2026-05-04
- * @license AGPL-3.0
+ * @license BSL-1.1
  *
  * @description
  * 当任务状态变为 executing 时，Agent 自动：
@@ -17,6 +17,7 @@
 
 import type { StreamEvent } from '../stream/stream-event.types'
 import { Injectable, Logger, Inject, forwardRef, OnModuleInit, Optional } from '@nestjs/common'
+import * as crypto from 'crypto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, DataSource } from 'typeorm'
 import * as fs from 'fs'
@@ -877,7 +878,7 @@ export class AgentExecutorService implements OnModuleInit {
     // 注意：queryWithTools 不支持流式输出修正。暂时用非流式
     const text = response.content
     // 模拟流式输出
-    for (let i = 0; i < text.length; i += Math.floor(Math.random() * 5) + 1) {
+    for (let i = 0; i < text.length; i += crypto.randomInt(5) + 1) {
       const chunk = text.substring(i, Math.min(i + 3, text.length))
       onEvent({ type: 'content', delta: chunk })
       await new Promise(r => setTimeout(r, 10))
@@ -1908,7 +1909,7 @@ export class AgentExecutorService implements OnModuleInit {
 
   private doExport(data: any[], format: string, filename: string): string {
     const ts = new Date().toISOString().slice(0, 10)
-    const uuid = Math.random().toString(36).slice(2, 8)
+    const uuid = crypto.randomUUID().replace(/-/g, '').substring(0, 8)
     const fname = filename || `export_${ts}_${uuid}`
     const dir = path.join(process.cwd(), 'uploads', 'exports')
     fs.mkdirSync(dir, { recursive: true })
@@ -2296,5 +2297,5 @@ function fuzzyScore(a: string, b: string): number {
 }
 
 function uid(): string {
-  return Math.random().toString(36).substring(2, 10) + Date.now().toString(36)
+  return crypto.randomUUID().replace(/-/g, '').substring(0, 10) + Date.now().toString(36)
 }

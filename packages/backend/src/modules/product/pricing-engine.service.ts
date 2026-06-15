@@ -1,4 +1,5 @@
-import { Injectable, BadRequestException, Logger, Inject, forwardRef } from '@nestjs/common'
+﻿import { Injectable, BadRequestException, Logger, Inject, forwardRef } from '@nestjs/common'
+import * as crypto from 'crypto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, In } from 'typeorm'
 import { ERDLRuleEngine } from '@openoba/core/modules/erdl/core/erdl-rule-engine'
@@ -630,7 +631,7 @@ export class PricingEngineService {
     changedBy?: string,
   ) {
     const history = this.priceHistoryRepo.create({
-      historyId: `ph-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      historyId: `ph-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`,
       skuId,
       priceType,
       oldValue,

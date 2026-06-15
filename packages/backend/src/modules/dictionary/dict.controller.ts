@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, BadRequestException, UseGuards } from '@nestjs/common'
+﻿import { Controller, Get, Post, Put, Delete, Param, Body, BadRequestException, UseGuards } from '@nestjs/common'
 import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger'
 import { DictionaryService } from './dict.service'
 import { InjectDataSource } from '@nestjs/typeorm'
@@ -424,7 +424,7 @@ export class DictController {
     throw new BadRequestException('未找到该记录')
   }
 
-  // V1.4-a #13: Math.random() UUID → crypto.randomUUID()（密码学安全）
+  // V1.4-a #13: UUID 使用 crypto.randomUUID()（密码学安全）
   private generateUUID(): string {
     return crypto.randomUUID()
   }

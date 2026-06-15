@@ -1,4 +1,4 @@
-/**
+﻿/**
  * DraftPool Engine Stub — 产品草稿池引擎桩
  *
  * 引擎层提供标准 CRUD 接口，具体的行业业务逻辑
@@ -11,6 +11,7 @@
  */
 
 import { Injectable, Logger } from '@nestjs/common'
+import * as crypto from 'crypto'
 
 export interface DraftSpuCreateInput {
   spuName: string
@@ -53,7 +54,7 @@ export class DraftPoolService {
   async createDraftSpu(input: DraftSpuCreateInput): Promise<DraftSpuResult> {
     this.logger.warn('[ENGINE STUB] DraftPoolService.createDraftSpu - 行业模块未注册')
     return {
-      draftId: `draft-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      draftId: `draft-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`,
       spuName: input.spuName,
       gender: input.gender,
       shapeCode: input.shapeCode,

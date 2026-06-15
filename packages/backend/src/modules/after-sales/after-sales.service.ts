@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common'
+﻿import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, DataSource } from 'typeorm'
 import { AfterSales } from './entity/after-sales.entity'
@@ -28,7 +28,7 @@ export class AfterSalesService {
     private readonly inventoryService: InventoryService,
   ) {}
 
-  // ===== 售后编号生成 — H12修复：使用 UUID 替代 Math.random() 防重复 =====
+  // 售后编号生成 — 使用 crypto.randomUUID() 防重复
   private generateAfterSalesNo(): string {
     const date = new Date().toISOString().slice(0, 10).replace(/-/g, '')
     const uuid = crypto.randomUUID().substring(0, 4).toUpperCase()

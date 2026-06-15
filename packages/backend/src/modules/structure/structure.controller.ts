@@ -1,3 +1,4 @@
+﻿import * as crypto from 'crypto'
 import {
   Controller,
   Get,
@@ -176,7 +177,7 @@ export class StructureController {
         destination: UPLOAD_DIR,
         filename: (_req, file, cb) => {
           const ext = extname(file.originalname).toLowerCase()
-          const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`
+          const uniqueName = `${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}${ext}`
           cb(null, uniqueName)
         },
       }),
