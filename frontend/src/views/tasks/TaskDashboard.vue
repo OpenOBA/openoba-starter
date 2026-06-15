@@ -1,209 +1,58 @@
-<template>
+﻿<template>
   <div class="task-dashboard">
     <!-- 对话区 -->
 
     <div class="main-area">
       <AgentSidebar :agents="agentList" @select="onAgentSelect" @create="goToAgentManagement" @update:agents="onAgentsUpdate" />
 
-      <div class="content-area">
-        <!-- 对话区 -->
-        <div class="chat-area" ref="chatAreaRef">
-          <div v-if="messages.length === 0" class="chat-empty">
-            <div class="empty-brand">
-              <img src="/logo.png" alt="OpenOBA" class="empty-logo-img">
-            </div>
-            <div class="empty-title">选择 Agent 或直接描述任务</div>
-            <div class="empty-hint">
-              <svg class="hint-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="/lucide-sprite.svg#bot"/></svg>
-              不指定 Agent 由 MainAgent 自动分派
-            </div>
-            <div class="empty-hint">
-              <svg class="hint-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="/lucide-sprite.svg#users"/></svg>
-              @多个 Agent 启动议会模式
-            </div>
-            <div class="quick-actions">
-              <el-button size="small" round @click="quickTask('product')">
-                <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="/lucide-sprite.svg#package"/></svg>
-                商品上架
-              </el-button>
-              <el-button size="small" round @click="quickTask('content')">
-                <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="/lucide-sprite.svg#pen-line"/></svg>
-                内容创作
-              </el-button>
-              <el-button size="small" round @click="quickTask('data')">
-                <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="/lucide-sprite.svg#chart-bar"/></svg>
-                数据分析
-              </el-button>
-              <el-button size="small" round @click="quickTask('service')">
-                <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="/lucide-sprite.svg#headphones"/></svg>
-                AI客服
-              </el-button>
-              <el-button size="small" round @click="quickTask('code')">
-                <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="/lucide-sprite.svg#code-xml"/></svg>
-                代码修改
-              </el-button>
-              <el-button size="small" round @click="quickTask('custom')">
-                <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="/lucide-sprite.svg#wand-sparkles"/></svg>
-                功能自定
-              </el-button>
-            </div>
-          </div>
+      <EraChatWelcome
+        :agent-list="agentList"
+        :creating="creating"
+        :messages="messages"
+        :task-done="false"
+        :templates="templates"
+        @quick-task="quickTask"
+        @send="handleCallingSend"
+        @agent-select="onAgentSelect"
+        @template-edit="editTemplate"
+        @template-remove="removeTemplate"
+        @template-add="openAddTemplate"
+        @template-reset="resetTemplates"
+        @template-apply="applyTemplate"
+        @cancel-confirm="cancelConfirm"
+        @execute-confirm="executeConfirm"
+        @go-to-task="goToTask"
+      />
 
-          <div v-for="(msg, i) in messages" :key="i" class="chat-msg" :class="msg.role">
-            <div class="msg-meta">
-              <span class="msg-sender">{{ msg.sender }}</span>
-              <span class="msg-time">{{ msg.time }}</span>
-            </div>
-            <div class="msg-content">{{ msg.content }}</div>
-            <div v-if="msg.data && msg.data.length" class="msg-data">
-              <el-tag size="small" type="info" v-for="(item, di) in msg.data" :key="di">{{ item }}</el-tag>
-            </div>
-            <!-- 确认面板：Agent 复述任务后等待用户确认 -->
-            <div v-if="msg.role === 'agent' && msg.needConfirm && !taskDone" class="confirm-panel">
-              <div class="confirm-body">{{ msg.confirmText }}</div>
-              <div class="confirm-btns">
-                <el-button size="small" @click="cancelConfirm(i)">取消</el-button>
-                <el-button size="small" type="primary" :loading="creating" @click="executeConfirm(i)">立即执行</el-button>
-              </div>
-            </div>
-            <div v-if="msg.taskId" class="msg-task-link">
-              <el-button link type="primary" size="small" @click="$router.push('/chat/' + msg.taskId)">
-                进入任务详情
-              </el-button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 常用语模板区 -->
-        <div class="template-bar">
-          <span class="template-label">常用语</span>
-          <el-popover
-            v-for="(tpl, i) in templates"
-            :key="i"
-            trigger="contextmenu"
-            :width="120"
-            placement="top"
-          >
-            <template #reference>
-              <el-button size="small" text @click="applyTemplate(tpl)">{{ tpl.text }}</el-button>
-            </template>
-            <div class="tpl-menu">
-              <el-button link size="small" @click="editTemplate(i)">编辑</el-button>
-              <el-button link size="small" type="danger" @click="removeTemplate(i)">删除</el-button>
-            </div>
-          </el-popover>
-          <el-button size="small" text @click="openAddTemplate" class="tpl-add">+</el-button>
-          <el-button size="small" text @click="resetTemplates" class="tpl-reset">重置</el-button>
-        </div>
-
-        <CallingInput
-          ref="callingInputRef"
-          :agents="agentList"
-          :sending="creating"
-          :rows="2"
-          @send="handleCallingSend"
-        />
-
-        <el-collapse v-model="activeCollapse" class="task-collapse">
-          <el-collapse-item name="tasks">
-            <template #title>
-              <span>任务列表</span>
-              <el-tag size="small" type="info" style="margin-left:8px">{{ total }}</el-tag>
-            </template>
-            <div class="filter-bar">
-              <div class="filter-left">
-                <el-input
-                  v-model="searchKeyword"
-                  size="small"
-                  placeholder="搜索任务编号或标题"
-                  clearable
-                  style="width:220px"
-                  @change="loadTasks"
-                >
-                  <template #prefix>
-                    <el-icon><Search /></el-icon>
-                  </template>
-                </el-input>
-                <el-radio-group v-model="filterStatus" size="small" @change="loadTasks">
-                  <el-radio-button value="">全部</el-radio-button>
-                  <el-radio-button value="proposed">待审批</el-radio-button>
-                  <el-radio-button value="executing">执行中</el-radio-button>
-                  <el-radio-button value="completed">已完成</el-radio-button>
-                </el-radio-group>
-                <el-popconfirm
-                  title="确定删除选中任务？"
-                  @confirm="batchDelete"
-                  confirm-button-text="删除"
-                  cancel-button-text="取消"
-                >
-                  <template #reference>
-                    <el-button size="small" type="danger" plain :disabled="selectedIds.length === 0">
-                      删除 ({{ selectedIds.length }})
-                    </el-button>
-                  </template>
-                </el-popconfirm>
-              </div>
-            </div>
-            <el-table
-              :data="displayedTasks"
-              stripe
-              v-loading="loading"
-              @selection-change="handleSelectionChange"
-              @row-dblclick="goDetail"
-              row-class-name="clickable-row"
-              size="small"
-            >
-              <el-table-column type="selection" width="40" />
-              <el-table-column prop="taskNo" label="编号" width="140" />
-              <el-table-column prop="title" label="标题" min-width="180" show-overflow-tooltip />
-              <el-table-column prop="agentId" label="Agent" width="130" />
-              <el-table-column prop="status" label="状态" width="85">
-                <template #default="{ row }">
-                  <el-tag :type="statusTagType(row.status)" size="small">{{ statusLabel(row.status) }}</el-tag>
-                </template>
-              </el-table-column>
-              
-              <el-table-column prop="createdAt" label="时间" width="95">
-                <template #default="{ row }">
-                  <span class="task-time">{{ formatTaskTime(row.createdAt) }}</span>
-                </template>
-              </el-table-column>
-            </el-table>
-            <div class="task-footer" v-if="hasMore || total > displayLimit">
-              <span class="task-count-info">显示 {{ displayedTasks.length }} / {{ total }} 条</span>
-              <el-button v-if="hasMore" link type="primary" size="small" @click="loadMore">查看更多</el-button>
-            </div>
-            <div class="pagination-wrap" v-if="total > pageSize && !searchKeyword">
-              <el-pagination v-model:current-page="page" :page-size="pageSize" :total="total" layout="prev, pager, next" small @current-change="loadTasks" />
-            </div>
-          </el-collapse-item>
-        </el-collapse>
-      </div>
-    </div>
-
-    <!-- 常用语编辑对话框 -->
-    <el-dialog v-model="showTemplateDialog" title="编辑常用语" width="400px" destroy-on-close>
-      <el-form :model="editingTemplate" label-width="60px" size="small">
-        <el-form-item label="名称">
-          <el-input v-model="editingTemplate.text" placeholder="按钮上显示的文字" />
-        </el-form-item>
-        <el-form-item label="内容">
-          <el-input v-model="editingTemplate.fill" type="textarea" :rows="3" placeholder="点击按钮时填入输入框的内容" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button size="small" @click="showTemplateDialog = false">取消</el-button>
-        <el-button size="small" type="primary" @click="saveTemplate">保存</el-button>
-      </template>
-    </el-dialog>
-  </div>
-</template>
+      <TaskListPanel
+        :tasks="tasks"
+        :total="total"
+        :loading="loading"
+        :display-limit="displayLimit"
+        :search-keyword="searchKeyword"
+        :filter-status="filterStatus"
+        :page="page"
+        :page-size="pageSize"
+        :has-more="hasMore"
+        :selected-ids="selectedIds"
+        @update:search-keyword="(val: string) => { searchKeyword = val; loadTasks() }"
+        @update:filter-status="(val: string) => { filterStatus = val; loadTasks() }"
+        @load-tasks="loadTasks"
+        @load-more="loadMore"
+        @page-change="(val: number) => { page = val; loadTasks() }"
+        @selection-change="handleSelectionChange"
+        @batch-delete="batchDelete"
+        @go-detail="goDetail"
+      />
 
 <script setup lang="ts">
+
+function goToTask(taskId: string) { router.push('/chat/' + taskId) }
 import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search } from '@element-plus/icons-vue'
+import EraChatWelcome from '@/components/EraChatWelcome.vue'
+import TaskListPanel from '@/components/TaskListPanel.vue'
 import { queryTasks, createTask, deleteTask } from '@/api/task-engine'
 import type { AgentTask, TaskStatus } from '@/api/task-engine'
 import AgentSidebar from '@/components/AgentSidebar.vue'
@@ -474,9 +323,6 @@ function onAgentsUpdate(agents: AgentEntry[]) {
 }
 
 // 常用语模板
-interface TemplateItem { icon: string; text: string; fill: string }
-const TPL_STORAGE_KEY = 'eros_templates'
-
 function loadTemplates(): TemplateItem[] {
   try {
     const raw = localStorage.getItem(TPL_STORAGE_KEY)
@@ -496,58 +342,6 @@ const defaultTemplates: TemplateItem[] = [
   { icon: '', text: '定价策略', fill: '为新品制定定价策略，参考竞品定价，考虑成本因素和会员折扣' },
   { icon: '', text: '竞品分析', fill: '分析竞品在框型/定价/营销上的表现，找出我们的差异化切入' },
 ]
-
-const templates = ref<TemplateItem[]>(loadTemplates().length > 0 ? loadTemplates() : [...defaultTemplates])
-const showTemplateDialog = ref(false)
-const editingTemplate = reactive<TemplateItem>({ icon: '', text: '', fill: '' })
-const editingIndex = ref(-1)
-
-function applyTemplate(tpl: TemplateItem) {
-  const ta = document.querySelector('.calling-input textarea') as HTMLTextAreaElement
-  if (ta) {
-    ta.value = tpl.fill
-    ta.dispatchEvent(new Event('input', { bubbles: true }))
-    ta.focus()
-  }
-}
-
-function openAddTemplate() {
-  editingTemplate.icon = ''
-  editingTemplate.text = ''
-  editingTemplate.fill = ''
-  editingIndex.value = -1
-  showTemplateDialog.value = true
-}
-
-function editTemplate(index: number) {
-  const tpl = templates.value[index]
-  editingTemplate.icon = tpl.icon
-  editingTemplate.text = tpl.text
-  editingTemplate.fill = tpl.fill
-  editingIndex.value = index
-  showTemplateDialog.value = true
-}
-
-function removeTemplate(index: number) {
-  templates.value.splice(index, 1)
-  saveTemplates(templates.value)
-}
-
-function saveTemplate() {
-  if (!editingTemplate.text.trim() || !editingTemplate.fill.trim()) return
-  if (editingIndex.value >= 0) {
-    templates.value[editingIndex.value] = { ...editingTemplate }
-  } else {
-    templates.value.push({ ...editingTemplate })
-  }
-  saveTemplates(templates.value)
-  showTemplateDialog.value = false
-}
-
-function resetTemplates() {
-  templates.value = [...defaultTemplates]
-  saveTemplates(templates.value)
-}
 
 onMounted(() => { loadAgentList(); loadTasks() })
 </script>
