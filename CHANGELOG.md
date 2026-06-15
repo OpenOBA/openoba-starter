@@ -8,29 +8,62 @@
 ## [Unreleased]
 
 ### Added
+- **开源合规文件补齐**：根目录新增 SECURITY.md / CODE_OF_CONDUCT.md / GOVERNANCE.md / CLA.md（均引用 `docs/open-source/policies/` 完整文档）
+- **CustomerDetailDrawer 组件**：Customers.vue 详情抽屉提取为独立组件（内部自管理 composable，策略 B）
+- **Core test/.gitkeep**：jest 配置所需测试目录
 
 ### Changed
+- **Customers.vue 前端拆分**：1,356 行 → 410 行（-70%），详情抽屉 + 6 个子弹窗迁移至 `CustomerDetailDrawer.vue`
 
 ### Fixed
+- **P0-1: Core 许可证头修正**：36 个 TypeScript 源文件 `@license AGPL-3.0` → `@license BSL-1.1`
+- **P0-1: 根 LICENSE 中文乱码修复**：UTF-8 编码恢复为 "深圳市秒镜科技有限公司"
+- **P0-1: Core BSL Change Date 修正**：2030-06-05 → 2030-06-09（与开源战略总纲对齐）
+- **P0-1: CONTRIBUTING.md 全篇中文乱码修复**：重写为正确 UTF-8 编码
+- **P0-2: Math.random 回归修复**：36 处 `Math.random()` → `crypto.randomUUID()` / `crypto.randomInt()`，0 残留
+- **P1-1: expr-eval 安全替换**：`SafeExpr` 自研安全表达式引擎（纯递归下降解析器），移除 expr-eval@2.0.2 依赖
+- **P1-1a: Backend 孤立 expr-eval 依赖清理**：package.json 声明但 0 处引用，已移除
+- **P1-2: ERDL 规则引擎单测补充**：5 → 20 tests（新增 inactive rule skip / rule chaining / OR 条件 / 嵌套 AND+OR / 公式异常优雅降级 / 除零 / 未定义变量 / 负数括号 / 校验规则实体隔离）
+- **S-SYSTEMIC: 前端 UTF-8 编码系统性修复**：17 个 composable 文件中文乱码修复（useTemplates / useTaskList / useTaskProposals / useOrderUtils / useReActTimeline / useAgentChat / useCustomerDetail / useCustomerForm / useCustomerOperations / useCustomerUtils / useHistoryTasks / useOrderCreate / useOrderStats / useProductTechDicts / useProductCategory / usePricingTiers / vite.config）
+- **DPO 姓名公示**：DPO-APPOINTMENT.md / PRIVACY-POLICY.md / TELEMETRY.md 三份文件 DPO 姓名更新为 唐启鑫
 
 ### Security
 - **P1-1**: expr-eval@2.0.2 replaced with self-developed SafeExpr engine (GHSA-8gw3-rxh4-v6jx + GHSA-jc85-fpwf-qm7x)
+- **P0-2**: All 36 `Math.random()` calls replaced with cryptographically secure `crypto.randomUUID()` / `crypto.randomInt()`
+- **P0-1**: License headers unified to BSL-1.1 (was AGPL-3.0 on 36 files)
 
 ---
 
-## [1.4.0-alpha3] — 2026-06-11
+## [1.4.0-alpha7] — 2026-06-13
+
+### Added
+- Core V1.3.0 源码迁入 monorepo（packages/core/src/）
+- @openoba/core barrel export + dependency declaration
+- GLM / MiniMax / Kimi 模型种子数据（对齐 builtin providers）
+- ERA-Chat 头部模型下拉选择器
+- Settings API Key 列表式管理
+- LLM Key 双路径集成（DB 优先路由）
+- Core test/.gitkeep 目录
 
 ### Changed
-- **NestJS 11 重新升级**：前次 commit 未正确入版（package.json 声明仍为 10.x），本次修复
-- 根 package.json 新增 NestJS 7 包 devDeps → 根 node_modules（解决 workspaces hoisting）
-- tsconfig paths + jest rootDir 同步修正
+- ts-jest / ESLint / nest-build 兼容性升级
+- 版本号全链路同步 1.3.0 → 1.4.0-alpha7
+- 前端版本号同步
 
 ### Fixed
-- @openoba/core 移至 backend node_modules + exports 约束解除
-- uuid@11 补充 sub-sku 依赖
+- 版本检查逻辑修复：离线时返回当前版本不触发更新
+- 版本号语义比较（防旧 tag 误报）
+- ReAct 全流式输出恢复（streamReActRound 方法还原）
+- model/token 表对齐 Core Entity（sys_ 前缀 + 列名升级）
+- after_sales 表 is_deleted 字段
+- ERDLPlayground nlHints
+- Vite proxy 端口
+- 14 个拆分文件编码修复
+- Core 包 postinstall 脚本修复
+- NestJS 11 重新升级（package.json 声明正确入版）
 
 ### Known Issues
-- 2 个 spec 失败（order + pricing-engine）：依赖 Core 包 ERDLRuleEngine · P1 Core 重新编译后修复
+- 2 个 spec 失败（order + pricing-engine）：依赖 Core 包 ERDLRuleEngine，Core 重新编译后修复
 
 ---
 
@@ -38,7 +71,7 @@
 
 ### Changed
 - xlsx: npm 0.18.5 → CDN 0.20.3（官方源·修复 Prototype Pollution）
-- expr-eval: 2019 停更 → mathjs 15.2.0（活跃维护·沙箱安全）
+- expr-eval: 2019 停更 → mathjs 15.2.0（活跃维护·沙箱安全）— 已于后续版本替换为 SafeExpr
 - exceljs: 移除
 
 ---
@@ -83,7 +116,7 @@
 ## [1.3.3] — 2026-06-11
 
 ### Changed
-- V1.4-c 大文件拆分：后端 5 模块 + 前端 4 页面 composables
+- V1.4-c 大文件拆分：后端 5 模块 + 前端 14 composables + 视图更新
 
 ### Added
 - wizard.guard.ts / after-sales-state-machine.ts
