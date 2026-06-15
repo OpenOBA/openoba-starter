@@ -1,10 +1,10 @@
-/**
+﻿/**
  * 秒镜科技 · ERDL — DTO 定义
  *
  * @file erdl.dto.ts
  * @author 唐浩然（秒镜 AI 联合创始人）
  * @since 2026-05-02
- * @license AGPL-3.0
+ * @license BSL-1.1
  *
  * ERDL 规则管理 CRUD 接口使用的数据传输对象。
  */

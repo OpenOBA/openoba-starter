@@ -1,10 +1,10 @@
-/**
+﻿/**
  * 秒镜科技 · ERDL — Enterprise Resource Definition Language
  *
  * @file ERDL LLM Bridge v2 — 多 Provider + Failover + Token 计数
  * @author 唐浩然（秒镜 AI 联合创始人）
  * @since 2026-05-01
- * @license AGPL-3.0
+ * @license BSL-1.1
  *
  * @description
  * v2 升级（基于 OpenClaw 架构研究）：

@@ -1,11 +1,11 @@
-/**
+﻿/**
  * 秒镜科技 · ERDL — Enterprise Resource Definition Language
  *
  * @file ERDL Parser — 轻量 YAML 解析器
  * @author 唐浩然（秒镜 AI 联合创始人）
  * @since 2026-05-01
  * @version 1.3 — 新增 Entity 物理映射（table / dbColumn / primaryKey）
- * @license AGPL-3.0
+ * @license BSL-1.1
  */
 
 import * as yaml from 'js-yaml'

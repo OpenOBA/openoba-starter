@@ -1,10 +1,10 @@
-/**
+﻿/**
  * ER-OS Agent Task Engine — 任务工作流引擎 Service
  *
  * @file AgentTaskService
  * @author 唐浩然（秒镜 AI 联合创始人）
  * @since 2026-05-04
- * @license AGPL-3.0
+ * @license BSL-1.1
  *
  * @description
  * ER-OS 核心服务，实现：

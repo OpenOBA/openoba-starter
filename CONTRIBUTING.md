@@ -1,102 +1,123 @@
-﻿# Contributing to OpenOBA
+# Contributing to OpenOBA
 
-鎰熻阿浣犲叧娉?OpenOBA锛?
-OpenOBA 鏄?*浼佷笟鐨?AI 鎵ц瀹?*鈥斺€斾竴涓?AI Agent 鎿嶄綔绯荤粺锛岃浼佷笟閫氳繃鑷劧璇█瀹屾垚杩愯惀鍜屽紑鍙戙€?
-## 琛屼负鍑嗗垯
+感谢你关注 OpenOBA！
+OpenOBA 是**企业的 AI 执行官**——一个 AI Agent 操作系统，让企业通过自然语言完成运营和开发。
 
-鏈」鐩伒寰?[Contributor Covenant](https://www.contributor-covenant.org/) 琛屼负鍑嗗垯銆傝闃呰 CODE_OF_CONDUCT.md銆?
-## 濡備綍璐＄尞
+## 行为准则
 
-### 馃悰 鎶ュ憡 Bug
+本项目遵循 [Contributor Covenant](https://www.contributor-covenant.org/) 行为准则。请阅读 CODE_OF_CONDUCT.md。
 
-1. 鍦?GitHub Issues 鎼滅储鏄惁宸叉湁鐩稿悓闂
-2. 鏂板缓 Issue锛屼娇鐢?Bug Report 妯℃澘
-3. 鍖呭惈锛?   - 鐗堟湰鍙凤紙`/api/health` 鍙煡锛?   - 澶嶇幇姝ラ
-   - 棰勬湡 vs 瀹為檯琛屼负
-   - 鐜淇℃伅锛圤S銆丯ode.js 鐗堟湰銆佹暟鎹簱鐗堟湰锛?
-### 馃挕 鍔熻兘寤鸿
+## 如何贡献
 
-1. 鍦?Issues 涓垱寤?Feature Request
-2. 鎻忚堪浣跨敤鍦烘櫙鍜屾湡鏈涚殑琛屼负
-3. 绛夊緟 maintainer 纭鏂瑰悜鍚庡啀寮€濮嬬紪鐮?
-### 馃敡 鎻愪氦浠ｇ爜
+### 🐛 报告 Bug
 
-#### 寮€鍙戠幆澧?
+1. 在 GitHub Issues 搜索是否已有相同问题
+2. 新建 Issue，使用 Bug Report 模板
+3. 包含：
+   - 版本号（`/api/health` 可查）
+   - 复现步骤
+   - 预期 vs 实际行为
+   - 环境信息（OS、Node.js 版本、数据库版本）
+
+### 💡 功能建议
+
+1. 在 Issues 中创建 Feature Request
+2. 描述使用场景和期望的行为
+3. 等待 maintainer 确认方向后再开始编码
+
+### 🔧 提交代码
+
+#### 开发环境
 - **Node.js** >= 18
 - **MySQL** >= 8.0
 - **npm** >= 9
 
 ```bash
-# 鍏嬮殕骞跺畨瑁?git clone <repo-url>
+# 克隆并安装
+git clone <repo-url>
 cd openoba-starter
 npm install
 
-# 缂栬瘧鍚庣
+# 编译后端
 npm run build:backend
 
-# 鍚姩寮€鍙戞ā寮?npm run start:backend    # 鍚庣 http://localhost:3000
-npm run start:frontend   # 鍓嶇 http://localhost:5173
+# 启动开发模式
+npm run start:backend    # 后端 http://localhost:3000
+npm run start:frontend   # 前端 http://localhost:5173
 
-# 杩愯娴嬭瘯
+# 运行测试
 npm test -w packages/backend
 npm run test -w frontend
 ```
 
-#### 鍒嗘敮绛栫暐
+#### 分支策略
 
-- `master` 鈥?绋冲畾鐗堟湰
-- `feat/xxx` 鈥?鏂板姛鑳?- `fix/xxx` 鈥?Bug 淇
-- `docs/xxx` 鈥?鏂囨。鍙樻洿
+- `master` — 稳定版本
+- `feat/xxx` — 新功能
+- `fix/xxx` — Bug 修复
+- `docs/xxx` — 文档变更
 
-#### Commit 瑙勮寖
+#### Commit 规范
 
-浣跨敤 [Conventional Commits](https://www.conventionalcommits.org/)锛?
+使用 [Conventional Commits](https://www.conventionalcommits.org/)：
 ```
-feat: 鏂板 Wizard 鍒濆鍖栧悜瀵?fix: 淇 Swagger 鐢熶骇鐜鏆撮湶
-docs: 鏇存柊 API 鏂囨。
-chore: 鍗囩骇 TypeScript 鑷?5.1
-refactor: 鎷嗗垎 OrderService
-test: 鏂板搴撳瓨妯″潡闆嗘垚娴嬭瘯
+feat: 新增 Wizard 初始化向导
+fix: 修复 Swagger 生产环境暴露
+docs: 更新 API 文档
+chore: 升级 TypeScript 至 5.1
+refactor: 拆分 OrderService
+test: 新增库存模块集成测试
 ```
 
-#### 鎻愪氦鍓嶆鏌?
+#### 提交前检查
 ```bash
-npm run lint          # ESLint 妫€鏌?npm run format:check  # Prettier 鏍煎紡妫€鏌?npm test -w packages/backend  # 鍚庣娴嬭瘯
+npm run lint          # ESLint 检查
+npm run format:check  # Prettier 格式检查
+npm test -w packages/backend  # 后端测试
 ```
 
-鎵€鏈?PR 鍚堝苟鍓嶅繀椤婚€氳繃 CI 娴佹按绾裤€?
-#### Pull Request 娴佺▼
+所有 PR 合并前必须通过 CI 流水线。
 
-1. Fork 浠撳簱
-2. 鍒涘缓鍔熻兘鍒嗘敮
-3. 缂栧啓浠ｇ爜 + 娴嬭瘯
-4. 杩愯 `npm run lint` 鍜?`npm test`
-5. 鎻愪氦 PR锛屽～鍐欐ā鏉?6. 绛夊緟 Code Review
+#### Pull Request 流程
 
-### 馃摉 鏂囨。
+1. Fork 仓库
+2. 创建功能分支
+3. 编写代码 + 测试
+4. 运行 `npm run lint` 和 `npm test`
+5. 提交 PR，填写模板
+6. 等待 Code Review
 
-- 鏂板 API 绔偣闇€瑕佸悓姝ユ洿鏂?Swagger 娉ㄨВ
-- 鏋舵瀯鍙樻洿闇€瑕佹洿鏂?`docs/` 涓殑瀵瑰簲鏂囨。
-- 浣跨敤涓枃缂栧啓鏂囨。锛堟敞閲婂彲鐢ㄨ嫳鏂囷級
+### 📉 文档
 
-## 椤圭洰缁撴瀯
+- 新增 API 端点需要同步更新 Swagger 注解
+- 架构变更需要更新 `docs/` 中的对应文档
+- 使用中文编写文档（注释可用英文）
+
+## 项目结构
 
 ```
 openoba-starter/
-鈹溾攢鈹€ packages/
-鈹?  鈹溾攢鈹€ backend/         # NestJS 鍚庣锛堣涓?ERP 閫昏緫锛?鈹?  鈹?  鈹斺攢鈹€ src/
-鈹?  鈹?      鈹溾攢鈹€ common/      # 閫氱敤缁勪欢锛堝畧鍗?鎷︽埅鍣?杩囨护鍣級
-鈹?  鈹?      鈹溾攢鈹€ config/      # 閰嶇疆
-鈹?  鈹?      鈹溾攢鈹€ modules/     # 涓氬姟妯″潡锛坧roduct/customer/order/...锛?鈹?  鈹?      鈹斺攢鈹€ schemas/     # ERDL Schema 瀹氫箟
-鈹?  鈹斺攢鈹€ types/           # @openoba/types 鍏变韩绫诲瀷鍖?鈹溾攢鈹€ frontend/            # Vue 3 鍓嶇
-鈹?  鈹斺攢鈹€ src/
-鈹?      鈹溾攢鈹€ api/         # API 灏佽
-鈹?      鈹溾攢鈹€ components/  # 閫氱敤缁勪欢
-鈹?      鈹溾攢鈹€ composables/ # 缁勫悎寮忓嚱鏁?鈹?      鈹溾攢鈹€ views/       # 椤甸潰瑙嗗浘
-鈹?      鈹斺攢鈹€ stores/      # Pinia 鐘舵€?鈹溾攢鈹€ openoba-core/        # CORE 寮曟搸锛堥棴婧?BSL锛?鈹溾攢鈹€ docs/                # 鍐呴儴鏂囨。
-鈹斺攢鈹€ database/            # 鏁版嵁搴撹剼鏈?```
+├── packages/
+│   ├── backend/         # NestJS 后端（行业 ERP 逻辑）
+│   │   └── src/
+│   │       ├── common/      # 通用组件（守卫/拦截器/过滤器）
+│   │       ├── config/      # 配置
+│   │       ├── modules/     # 业务模块（product/customer/order/...）
+│   │       └── schemas/     # ERDL Schema 定义
+│   └── types/           # @openoba/types 共享类型包
+├── frontend/            # Vue 3 前端
+│   └── src/
+│       ├── api/         # API 封装
+│       ├── components/  # 通用组件
+│       ├── composables/ # 组合式函数
+│       ├── views/       # 页面视图
+│       └── stores/      # Pinia 状态
+├── openoba-core/        # CORE 引擎（闭源 BSL）
+├── docs/                # 内部文档
+└── database/            # 数据库脚本
+```
 
-## 璁稿彲
+## 许可
 
-OpenOBA Starter 鍚庣鍜屽墠绔噰鐢?**MIT** 璁稿彲銆侽penOBA Core 寮曟搸閲囩敤 **BSL**锛圔usiness Source License锛夈€?
-鎻愪氦浠ｇ爜鍗宠〃绀轰綘鍚屾剰鍦?MIT 璁稿彲涓嬪垎鍙戜綘鐨勮础鐚€?
+OpenOBA Starter 后端和前端采用 **MIT** 许可。OpenOBA Core 引擎采用 **BSL**（Business Source License）。
+提交代码即表示你同意在 MIT 许可下分发你的贡献。

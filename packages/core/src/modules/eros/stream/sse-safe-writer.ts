@@ -1,10 +1,10 @@
-/**
+﻿/**
  * OpenOBA ERA — SSE Safe Writer
  *
  * @file sse-safe-writer.ts
  * @author 唐浩然 (OpenOBA AI 执行官)
  * @since 2026-06-07
- * @license AGPL-3.0
+ * @license BSL-1.1
  *
  * @description
  * 解决 SSE (Server-Sent Events) 传输中文/emoji 乱码问题的安全写入器：

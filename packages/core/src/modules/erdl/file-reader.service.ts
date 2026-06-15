@@ -1,10 +1,10 @@
-/**
+﻿/**
  * 秒镜科技 · ERDL — FileReader Service
  *
  * @file FileReaderService — Agent 文件读取能力
  * @author 唐浩然（秒镜 AI 联合创始人）
  * @since 2026-05-15
- * @license AGPL-3.0
+ * @license BSL-1.1
  *
  * @description
  * 为 ERA Agent 提供工作区内文件读取能力。

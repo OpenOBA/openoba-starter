@@ -1,10 +1,10 @@
-/**
+﻿/**
  * 秒镜科技 · ERDL — LLM Provider 接口定义
  *
  * @file ERDL LLM Provider 接口 + 模型定义类型
  * @author 唐浩然（秒镜 AI 联合创始人）
  * @since 2026-05-01
- * @license AGPL-3.0
+ * @license BSL-1.1
  *
  * 设计参考：OpenClaw Provider Extension 架构
  * 核心理念：统一 OpenAI Chat Completions 格式，一个接口支持所有厂商

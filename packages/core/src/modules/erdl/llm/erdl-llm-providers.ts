@@ -4,7 +4,7 @@
  * @file ERDL 内置 Provider 定义（DeepSeek + Qwen）
  * @author 唐浩然（秒镜 AI 联合创始人）
  * @since 2026-05-01
- * @license AGPL-3.0
+ * @license BSL-1.1
  *
  * 设计参考：OpenClaw 的多 Provider 模型
  * 每个 Provider 只需要 baseUrl + models + buildHeaders

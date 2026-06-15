@@ -1,10 +1,10 @@
-/**
+﻿/**
  * 秒镜科技 · ERDL V1.3 — Entity Proxy Service
  *
  * @file ERDL 实体代理引擎：Agent 操作语义 Entity → 翻译为 SQL → 执行
  * @author 唐浩然（秒镜 AI 联合创始人）
  * @since 2026-05-11
- * @license AGPL-3.0
+ * @license BSL-1.1
  *
  * 核心理念：
  *   Agent 不需要知道数据库物理结构。

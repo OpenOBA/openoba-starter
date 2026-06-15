@@ -1,10 +1,10 @@
-/**
+﻿/**
  * 秒镜科技 · ERDL — Enterprise Resource Definition Language
  *
  * @file ERDL Playground Controller — 在线编辑器 + 自然语言生成 API
  * @author 唐浩然（秒镜 AI 联合创始人）
  * @since 2026-05-01
- * @license AGPL-3.0
+ * @license BSL-1.1
  */
 
 import { Controller, Post, Body, UseGuards } from '@nestjs/common'

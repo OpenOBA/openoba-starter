@@ -1,10 +1,10 @@
-/**
+﻿/**
  * 秒镜科技 · ERDL V1.5 — Action Guard
  *
  * @file ERDL Action Guard — LLM 输出协议转换层
  * @author 唐浩然（秒镜 AI 联合创始人）
  * @since 2026-05-12
- * @license AGPL-3.0
+ * @license BSL-1.1
  *
  * 核心理念：
  *   LLM 输出不可预测（有时 FC，有时 XML 文本，有时纯文本）。

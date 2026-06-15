@@ -1,10 +1,10 @@
-/**
+﻿/**
  * 秒镜科技 · ERDL — Enterprise Resource Definition Language
  *
  * @file Rule Definition — 规则类型定义
  * @author 唐浩然（秒镜 AI 联合创始人）
  * @since 2026-05-01
- * @license AGPL-3.0
+ * @license BSL-1.1
  *
  * Copyright (c) 2026 深圳市秒镜科技有限公司
  *

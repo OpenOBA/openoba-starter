@@ -1,10 +1,10 @@
-/**
+﻿/**
  * 秒镜科技 · ERDL 议会模型 — 不可变规则存储 Service
  *
  * @file RuleStore Service
  * @author 唐浩然（秒镜 AI 联合创始人）
  * @since 2026-05-01
- * @license AGPL-3.0
+ * @license BSL-1.1
  *
  * 规则从不被修改，只追加新版本。
  * 每次写入生成 contentHash，形成单向版本链表。

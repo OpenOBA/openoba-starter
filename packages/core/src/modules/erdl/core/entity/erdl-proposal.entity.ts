@@ -1,10 +1,10 @@
-/**
+﻿/**
  * 秒镜科技 · ERDL 议会模型 — 规则提案 Entity
  *
  * @file RuleProposal Entity
  * @author 唐浩然（秒镜 AI 联合创始人）
  * @since 2026-05-01
- * @license AGPL-3.0
+ * @license BSL-1.1
  */
 
 import {

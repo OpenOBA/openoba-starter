@@ -1,10 +1,10 @@
-/**
+﻿/**
  * SOUL 模块 — 类型定义
  *
  * @file soul.types.ts
  * @author OpenOBA
  * @since 2026-05-25
- * @license AGPL-3.0
+ * @license BSL-1.1
  */
 
 /** Agent 身份信息（从 agent_manifest + sys_user 联合读取） */

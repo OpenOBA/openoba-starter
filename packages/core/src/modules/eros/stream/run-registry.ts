@@ -1,10 +1,10 @@
-/**
+﻿/**
  * ER-OS Run Registry — Agent 执行生命周期管理
  *
  * @file run-registry.ts
  * @author 唐浩然（秒镜 AI 联合创始人）
  * @since 2026-05-21
- * @license AGPL-3.0
+ * @license BSL-1.1
  *
  * @description
  * 管理所有正在运行的 Agent 会话（run）：

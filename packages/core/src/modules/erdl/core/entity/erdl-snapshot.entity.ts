@@ -1,10 +1,10 @@
-/**
+﻿/**
  * 秒镜科技 · ERDL 议会模型 — 全局快照 Entity
  *
  * @file ERDLSnapshot Entity
  * @author 唐浩然（秒镜 AI 联合创始人）
  * @since 2026-05-01
- * @license AGPL-3.0
+ * @license BSL-1.1
  *
  * 每次规则变更生成新快照，形成单向链表。
  * 计算请求绑定快照 ID，保证规则一致性。

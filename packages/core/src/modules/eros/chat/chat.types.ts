@@ -1,10 +1,10 @@
-/**
+﻿/**
  * ERA Chat WebSocket 消息类型定义
  *
  * @file chat.types.ts
  * @author 唐浩然（秒镜 AI 联合创始人）
  * @since 2026-05-21
- * @license AGPL-3.0
+ * @license BSL-1.1
  */
 
 // ═══════════════════════════════════════════

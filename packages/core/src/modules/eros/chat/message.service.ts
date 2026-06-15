@@ -1,10 +1,10 @@
-/**
+﻿/**
  * ERA Chat Message Service — JSONL 会话持久化
  *
  * @file message.service.ts
  * @author 唐浩然（秒镜 AI 联合创始人）
  * @since 2026-05-22
- * @license AGPL-3.0
+ * @license BSL-1.1
  */
 
 import { Injectable, Logger } from '@nestjs/common'

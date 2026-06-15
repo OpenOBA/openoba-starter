@@ -1,10 +1,10 @@
-/**
+﻿/**
  * 秒镜科技 · ERDL 议会模型 — 规则事件总线
  *
  * @file RuleEventBus Service
  * @author 唐浩然（秒镜 AI 联合创始人）
  * @since 2026-05-01
- * @license AGPL-3.0
+ * @license BSL-1.1
  *
  * Agent 通过事件总线感知规则空间的变更。
  * 基于 Node.js EventEmitter，保证 FIFO 顺序。

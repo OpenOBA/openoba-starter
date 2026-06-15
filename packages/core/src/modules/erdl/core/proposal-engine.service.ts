@@ -1,10 +1,10 @@
-/**
+﻿/**
  * 秒镜科技 · ERDL 议会模型 — 提案引擎 + 冲突校验
  *
  * @file ProposalEngine + ValidationEngine
  * @author 唐浩然（秒镜 AI 联合创始人）
  * @since 2026-05-01
- * @license AGPL-3.0
+ * @license BSL-1.1
  *
  * 提案生命周期：PROPOSE → VALIDATE → VOTE → ACCEPT/REJECT
  * 冲突校验：循环依赖、优先级冲突、namespace 碰撞、破坏性变更
