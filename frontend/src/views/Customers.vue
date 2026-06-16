@@ -211,6 +211,7 @@ import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { FormInstance } from 'element-plus'
 import { useDict } from '@/composables/useDict'
+import { useCustomerUtils } from '@/composables/useCustomerUtils'
 import request from '@/api/request'
 import {
   getCustomerList, createCustomer, updateCustomer, deleteCustomer,
@@ -224,6 +225,8 @@ const dictStatus = useDict('dict_customer_status')
 const dictReferral = useDict('dict_referral_source')
 const dictSubscription = useDict('dict_subscription_status')
 const dictContactRole = useDict('dict_contact_role')
+
+const { typeTag, typeLabel, levelTag, levelLabel, statusTag, statusLabel } = useCustomerUtils()
 
 // 构建 options 格式数组
 const dictTypeOptions = computed(() => dictType.items.value.map(d => ({ label: d.name, value: d.code })))

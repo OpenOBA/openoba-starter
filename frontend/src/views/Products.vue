@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="products-page">
     <el-tabs v-model="activeTab" type="card">
       <!-- SPU -->
@@ -631,8 +631,7 @@ const loadSkusAll = async () => {
     const res = await getSkus({ pageSize: 9999 });
     skuListForSelect.value = Array.isArray(res) ? res : (res as any)?.items || [];
   } catch { /* ignore */ }
-};
-t
+}
 
 const TAB_LOADERS: Record<string, (() => void)[]> = {
   spu: [loadSpus],
