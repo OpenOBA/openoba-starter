@@ -2,7 +2,7 @@
 import * as crypto from 'crypto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, In } from 'typeorm'
-import { ERDLRuleEngine } from '@openoba/core/modules/erdl/core/erdl-rule-engine'
+import { ERDLRuleEngine } from '@openoba/core/dist/modules/erdl/core/erdl-rule-engine'
 import { ProductSku } from '../product/entity/product-sku.entity'
 import { ProductSpu } from '../product/entity/product-spu.entity'
 import { CustomerTierPricing } from '../customer/entity/customer-tier-pricing.entity'
