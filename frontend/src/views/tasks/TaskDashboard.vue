@@ -44,6 +44,8 @@
         @batch-delete="batchDelete"
         @go-detail="goDetail"
       />
+    </div>
+  </div>
 
 </template>
 
