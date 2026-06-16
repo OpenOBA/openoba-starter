@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { RateLimiterModule } from './common/rate-limiter'
+import { ServeStaticModule } from '@nestjs/serve-static'
+import { join } from 'path'
 import { SchemaModule } from './schemas/schema.module'
 import { AuthModule } from './modules/auth/auth.module'
 import { SystemModule } from './modules/system/system.module'
@@ -137,6 +139,13 @@ import { SoulModule } from '@openoba/core/dist/modules/soul/soul.module'
     UploadModule,
 
     // AI-BOS 基础模块
+    // 静态文件服务（上传的图片等资源）
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'uploads'),
+      serveRoot: '/uploads',
+      serveStaticOptions: { index: false },
+    }),
+
     SchemaModule,
 
     AestheticsModule,
