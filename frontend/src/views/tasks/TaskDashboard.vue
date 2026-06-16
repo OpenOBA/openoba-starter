@@ -45,6 +45,8 @@
         @go-detail="goDetail"
       />
 
+</template>
+
 <script setup lang="ts">
 
 function goToTask(taskId: string) { router.push('/chat/' + taskId) }
