@@ -629,7 +629,7 @@ const TAB_LOADERS: Record<string, (() => void)[]> = {
   spu: [loadSpus],
   sku: [loadSkus],
   set: [loadSets],
-  'sku-image': [loadSkusForSelect],
+  'sku-image': [loadSkusAll],
 };
 
 // 首次只加载全局基础字典（所有 Tab 共用），具体数据按需加载
