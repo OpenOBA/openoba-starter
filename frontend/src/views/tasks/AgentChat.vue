@@ -130,6 +130,8 @@
       <!-- 右侧：认知日志 -->
       <!-- 右侧：认知日志 → P1-3b 独立组件 -->
       <AgentChatLogPanel :logs="logs" />
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
