@@ -1,10 +1,10 @@
-import { Controller, Get, Post, Body, Req, HttpException, HttpStatus } from '@nestjs/common'
+import { Controller, Get, Post, Body, Req, HttpException, HttpStatus, UseGuards } from '@nestjs/common'
 import { ApiOperation } from '@nestjs/swagger'
 import { WizardService } from './wizard.service'
-import { Public } from '../../common/decorators/public.decorator'
+import { WizardGuard } from '../../common/guards/wizard.guard'
 
 @Controller('wizard')
-@Public()
+@UseGuards(WizardGuard)
 export class WizardController {
   constructor(private readonly wizard: WizardService) {}
 

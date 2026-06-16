@@ -1,0 +1,20 @@
+# OpenOBA CODEOWNERS
+
+# BDFL — Henry
+* @henry-openoba
+
+# Core Engine (闭源包)
+packages/core/ @henry-openoba @tanghaoran
+
+# Backend
+packages/backend/src/ @henry-openoba @tanghaoran
+
+# Frontend
+frontend/src/ @henry-openoba @tanghaoran
+
+# Docs & Policies
+docs/ @henry-openoba @tanghaoran
+*.md @henry-openoba @tanghaoran
+
+# CI/CD
+.github/workflows/ @tanghaoran

@@ -1,0 +1,35 @@
+name: Bug Report
+description: 报告一个 bug
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    attributes:
+      label: 描述
+      description: 清晰描述你遇到的问题
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 复现步骤
+      description: 如何重现这个 bug
+      placeholder: |
+        1. 打开...
+        2. 点击...
+        3. 看到错误...
+  - type: textarea
+    attributes:
+      label: 预期行为
+      description: 你期望发生什么
+  - type: textarea
+    attributes:
+      label: 环境信息
+      description: |
+        - OS: [e.g. Windows 10, macOS]
+        - Node version: [e.g. 22.12]
+        - OpenOBA version: [e.g. 1.4.0-alpha7]
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 补充信息
