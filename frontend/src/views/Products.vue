@@ -2,33 +2,33 @@
   <div class="products-page">
     <el-tabs v-model="activeTab" type="card">
       <!-- SPU -->
-      <el-tab-pane label="SPU 管理" name="spu">
+      <el-tab-pane label="SPU 绠＄悊" name="spu">
         <div class="tab-content">
           <div class="toolbar">
-            <el-input v-model="spuSearch.keyword" placeholder="搜索 SPU 名称/编码" clearable style="width: 240px" @keyup.enter="loadSpus" />
-            <el-select v-model="spuSearch.gender" placeholder="性别" clearable style="width: 100px">
+            <el-input v-model="spuSearch.keyword" placeholder="鎼滅储 SPU 鍚嶇О/缂栫爜" clearable style="width: 240px" @keyup.enter="loadSpus" />
+            <el-select v-model="spuSearch.gender" placeholder="鎬у埆" clearable style="width: 100px">
               <el-option v-for="opt in genderOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
             </el-select>
-            <el-select v-model="spuSearch.status" placeholder="状态" clearable style="width: 100px">
+            <el-select v-model="spuSearch.status" placeholder="鐘舵€? clearable style="width: 100px">
               <el-option v-for="opt in statusOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
             </el-select>
-            <el-select v-model="spuSearch.productTier" placeholder="级别" clearable style="width: 110px">
+            <el-select v-model="spuSearch.productTier" placeholder="绾у埆" clearable style="width: 110px">
               <el-option v-for="t in tierList" :key="t.tier_code" :label="t.tier_name" :value="t.tier_code">
                 <span>{{ t.tier_name }}</span>
                 <span :style="{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', background: t.icon_color, marginLeft: '6px' }"></span>
               </el-option>
             </el-select>
-            <el-button type="primary" @click="loadSpus">搜索</el-button>
-            <el-button type="success" @click="openSpuDialog()">新增 SPU</el-button>
-            <el-button type="primary" :disabled="spuSelection.length===0" @click="batchEditSpus()">编辑</el-button>
-            <el-popconfirm title="确认批量删除所选SPU？" @confirm="batchDeleteSpus" :disabled="spuSelection.length===0">
-              <template #reference><el-button type="danger" :disabled="spuSelection.length===0">删除</el-button></template>
+            <el-button type="primary" @click="loadSpus">鎼滅储</el-button>
+            <el-button type="success" @click="openSpuDialog()">鏂板 SPU</el-button>
+            <el-button type="primary" :disabled="spuSelection.length===0" @click="batchEditSpus()">缂栬緫</el-button>
+            <el-popconfirm title="纭鎵归噺鍒犻櫎鎵€閫塖PU锛? @confirm="batchDeleteSpus" :disabled="spuSelection.length===0">
+              <template #reference><el-button type="danger" :disabled="spuSelection.length===0">鍒犻櫎</el-button></template>
             </el-popconfirm>
           </div>
           <el-table :data="spuList" v-loading="spuLoading" stripe @selection-change="spuSelection=$event" @row-dblclick="openSpuDialog">
             <el-table-column type="selection" width="50" />
-            <el-table-column prop="spuCode" label="SPU 编码" width="160" />
-            <el-table-column label="级别" width="100">
+            <el-table-column prop="spuCode" label="SPU 缂栫爜" width="160" />
+            <el-table-column label="绾у埆" width="100">
               <template #default="{ row }">
                 <span v-if="row.productTier" :style="{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '12px', background: getTierColor(row.productTier) + '18', color: getTierColor(row.productTier), fontSize: '12px', fontWeight: '600' }">
                   <span :style="{ width: '6px', height: '6px', borderRadius: '50%', background: getTierColor(row.productTier) }"></span>
@@ -37,18 +37,18 @@
                 <span v-else>-</span>
               </template>
             </el-table-column>
-            <el-table-column prop="spuName" label="名称" min-width="180" />
-            <el-table-column label="分类" width="120">
+            <el-table-column prop="spuName" label="鍚嶇О" min-width="180" />
+            <el-table-column label="鍒嗙被" width="120">
               <template #default="{ row }">{{ row.category?.categoryName || '-' }}</template>
             </el-table-column>
-            <el-table-column label="性别" width="80">
+            <el-table-column label="鎬у埆" width="80">
               <template #default="{ row }">
                 <el-tag :type="{ female: 'danger', male: 'primary', unisex: 'info', limited: 'warning' }[row.gender] || 'info'" size="small">
-                  {{ { female: '女款', male: '男款', unisex: '通用', limited: '限量' }[row.gender] || row.gender || '-' }}
+                  {{ { female: '濂虫', male: '鐢锋', unisex: '閫氱敤', limited: '闄愰噺' }[row.gender] || row.gender || '-' }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="场景" min-width="140">
+            <el-table-column label="鍦烘櫙" min-width="140">
               <template #default="{ row }">
                 <template v-if="row.scene_tags && row.scene_tags.length">
                   <el-tag v-for="tag in row.scene_tags" :key="tag" size="small" style="margin-right: 4px">{{ tag }}</el-tag>
@@ -56,7 +56,7 @@
                 <span v-else>-</span>
               </template>
             </el-table-column>
-            <el-table-column label="状态" width="80">
+            <el-table-column label="鐘舵€? width="80">
               <template #default="{ row }">
                 <el-tag :type="row.status === 'on_sale' ? 'success' : row.status === 'draft' ? 'info' : 'danger'" size="small">
                   {{ (statusOptions.find(o => o.value === row.status)?.label) || row.status || '-' }}
@@ -79,24 +79,24 @@
       </el-tab-pane>
 
       <!-- SKU -->
-      <el-tab-pane label="SKU 管理" name="sku">
+      <el-tab-pane label="SKU 绠＄悊" name="sku">
         <div class="tab-content">
           <div class="toolbar">
-            <el-input v-model="skuSearch.keyword" placeholder="搜索 SKU 名称/编码" clearable style="width: 220px" @keyup.enter="loadSkus" />
-            <el-select v-model="skuSearch.spuId" placeholder="按 SPU 筛选" clearable filterable style="width: 200px" @change="loadSkus">
+            <el-input v-model="skuSearch.keyword" placeholder="鎼滅储 SKU 鍚嶇О/缂栫爜" clearable style="width: 220px" @keyup.enter="loadSkus" />
+            <el-select v-model="skuSearch.spuId" placeholder="鎸?SPU 绛涢€? clearable filterable style="width: 200px" @change="loadSkus">
               <el-option v-for="s in spuListAll" :key="s.spuId" :label="`${s.spuCode} - ${s.spuName}`" :value="s.spuId" />
             </el-select>
-            <el-select v-model="skuSearch.skinToneEffect" placeholder="肤色效果" clearable filterable style="width: 160px" @change="loadSkus">
+            <el-select v-model="skuSearch.skinToneEffect" placeholder="鑲よ壊鏁堟灉" clearable filterable style="width: 160px" @change="loadSkus">
               <el-option v-for="t in skinEffectTags" :key="'skin-'+t.effectCode" :label="t.effectName" :value="t.effectName" />
             </el-select>
-            <el-select v-model="skuSearch.faceShapeEffect" placeholder="脸型效果" clearable filterable style="width: 160px" @change="loadSkus">
+            <el-select v-model="skuSearch.faceShapeEffect" placeholder="鑴稿瀷鏁堟灉" clearable filterable style="width: 160px" @change="loadSkus">
               <el-option v-for="t in faceEffectTags" :key="'face-'+t.effectCode" :label="t.effectName" :value="t.effectName" />
             </el-select>
-            <el-button type="primary" @click="loadSkus">搜索</el-button>
-            <el-button type="success" @click="openSkuDialog()">新增 SKU</el-button>
-            <el-button type="primary" :disabled="skuSelection.length===0" @click="batchEditSkus()">编辑</el-button>
-            <el-popconfirm title="确认批量删除所选SKU？" @confirm="batchDeleteSkus" :disabled="skuSelection.length===0">
-              <template #reference><el-button type="danger" :disabled="skuSelection.length===0">删除</el-button></template>
+            <el-button type="primary" @click="loadSkus">鎼滅储</el-button>
+            <el-button type="success" @click="openSkuDialog()">鏂板 SKU</el-button>
+            <el-button type="primary" :disabled="skuSelection.length===0" @click="batchEditSkus()">缂栬緫</el-button>
+            <el-popconfirm title="纭鎵归噺鍒犻櫎鎵€閫塖KU锛? @confirm="batchDeleteSkus" :disabled="skuSelection.length===0">
+              <template #reference><el-button type="danger" :disabled="skuSelection.length===0">鍒犻櫎</el-button></template>
             </el-popconfirm>
           </div>
           <el-table :data="skuList" v-loading="skuLoading" stripe row-key="skuId" @selection-change="skuSelection=$event" @row-dblclick="openSkuDialog">
@@ -106,18 +106,18 @@
                 <div class="tech-spec-row" style="padding: 12px 24px; background: #fafafa">
                   <table class="tech-table">
                     <tbody>
-                    <tr><td class="tech-label">尺寸标注</td><td class="tech-value">{{ [row.lensWidth, row.bridgeWidth, row.templeLength].filter(v => v).join('□') || '-' }}</td><td class="tech-label">镜框材质</td><td class="tech-value">{{ getDictName('frameMaterials', row.frameMaterial) }}</td></tr>
-                    <tr><td class="tech-label">镜框类型</td><td class="tech-value">{{ getDictName('frameTypes', row.frameType) }}</td><td class="tech-label">重量</td><td class="tech-value">{{ row.weightG != null ? row.weightG + 'g' : '-' }}</td></tr>
-                    <tr><td class="tech-label">鼻托类型</td><td class="tech-value">{{ getDictName('nosePads', row.nosePadType) }}</td><td class="tech-label">铰链类型</td><td class="tech-value">{{ getDictName('hinges', row.hingeType) }}</td></tr>
-                    <tr><td class="tech-label">镜框高度</td><td class="tech-value">{{ row.frameHeight != null ? row.frameHeight + 'mm' : '-' }}</td><td class="tech-label">表面处理</td><td class="tech-value">{{ getDictName('surfaceTreatments', row.surfaceTreatment) }}</td></tr>
-                    <tr><td class="tech-label">适合脸型</td><td class="tech-value">
+                    <tr><td class="tech-label">灏哄鏍囨敞</td><td class="tech-value">{{ [row.lensWidth, row.bridgeWidth, row.templeLength].filter(v => v).join('鈻?) || '-' }}</td><td class="tech-label">闀滄鏉愯川</td><td class="tech-value">{{ getDictName('frameMaterials', row.frameMaterial) }}</td></tr>
+                    <tr><td class="tech-label">闀滄绫诲瀷</td><td class="tech-value">{{ getDictName('frameTypes', row.frameType) }}</td><td class="tech-label">閲嶉噺</td><td class="tech-value">{{ row.weightG != null ? row.weightG + 'g' : '-' }}</td></tr>
+                    <tr><td class="tech-label">榧绘墭绫诲瀷</td><td class="tech-value">{{ getDictName('nosePads', row.nosePadType) }}</td><td class="tech-label">閾伴摼绫诲瀷</td><td class="tech-value">{{ getDictName('hinges', row.hingeType) }}</td></tr>
+                    <tr><td class="tech-label">闀滄楂樺害</td><td class="tech-value">{{ row.frameHeight != null ? row.frameHeight + 'mm' : '-' }}</td><td class="tech-label">琛ㄩ潰澶勭悊</td><td class="tech-value">{{ getDictName('surfaceTreatments', row.surfaceTreatment) }}</td></tr>
+                    <tr><td class="tech-label">閫傚悎鑴稿瀷</td><td class="tech-value">
                       <template v-if="row.suitableFaceShapes && row.suitableFaceShapes.length">
                         <el-tag v-for="f in row.suitableFaceShapes" :key="f" size="small" style="margin-right: 4px">{{ getFaceShapeLabel(f) }}</el-tag>
                       </template><span v-else>-</span>
-                    </td><td class="tech-label">功能</td><td class="tech-value">
-                      <span v-if="row.hasBlueLightFilter" style="color: #409eff">防蓝光 </span>
-                      <span v-if="row.hasPhotochromic" style="color: #67c23a">变色 </span>
-                      <span v-if="row.hasPolarized" style="color: #e6a23c">偏光 </span>
+                    </td><td class="tech-label">鍔熻兘</td><td class="tech-value">
+                      <span v-if="row.hasBlueLightFilter" style="color: #409eff">闃茶摑鍏?</span>
+                      <span v-if="row.hasPhotochromic" style="color: #67c23a">鍙樿壊 </span>
+                      <span v-if="row.hasPolarized" style="color: #e6a23c">鍋忓厜 </span>
                       <span v-if="row.uvProtection && row.uvProtection !== 'None'">{{ row.uvProtection }}</span>
                       <span v-if="!row.hasBlueLightFilter && !row.hasPhotochromic && !row.hasPolarized && (!row.uvProtection || row.uvProtection === 'None')">-</span>
                     </td></tr>
@@ -126,8 +126,8 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column prop="skuCode" label="SKU 编码" width="170" />
-            <el-table-column label="级别" width="100">
+            <el-table-column prop="skuCode" label="SKU 缂栫爜" width="170" />
+            <el-table-column label="绾у埆" width="100">
               <template #default="{ row }">
                 <span v-if="row.productTier || row.spu?.productTier" :style="{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '12px', background: getTierColor(row.productTier || row.spu?.productTier) + '18', color: getTierColor(row.productTier || row.spu?.productTier), fontSize: '12px', fontWeight: '600' }">
                   <span :style="{ width: '6px', height: '6px', borderRadius: '50%', background: getTierColor(row.productTier || row.spu?.productTier) }"></span>
@@ -136,19 +136,19 @@
                 <span v-else>-</span>
               </template>
             </el-table-column>
-            <el-table-column label="主图" width="80">
+            <el-table-column label="涓诲浘" width="80">
               <template #default="{ row }">
                 <el-image v-if="row.primaryImage" :src="row.primaryImage.imageUrl" fit="cover" style="width: 40px; height: 40px; border-radius: 4px" />
               </template>
             </el-table-column>
-            <el-table-column prop="skuName" label="名称" min-width="120" />
-            <el-table-column label="关联 SPU" width="140">
+            <el-table-column prop="skuName" label="鍚嶇О" min-width="120" />
+            <el-table-column label="鍏宠仈 SPU" width="140">
               <template #default="{ row }">{{ row.spu?.spuCode || '-' }}</template>
             </el-table-column>
-            <el-table-column prop="skuBarcode" label="内部条码" min-width="200" show-overflow-tooltip />
+            <el-table-column prop="skuBarcode" label="鍐呴儴鏉＄爜" min-width="200" show-overflow-tooltip />
             <el-table-column prop="ean13" label="EAN-13" width="130" />
-            <el-table-column prop="retailPrice" label="统一零售价" width="100" />
-            <el-table-column prop="stockQuantity" label="库存" width="80" />
+            <el-table-column prop="retailPrice" label="缁熶竴闆跺敭浠? width="100" />
+            <el-table-column prop="stockQuantity" label="搴撳瓨" width="80" />
             </el-table>
           <el-pagination
             v-if="skuTotal > skuPageSize"
@@ -164,37 +164,37 @@
         </div>
       </el-tab-pane>
 
-      <!-- SKU 图片 → P1-3c 独立组件 -->
-      <el-tab-pane label="SKU 图片" name="sku-image">
+      <!-- SKU 鍥剧墖 鈫?P1-3c 鐙珛缁勪欢 -->
+      <el-tab-pane label="SKU 鍥剧墖" name="sku-image">
         <SkuImagePanel
           :sku-list-for-select="skuListForSelect"
           :sku-select-loading="skuSelectLoading"
           @refresh="loadSkusAll"
         />
       </el-tab-pane>
-<!-- 套装 -->
-      <el-tab-pane label="套装管理" name="set">
+<!-- 濂楄 -->
+      <el-tab-pane label="濂楄绠＄悊" name="set">
         <div class="tab-content">
           <div class="toolbar">
-            <el-button type="success" @click="openSetDialog()">新增套装</el-button>
-            <el-button type="primary" :disabled="setSelection.length===0" @click="batchEditSets()">编辑</el-button>
-            <el-popconfirm title="确认批量删除所选套装？" @confirm="batchDeleteSets" :disabled="setSelection.length===0">
-              <template #reference><el-button type="danger" :disabled="setSelection.length===0">删除</el-button></template>
+            <el-button type="success" @click="openSetDialog()">鏂板濂楄</el-button>
+            <el-button type="primary" :disabled="setSelection.length===0" @click="batchEditSets()">缂栬緫</el-button>
+            <el-popconfirm title="纭鎵归噺鍒犻櫎鎵€閫夊瑁咃紵" @confirm="batchDeleteSets" :disabled="setSelection.length===0">
+              <template #reference><el-button type="danger" :disabled="setSelection.length===0">鍒犻櫎</el-button></template>
             </el-popconfirm>
           </div>
           <el-table :data="setList" v-loading="setLoading" stripe @selection-change="setSelection=$event" @row-dblclick="openSetDialog">
             <el-table-column type="selection" width="50" />
-            <el-table-column prop="setCode" label="编码" width="140" />
-            <el-table-column prop="setName" label="名称" min-width="180" />
+            <el-table-column prop="setCode" label="缂栫爜" width="140" />
+            <el-table-column prop="setName" label="鍚嶇О" min-width="180" />
             <el-table-column label="SKU" width="50"><template #default="{ row }">{{ row.skuList ? row.skuList.length : 0 }}</template></el-table-column>
-            <el-table-column label="统一零售价" width="100"><template #default="{ row }">¥{{ (Number(row.retailPrice)||0).toFixed(2) }}</template></el-table-column>
-            <el-table-column label="套装价" width="80"><template #default="{ row }">¥{{ (Number(row.setPrice)||0).toFixed(2) }}</template></el-table-column>
-            <el-table-column label="折扣" width="60"><template #default="{ row }">{{ row.discountRate ? (row.discountRate*10).toFixed(1)+"折" : "-" }}</template></el-table-column>
-            <el-table-column prop="category?.categoryName" label="品类" width="80" />
-            <el-table-column label="状态" width="80">
+            <el-table-column label="缁熶竴闆跺敭浠? width="100"><template #default="{ row }">楼{{ (Number(row.retailPrice)||0).toFixed(2) }}</template></el-table-column>
+            <el-table-column label="濂楄浠? width="80"><template #default="{ row }">楼{{ (Number(row.setPrice)||0).toFixed(2) }}</template></el-table-column>
+            <el-table-column label="鎶樻墸" width="60"><template #default="{ row }">{{ row.discountRate ? (row.discountRate*10).toFixed(1)+"鎶? : "-" }}</template></el-table-column>
+            <el-table-column prop="category?.categoryName" label="鍝佺被" width="80" />
+            <el-table-column label="鐘舵€? width="80">
               <template #default="{ row }">
                 <el-tag :type="row.status === 'on_sale' ? 'success' : row.status === 'draft' ? 'info' : 'danger'" size="small">
-                  {{ row.status === 'on_sale' ? '在售' : row.status === 'off_sale' ? '下架' : '草稿' }}
+                  {{ row.status === 'on_sale' ? '鍦ㄥ敭' : row.status === 'off_sale' ? '涓嬫灦' : '鑽夌' }}
                 </el-tag>
               </template>
             </el-table-column>
@@ -202,8 +202,8 @@
         </div>
       </el-tab-pane>
 
-      <!-- S-SKU 副品管理 -->
-      <el-tab-pane label="S-SKU 副品" name="sub-sku">
+      <!-- S-SKU 鍓搧绠＄悊 -->
+      <el-tab-pane label="S-SKU 鍓搧" name="sub-sku">
         <SubSkuTab />
       </el-tab-pane>
     </el-tabs>
@@ -239,7 +239,7 @@
     />
 
     <!-- Set Dialog -->
-    <!-- Set Dialog → P1-3c 独立组件 -->
+    <!-- Set Dialog 鈫?P1-3c 鐙珛缁勪欢 -->
     <SetDialog
       :visible="setDialogVisible"
       :edit-row="setEditRow"
@@ -248,82 +248,47 @@
       @close="setDialogVisible = false"
       @saved="loadSets"
     />
-    <!-- 批量上传 Dialog -->
-    <el-dialog v-model="batchDialogVisible" title="批量上传图片" width="640px">
+    <!-- 鎵归噺涓婁紶 Dialog -->
+    <el-dialog v-model="batchDialogVisible" title="鎵归噺涓婁紶鍥剧墖" width="640px">
       <el-tabs v-model="batchTab">
-        <!-- Tab 1: URL 批量 -->
-        <el-tab-pane label="URL 输入" name="url">
-          <el-alert title="每行一个图片 URL，格式：URL | 类型 | 排序 | 主图(Y/N) | 替代文本" type="info" :closable="false" style="margin-bottom: 12px" />
-          <el-input v-model="batchText" type="textarea" :rows="10" placeholder="示例：
-https://cdn.example.com/img1.jpg | main | 0 | Y | 马卡龙粉主图
-https://cdn.example.com/img2.jpg | gallery | 1 | N | 侧面展示" />
+        <!-- Tab 1: URL 鎵归噺 -->
+        <el-tab-pane label="URL 杈撳叆" name="url">
+          <el-alert title="姣忚涓€涓浘鐗?URL锛屾牸寮忥細URL | 绫诲瀷 | 鎺掑簭 | 涓诲浘(Y/N) | 鏇夸唬鏂囨湰" type="info" :closable="false" style="margin-bottom: 12px" />
+          <el-input v-model="batchText" type="textarea" :rows="10" placeholder="绀轰緥锛?
+https://cdn.example.com/img1.jpg | main | 0 | Y | 椹崱榫欑矇涓诲浘
+https://cdn.example.com/img2.jpg | gallery | 1 | N | 渚ч潰灞曠ず" />
           <div class="batch-hint">
-            <p>类型可选：main / gallery / detail / lifestyle / 360view / website_banner</p>
+            <p>绫诲瀷鍙€夛細main / gallery / detail / lifestyle / 360view / website_banner</p>
           </div>
         </el-tab-pane>
-        <!-- Tab 2: 本地文件批量上传 -->
-        <el-tab-pane label="本地上传" name="local">
+        <!-- Tab 2: 鏈湴鏂囦欢鎵归噺涓婁紶 -->
+        <el-tab-pane label="鏈湴涓婁紶" name="local">
           <input type="file" ref="batchFileInput" accept="image/*" multiple style="display: none" @change="onBatchFileSelect" />
           <div style="margin-bottom: 12px">
-            <el-button @click="triggerBatchFileSelect">选择多张图片</el-button>
-            <span v-if="batchUploading" style="color: #409eff; margin-left: 12px">上传中... {{ batchUploadedCount }}/{{ batchFileList.length }}</span>
-            <span v-else-if="batchUploadedCount > 0" style="color: #67c23a; margin-left: 12px">已上传 {{ batchUploadedCount }} 张</span>
+            <el-button @click="triggerBatchFileSelect">閫夋嫨澶氬紶鍥剧墖</el-button>
+            <span v-if="batchUploading" style="color: #409eff; margin-left: 12px">涓婁紶涓?.. {{ batchUploadedCount }}/{{ batchFileList.length }}</span>
+            <span v-else-if="batchUploadedCount > 0" style="color: #67c23a; margin-left: 12px">宸蹭笂浼?{{ batchUploadedCount }} 寮?/span>
           </div>
           <div v-if="batchFileList.length > 0" class="batch-file-list">
             <div v-for="(f, i) in batchFileList" :key="i" class="batch-file-item">
               <span>{{ i + 1 }}. {{ f.name }}</span>
-              <el-tag v-if="f.status === 'uploading'" type="warning" size="small">上传中</el-tag>
-              <el-tag v-else-if="f.status === 'success'" type="success" size="small">成功</el-tag>
-              <el-tag v-else-if="f.status === 'error'" type="danger" size="small">失败</el-tag>
+              <el-tag v-if="f.status === 'uploading'" type="warning" size="small">涓婁紶涓?/el-tag>
+              <el-tag v-else-if="f.status === 'success'" type="success" size="small">鎴愬姛</el-tag>
+              <el-tag v-else-if="f.status === 'error'" type="danger" size="small">澶辫触</el-tag>
             </div>
           </div>
           <div class="batch-hint">
-            <p>✅ 上传后将自动创建图集（gallery）类型图片，可在表格中调整顺序和类型</p>
+            <p>鉁?涓婁紶鍚庡皢鑷姩鍒涘缓鍥鹃泦锛坓allery锛夌被鍨嬪浘鐗囷紝鍙湪琛ㄦ牸涓皟鏁撮『搴忓拰绫诲瀷</p>
           </div>
         </el-tab-pane>
       </el-tabs>
       <template #footer>
-        <el-button @click="batchDialogVisible = false">取消</el-button>
-        <el-button v-if="batchTab === 'url'" type="primary" @click="handleBatchUpload">📤 开始上传</el-button>
-        <el-button v-if="batchTab === 'local' && batchFileList.length > 0 && !batchUploading" type="primary" @click="startBatchFileUpload">📤 开始上传 ({{ batchFileList.length }} 张)</el-button>
+        <el-button @click="batchDialogVisible = false">鍙栨秷</el-button>
+        <el-button v-if="batchTab === 'url'" type="primary" @click="handleBatchUpload">馃摛 寮€濮嬩笂浼?/el-button>
+        <el-button v-if="batchTab === 'local' && batchFileList.length > 0 && !batchUploading" type="primary" @click="startBatchFileUpload">馃摛 寮€濮嬩笂浼?({{ batchFileList.length }} 寮?</el-button>
       </template>
     </el-dialog>
-    <!-- SKU Image Dialog -->
-    <el-dialog v-model="imageDialogVisible" :title="imageForm.imageId ? '编辑图片' : '新增图片'" width="560px">
-      <el-form :model="imageForm" label-width="100px">
-        <!-- 本地上传 -->
-        <el-form-item label="上传图片">
-          <input type="file" ref="imageFileInput" accept="image/*" style="display: none" @change="onImageFileSelect" />
-          <div style="display: flex; gap: 12px; align-items: center">
-            <el-button @click="triggerImageFileSelect">📁 选择图片</el-button>
-            <span v-if="imageUploading" style="color: #409eff">⏳ 上传中...</span>
-            <span v-else-if="imageForm.imageUrl" style="color: #67c23a">✅ 已选择</span>
-          </div>
-          <div v-if="imageForm.imageUrl" style="margin-top: 8px">
-            <el-image :src="imageForm.imageUrl" fit="contain" style="max-width: 200px; max-height: 150px; border-radius: 4px" />
-          </div>
-        </el-form-item>
-        <!-- 图片 URL（上传后自动填充，也可手动输入） -->
-        <el-form-item label="图片 URL">
-          <el-input v-model="imageForm.imageUrl" placeholder="上传后自动填充，也可手动输入 CDN 地址" />
-        </el-form-item>
-        <el-form-item label="图片类型">
-          <el-select v-model="imageForm.imageType">
-            <el-option label="主图" value="main" />
-            <el-option label="图集" value="gallery" />
-            <el-option label="详情" value="detail" />
-            <el-option label="场景" value="lifestyle" />
-            <el-option label="360度" value="360view" />
-            <el-option label="官网横幅" value="website_banner" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="排序"><el-input-number v-model="imageForm.sortOrder" :min="0" /></el-form-item>
-        <el-form-item label="设为主图"><el-switch v-model="imageForm.isPrimary" /></el-form-item>
-        <el-form-item label="启用"><el-switch v-model="imageForm.isActive" /></el-form-item>
-        <el-form-item label="替代文本"><el-input v-model="imageForm.altText" placeholder="SEO/无障碍描述" /></el-form-item>
-      </el-form>
-      <template #footer><el-button @click="imageDialogVisible = false">取消</el-button><el-button type="primary" @click="handleSaveImage">保存</el-button></template>
-    </el-dialog>
+    
   </div>
 </template>
 
@@ -349,14 +314,14 @@ import SetDialog from '@/components/SetDialog.vue';
 import SkuDialog from '@/components/SkuDialog.vue';
 import SubSkuTab from './products/SubSkuTab.vue';
 
-// 产品级别映射
+// 浜у搧绾у埆鏄犲皠
 const TIER_MAP: Record<string, { name: string; color: string }> = {
-  color: { name: '色彩级', color: '#4CAF50' },
-  style: { name: '风格级', color: '#2196F3' },
-  texture: { name: '质感级', color: '#FF9800' },
-  'light-luxury': { name: '轻奢级', color: '#E91E63' },
-  smart: { name: '智能级', color: '#9C27B0' },
-  luxury: { name: '奢华级', color: '#1a1a1a' },
+  color: { name: '鑹插僵绾?, color: '#4CAF50' },
+  style: { name: '椋庢牸绾?, color: '#2196F3' },
+  texture: { name: '璐ㄦ劅绾?, color: '#FF9800' },
+  'light-luxury': { name: '杞诲ア绾?, color: '#E91E63' },
+  smart: { name: '鏅鸿兘绾?, color: '#9C27B0' },
+  luxury: { name: '濂㈠崕绾?, color: '#1a1a1a' },
 };
 function getTierName(code: string): string {
   return activeTierMap.value[code]?.name || code || '-';
@@ -364,14 +329,14 @@ function getTierName(code: string): string {
 function getTierColor(code: string): string {
   return activeTierMap.value[code]?.color || '#999';
 }
-// ===== AI-BOS V2.0: Schema 驱动数据 =====
+// ===== AI-BOS V2.0: Schema 椹卞姩鏁版嵁 =====
 const schemaData = ref<IndustrySchema | null>(null);
 const schemaLoading = ref(false);
-const loadSchema = async () => { try { const [fullSchema] = await Promise.all([getSchema("eyewear")]); schemaData.value = fullSchema; } catch (e) { console.warn("[AI-BOS] Schema 加载失败", e); } finally { schemaLoading.value = false; } };
+const loadSchema = async () => { try { const [fullSchema] = await Promise.all([getSchema("eyewear")]); schemaData.value = fullSchema; } catch (e) { console.warn("[AI-BOS] Schema 鍔犺浇澶辫触", e); } finally { schemaLoading.value = false; } };
 const schemaConfig = computed(() => schemaData.value?.config);
-const sceneTagOptions = computed(() => schemaConfig.value?.sceneTags || ["通勤","职场","约会","拍照","运动","旅行","休闲","派对"]);
-const genderOptions = computed(() => schemaConfig.value?.genderOptions || [{ value:"female",label:"女款"},{ value:"male",label:"男款"},{ value:"unisex",label:"中性"},{ value:"limited",label:"限量" }]);
-const statusOptions = computed(() => schemaConfig.value?.statusOptions || [{ value:"on_sale",label:"在售"},{ value:"draft",label:"草稿"},{ value:"off_sale",label:"下架" }]);
+const sceneTagOptions = computed(() => schemaConfig.value?.sceneTags || ["閫氬嫟","鑱屽満","绾︿細","鎷嶇収","杩愬姩","鏃呰","浼戦棽","娲惧"]);
+const genderOptions = computed(() => schemaConfig.value?.genderOptions || [{ value:"female",label:"濂虫"},{ value:"male",label:"鐢锋"},{ value:"unisex",label:"涓€?},{ value:"limited",label:"闄愰噺" }]);
+const statusOptions = computed(() => schemaConfig.value?.statusOptions || [{ value:"on_sale",label:"鍦ㄥ敭"},{ value:"draft",label:"鑽夌"},{ value:"off_sale",label:"涓嬫灦" }]);
 const shapeLabels = computed(() => schemaConfig.value?.shapeLabels || {});
 const seriesLabels = computed(() => schemaConfig.value?.seriesLabels || {});
 const faceShapeLabelsConfig = computed(() => schemaConfig.value?.faceShapeLabels || {});
@@ -383,7 +348,7 @@ function onSkuDialogSaved() { loadSkus(); skuEditRow.value = null; }
 const techDictsData = computed(() => ({ frameMaterials: frameMaterials.value, frameTypes: frameTypes.value, nosePads: nosePads.value, hinges: hinges.value, surfaceTreatments: surfaceTreatments.value }));
 const activeTierMap = computed(() => tierLabelsConfig.value && Object.keys(tierLabelsConfig.value).length ? tierLabelsConfig.value : TIER_MAP);
 
-// ===== 字典中文映射 =====
+// ===== 瀛楀吀涓枃鏄犲皠 =====
 function getDictName(dictKey: string, code: string): string {
   if (!code) return '-';
   const dictMap: Record<string, any[]> = {
@@ -402,21 +367,21 @@ function getDictName(dictKey: string, code: string): string {
 function getFaceShapeLabel(code: string): string {
   if (!code) return '-';
   const map: Record<string, string> = {
-    round: '圆脸', oval: '椭圆脸', square: '方脸',
-    diamond: '菱形脸', heart: '心形脸', oblong: '长脸',
+    round: '鍦嗚劯', oval: '妞渾鑴?, square: '鏂硅劯',
+    diamond: '鑿卞舰鑴?, heart: '蹇冨舰鑴?, oblong: '闀胯劯',
   };
   return map[code] || code;
 }
 
 const activeTab = ref('spu');
 
-// ===== 产品级别字典 =====
+// ===== 浜у搧绾у埆瀛楀吀 =====
 const tierList = ref<any[]>([]);
 const loadTiers = async () => {
   try {
     const res: any = await getTierPricings();
     const raw = res.data || res.items || res || [];
-    // 规范化为模板所需的 snake_case 格式
+    // 瑙勮寖鍖栦负妯℃澘鎵€闇€鐨?snake_case 鏍煎紡
     tierList.value = raw.map((t: any) => ({
       tier_code: t.tierCode || t.tier_code,
       tier_name: t.tierName || t.tier_name,
@@ -427,19 +392,19 @@ const loadTiers = async () => {
   catch (e: unknown) { console.warn('Failed to load tiers', e); }
 };
 
-// ===== Phase 8B: 技术参数字典 =====
+// ===== Phase 8B: 鎶€鏈弬鏁板瓧鍏?=====
 const frameMaterials = ref<any[]>([]);
 const frameTypes = ref<any[]>([]);
 const nosePads = ref<any[]>([]);
 const hinges = ref<any[]>([]);
 const surfaceTreatments = ref<any[]>([]);
 const faceShapeOptions = [
-  { label: '圆脸', value: 'round' },
-  { label: '椭圆脸', value: 'oval' },
-  { label: '方脸', value: 'square' },
-  { label: '菱形脸', value: 'diamond' },
-  { label: '心形脸', value: 'heart' },
-  { label: '长脸', value: 'oblong' },
+  { label: '鍦嗚劯', value: 'round' },
+  { label: '妞渾鑴?, value: 'oval' },
+  { label: '鏂硅劯', value: 'square' },
+  { label: '鑿卞舰鑴?, value: 'diamond' },
+  { label: '蹇冨舰鑴?, value: 'heart' },
+  { label: '闀胯劯', value: 'oblong' },
 ];
 const seriesList = ref<any[]>([]);
 const computedSeriesList = computed(() => seriesList.value.map((s: Record<string, unknown>) => ({ code: s.code, name: s.name })));
@@ -474,7 +439,7 @@ const loadTechDicts = async () => {
 const spuList = ref<any[]>([]);
 const spuSelection = ref<any[]>([]);
 const setSelection = ref<any[]>([]);
-const spuListAll = ref<any[]>([]);  // 全量 SPU 列表（下拉框用，不分页）
+const spuListAll = ref<any[]>([]);  // 鍏ㄩ噺 SPU 鍒楄〃锛堜笅鎷夋鐢紝涓嶅垎椤碉級
 const spuLoading = ref(false);
 const spuPage = ref(1);
 const spuPageSize = ref(20);
@@ -496,10 +461,10 @@ const loadSpus = async () => {
       spuList.value = []
       spuTotal.value = 0
     }
-  } catch (e: unknown) { ElMessage.error((e as any)?.message || '加载失败'); }
+  } catch (e: unknown) { ElMessage.error((e as any)?.message || '鍔犺浇澶辫触'); }
   finally { spuLoading.value = false; }
 };
-// 全量加载 SPU（下拉框用，不传分页参数）
+// 鍏ㄩ噺鍔犺浇 SPU锛堜笅鎷夋鐢紝涓嶄紶鍒嗛〉鍙傛暟锛?
 const loadSpusAll = async () => {
   try {
     const res = await getSpus({ pageSize: 9999 });
@@ -510,10 +475,10 @@ const openSpuDialog = (row?: any) => {
     spuEditRow.value = row || null;
   spuDialogVisible.value = true;
 };
-const batchEditSpus = () => { if(spuSelection.value.length===1) openSpuDialog(spuSelection.value[0]); else if(spuSelection.value.length>1) ElMessage.warning('暂仅支持单条编辑'); };
-const batchDeleteSpus = async () => { try { for(const r of spuSelection.value) await deleteSpu(r.spuId); ElMessage.success(spuSelection.value.length+' 条已删除'); spuSelection.value=[]; loadSpus(); } catch { ElMessage.error('删除失败'); } };
+const batchEditSpus = () => { if(spuSelection.value.length===1) openSpuDialog(spuSelection.value[0]); else if(spuSelection.value.length>1) ElMessage.warning('鏆備粎鏀寔鍗曟潯缂栬緫'); };
+const batchDeleteSpus = async () => { try { for(const r of spuSelection.value) await deleteSpu(r.spuId); ElMessage.success(spuSelection.value.length+' 鏉″凡鍒犻櫎'); spuSelection.value=[]; loadSpus(); } catch { ElMessage.error('鍒犻櫎澶辫触'); } };
 const handleDeleteSpu = async (id: string) => {
-  try { await deleteSpu(id); ElMessage.success('已删除'); loadSpus(); } catch (e: unknown) { ElMessage.error((e as any)?.message || '删除失败'); }
+  try { await deleteSpu(id); ElMessage.success('宸插垹闄?); loadSpus(); } catch (e: unknown) { ElMessage.error((e as any)?.message || '鍒犻櫎澶辫触'); }
 };
 
 // ===== SKU =====
@@ -524,7 +489,7 @@ const skuPage = ref(1);
 const skuPageSize = ref(20);
 const skuTotal = ref(0);
 const skuSearch = reactive({ keyword: '', spuId: '', skinToneEffect: '', faceShapeEffect: '' });
-const skuDialogVisible = ref(false);// suitableFaceShapes 用独立 ref（避免 reactive 嵌套数组响应式断裂）
+const skuDialogVisible = ref(false);// suitableFaceShapes 鐢ㄧ嫭绔?ref锛堥伩鍏?reactive 宓屽鏁扮粍鍝嶅簲寮忔柇瑁傦級
 
 const loadSkus = async () => {
   skuLoading.value = true;
@@ -541,7 +506,7 @@ const loadSkus = async () => {
       skuList.value = []
       skuTotal.value = 0
     }
-  } catch (e: unknown) { ElMessage.error((e as any)?.message || '加载失败'); }
+  } catch (e: unknown) { ElMessage.error((e as any)?.message || '鍔犺浇澶辫触'); }
   finally { skuLoading.value = false; }
 };
 const openSkuDialog = (row?: any) => {
@@ -549,25 +514,25 @@ const openSkuDialog = (row?: any) => {
   skuDialogVisible.value = true;
 };
 
-const batchEditSkus = () => { if(skuSelection.value.length===1) openSkuDialog(skuSelection.value[0]); else if(skuSelection.value.length>1) ElMessage.warning('暂仅支持单条编辑'); };
-const batchDeleteSkus = async () => { try { for(const r of skuSelection.value) await deleteSku(r.skuId); ElMessage.success(skuSelection.value.length+' 条已删除'); skuSelection.value=[]; loadSkus(); } catch { ElMessage.error('删除失败'); } };
+const batchEditSkus = () => { if(skuSelection.value.length===1) openSkuDialog(skuSelection.value[0]); else if(skuSelection.value.length>1) ElMessage.warning('鏆備粎鏀寔鍗曟潯缂栬緫'); };
+const batchDeleteSkus = async () => { try { for(const r of skuSelection.value) await deleteSku(r.skuId); ElMessage.success(skuSelection.value.length+' 鏉″凡鍒犻櫎'); skuSelection.value=[]; loadSkus(); } catch { ElMessage.error('鍒犻櫎澶辫触'); } };
 const handleDeleteSku = async (id: string) => {
   try {
     await deleteSku(id)
-    ElMessage.success('SKU 已删除')
+    ElMessage.success('SKU 宸插垹闄?)
     loadSkus()
     skuEditRow.value = null
   } catch (e: unknown) {
-    ElMessage.error((e as any)?.message || '删除失败')
+    ElMessage.error((e as any)?.message || '鍒犻櫎澶辫触')
   }
 };
 
-// ===== 结构标准 =====
+// ===== 缁撴瀯鏍囧噯 =====
 const structureStandardList = ref<any[]>([]);
 const loadStructureStandards = async () => {
   try {
     const res = await getStructureList({ page: 1, pageSize: 500 })
-    // request.ts 拦截器已经解包
+    // request.ts 鎷︽埅鍣ㄥ凡缁忚В鍖?
     if (Array.isArray(res)) {
       structureStandardList.value = res
     } else if (res && typeof res === 'object' && Array.isArray(res.items)) {
@@ -580,7 +545,7 @@ const loadStructureStandards = async () => {
   } catch {}
 };
 
-// ===== Category (供 SPU/SKU/Set 表单下拉选择) =====
+// ===== Category (渚?SPU/SKU/Set 琛ㄥ崟涓嬫媺閫夋嫨) =====
 const categoryList = ref<any[]>([]);
 const loadCategoryList = async () => {
   try { categoryList.value = await getCategoriesFlat(); }
@@ -588,7 +553,7 @@ const loadCategoryList = async () => {
 };
 
 
-// ===== Set (P1-3c: 弹窗逻辑已迁移至 SetDialog.vue) =====
+// ===== Set (P1-3c: 寮圭獥閫昏緫宸茶縼绉昏嚦 SetDialog.vue) =====
 const setList = ref<any[]>([]);
 const setLoading = ref(false);
 const setDialogVisible = ref(false);
@@ -606,18 +571,18 @@ const openSetDialog = (row?: any) => {
   setDialogVisible.value = true;
 };
 
-const batchEditSets = () => { if (setSelection.value.length === 1) openSetDialog(setSelection.value[0]); else ElMessage.warning("请只勾选一个套装进行编辑"); };
-const batchDeleteSets = async () => { try { for (const r of setSelection.value) await deleteSet(r.setId); ElMessage.success("已删除"); setSelection.value=[]; loadSets(); } catch(e:unknown){ ElMessage.error((e as any)?.message || "批量删除失败"); } };
+const batchEditSets = () => { if (setSelection.value.length === 1) openSetDialog(setSelection.value[0]); else ElMessage.warning("璇峰彧鍕鹃€変竴涓瑁呰繘琛岀紪杈?); };
+const batchDeleteSets = async () => { try { for (const r of setSelection.value) await deleteSet(r.setId); ElMessage.success("宸插垹闄?); setSelection.value=[]; loadSets(); } catch(e:unknown){ ElMessage.error((e as any)?.message || "鎵归噺鍒犻櫎澶辫触"); } };
 const handleDeleteSet = async (id: string) => {
-  try { await deleteSet(id); ElMessage.success("已删除"); loadSets(); } catch (e: unknown) { ElMessage.error((e as any)?.message || "删除失败"); }
+  try { await deleteSet(id); ElMessage.success("宸插垹闄?); loadSets(); } catch (e: unknown) { ElMessage.error((e as any)?.message || "鍒犻櫎澶辫触"); }
 };
 
 
-// ===== SKU 列表（供 SkuImagePanel + SetDialog 使用）=====
+// ===== SKU 鍒楄〃锛堜緵 SkuImagePanel + SetDialog 浣跨敤锛?====
 const skuListForSelect = ref<any[]>([]);
 const skuSelectLoading = ref(false);
 
-// 全量加载 SKU（套装多选/图片下拉框用）
+// 鍏ㄩ噺鍔犺浇 SKU锛堝瑁呭閫?鍥剧墖涓嬫媺妗嗙敤锛?
 const loadSkusAll = async () => {
   try {
     const res = await getSkus({ pageSize: 9999 });
@@ -632,7 +597,7 @@ const TAB_LOADERS: Record<string, (() => void)[]> = {
   'sku-image': [loadSkusAll],
 };
 
-// 首次只加载全局基础字典（所有 Tab 共用），具体数据按需加载
+// 棣栨鍙姞杞藉叏灞€鍩虹瀛楀吀锛堟墍鏈?Tab 鍏辩敤锛夛紝鍏蜂綋鏁版嵁鎸夐渶鍔犺浇
 onMounted(() => {
   loadSchema();
   loadTiers();
@@ -640,14 +605,14 @@ onMounted(() => {
   loadStructureStandards();
   loadEffectTags();
   loadCategoryList();
-  // 全量加载 SPU/SKU 列表（下拉框/多选用，不分页）
+  // 鍏ㄩ噺鍔犺浇 SPU/SKU 鍒楄〃锛堜笅鎷夋/澶氶€夌敤锛屼笉鍒嗛〉锛?
   loadSpusAll();
   loadSkusAll();
-  // 默认激活 spu tab，加载其数据
+  // 榛樿婵€娲?spu tab锛屽姞杞藉叾鏁版嵁
   loadSpus();
 });
 
-// Tab 切换时只刷新当前 Tab 的数据
+// Tab 鍒囨崲鏃跺彧鍒锋柊褰撳墠 Tab 鐨勬暟鎹?
 watch(activeTab, (tab) => {
   const loaders = TAB_LOADERS[tab];
   if (loaders) {
@@ -661,10 +626,10 @@ watch(activeTab, (tab) => {
 .toolbar { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; }
 .tab-content { min-height: 300px; }
 
-/* 图片类型筛选 */
+/* 鍥剧墖绫诲瀷绛涢€?*/
 .image-type-tabs { margin-bottom: 12px; }
 
-/* 保存排序栏 */
+/* 淇濆瓨鎺掑簭鏍?*/
 .save-order-bar {
   margin-top: 16px;
   padding: 12px 16px;
@@ -676,7 +641,7 @@ watch(activeTab, (tab) => {
   gap: 8px;
 }
 
-/* 批量上传提示 */
+/* 鎵归噺涓婁紶鎻愮ず */
 .batch-hint {
   margin-top: 8px;
   font-size: 12px;
@@ -684,7 +649,7 @@ watch(activeTab, (tab) => {
   line-height: 1.6;
 }
 
-/* 上传预览 */
+/* 涓婁紶棰勮 */
 .upload-preview {
   text-align: center;
   padding: 8px;
@@ -694,7 +659,7 @@ watch(activeTab, (tab) => {
   padding: 20px;
 }
 
-/* 批量文件列表 */
+/* 鎵归噺鏂囦欢鍒楄〃 */
 .batch-file-list {
   margin-top: 12px;
   max-height: 200px;
@@ -714,13 +679,13 @@ watch(activeTab, (tab) => {
   border-bottom: none;
 }
 
-/* 输入框宽度修复 */
+/* 杈撳叆妗嗗搴︿慨澶?*/
 .el-dialog .el-input,
 .el-dialog .el-select,
 .el-dialog .el-date-editor { width: 100% !important; }
 .el-dialog .el-input-number { width: 100% !important; }
 
-/* 已选 SKU 列表明细 */
+/* 宸查€?SKU 鍒楄〃鏄庣粏 */
 .selected-sku-section {
   margin: 0 0 16px 110px;
   border: 1px solid #e8e8e8;
@@ -785,10 +750,10 @@ watch(activeTab, (tab) => {
   color: #e6a23c;
 }
 
-/* 条码输入框宽度适配 */
+/* 鏉＄爜杈撳叆妗嗗搴﹂€傞厤 */
 .w-barcode :deep(.el-input) { max-width: 520px; }
 
-/* SKU 展开行技术规格表 */
+/* SKU 灞曞紑琛屾妧鏈鏍艰〃 */
 .tech-table {
   width: 100%;
   border-collapse: collapse;
@@ -811,7 +776,7 @@ watch(activeTab, (tab) => {
   color: #303133;
 }
 
-/* 图片预览全屏层 */
+/* 鍥剧墖棰勮鍏ㄥ睆灞?*/
 .fullscreen-preview {
   position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
   z-index: 10000;
