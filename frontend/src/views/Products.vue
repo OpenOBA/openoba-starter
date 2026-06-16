@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="products-page">
     <el-tabs v-model="activeTab" type="card">
       <!-- SPU -->
@@ -547,14 +547,6 @@ const loadSkus = async () => {
 const openSkuDialog = (row?: any) => {
   skuEditRow.value = row || null;
   skuDialogVisible.value = true;
-};
-
-// 全量加载 SKU（套装多选/图片下拉框用）
-const loadSkusAll = async () => {
-  try {
-    const res = await getSkus({ pageSize: 9999 });
-    skuListForSelect.value = Array.isArray(res) ? res : (res as any)?.items || [];
-  } catch { /* ignore */ }
 };
 
 const batchEditSkus = () => { if(skuSelection.value.length===1) openSkuDialog(skuSelection.value[0]); else if(skuSelection.value.length>1) ElMessage.warning('暂仅支持单条编辑'); };
