@@ -35,9 +35,6 @@
         :history-loading="historyLoading"
         @switch-task="switchToTask"
       />
-          </div>
-        </div>
-      </div>
 
       <!-- 中栏：对话区 -->
       <div class="chat-mid">
