@@ -1,5 +1,5 @@
 {
-  "name": "frontend",
+  "name": "@openoba/starter-frontend",
   "private": true,
   "version": "1.4.0-alpha7",
   "type": "module",
