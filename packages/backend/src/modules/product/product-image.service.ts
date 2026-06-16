@@ -46,6 +46,7 @@ export class ProductImageService {
       if (sku) qb.andWhere('i.sku_id = :sid', { sid: sku.skuId })
     }
     if (imageType) qb.andWhere('i.image_type = :type', { type: imageType })
+    qb.andWhere('i.is_deleted = false')
     qb.orderBy('i.sort_order', 'ASC')
     const [items, total] = await qb.skip((page - 1) * pageSize).take(pageSize).getManyAndCount()
     return { items, total }
@@ -61,7 +62,10 @@ export class ProductImageService {
     if (dto.isPrimary) {
       await this.skuImageRepo.update({ skuId: dto.skuId, isPrimary: true }, { isPrimary: false })
     }
-    return this.skuImageRepo.save({ ...dto, imageId: undefined })
+    const { ...clean } = dto as any
+    delete clean.imageId
+    clean.isDeleted = false
+    return this.skuImageRepo.save(clean)
   }
 
   async batchCreateSkuImages(dto: { skuId: string; images: { imageUrl: string; imageType?: string; sortOrder?: number; isPrimary?: boolean }[] }) {
@@ -104,7 +108,8 @@ export class ProductImageService {
 
   async deleteSkuImage(id: string) {
     const image = await this.findOneSkuImage(id)
-    return this.skuImageRepo.remove(image)
+    image.isDeleted = true
+    return this.skuImageRepo.save(image)
   }
 
   async reorderSkuImages(orderedImages: { imageId: string; sortOrder: number }[]) {
