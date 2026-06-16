@@ -291,7 +291,7 @@ const rules = {
   phone: [{ required: true, message: '请输入联系电话', trigger: 'blur' }],
 }
 
-function loadData() {
+async function loadData() {
   loading.value = true
   try {
     const res = await getCustomerList(query)
