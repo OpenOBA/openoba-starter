@@ -11,7 +11,7 @@ export class ProductSku {
   @Column({ name: 'sku_code', unique: true, length: 128 })
   skuCode: string
 
-  @Column({ name: 'spu_id', length: 32 })
+  @Column({ name: 'spu_id', length: 36 })
   spuId: string
 
   @Column({ name: 'sku_name', length: 256, nullable: true })

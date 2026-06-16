@@ -347,7 +347,7 @@ CREATE TABLE IF NOT EXISTS `customer_tier_pricing` (
   `pricing_id` varchar(36) NOT NULL COMMENT 'UUID主键',
   `customer_id` varchar(36) NOT NULL COMMENT '关联客户',
   `tier` varchar(16) NOT NULL COMMENT '档位 A/B/C',
-  `product_sku_id` varchar(32) DEFAULT NULL COMMENT '商品SKU',
+  `product_sku_id` varchar(36) DEFAULT NULL COMMENT '商品SKU',
   `discount_rate` decimal(4,3) DEFAULT NULL COMMENT '折扣率',
   `min_quantity` int NOT NULL DEFAULT 1 COMMENT '最低起订量',
   `max_quantity` int DEFAULT NULL COMMENT '最高数量',
@@ -1095,7 +1095,7 @@ CREATE TABLE IF NOT EXISTS `sms_verification_code` (
 CREATE TABLE IF NOT EXISTS `structure_compatibility` (
   `compat_id` varchar(36) NOT NULL COMMENT 'UUID主键',
   `structure_standard_code` varchar(64) NOT NULL COMMENT '结构标准锚点',
-  `product_sku_id` varchar(32) NOT NULL COMMENT '关联镜框SKU',
+  `product_sku_id` varchar(36) NOT NULL COMMENT '关联镜框SKU',
   `compatibility_level` varchar(16) NOT NULL COMMENT 'color/style/texture/smart',
   `notes` varchar(512) DEFAULT NULL COMMENT '备注',
   `is_active` tinyint(1) NOT NULL DEFAULT 1 COMMENT '是否启用',

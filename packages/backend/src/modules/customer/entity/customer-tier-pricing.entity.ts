@@ -21,7 +21,7 @@ export class CustomerTierPricing {
   @Column('varchar', { length: 16, comment: '档位: A/B/C' })
   tier: string
 
-  @Column('varchar', { name: 'product_sku_id', length: 32, nullable: true, comment: '商品SKU（NULL表示全局折扣）' })
+  @Column('varchar', { name: 'product_sku_id', length: 36, nullable: true, comment: '商品SKU（NULL表示全局折扣）' })
   productSkuId: string | null
 
   @Column({
