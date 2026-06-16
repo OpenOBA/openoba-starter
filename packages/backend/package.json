@@ -98,7 +98,7 @@
     "rootDir": ".",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t)s$": ["ts-jest", {
+      "^.+\\.(t|j)s$": ["ts-jest", {
         "tsconfig": "tsconfig.test.json"
       }]
     },
@@ -106,7 +106,7 @@
       "**/*.(t|j)s"
     ],
     "moduleNameMapper": {
-      "^@openoba/core/dist/(.+)$": "<rootDir>/../../packages/core/dist/$1",
+      "^@openoba/core/dist/(.+)$": "<rootDir>/../../node_modules/@openoba/core/dist/$1",
       "^@/(.*)$": "<rootDir>/$1"
     },
     "coverageDirectory": "../coverage",

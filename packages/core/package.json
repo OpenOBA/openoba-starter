@@ -2,19 +2,10 @@
   "name": "@openoba/core",
   "version": "1.4.0-alpha8",
   "private": true,
-  "description": "OpenOBA Core Engine — AI Agent Execution Runtime",
+  "description": "OpenOBA Core Engine 鈥?AI Agent Execution Runtime",
   "license": "BSL-1.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "exports": {
-    ".": "./dist/index.js",
-    "./*": "./dist/*"
-  },
-  "scripts": {
-    "build": "nest build && tsc-alias -p tsconfig.json",
-    "test": "jest --no-coverage",
-    "test:cov": "jest --coverage"
-  },
   "dependencies": {
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
