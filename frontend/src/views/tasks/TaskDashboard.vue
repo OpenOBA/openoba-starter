@@ -47,7 +47,6 @@
 
 <script setup lang="ts">
 
-function goToTask(taskId: string) { router.push('/chat/' + taskId) }
 import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -61,6 +60,8 @@ import CallingInput from '@/components/CallingInput.vue'
 import { getAgents } from '@/api/system'
 
 const router = useRouter()
+
+function goToTask(taskId: string) { router.push('/chat/' + taskId) }
 
 // Agent 列表持久化
 const AGENT_STORAGE_KEY = 'eros_agents'
