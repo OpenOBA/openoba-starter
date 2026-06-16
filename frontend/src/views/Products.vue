@@ -311,7 +311,8 @@ import { getStructureList } from '@/api/structure';
 import { getSchema, type IndustrySchema } from '@/api/schema';
 import SpuDialog from '@/components/SpuDialog.vue'
 import SetDialog from '@/components/SetDialog.vue';
-import SkuDialog from '@/components/SkuDialog.vue';
+import SkuDialog from '@/components/SkuDialog.vue'
+import SkuImagePanel from '@/components/SkuImagePanel.vue';
 import SubSkuTab from './products/SubSkuTab.vue';
 
 // 产品级别映射
