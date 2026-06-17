@@ -24,10 +24,9 @@
       </div>
     </div>
 
-    <!-- 主体三栏 -->
+    <!-- 主体：侧边栏 + 对话区 -->
     <div class="chat-main">
-      <!-- 左侧：任务信息 -->
-      <!-- 左侧：任务信息 + 历史任务 → P1-3b 独立组件 -->
+      <!-- 左侧边栏：任务信息 + 历史任务 -->
       <AgentChatSidebar
         :task-info="taskInfo"
         :task-id="taskId"
@@ -36,7 +35,7 @@
         @switch-task="switchToTask"
       />
 
-      <!-- 中栏：对话区 -->
+      <!-- 对话区 -->
       <div class="chat-mid">
         <div class="chat-body" ref="chatBodyRef">
           <div v-for="(msg, i) in messages" :key="i">
@@ -125,11 +124,19 @@
           任务已结束
           <el-button size="small" @click="$router.push('/tasks/' + taskId)">查看历史</el-button>
         </div>
+
+        <!-- 任务信息摘要条（输入框下方） -->
+        <div v-if="taskInfo" class="task-info-strip">
+          <span class="tis-label">任务</span>
+          <span class="tis-title">{{ taskTitle }}</span>
+          <span class="tis-sep">|</span>
+          <el-tag size="small" :type="taskInfo.status === 'executing' ? 'primary' : taskInfo.status === 'completed' ? 'success' : 'info'">
+            {{ taskStatusLabel(taskInfo.status as string) }}
+          </el-tag>
+          <span v-if="taskInfo.taskNo" class="tis-no">#{{ taskInfo.taskNo }}</span>
+        </div>
       </div>
 
-      <!-- 右侧：认知日志 -->
-      <!-- 右侧：认知日志 → P1-3b 独立组件 -->
-      <AgentChatLogPanel :logs="logs" />
     </div>
   </div>
 </template>
@@ -188,7 +195,7 @@ import { useERASettings } from '@/composables/useERASettings'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import AgentChatSidebar from '@/components/AgentChatSidebar.vue'
-import AgentChatLogPanel from '@/components/AgentChatLogPanel.vue'
+
 
 const route = useRoute()
 const router = useRouter()
@@ -197,6 +204,9 @@ const router = useRouter()
 const taskId = computed(() => route.params.id as string)
 const taskTitle = ref('')
 const taskDone = ref(false)
+
+function taskStatusLabel(s: string) { return { drafted: '草稿', proposed: '待同意', executing: '执行中', completed: '已完成', cancelled: '已取消', aborted: '已中止' }[s] || s }
+
 const messages = shallowRef<any[]>([])  // shallowRef — 手动 triggerRef 控制渲染时机
 const inputText = ref('')
 const agentLoading = ref(false)
@@ -928,16 +938,7 @@ watch(() => route.params.id, (newId) => {
 .chat-done-bar { padding: 12px 14px; border-top: 1px solid #e4e7ed; background: #f0f9eb; text-align: center; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 10px; flex-shrink: 0; }
 .loading-hint { text-align: center; color: #909399; font-size: 12px; padding: 6px; }
 
-/* 右侧：认知日志 */
-.chat-right { width: 240px; overflow-y: auto; flex-shrink: 0; background: rgba(250,251,252,0.6); border-left: 1px solid rgba(3,105,161,0.06); }
-.right-title { font-size: 12px; font-weight: 600; padding: 10px 12px 6px; color: #303133; position: sticky; top: 0; background: rgba(250,251,252,0.6); backdrop-filter: blur(4px); z-index: 2; }
-.log-list { padding: 0 8px; }
-.log-line { display: flex; align-items: center; gap: 5px; padding: 3px 4px; font-size: 10px; border-bottom: 1px solid #f0f0f0; }
-.log-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
-.log-actor { font-weight: 500; min-width: 36px; color: #606266; }
-.log-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #303133; }
-.log-time { color: #c0c4cc; font-size: 9px; flex-shrink: 0; }
-.log-empty { text-align: center; color: #c0c4cc; font-size: 11px; padding: 20px; }
+
 
 /* 输入栏 */
 .chat-input-bar { padding: 10px 16px; border-top: 1px solid rgba(3,105,161,0.08); background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); flex-shrink: 0; position: relative; z-index: 1; border-radius: 0 0 12px 12px; }
@@ -959,4 +960,16 @@ watch(() => route.params.id, (newId) => {
   gap: 6px;
 }
 .footer-name { font-weight: 500; color: #64748b; }
-.footer-sep { color: #cbd5e1; }</style>
+.footer-sep { color: #cbd5e1; }
+
+/* 任务信息摘要条（输入框下方） */
+.task-info-strip {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 16px; font-size: 11px; color: #909399;
+  border-top: 1px solid rgba(3,105,161,0.05);
+  background: rgba(255,255,255,0.5); flex-shrink: 0;
+}
+.tis-label { font-weight: 600; color: #606266; }
+.tis-title { color: #303133; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tis-sep { color: #dcdfe6; }
+.tis-no { color: #c0c4cc; margin-left: auto; }</style>
