@@ -4,7 +4,7 @@
     <div v-else class="app-shell">
       <header class="top-nav" :class="{ 'chat-mode': isChatActive }">
         <div class="nav-brand" @click="$router.push('/chat')">
-          <img src="/logo.png" alt="OpenOBA" class="brand-logo">
+          <img src="/logo.svg" alt="OpenOBA" class="brand-logo">
         </div>
         <nav class="nav-links">
           <router-link to="/chat" class="nav-item" :class="{ active: isChatActive }">

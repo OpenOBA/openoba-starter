@@ -198,7 +198,7 @@ defineExpose({ chatAreaRef, callingInputRef, openAddTemplate, editTemplate })
 
 .chat-empty { text-align: center; padding: 60px 20px 40px; }
 .empty-brand { margin-bottom: 20px; }
-.empty-logo-img { height: 40px; width: auto; border-radius: 8px; }
+.empty-logo-img { height: 80px; width: auto; border-radius: 8px; }
 .empty-title { font-size: 18px; font-weight: 600; color: #1e293b; margin-bottom: 12px; }
 .empty-hint { font-size: 13px; color: #64748b; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 6px; }
 .hint-icon { width: 16px; height: 16px; color: #94a3b8; }
