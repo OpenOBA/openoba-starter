@@ -18,6 +18,7 @@
         :task-id="taskId"
         :history-tasks="historyTasks"
         :history-loading="historyLoading"
+        :logs="logs"
         @switch-task="switchToTask"
       />
 
@@ -111,16 +112,6 @@
           <el-button size="small" @click="$router.push('/tasks/' + taskId)">查看历史</el-button>
         </div>
 
-        <!-- 任务信息摘要条（输入框下方） -->
-        <div v-if="taskInfo" class="task-info-strip">
-          <span class="tis-label">任务</span>
-          <span class="tis-title">{{ taskTitle }}</span>
-          <span class="tis-sep">|</span>
-          <el-tag size="small" :type="taskInfo.status === 'executing' ? 'primary' : taskInfo.status === 'completed' ? 'success' : 'info'">
-            {{ taskStatusLabel(taskInfo.status as string) }}
-          </el-tag>
-          <span v-if="taskInfo.taskNo" class="tis-no">#{{ taskInfo.taskNo }}</span>
-        </div>
       </div>
 
     </div>
@@ -919,14 +910,4 @@ watch(() => route.params.id, (newId) => {
 .footer-name { font-weight: 500; color: #64748b; }
 .footer-sep { color: #cbd5e1; }
 
-/* 任务信息摘要条（输入框下方） */
-.task-info-strip {
-  display: flex; align-items: center; gap: 8px;
-  padding: 6px 16px; font-size: 11px; color: #909399;
-  border-top: 1px solid rgba(3,105,161,0.05);
-  background: rgba(255,255,255,0.5); flex-shrink: 0;
-}
-.tis-label { font-weight: 600; color: #606266; }
-.tis-title { color: #303133; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tis-sep { color: #dcdfe6; }
-.tis-no { color: #c0c4cc; margin-left: auto; }</style>
+</style>

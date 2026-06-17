@@ -1,7 +1,7 @@
 <!--
   AgentChatSidebar.vue — P1-3b 前端重构
-  AgentChat.vue 的左栏独立组件：任务信息卡片 + 历史任务列表
-  Props: taskInfo + taskId + historyTasks + historyLoading
+  AgentChat.vue 的左栏独立组件：任务信息卡片 + 历史任务列表 + 折叠日志
+  Props: taskInfo + taskId + historyTasks + historyLoading + logs
   Emits: switchTask
 -->
 <template>
@@ -36,11 +36,29 @@
         </div>
       </div>
     </div>
+
+    <!-- 认知日志（侧边栏底部折叠） -->
+    <div class="log-panel" v-if="logs && logs.length > 0">
+      <div class="log-header" @click="logCollapsed = !logCollapsed">
+        <span class="log-title">认知日志 ({{ logs.length }})</span>
+        <el-icon><ArrowDown v-if="!logCollapsed" /><ArrowRight v-else /></el-icon>
+      </div>
+      <div class="log-list" v-if="!logCollapsed">
+        <div v-for="log in logs" :key="log.id" class="log-line">
+          <span class="log-dot" :style="{ background: logColor(log.type) }"></span>
+          <span class="log-actor">{{ log.actor }}</span>
+          <span class="log-title-text">{{ log.title }}</span>
+          <span class="log-time">{{ log.time }}</span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 // TaskStatus referenced in statusLabel function
+import { ref } from 'vue'
+
 void (null as unknown as import('@/api/task-engine').TaskStatus)
 
 defineProps<{
@@ -48,11 +66,19 @@ defineProps<{
   taskId: string
   historyTasks: any[]
   historyLoading: boolean
+  logs?: Array<{ id: string; type: string; actor: string; title: string; time: string }>
 }>()
 
 const emit = defineEmits<{
   switchTask: [taskId: string]
 }>()
+
+const logCollapsed = ref(true)
+
+function logColor(type: string): string {
+  const m: Record<string, string> = { thought: '#7c3aed', tool: '#0ea5e9', action: '#f59e0b', error: '#ef4444', info: '#64748b' }
+  return m[type] || '#94a3b8'
+}
 
 const statusLabel = (s: string) => ({
   drafted: '草稿', proposed: '待同意', revised: '修订中', executing: '执行中',
@@ -99,4 +125,16 @@ function formatHistoryTime(t: string): string {
 .history-loading, .history-empty { text-align: center; font-size: 11px; color: #c0c4cc; padding: 12px 0; }
 .left-k { color: #909399; }
 .left-v { font-weight: 500; text-align: right; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 认知日志面板（侧边栏底部折叠） */
+.log-panel { border-top: 1px solid #ebeef5; margin-top: auto; }
+.log-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; cursor: pointer; font-size: 11px; color: #606266; user-select: none; }
+.log-header:hover { background: rgba(3,105,161,0.03); }
+.log-header .log-title { font-weight: 600; }
+.log-list { padding: 4px 8px; max-height: 160px; overflow-y: auto; }
+.log-line { display: flex; align-items: center; gap: 4px; padding: 2px 4px; font-size: 10px; border-bottom: 1px solid #f5f5f5; }
+.log-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.log-actor { font-weight: 500; min-width: 28px; color: #606266; }
+.log-title-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #303133; }
+.log-time { color: #c0c4cc; font-size: 9px; flex-shrink: 0; }
 </style>

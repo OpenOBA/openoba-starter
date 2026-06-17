@@ -93,7 +93,7 @@ const { settings: eraSettings } = useERASettings()
 
 // ── 模型选择（首页）──
 const selectedModel = ref(eraSettings.agent.defaultModel || '')
-const availableModels = ref<Array<{ value: string; label: string }>>([])
+const availableModels = ref<Array<{ value: string; label: string; isDefault: boolean }>>([])
 const loadingModels = ref(false)
 
 async function loadModels() {
@@ -101,18 +101,20 @@ async function loadModels() {
   try {
     const res: any = await request.get('/system/llm/providers')
     if (res?.success && Array.isArray(res.providers)) {
-      const models: Array<{ value: string; label: string }> = []
+      const models: Array<{ value: string; label: string; isDefault: boolean }> = []
       for (const p of res.providers) {
         for (const m of (p.models || [])) {
           models.push({
             value: m.modelCode || m.id,
-            label: `${p.providerName || p.name} · ${m.modelName || m.name}`,
+            label: `${p.providerName || p.name} · ${m.modelName || m.name}${m.isDefault ? ' ★' : ''}`,
+            isDefault: !!m.isDefault,
           })
         }
       }
       availableModels.value = models
       if (!selectedModel.value && models.length > 0) {
-        selectedModel.value = eraSettings.agent.defaultModel || models[0].value
+        const defModel = models.find(m => m.isDefault)
+        selectedModel.value = eraSettings.agent.defaultModel || defModel?.value || models[0].value
       }
     }
   } catch { /* silent */ }

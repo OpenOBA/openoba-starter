@@ -116,7 +116,7 @@ const emit = defineEmits<{
   goDetail: [task: AgentTask]
 }>()
 
-const activeCollapse = ref<string[]>(['tasks'])
+const activeCollapse = ref<string[]>([])
 const localSearchKeyword = ref(props.searchKeyword)
 const localFilterStatus = ref(props.filterStatus)
 const localPage = ref(props.page)
