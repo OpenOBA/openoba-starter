@@ -201,7 +201,7 @@ html, body, #app {
 .top-nav.chat-mode .nav-right { right: 20px; }
 
 .nav-brand { cursor: pointer; z-index: 10; }
-.brand-logo { height: 32px; width: auto; }
+.brand-logo { height: 48px; width: auto; }
 .nav-links { display: flex; justify-content: center; flex: 1; }
 .nav-item {
   padding: 6px 24px; font-size: 13px; color: #606266;
