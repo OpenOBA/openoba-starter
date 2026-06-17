@@ -151,26 +151,33 @@ export function useSkuImages(skuListRef: ReturnType<typeof ref<any[]>>) {
 
   const handleBatchUrl = async () => {
     if (!batchText.value.trim()) return;
-    const urls = batchText.value.trim().split('\n').filter(Boolean);
-    if (urls.length === 0) return;
+    const lines = batchText.value.trim().split('\n').filter(Boolean);
+    if (lines.length === 0) return;
     batchUploading.value = true;
     batchUploadedCount.value = 0;
     batchUploadProgress.value = '';
     try {
-      const payload = {
-        skuId: imageSearch.skuId,
-        imageType: 'gallery',
-        urls,
-      };
-      const res = await batchCreateSkuImages(payload);
-      batchUploadedCount.value = res?.count || urls.length;
+      // 每行格式：URL | 类型 | 排序 | 主图(Y/N) | 替代文本
+      const images = lines.map((line, idx) => {
+        const parts = line.split('|').map(p => p.trim());
+        return {
+          imageUrl: parts[0],
+          imageType: parts[1] || 'gallery',
+          sortOrder: parseInt(parts[2]) || (idx + 1),
+          isPrimary: parts[3]?.toUpperCase() === 'Y',
+          altText: parts[4] || undefined,
+        };
+      });
+      const payload = { skuId: imageSearch.skuId, images };
+      const res: any = await batchCreateSkuImages(payload);
+      batchUploadedCount.value = res?.created || lines.length;
       batchUploadProgress.value = `批量创建成功：${batchUploadedCount.value} 张`;
       ElMessage.success(`已创建 ${batchUploadedCount.value} 张图片`);
       batchText.value = '';
       batchDialogVisible.value = false;
       loadSkuImages();
     } catch (e: unknown) {
-      ElMessage.error(e.message || '批量创建失败');
+      ElMessage.error((e as any)?.message || '批量创建失败');
     } finally {
       batchUploading.value = false;
     }
@@ -204,11 +211,13 @@ export function useSkuImages(skuListRef: ReturnType<typeof ref<any[]>>) {
     }
     if (urls.length > 0) {
       try {
-        const payload = {
-          skuId: imageSearch.skuId,
+        const images = urls.map((url, idx) => ({
+          imageUrl: url,
           imageType: 'gallery',
-          urls,
-        };
+          sortOrder: idx + 1,
+          isPrimary: false,
+        }));
+        const payload = { skuId: imageSearch.skuId, images };
         await batchCreateSkuImages(payload);
         batchUploadProgress.value = `已上传 ${urls.length}/${pendingFiles.length} 张`;
         ElMessage.success(`批量完成：${urls.length}/${pendingFiles.length} 张`);
