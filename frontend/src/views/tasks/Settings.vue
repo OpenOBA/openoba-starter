@@ -264,52 +264,42 @@
               </template>
             </el-table-column>
 
-            <el-table-column label="操作" width="200" align="center">
+            <el-table-column label="操作" width="260" align="center">
               <template #default="{ row }">
-                <el-button
-                  v-if="!row.editing"
-                  size="small"
-                  text
-                  type="primary"
-                  @click="startEditKey(row)"
-                >
-                  <el-icon><Edit /></el-icon>
-                </el-button>
-                <el-button
-                  v-if="row.editing"
-                  size="small"
-                  type="primary"
-                  :loading="row.saving"
-                  @click="doSaveKey(row)"
-                >
-                  保存
-                </el-button>
-                <el-button
-                  v-if="row.editing"
-                  size="small"
-                  @click="cancelEditKey(row)"
-                >
-                  取消
-                </el-button>
-                <el-button
-                  v-if="!row.editing && row.hasKey"
-                  size="small"
-                  text
-                  @click="doSetDefault(row)"
-                  :type="row.isDefault ? 'warning' : 'info'"
-                  :title="row.isDefault ? '当前默认' : '设为默认'"
-                >
-                  <el-icon><StarFilled v-if="row.isDefault" /><Star v-else /></el-icon>
-                </el-button>
-                <el-button
-                  v-if="!row.editing && row.hasKey"
-                  size="small"
-                  text
-                  type="danger"
-                  @click="doDeleteKey(row)"
-                >
-                  <el-icon><Delete /></el-icon>
-                </el-button>
+                <template v-if="!row.editing">
+                  <!-- 编辑 Key -->
+                  <el-button size="small" text type="primary" @click="startEditKey(row)" title="编辑 API Key">
+                    <el-icon><Edit /></el-icon>
+                  </el-button>
+                  <!-- 设为默认 -->
+                  <el-button
+                    v-if="row.hasKey"
+                    size="small"
+                    text
+                    :type="row.isDefault ? 'warning' : 'info'"
+                    :title="row.isDefault ? '当前默认模型' : '设为默认模型'"
+                    @click="doSetDefault(row)"
+                  >
+                    <el-icon><StarFilled v-if="row.isDefault" /><Star v-else /></el-icon>
+                    <span style="font-size:12px;margin-left:2px">{{ row.isDefault ? '默认' : '默认' }}</span>
+                  </el-button>
+                  <!-- 删除 Key -->
+                  <el-button
+                    v-if="row.hasKey"
+                    size="small"
+                    text
+                    type="danger"
+                    title="删除此模型的 API Key"
+                    @click="doDeleteKey(row)"
+                  >
+                    <el-icon><Delete /></el-icon>
+                    <span style="font-size:12px;margin-left:2px">删除</span>
+                  </el-button>
+                </template>
+                <template v-else>
+                  <el-button size="small" type="primary" :loading="row.saving" @click="doSaveKey(row)">保存</el-button>
+                  <el-button size="small" @click="cancelEditKey(row)">取消</el-button>
+                </template>
               </template>
             </el-table-column>
           </el-table>
