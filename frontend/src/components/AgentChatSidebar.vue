@@ -12,7 +12,7 @@
       <div class="left-row"><span class="left-k">类型</span><span class="left-v">{{ typeLabel(taskInfo.type as string) }}</span></div>
       <div class="left-row"><span class="left-k">状态</span><span class="left-v">{{ statusLabel(taskInfo.status as string) }}</span></div>
       <div class="left-row" v-if="taskInfo.createdBy"><span class="left-k">创建人</span><span class="left-v">{{ taskInfo.createdBy }}</span></div>
-      <div class="left-row" v-if="taskInfo.agentId"><span class="left-k">Agent</span><span class="left-v">{{ taskInfo.agentId }}</span></div>
+      <div class="left-row" v-if="taskInfo.agentId"><span class="left-k">Agent</span><span class="left-v">{{ agentLabel(taskInfo.agentId as string) }}</span></div>
     </div>
     <div class="left-divider"></div>
 
@@ -82,19 +82,28 @@ function logColor(type: string): string {
 
 const statusLabel = (s: string) => ({
   drafted: '草稿', proposed: '待同意', revised: '修订中', executing: '执行中',
-  delivered: '已交付', completed: '已完成', cancelled: '已取消', aborted: '已中止',
+  delivered: '已交付', published: '已发布', completed: '已完成', cancelled: '已取消',
+  aborted: '已中止', escalated: '已升级',
 }[s] || s)
 
 const typeLabel = (t: string) => ({
-  product_listing: '商品上架', content_creation: '内容创作', customer_service: '客服', tech_support: '技术',
+  product_listing: '商品上架', content_creation: '内容创作', customer_service: '客服',
+  tech_support: '技术支持', data_analysis: '数据分析', market_research: '市场调研',
+  code_generation: '代码生成', document_writing: '文档撰写', translation: '翻译',
+  general: '通用任务',
 }[t] || t)
 
+// Agent ID → 可读名
+const agentLabel = (id: string) => ({
+  agent: 'AI 执行官', 'main-agent': 'AI 执行官', 'OpenOBA': 'AI 执行官',
+}[id] || id)
+
 function historyStatusType(s: string): string {
-  const m: Record<string, string> = { drafted: 'info', executing: 'primary', completed: 'success', proposed: 'warning', delivered: 'success', published: 'success', cancelled: 'danger', aborted: 'danger' }
+  const m: Record<string, string> = { drafted: 'info', executing: 'primary', completed: 'success', proposed: 'warning', revised: 'info', delivered: 'success', published: 'success', cancelled: 'danger', aborted: 'danger', escalated: 'warning' }
   return m[s] || 'info'
 }
 function historyStatusLabel(s: string): string {
-  const m: Record<string, string> = { drafted: '草稿', executing: '执行中', completed: '已完成', proposed: '待审批', delivered: '已交付', published: '已发布', cancelled: '已取消', aborted: '已中止' }
+  const m: Record<string, string> = { drafted: '草稿', executing: '执行中', completed: '已完成', proposed: '待审批', revised: '修订中', delivered: '已交付', published: '已发布', cancelled: '已取消', aborted: '已中止', escalated: '已升级' }
   return m[s] || s
 }
 function formatHistoryTime(t: string): string {

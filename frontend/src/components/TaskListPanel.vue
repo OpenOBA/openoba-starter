@@ -131,13 +131,13 @@ const displayedTasks = computed(() => {
 })
 
 const statusLabel = (s: TaskStatus) => ({
-  drafted: '草稿', proposed: '待审批', revised: '待修改',
+  drafted: '草稿', proposed: '待同意', revised: '修订中',
   executing: '执行中', delivered: '已交付', published: '已发布',
   completed: '已完成', cancelled: '已取消', aborted: '已中止', escalated: '已升级',
 }[s] || s)
 
 const statusTagType = (s: TaskStatus) => {
-  const m: Record<string, string> = { drafted: 'info', proposed: 'warning', executing: 'primary', delivered: 'success', published: 'success', completed: 'success', cancelled: 'danger', escalated: 'danger' }
+  const m: Record<string, string> = { drafted: 'info', proposed: 'warning', revised: 'info', executing: 'primary', delivered: 'success', published: 'success', completed: 'success', cancelled: 'danger', aborted: 'danger', escalated: 'warning' }
   return m[s] || 'info'
 }
 
