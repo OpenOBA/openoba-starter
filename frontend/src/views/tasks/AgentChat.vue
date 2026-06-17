@@ -499,9 +499,10 @@ async function sendMsg(text: string) {
     })
 
     ws.socket.on('chat.done', (payload: WsPayload) => {
+      // 后端 chat.done 事件不返回 model/agentName；用 session 中已知的模型名
       messages.value[msgIdx].agentFooter = {
-        name: payload.agentName || 'Agent',
-        model: payload.model || '',
+        name: payload.agentName || 'AI 执行官',
+        model: payload.model || chatModel.value || '',
         ts: formatFooterTime(),
       }
       messages.value[msgIdx].streaming = false
@@ -613,7 +614,7 @@ async function sendMsg(text: string) {
             } else if (json.type === 'done') {
               messages.value[msgIdx].agentFooter = {
                 name: json.agentName || 'AI 执行官',
-                model: json.model || usedModel.value || '',
+                model: json.model || usedModel.value || chatModel.value || '',
                 ts: formatFooterTime(),
               }
               messages.value[msgIdx].streaming = false
