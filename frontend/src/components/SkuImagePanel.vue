@@ -225,7 +225,11 @@ async function onImageFileSelect(e: Event) {
   imageUploading.value = true
   try {
     const res: any = await uploadImage(file)
-    imageForm.imageUrl = res.url || res.data?.url || ''
+    const result = res.data || res
+    imageForm.imageUrl = result.url || ''
+    if (result.size) imageForm.fileSize = result.size
+    if (result.width) imageForm.width = result.width
+    if (result.height) imageForm.height = result.height
   } catch (err: unknown) { ElMessage.error((err as any)?.message || '上传失败') }
   finally { imageUploading.value = false }
 }

@@ -192,15 +192,21 @@ export function useSkuImages(skuListRef: ReturnType<typeof ref<any[]>>) {
     batchUploading.value = true;
     batchUploadedCount.value = 0;
     batchUploadProgress.value = '';
-    const urls: string[] = [];
+    const uploadedImages: { imageUrl: string; fileSize?: number; width?: number; height?: number }[] = [];
     for (const item of pendingFiles) {
       try {
         const formData = new FormData();
         formData.append('file', item.file);
-        const res = await uploadImage(formData);
-        const url = res?.url || res?.data?.url || res?.imageUrl || '';
+        const res: any = await uploadImage(formData);
+        const result = res?.data || res;
+        const url = result?.url || '';
         if (url) {
-          urls.push(url);
+          uploadedImages.push({
+            imageUrl: url,
+            fileSize: result?.size,
+            width: result?.width,
+            height: result?.height,
+          });
           batchUploadedCount.value++;
         }
         item.status = 'done';
@@ -209,18 +215,21 @@ export function useSkuImages(skuListRef: ReturnType<typeof ref<any[]>>) {
         item.status = 'failed';
       }
     }
-    if (urls.length > 0) {
+    if (uploadedImages.length > 0) {
       try {
-        const images = urls.map((url, idx) => ({
-          imageUrl: url,
+        const images = uploadedImages.map((img, idx) => ({
+          imageUrl: img.imageUrl,
           imageType: 'gallery',
           sortOrder: idx + 1,
           isPrimary: false,
+          fileSize: img.fileSize,
+          width: img.width,
+          height: img.height,
         }));
         const payload = { skuId: imageSearch.skuId, images };
         await batchCreateSkuImages(payload);
-        batchUploadProgress.value = `已上传 ${urls.length}/${pendingFiles.length} 张`;
-        ElMessage.success(`批量完成：${urls.length}/${pendingFiles.length} 张`);
+        batchUploadProgress.value = `已上传 ${uploadedImages.length}/${pendingFiles.length} 张`;
+        ElMessage.success(`批量完成：${uploadedImages.length}/${pendingFiles.length} 张`);
         loadSkuImages();
       } catch (e: unknown) {
         ElMessage.error(e.message || '批量创建失败');
