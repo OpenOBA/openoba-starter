@@ -123,7 +123,7 @@ export class LlmConfigController {
                 where: { providerCode: body.customProviderCode, modelCode: body.modelCode },
               })
               if (models?.length) {
-                await this.modelRegistry.setDefaultModel(kd.key.id, models[0].id)
+                await this.modelRegistry.setDefaultModel(models[0].id, body.customProviderCode)
               }
             }
           } catch { /* model linking best-effort */ }
@@ -162,7 +162,7 @@ export class LlmConfigController {
           const models = await (this.modelRegistry as any).getModels(provider)
           const matched = models?.find((m: any) => m.modelCode === body.modelCode)
           if (matched) {
-            await this.modelRegistry.setDefaultModel(kd.key.id, matched.id)
+            await this.modelRegistry.setDefaultModel(matched.id, provider)
             this.logger.log(`Default model set: ${provider}/${body.modelCode}`)
           }
         }
@@ -236,12 +236,11 @@ export class LlmConfigController {
   @Post('llm/config/set-default')
   async setDefaultModel(@Body() body: { provider: string; modelCode: string }) {
     try {
-      const kd = await this.modelRegistry.getKeyWithDecrypted(body.provider)
-      if (!kd) return { success: false, error: 'No key configured for this provider' }
+      // 不需要 key：直接在 registry 表中设默认
       const models = await (this.modelRegistry as any).getModels(body.provider)
       const matched = models?.find((m: any) => m.modelCode === body.modelCode)
       if (!matched) return { success: false, error: 'Model not found' }
-      await this.modelRegistry.setDefaultModel(kd.key.id, matched.id)
+      await this.modelRegistry.setDefaultModel(matched.id, body.provider)
       this.logger.log(`Default model set: ${body.provider}/${body.modelCode}`)
       return { success: true }
     } catch (e: unknown) {
@@ -258,6 +257,21 @@ export class LlmConfigController {
     try {
       await this.modelRegistry.deleteKey(id)
       this.logger.log(`LLM Key deleted: ${id}`)
+      return { success: true }
+    } catch (e: unknown) {
+      return { success: false, error: (e as Error).message }
+    }
+  }
+
+  // ============================================================
+  //  删除单个模型记录（从 provider 的 models 列表中移除）
+  // ============================================================
+
+  @Delete('llm/models/:id')
+  async deleteLlmModel(@Param('id') id: string) {
+    try {
+      await this.modelRegistry.deleteModel(id)
+      this.logger.log(`LLM Model deleted: ${id}`)
       return { success: true }
     } catch (e: unknown) {
       return { success: false, error: (e as Error).message }
