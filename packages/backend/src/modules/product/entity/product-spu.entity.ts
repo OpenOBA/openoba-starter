@@ -38,10 +38,12 @@ export class ProductSpu {
   @Column({ comment: '描述',  type: 'text', nullable: true })
   description?: string
 
-  @Column({ comment: '主图URL',  name: 'main_image', length: 512, nullable: true })
+  /** @deprecated 2026-06-17：SPU 不应直接持有商品图——商品图统一走 product_sku_image 表。保留字段仅数据库向后兼容，不再读写。 */
+  @Column({ comment: '【废弃】主图URL — 改用 product_sku_image',  name: 'main_image', length: 512, nullable: true })
   mainImage?: string
 
-  @Column({ comment: '图片列表JSON',  type: 'json', nullable: true })
+  /** @deprecated 2026-06-17：同 main_image，商品图统一走 product_sku_image */
+  @Column({ comment: '【废弃】图片列表JSON — 改用 product_sku_image',  type: 'json', nullable: true })
   images?: string[]
 
   @Column({ comment: '扩展属性JSON',  type: 'json', nullable: true })
