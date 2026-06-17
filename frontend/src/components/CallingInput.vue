@@ -10,8 +10,8 @@
         @close="removeAgent(ag)"
       >
         @{{ ag.displayName }}
-        <span v-if="currentDefaultModel" style="font-size:10px;color:#909399;margin-left:4px">
-          {{ currentDefaultModel }}
+        <span v-if="eraSettings.agent.defaultModel" style="font-size:10px;color:#909399;margin-left:4px">
+          {{ eraSettings.agent.defaultModel }}
         </span>
       </el-tag>
       <el-tag
@@ -68,20 +68,6 @@
         />
       </div>
       <div class="footer-right">
-        <el-select
-          v-if="availableModels.length > 0"
-          :model-value="currentDefaultModel"
-          size="small"
-          class="model-select"
-          @change="onModelChange"
-        >
-          <el-option
-            v-for="m in availableModels"
-            :key="m.modelCode"
-            :label="m.modelName"
-            :value="m.modelCode"
-          />
-        </el-select>
         <span class="input-hint">Enter 发送</span>
         <el-button
           class="send-btn"
@@ -98,9 +84,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import type { AgentEntry } from './AgentSidebar.vue'
-import { getProviderKeys } from '@/api/system'
 
 const props = withDefaults(defineProps<{
   agents: AgentEntry[]
@@ -120,41 +105,9 @@ const inputRef = ref()
 const fileInputRef = ref<HTMLInputElement>()
 const selectedAgents = ref<AgentEntry[]>([])
 const attachedFiles = ref<File[]>([])
-
-// 模型选择 — 始终显示当前模型，下拉切换
-const currentDefaultModel = ref('')
-
-function onModelChange(modelCode: string) {
-  currentDefaultModel.value = modelCode
-  // 应用到已选 Agent
-  for (const ag of selectedAgents.value) {
-    agentModels.value[ag.id] = modelCode
-  }
-}
-
-async function loadAvailableModels() {
-  const models: any[] = []
-  try {
-    const keys = await getProviderKeys()
-    for (const k of keys || []) {
-      if (k.models) {
-        for (const m of k.models) {
-          models.push({ modelCode: m.modelCode, modelName: m.modelName, providerCode: k.providerCode })
-        }
-      }
-    }
-    availableModels.value = models
-  } catch { /* ignore */ }
-  if (models.length > 0 && !currentDefaultModel.value) {
-    currentDefaultModel.value = models[0].modelCode
-  }
-}
-
-// 保留 agentModels 用于发送时携带
-const agentModels = ref<Record<string, string>>({})
-const availableModels = ref<{ modelCode: string; modelName: string; providerCode: string }[]>([])
-
-onMounted(() => { loadAvailableModels() })
+// 模型来源：首页 Header 的 eraSettings.agent.defaultModel
+import { useERASettings } from '@/composables/useERASettings'
+const { settings: eraSettings } = useERASettings()
 
 const placeholder = computed(() => {
   if (selectedAgents.value.length === 1) {
@@ -186,9 +139,7 @@ async function handleSend() {
   if (!canSend.value) return
   const agentIds = selectedAgents.value.map(a => a.id)
   const files = attachedFiles.value.length > 0 ? [...attachedFiles.value] : undefined
-  const modelCode = selectedAgents.value.length === 1
-    ? (currentDefaultModel.value || undefined)
-    : undefined
+  const modelCode = eraSettings.agent.defaultModel || undefined
   emit('send', { text: text.value.trim(), agentIds, files, modelCode })
   text.value = ''
   selectedAgents.value = []
