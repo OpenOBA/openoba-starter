@@ -9,7 +9,7 @@
     <div class="chat-area" ref="chatAreaRef">
       <div v-if="messages.length === 0" class="chat-empty">
         <div class="empty-brand">
-          <img src="/logo.png" alt="OpenOBA" class="empty-logo-img">
+          <img src="@/assets/logos/openoba-logo.svg" alt="OpenOBA" class="empty-logo-img">
         </div>
         <div class="empty-title">选择 Agent 或直接描述任务</div>
         <div class="empty-hint">
@@ -198,7 +198,7 @@ defineExpose({ chatAreaRef, callingInputRef, openAddTemplate, editTemplate })
 
 .chat-empty { text-align: center; padding: 60px 20px 40px; }
 .empty-brand { margin-bottom: 20px; }
-.empty-logo-img { width: 72px; height: 72px; border-radius: 16px; box-shadow: 0 4px 16px rgba(15,23,42,0.06); }
+.empty-logo-img { height: 40px; width: auto; border-radius: 8px; }
 .empty-title { font-size: 18px; font-weight: 600; color: #1e293b; margin-bottom: 12px; }
 .empty-hint { font-size: 13px; color: #64748b; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 6px; }
 .hint-icon { width: 16px; height: 16px; color: #94a3b8; }

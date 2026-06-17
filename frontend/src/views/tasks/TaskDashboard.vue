@@ -2,7 +2,10 @@
   <div class="task-dashboard">
     <!-- 顶部 Header：标题 + 模型选择 -->
     <div class="dash-header">
-      <h2 class="dash-title">ERA-Chat</h2>
+      <div class="dash-brand">
+        <img src="@/assets/logos/openoba-logo.svg" class="dash-logo" alt="OpenOBA" />
+        <h2 class="dash-title">ERA-Chat</h2>
+      </div>
       <div class="dash-model-select">
         <label class="dash-model-label">默认模型</label>
         <el-select
@@ -425,6 +428,8 @@ onMounted(() => { loadAgentList(); loadTasks(); loadModels() })
   padding: 12px 20px; border-bottom: 1px solid rgba(3,105,161,0.08);
   background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); flex-shrink: 0;
 }
+.dash-brand { display: flex; align-items: center; gap: 10px; }
+.dash-logo { height: 28px; width: auto; flex-shrink: 0; }
 .dash-title { margin: 0; font-size: 18px; font-weight: 700; color: #1e293b; }
 .dash-model-select { display: flex; align-items: center; gap: 8px; }
 .dash-model-label { font-size: 12px; color: #909399; font-weight: 500; }
