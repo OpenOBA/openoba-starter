@@ -7,20 +7,6 @@
       </el-button>
       <div class="header-info">
         <h3>{{ taskTitle || 'Agent 对话' }}</h3>
-        <el-select
-          v-model="chatModel"
-          size="small"
-          :loading="loadingChatModels"
-          style="width:240px;margin-left:12px"
-          placeholder="选择模型"
-        >
-          <el-option
-            v-for="m in chatModels"
-            :key="m.value"
-            :label="m.label"
-            :value="m.value"
-          />
-        </el-select>
       </div>
     </div>
 
@@ -227,37 +213,8 @@ const LS_KEY = computed(() => 'chat-' + taskId.value)
 const ws = useWsClient()
 const { settings: eraSettings } = useERASettings()
 
-// ── P1-1: ERA-Chat 首页模型下拉框 ──
-const chatModels = ref<Array<{ value: string; label: string }>>([])
-const loadingChatModels = ref(false)
-const chatModel = ref(eraSettings.agent.defaultModel || '')
-
-async function loadChatModels() {
-  loadingChatModels.value = true
-  try {
-    const res: any = await request.get('/system/llm/providers')
-    if (res?.success && Array.isArray(res.providers)) {
-      const models: Array<{ value: string; label: string }> = []
-      for (const p of res.providers) {
-        for (const m of (p.models || [])) {
-          const modelId = m.modelCode || m.id
-          const modelName = (p.providerName || p.name) + ' · ' + (m.modelName || m.name)
-          models.push({ value: modelId, label: modelName })
-        }
-      }
-      chatModels.value = models
-      if (!chatModel.value && models.length > 0) {
-        chatModel.value = eraSettings.agent.defaultModel || models[0].value
-      }
-    }
-  } catch { /* silent */ }
-  finally { loadingChatModels.value = false }
-}
-
-// 模型切换时更新 eraSettings
-watch(chatModel, (val) => {
-  if (val) eraSettings.agent.defaultModel = val
-})
+// 模型来源：首页选择的 eraSettings.agent.defaultModel
+const chatModel = computed(() => eraSettings.agent.defaultModel || '')
 
 // 任务信息（中缝显示）
 const taskInfo = ref<any>(null)
@@ -824,7 +781,6 @@ function scrollBottom() {
 }
 
 onMounted(() => {
-  loadChatModels()
   if (!taskId.value || taskId.value === 'undefined') {
     ElMessage.error('无效任务')
     router.push('/chat')
