@@ -88,7 +88,6 @@ export function useSkuImages(skuListRef: ReturnType<typeof ref<any[]>>) {
 
   const handleSaveImage = async () => {
     const payload: Record<string, unknown> = {
-      skuId: imageForm.skuId,
       imageUrl: imageForm.imageUrl,
       imageType: imageForm.imageType,
       sortOrder: imageForm.sortOrder,
@@ -103,7 +102,8 @@ export function useSkuImages(skuListRef: ReturnType<typeof ref<any[]>>) {
         await updateSkuImage(imageForm.imageId, payload);
         ElMessage.success('图片已更新');
       } else {
-        await createSkuImage(payload);
+        // 新建时需要 skuId
+        await createSkuImage({ ...payload, skuId: imageForm.skuId });
         ElMessage.success('图片已添加');
       }
       imageDialogVisible.value = false;

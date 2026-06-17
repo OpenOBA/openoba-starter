@@ -237,7 +237,19 @@ async function onImageFileSelect(e: Event) {
 async function handleSaveImage() {
   try {
     if (imageForm.imageId) {
-      await updateSkuImage(imageForm.imageId, imageForm)
+      // 仅提交 updatable 字段
+      const payload = {
+        imageUrl: imageForm.imageUrl,
+        imageType: imageForm.imageType,
+        sortOrder: imageForm.sortOrder,
+        isPrimary: imageForm.isPrimary,
+        isActive: imageForm.isActive,
+        altText: imageForm.altText,
+        width: imageForm.width,
+        height: imageForm.height,
+        fileSize: imageForm.fileSize,
+      }
+      await updateSkuImage(imageForm.imageId, payload)
       ElMessage.success('图片已更新')
     } else {
       await createSkuImage(imageForm)
