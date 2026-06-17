@@ -268,12 +268,12 @@
               <template #default="{ row }">
                 <template v-if="!row.editing">
                   <!-- 编辑 Key -->
-                  <el-button size="small" text type="primary" @click="startEditKey(row)" title="编辑 API Key">
+                  <el-button size="small" text type="primary" @click="startEditKey(row)" :title="row.hasKey ? '修改 API Key' : '配置 API Key'">
                     <el-icon><Edit /></el-icon>
+                    <span style="font-size:12px;margin-left:2px">{{ row.hasKey ? '改密' : '配密' }}</span>
                   </el-button>
-                  <!-- 设为默认 -->
+                  <!-- 设为默认 → 所有模型行都显示，用户自己选 -->
                   <el-button
-                    v-if="row.hasKey"
                     size="small"
                     text
                     :type="row.isDefault ? 'warning' : 'info'"
@@ -283,7 +283,7 @@
                     <el-icon><StarFilled v-if="row.isDefault" /><Star v-else /></el-icon>
                     <span style="font-size:12px;margin-left:2px">{{ row.isDefault ? '默认' : '默认' }}</span>
                   </el-button>
-                  <!-- 删除 Key -->
+                  <!-- 删除 Key → 仅已配 Key 时可见 -->
                   <el-button
                     v-if="row.hasKey"
                     size="small"
