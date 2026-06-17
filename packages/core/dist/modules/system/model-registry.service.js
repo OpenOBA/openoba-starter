@@ -209,13 +209,25 @@ let ModelRegistryService = ModelRegistryService_1 = class ModelRegistryService {
             return null;
         }
     }
-    async setDefaultModel(keyId, registryId) {
-        await this.keyModelsRepo.update({ keyId }, { isDefault: 0 });
-        await this.keyModelsRepo.update({ keyId, registryId }, { isDefault: 1 });
+    async setDefaultModel(registryId, providerCode) {
+        // 同 provider 下所有模型取消默认
+        await this.registryRepo.update({ providerCode }, { isDefault: 0 });
+        // 目标模型设为默认
+        await this.registryRepo.update(registryId, { isDefault: 1 });
+        // 同步更新 keyModels 关联表（如果有关联的 key）
+        const links = await this.keyModelsRepo.find({ where: { registryId } });
+        for (const link of links) {
+            await this.keyModelsRepo.update({ keyId: link.keyId }, { isDefault: 0 });
+            await this.keyModelsRepo.update({ keyId: link.keyId, registryId }, { isDefault: 1 });
+        }
     }
     async deleteKey(id) {
         await this.keyRepo.update(id, { isEnabled: 0, updatedAt: new Date() });
         await this.keyModelsRepo.delete({ keyId: id });
+    }
+    async deleteModel(registryId) {
+        await this.registryRepo.update(registryId, { isEnabled: 0 });
+        await this.keyModelsRepo.delete({ registryId });
     }
     async getEnabledProvidersWithModels() {
         const providers = await this.providerRepo.find({ where: { isEnabled: 1 }, order: { providerCode: 'ASC' } });
