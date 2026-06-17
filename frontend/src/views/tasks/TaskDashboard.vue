@@ -1,7 +1,29 @@
 ﻿<template>
   <div class="task-dashboard">
-    <!-- 对话区 -->
+    <!-- 顶部 Header：标题 + 模型选择 -->
+    <div class="dash-header">
+      <h2 class="dash-title">ERA-Chat</h2>
+      <div class="dash-model-select">
+        <label class="dash-model-label">默认模型</label>
+        <el-select
+          v-model="selectedModel"
+          size="small"
+          :loading="loadingModels"
+          style="width:240px"
+          placeholder="选择默认模型"
+          @change="onModelChange"
+        >
+          <el-option
+            v-for="m in availableModels"
+            :key="m.value"
+            :label="m.label"
+            :value="m.value"
+          />
+        </el-select>
+      </div>
+    </div>
 
+    <!-- 对话区 -->
     <div class="main-area">
       <AgentSidebar :agents="agentList" @select="onAgentSelect" @create="goToAgentManagement" @update:agents="onAgentsUpdate" />
 
@@ -63,8 +85,43 @@ import AgentSidebar from '@/components/AgentSidebar.vue'
 import type { AgentEntry } from '@/components/AgentSidebar.vue'
 import CallingInput from '@/components/CallingInput.vue'
 import { getAgents } from '@/api/system'
+import { useERASettings } from '@/composables/useERASettings'
+import request from '@/api/request'
 
 const router = useRouter()
+const { settings: eraSettings } = useERASettings()
+
+// ── 模型选择（首页）──
+const selectedModel = ref(eraSettings.agent.defaultModel || '')
+const availableModels = ref<Array<{ value: string; label: string }>>([])
+const loadingModels = ref(false)
+
+async function loadModels() {
+  loadingModels.value = true
+  try {
+    const res: any = await request.get('/system/llm/providers')
+    if (res?.success && Array.isArray(res.providers)) {
+      const models: Array<{ value: string; label: string }> = []
+      for (const p of res.providers) {
+        for (const m of (p.models || [])) {
+          models.push({
+            value: m.modelCode || m.id,
+            label: `${p.providerName || p.name} · ${m.modelName || m.name}`,
+          })
+        }
+      }
+      availableModels.value = models
+      if (!selectedModel.value && models.length > 0) {
+        selectedModel.value = eraSettings.agent.defaultModel || models[0].value
+      }
+    }
+  } catch { /* silent */ }
+  finally { loadingModels.value = false }
+}
+
+function onModelChange(val: string) {
+  eraSettings.agent.defaultModel = val
+}
 
 // Agent 列表持久化
 const AGENT_STORAGE_KEY = 'eros_agents'
@@ -347,7 +404,7 @@ const defaultTemplates: TemplateItem[] = [
   { icon: '', text: '竞品分析', fill: '分析竞品在框型/定价/营销上的表现，找出我们的差异化切入' },
 ]
 
-onMounted(() => { loadAgentList(); loadTasks() })
+onMounted(() => { loadAgentList(); loadTasks(); loadModels() })
 </script>
 
 <style scoped>
@@ -358,6 +415,16 @@ onMounted(() => { loadAgentList(); loadTasks() })
   padding: 0;
   background: linear-gradient(160deg, #f0f4fa 0%, #faf8fc 50%, #f0f7f8 100%);
 }
+
+/* 首页 Header：标题 + 模型选择 */
+.dash-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 20px; border-bottom: 1px solid rgba(3,105,161,0.08);
+  background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); flex-shrink: 0;
+}
+.dash-title { margin: 0; font-size: 18px; font-weight: 700; color: #1e293b; }
+.dash-model-select { display: flex; align-items: center; gap: 8px; }
+.dash-model-label { font-size: 12px; color: #909399; font-weight: 500; }
 
 .page-header {
   height: 48px;
