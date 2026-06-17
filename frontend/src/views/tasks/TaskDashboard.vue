@@ -317,7 +317,7 @@ async function executeConfirm(idx: number) {
       type: taskType || 'product_listing',
       context: { description: text },
       reportTo: 'rt-l1-product',
-      createdBy: 'Henry',
+      createdBy: '', // 由后端从 JWT 中提取当前登录用户
       agentId: agentId || undefined,
     })
     const taskId = (task as any).id || (task as any).taskId || ''
