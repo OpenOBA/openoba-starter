@@ -283,17 +283,16 @@
                     <el-icon><StarFilled v-if="row.isDefault" /><Star v-else /></el-icon>
                     <span style="font-size:12px;margin-left:2px">{{ row.isDefault ? '默认' : '默认' }}</span>
                   </el-button>
-                  <!-- 删除 Key → 仅已配 Key 时可见 -->
+                  <!-- 删除按钮 → 所有模型行都可见：有 key 删 key，无 key 删模型记录 -->
                   <el-button
-                    v-if="row.hasKey"
                     size="small"
                     text
                     type="danger"
-                    title="删除此模型的 API Key"
+                    :title="row.hasKey ? '删除此模型的 API Key' : '从列表中移除此模型'"
                     @click="doDeleteKey(row)"
                   >
                     <el-icon><Delete /></el-icon>
-                    <span style="font-size:12px;margin-left:2px">删除</span>
+                    <span style="font-size:12px;margin-left:2px">{{ row.hasKey ? '删Key' : '移除' }}</span>
                   </el-button>
                 </template>
                 <template v-else>
@@ -405,6 +404,7 @@ const activeTab = ref('workspace')
 
 interface KeyRow {
   keyId: string
+  registryId: string
   providerCode: string
   provider: string
   model: string
@@ -445,6 +445,7 @@ async function loadKeyRows() {
 
         rows.push({
           keyId: keyInfo?.id || '',
+          registryId: m.id || '',
           providerCode: p.providerCode || p.id,
           provider: p.providerName || p.name,
           model: m.modelName || m.name,
@@ -524,23 +525,31 @@ async function doSetDefault(row: KeyRow) {
 }
 
 async function doDeleteKey(row: KeyRow) {
+  // 两种模式：有 key 则删 key 配置，无 key 则删模型记录
+  const isDelModel = !row.hasKey || !row.keyId
+  const confirmMsg = isDelModel
+    ? `确定从列表中移除模型「${row.provider} · ${row.model}」？`
+    : `确定删除「${row.provider} · ${row.model}」的 API Key？`
   try {
-    await ElMessageBox.confirm(
-      `确定删除 ${row.provider} · ${row.model} 的 Key？`,
-      '确认删除',
-      { type: 'warning' },
-    )
+    await ElMessageBox.confirm(confirmMsg, '确认删除', { type: 'warning' })
   } catch {
-    return // 取消
+    return
   }
   try {
-    await request.delete(`/system/llm/config/${row.keyId}`)
-    row.hasKey = false
-    row.maskedKey = ''
-    ElMessage.success('已删除')
+    if (isDelModel) {
+      // 删除模型记录（registry 级别）
+      await request.delete(`/system/llm/models/${row.registryId}`)
+      ElMessage.success(`已移除模型「${row.provider} · ${row.model}」`)
+    } else {
+      // 删除 key 配置
+      await request.delete(`/system/llm/config/${row.keyId}`)
+      row.hasKey = false
+      row.maskedKey = ''
+      ElMessage.success('已删除 Key')
+    }
     await loadKeyRows()
   } catch {
-    ElMessage.error('删除失败')
+    ElMessage.error(isDelModel ? '移除模型失败' : '删除 Key 失败')
   }
 }
 
