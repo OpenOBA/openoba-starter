@@ -525,6 +525,12 @@ export class ProductService {
     if (dto.images.length > 20) {
       throw new BadRequestException('单次最多上传 20 张图片')
     }
+    // 批量设主图：先汇总需设 primary 的类型，统一清一次旧数据，避免批次内多张 primary 冲突
+    const primaryTypes = new Set(dto.images.filter(i => i.isPrimary).map(i => this.validateImageType(i.imageType)))
+    for (const imgType of primaryTypes) {
+      await this.clearPrimaryForType(dto.skuId, imgType)
+    }
+
     const results: any[] = []
     for (const imgDto of dto.images) {
       imgDto.skuId = dto.skuId
@@ -532,10 +538,6 @@ export class ProductService {
       imgDto.imageUrl = this.validateImageUrl(imgDto.imageUrl)
       // imageType 校验
       imgDto.imageType = this.validateImageType(imgDto.imageType)
-      // 如果设为主图，取消同类型其他主图
-      if (imgDto.isPrimary) {
-        await this.clearPrimaryForType(dto.skuId, imgDto.imageType)
-      }
       const entity = this.skuImageRepo.create(imgDto)
       const saved = await this.skuImageRepo.save(entity)
       results.push(saved)
