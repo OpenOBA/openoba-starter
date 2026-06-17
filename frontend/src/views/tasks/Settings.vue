@@ -508,19 +508,22 @@ async function doSaveKey(row: KeyRow) {
 }
 
 async function doSetDefault(row: KeyRow) {
+  const isCurrentlyDefault = row.isDefault
+  const action = isCurrentlyDefault ? 'unset' : 'set'
   try {
     const res: any = await request.post('/system/llm/config/set-default', {
       provider: row.providerCode,
       modelCode: row.modelCode,
+      action,
     })
     if (res?.success === false) {
-      ElMessage.error(res?.error || '设置失败')
+      ElMessage.error(res?.error || '操作失败')
       return
     }
-    ElMessage.success(`${row.provider} · ${row.model} 已设为默认`)
+    ElMessage.success(isCurrentlyDefault ? '已取消默认' : `${row.provider} · ${row.model} 已设为默认`)
     await loadKeyRows()
   } catch {
-    ElMessage.error('设置失败')
+    ElMessage.error('操作失败')
   }
 }
 
