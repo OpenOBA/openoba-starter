@@ -87,9 +87,12 @@ import CallingInput from '@/components/CallingInput.vue'
 import { getAgents } from '@/api/system'
 import { useERASettings } from '@/composables/useERASettings'
 import request from '@/api/request'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
 const { settings: eraSettings } = useERASettings()
+const userStore = useUserStore()
+const loginUsername = computed(() => userStore.userInfo?.username || '用户')
 
 // ── 模型选择（首页）──
 const selectedModel = ref(eraSettings.agent.defaultModel || '')
@@ -263,8 +266,6 @@ function quickTask(type: string) {
   }
   const task = taskMap[type]
   if (!task) return
-  messages.value.push({ role: 'human', sender: 'Henry', content: task.text, time: t })
-  scrollToBottom()
   handleCallingSend({ text: task.text, agentIds: [], taskType: task.type })
 }
 
@@ -274,7 +275,7 @@ async function handleCallingSend({ text, agentIds, taskType }: { text: string; a
 
   // 人类消息
   messages.value.push({
-    role: 'human', sender: 'Henry', content: text, time: t,
+    role: 'human', sender: loginUsername.value, content: text, time: t,
     data: msgData,
   })
   scrollToBottom()
