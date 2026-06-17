@@ -6,7 +6,6 @@ import { PricingController } from './pricing.controller'
 import { ProductService } from './product.service'
 import { ProductSpuService } from './product-spu.service'
 import { ProductSkuService } from './product-sku.service'
-import { ProductImageService } from './product-image.service'
 import { ExternalBarcodeMappingService } from './external-barcode-mapping.service'
 import { PricingService } from './pricing.service'
 import { PricingEngineService } from './pricing-engine.service'
@@ -79,11 +78,10 @@ import { ERDLModule } from '@openoba/core/dist/modules/erdl/erdl.module'
     ProductService,
     ProductSpuService,
     ProductSkuService,
-    ProductImageService,
     ExternalBarcodeMappingService,
     PricingService,
     PricingEngineService,
   ],
-  exports: [ProductService, ProductSpuService, ProductSkuService, ProductImageService, PricingService, PricingEngineService],
+  exports: [ProductService, ProductSpuService, ProductSkuService, PricingService, PricingEngineService],
 })
 export class ProductModule {}

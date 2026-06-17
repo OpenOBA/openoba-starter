@@ -1,9 +1,15 @@
+/**
+ * @deprecated 2026-06-17: 所有 SKU 图片管理已统一到 ProductService。
+ * 本 Service 无 Controller 挂载，仅保留用于 ABI 兼容。
+ * 预留删除窗口：2026-07-17
+ */
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { ProductSkuImage } from './entity/product-sku-image.entity'
 import { ProductSku } from './entity/product-sku.entity'
 
+/** @deprecated Use ProductService instead */
 @Injectable()
 export class ProductImageService {
   private readonly VALID_IMAGE_TYPES = ['main', 'gallery', 'detail', 'lifestyle', '360view', 'website_banner'];
