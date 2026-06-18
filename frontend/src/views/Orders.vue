@@ -25,17 +25,17 @@
         </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="query.status" placeholder="全部" clearable style="width: 120px" @change="loadData">
-            <el-option v-for="d in orderStatusDict.items" :key="d.code" :label="d.name" :value="d.code" />
+            <el-option v-for="d in orderStatusItems" :key="d.code" :label="d.name" :value="d.code" />
           </el-select>
         </el-form-item>
         <el-form-item label="支付状态">
           <el-select v-model="query.paymentStatus" placeholder="全部" clearable style="width: 110px" @change="loadData">
-            <el-option v-for="d in paymentStatusDict.items" :key="d.code" :label="d.name" :value="d.code" />
+            <el-option v-for="d in paymentStatusItems" :key="d.code" :label="d.name" :value="d.code" />
           </el-select>
         </el-form-item>
         <el-form-item label="订单类型">
           <el-select v-model="query.orderType" placeholder="全部" clearable style="width: 110px" @change="loadData">
-            <el-option v-for="d in customerTypeDict.items" :key="d.code" :label="d.name" :value="d.code" />
+            <el-option v-for="d in customerTypeItems" :key="d.code" :label="d.name" :value="d.code" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -221,7 +221,7 @@
         </el-form-item>
         <el-form-item label="订单类型">
           <el-select v-model="createForm.orderType" style="width: 160px">
-            <el-option v-for="d in customerTypeDict.items" :key="d.code" :label="d.name" :value="d.code" />
+            <el-option v-for="d in customerTypeItems" :key="d.code" :label="d.name" :value="d.code" />
           </el-select>
         </el-form-item>
 
@@ -342,7 +342,6 @@ const ORDER_STATUS = {
   shipped: 'shipped', delivered: 'delivered', completed: 'completed', cancelled: 'cancelled',
 } as const;
 const ORDER_TYPES = { retail: 'retail', wholesale: 'wholesale', set: 'set' } as const;
-const PAYMENT_STATUS = { unpaid: 'unpaid', partial: 'partial', paid: 'paid' } as const;
 const FULFILLMENT_TYPE = { frame_only: 'frame_only', lens_and_frame: 'lens_and_frame', lens_only: 'lens_only' } as const;
 const LENS_STATUS = { not_needed: 'not_needed', pending: 'pending', processing: 'processing', completed: 'completed', self_supplied: 'self_supplied' } as const;
 
@@ -350,6 +349,11 @@ const LENS_STATUS = { not_needed: 'not_needed', pending: 'pending', processing: 
 const orderStatusDict = useDict('dict_order_status');
 const paymentStatusDict = useDict('dict_payment_status');
 const customerTypeDict = useDict('dict_customer_type');
+
+// Bridge: narrow Ref<DictItem[]> for template v-for type safety
+const orderStatusItems = computed(() => orderStatusDict.items.value);
+const paymentStatusItems = computed(() => paymentStatusDict.items.value);
+const customerTypeItems = computed(() => customerTypeDict.items.value);
 
 // ===== 状态 =====
 const loading = ref(false);
@@ -385,7 +389,7 @@ async function batchShip() {
 }
 async function batchCancel() {
   for (const row of selectedOrders.value) {
-    await cancelOrder(row.orderId, { remark: '批量取消' });
+    await cancelOrder(String(row.orderId ?? ''), { remark: '批量取消' });
   }
   ElMessage.success('所选订单已取消');
   selectedOrders.value = [];
@@ -427,7 +431,7 @@ const detailVisible = ref(false);
 const currentOrder = ref<any>(null);
 
 async function viewDetail(row: Record<string, unknown>) {
-  const res = await getOrderDetail(row.orderId);
+  const res = await getOrderDetail(String(row.orderId ?? ''));
   // axios 拦截器已解包 data
   currentOrder.value = res;
   detailVisible.value = true;
@@ -486,7 +490,8 @@ async function onCustomerSelect(id: string) {
     if (res?.lenses?.length > 0) {
       const activeLens = res.lenses.find((l: any) => l.status === 'active') || res.lenses[0];
       const code = activeLens.lensStandardCode;
-      const rxInfo = activeLens.prescription ? `球镜: OD${activeLens.prescription.odSphere}/OS${activeLens.prescription.osSphere}` : '';
+      const rx = activeLens.prescription as Record<string, string> | undefined;
+      const rxInfo = rx ? `球镜: OD${rx.odSphere}/OS${rx.osSphere}` : '';
       historyLensNotice.value = `🔬 该客户历史镜片：${code}${rxInfo ? ' | ' + rxInfo : ''}`;
       const matched = lensOptions.value.find(l => l.externalCode === code);
       if (matched) createForm.structureStandardCode = matched.structureId;
@@ -512,8 +517,8 @@ async function submitCreate() {
     ElMessage.success('订单创建成功');
     createVisible.value = false;
     loadData();
-  } catch (e: unknown) {
-    ElMessage.error(e.message || '创建失败');
+  } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+    ElMessage.error(err || '创建失败');
   } finally {
     submitting.value = false;
   }
@@ -521,14 +526,8 @@ async function submitCreate() {
 
 // ===== 状态操作 =====
 async function confirmOrder(row: Record<string, unknown>) {
-  await updateOrderStatus(row.orderId, { status: ORDER_STATUS.confirmed, remark: '确认订单' });
+  await updateOrderStatus(String(row.orderId ?? ''), { status: ORDER_STATUS.confirmed, remark: '确认订单' });
   ElMessage.success('订单已确认');
-  loadData();
-}
-
-async function handleCancel(row: Record<string, unknown>) {
-  await cancelOrder(row.orderId, { remark: '取消订单' });
-  ElMessage.success('订单已取消');
   loadData();
 }
 
@@ -551,8 +550,8 @@ async function submitShip() {
     ElMessage.success('发货成功');
     shipVisible.value = false;
     loadData();
-  } catch (e: unknown) {
-    ElMessage.error(e.message || '发货失败');
+  } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+    ElMessage.error(err || '发货失败');
   } finally {
     submitting.value = false;
   }
@@ -566,8 +565,8 @@ async function loadData() {
     // axios 拦截器已解包 data，res 就是 { items, total, page, pageSize }
     tableData.value = res?.items || [];
     total.value = res?.total || 0;
-  } catch (e: unknown) {
-    ElMessage.error(e.message || '加载订单失败');
+  } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+    ElMessage.error(err || '加载订单失败');
     tableData.value = [];
     total.value = 0;
   } finally {
@@ -580,8 +579,8 @@ async function loadStats() {
     const res = await getOrderStats();
     // axios 拦截器已解包 data，res 就是 stats 对象
     stats.value = ensureStats(res);
-  } catch (e) {
-    console.error('loadStats error:', e);
+  } catch (e: unknown) { const _err = e instanceof Error ? e.message : String(e);
+    console.error('loadStats error:', _err);
   }
 }
 

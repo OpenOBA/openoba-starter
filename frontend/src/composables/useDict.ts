@@ -26,7 +26,6 @@ export interface DictItem {
   name: string
   sort_order: number
   is_active: number
-  [key: string]: Record<string, unknown>
 }
 
 // ---------- 全局缓存：跨组件共享已加载的字典 ----------
@@ -95,8 +94,18 @@ console.log(`[useDict] ${tableName} 加载完成，清理加载状态`)
 }
 
 // ---------- 用法二：单字典 composable（新推荐） ----------
-export function useDict(tableName: string) {
-  const items = ref<DictItem[]>(globalCache.get(tableName) || [])
+export interface UseDictReturn {
+  items: Ref<DictItem[]>
+  labels: ComputedRef<Record<string, string>>
+  byKey: ComputedRef<Record<string, DictItem>>
+  loading: Ref<boolean>
+  error: Ref<Error | null>
+  load: () => Promise<void>
+  forceReload: () => Promise<void>
+}
+
+export function useDict(tableName: string): UseDictReturn {
+  const items = ref<DictItem[]>(globalCache.get(tableName) || [] as DictItem[])
   const loading = ref<boolean>(false)
   const error = ref<Error | null>(null)
   
