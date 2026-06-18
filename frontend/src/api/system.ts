@@ -94,12 +94,12 @@ export interface AuditLogItem {
 // 用户管理 API
 // ============================================
 
-export function getUsers(params: { page?: number; pageSize?: number; keyword?: string; status?: string }) {
-  return request.get<{ items: UserItem[]; total: number }>('/system/users', { params })
+export function getUsers(params: { page?: number; pageSize?: number; keyword?: string; status?: string }): Promise<{ items: UserItem[]; total: number }> {
+  return request.get('/system/users', { params })
 }
 
-export function getUser(id: string) {
-  return request.get<UserItem>(`/system/users/${id}`)
+export function getUser(id: string): Promise<UserItem> {
+  return request.get(`/system/users/${id}`)
 }
 
 export function createUser(data: Record<string, unknown>) {
@@ -130,16 +130,16 @@ export function resetPassword(data: { userId: string; newPassword: string }) {
 // 角色管理 API
 // ============================================
 
-export function getRoles() {
-  return request.get<RoleItem[]>('/system/roles')
+export function getRoles(): Promise<RoleItem[]> {
+  return request.get('/system/roles')
 }
 
-export function getRole(id: string) {
-  return request.get<RoleItem>(`/system/roles/${id}`)
+export function getRole(id: string): Promise<RoleItem> {
+  return request.get(`/system/roles/${id}`)
 }
 
-export function getRolePermissions(id: string) {
-  return request.get<PermissionItem[]>(`/system/roles/${id}/permissions`)
+export function getRolePermissions(id: string): Promise<PermissionItem[]> {
+  return request.get(`/system/roles/${id}/permissions`)
 }
 
 export function createRole(data: { roleCode: string; roleName: string; description?: string; permissionIds?: string[] }) {
@@ -158,8 +158,8 @@ export function deleteRole(id: string) {
 // 权限管理 API
 // ============================================
 
-export function getPermissions() {
-  return request.get<PermissionItem[]>('/system/permissions')
+export function getPermissions(): Promise<PermissionItem[]> {
+  return request.get('/system/permissions')
 }
 
 export function createPermission(data: Partial<PermissionItem>) {
@@ -206,12 +206,12 @@ export function updateMenuSort(items: { menuId: string; sortOrder: number }[]) {
 // Agent 管理 API
 // ============================================
 
-export function getAgents() {
-  return request.get<AgentItem[]>('/system/agents')
+export function getAgents(): Promise<AgentItem[]> {
+  return request.get('/system/agents')
 }
 
-export function getAgent(id: string) {
-  return request.get<AgentItem>(`/system/agents/${id}`)
+export function getAgent(id: string): Promise<AgentItem> {
+  return request.get(`/system/agents/${id}`)
 }
 
 export function updateAgentStatus(id: string, status: string) {
@@ -230,8 +230,8 @@ export function registerAgent(data: Record<string, unknown>) {
 // 审计日志 API
 // ============================================
 
-export function getAuditLogs(params: Record<string, unknown>) {
-  return request.get<{ items: AuditLogItem[]; total: number }>('/system/audit-logs', { params })
+export function getAuditLogs(params: Record<string, unknown>): Promise<{ items: AuditLogItem[]; total: number }> {
+  return request.get('/system/audit-logs', { params })
 }
 
 export function getAgentSummary(agentId: string, days?: number) {
@@ -261,8 +261,8 @@ export interface ProviderKeyItem {
   }[]
 }
 
-export function getProviderKeys() {
-  return request.get<ProviderKeyItem[]>('/system/llm/keys')
+export function getProviderKeys(): Promise<ProviderKeyItem[]> {
+  return request.get('/system/llm/keys')
 }
 
 export function saveProviderKey(data: {

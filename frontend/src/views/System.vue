@@ -217,6 +217,11 @@ import {
 } from '@/api/system'
 import type { UserItem, RoleItem, PermissionItem, AuditLogItem } from '@/api/system'
 
+interface UserItemEx extends UserItem {
+  roleIds?: string[]
+  roles?: Array<{ roleId: string; roleName: string }>
+}
+
 // ============================================
 // 状态
 // ============================================
@@ -234,7 +239,6 @@ const userStatusFilter = ref('')
 const userDialogVisible = ref(false)
 const editingUser = ref<UserItem | null>(null)
 const userForm = reactive({ username: '', realName: '', phone: '', email: '', password: '', roleIds: [] as string[] })
-const userFormRef = ref()
 const userSaving = ref(false)
 
 // 角色
@@ -243,7 +247,6 @@ const roleLoading = ref(false)
 const roleDialogVisible = ref(false)
 const editingRole = ref<RoleItem | null>(null)
 const roleForm = reactive({ roleCode: '', roleName: '', description: '' })
-const roleFormRef = ref()
 const roleSaving = ref(false)
 
 // 权限
@@ -289,8 +292,8 @@ async function loadUsers() {
  const res = await getUsers({ page: userPage.value, pageSize: userPageSize.value, keyword: userSearch.value, status: userStatusFilter.value })
  userList.value = res.items
  userTotal.value = res.total
- } catch (e: unknown) {
- ElMessage.error(e?.message || '加载用户失败')
+ } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+ ElMessage.error(err || '加载用户失败')
  } finally {
  userLoading.value = false
  }
@@ -298,13 +301,14 @@ async function loadUsers() {
 
 function openUserDialog(row?: UserItem) {
  editingUser.value = row || null
- if (row) {
- userForm.username = row.username
- userForm.realName = row.realName
- userForm.phone = row.phone || ''
- userForm.email = row.email || ''
+ const r = row as UserItemEx;
+ if (r) {
+ userForm.username = r.username
+ userForm.realName = r.realName
+ userForm.phone = r.phone || ''
+ userForm.email = r.email || ''
  userForm.password = ''
- userForm.roleIds = row.roleIds || row.roles?.map((r: any) => r.roleId) || []
+ userForm.roleIds = r.roleIds || r.roles?.map((rl) => rl.roleId) || []
  } else {
  resetUserForm()
  }
@@ -325,8 +329,8 @@ async function handleSaveUser() {
  }
  userDialogVisible.value = false
  loadUsers()
- } catch (e: unknown) {
- ElMessage.error(e?.message || '保存失败')
+ } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+ ElMessage.error(err || '保存失败')
  } finally {
  userSaving.value = false
  }
@@ -337,8 +341,8 @@ async function handleToggleStatus(row: UserItem) {
  await toggleUserStatus(row.userId)
  ElMessage.success(`用户已${row.status === 'active' ? '禁用' : '启用'}`)
  loadUsers()
- } catch (e: unknown) {
- ElMessage.error(e?.message || '操作失败')
+ } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+ ElMessage.error(err || '操作失败')
  }
 }
 
@@ -368,8 +372,8 @@ async function loadRoles() {
  roleLoading.value = true
  try {
  roleList.value = await getRoles()
- } catch (e: unknown) {
- ElMessage.error(e?.message || '加载角色失败')
+ } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+ ElMessage.error(err || '加载角色失败')
  } finally {
  roleLoading.value = false
  }
@@ -407,8 +411,8 @@ async function handleSaveRole() {
  }
  roleDialogVisible.value = false
  loadRoles()
- } catch (e: unknown) {
- ElMessage.error(e?.message || '保存失败')
+ } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+ ElMessage.error(err || '保存失败')
  } finally {
  roleSaving.value = false
  }
@@ -447,8 +451,8 @@ async function handleSavePermissions() {
  ElMessage.success('权限已更新')
  permissionDialogVisible.value = false
  loadRoles()
- } catch (e: unknown) {
- ElMessage.error(e?.message || '保存失败')
+ } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+ ElMessage.error(err || '保存失败')
  } finally {
  permSaving.value = false
  }
@@ -472,8 +476,8 @@ async function loadAuditLogs() {
  const res = await getAuditLogs(params)
  auditList.value = res.items
  auditTotal.value = res.total
- } catch (e: unknown) {
- ElMessage.error(e?.message || '加载审计日志失败')
+ } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+ ElMessage.error(err || '加载审计日志失败')
  } finally {
  auditLoading.value = false
  }
