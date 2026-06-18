@@ -212,7 +212,6 @@ import { ElMessage } from 'element-plus'
 import type { FormInstance } from 'element-plus'
 import { useDict } from '@/composables/useDict'
 import { useCustomerUtils } from '@/composables/useCustomerUtils'
-import request from '@/api/request'
 import {
   getCustomerList, createCustomer, updateCustomer, deleteCustomer,
 } from '@/api/customer'
@@ -224,7 +223,6 @@ const dictLevel = useDict('dict_customer_level')
 const dictStatus = useDict('dict_customer_status')
 const dictReferral = useDict('dict_referral_source')
 const dictSubscription = useDict('dict_subscription_status')
-const dictContactRole = useDict('dict_contact_role')
 
 const { typeTag, typeLabel, levelTag, levelLabel, statusTag, statusLabel } = useCustomerUtils()
 
@@ -234,22 +232,6 @@ const dictLevelOptions = computed(() => dictLevel.items.value.map(d => ({ label:
 const dictStatusOptions = computed(() => dictStatus.items.value.map(d => ({ label: d.name, value: d.code })))
 const dictReferralOptions = computed(() => dictReferral.items.value.map(d => ({ label: d.name, value: d.code })))
 const dictSubscriptionOptions = computed(() => dictSubscription.items.value.map(d => ({ label: d.name, value: d.code })))
-const dictContactRoleOptions = computed(() => dictContactRole.items.value.map(d => ({ label: d.name, value: d.code })))
-
-// 增强的 fallback 映射（确保即使字典加载失败也能显示中文）
-const CUSTOMER_TYPE_FALLBACK: Record<string, string> = {
-  retail: '零售',
-  business: '批发',
-  partner: '合作伙伴',
-  '': '—'
-}
-
-const CUSTOMER_LEVEL_FALLBACK: Record<string, string> = {
-  normal: '普通',
-  vip: 'VIP',
-  svip: 'SVIP',
-  '': '—'
-}
 
 // 监控字典加载状态
 watch(() => dictType.error.value, (error) => {
@@ -282,10 +264,22 @@ const handleSelectionChange = (rows: any[]) => { selectedRows.value = rows }
 
 const query = reactive({ page: 1, pageSize: 20, keyword: '', customerType: '', customerLevel: '', status: '' })
 
-const form = reactive({
+
+interface CustomerForm {
+  customerType: string; customerLevel: string; companyName: string
+  contactName: string; phone: string; email: string; wechatId: string
+  wechat: string; nickname: string; address: string; city: string
+  province: string; status: string; notes: string; referralSource: string
+  preferredStyle: string; subscriptionStatus: string; customerCode: string
+  avatarUrl: string; wholesaleTier: string; memberDiscountRate: string
+  pointsBalance: string; partnerServices: string
+}
+const form = reactive<CustomerForm>({
   customerType: 'retail', customerLevel: 'normal', companyName: '', contactName: '',
   phone: '', email: '', wechatId: '', nickname: '', address: '', city: '', province: '',
   status: 'active', notes: '', referralSource: '', preferredStyle: '', subscriptionStatus: '',
+  customerCode: '', avatarUrl: '', wholesaleTier: '', wechat: '',
+  memberDiscountRate: '', pointsBalance: '', partnerServices: '',
 })
 
 const rules = {
@@ -368,12 +362,6 @@ async function handleSave() {
   } finally {
     saving.value = false
   }
-}
-
-async function handleDelete(row: Record<string, unknown>) {
-  await deleteCustomer(row.customerId)
-  ElMessage.success('删除成功')
-  loadData()
 }
 
 async function batchEdit() {
