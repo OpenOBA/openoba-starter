@@ -78,7 +78,7 @@
           </div>
           <el-table :data="historyList" v-loading="historyLoading" stripe @row-dblclick="showHistoryDetail" highlight-current-row style="cursor: pointer">
             <el-table-column label="SKU" min-width="220"><template #default="{ row }"><div><strong>{{ row.skuCode || row.skuId }}</strong><span v-if="row.skuName" style="color: #909399; margin-left: 6px">{{ row.skuName }}</span><div v-if="row.skuBarcode" style="color: #999; font-size: 11px">条码: {{ row.skuBarcode }}</div></div></template></el-table-column>
-            <el-table-column label="价格类型" width="120"><template #default="{ row }"><el-tag :type="{ cost: 'warning', retail: 'success', min: 'info' }[row.priceType] || 'info'" size="small">{{ { cost: '成本价', retail: '统一零售价', min: '最低售价' }[row.priceType] || row.priceType }}</el-tag></template></el-table-column>
+            <el-table-column label="价格类型" width="120"><template #default="{ row }"><el-tag :type="({ cost: 'warning', retail: 'success', min: 'info' } as Record<string, string>)[row.priceType] || 'info'" size="small">{{ ({ cost: '成本价', retail: '统一零售价', min: '最低售价' } as Record<string, string>)[row.priceType] || row.priceType }}</el-tag></template></el-table-column>
             <el-table-column prop="oldValue" label="原值" width="100"><template #default="{ row }">{{ row.oldValue !== null ? '¥' + Number(row.oldValue).toFixed(2) : '-' }}</template></el-table-column>
             <el-table-column prop="newValue" label="新值" width="100"><template #default="{ row }">¥{{ Number(row.newValue).toFixed(2) }}</template></el-table-column>
             <el-table-column prop="changeReason" label="变更原因" min-width="180" />
@@ -96,13 +96,13 @@
           <el-table :data="promoList" v-loading="promoLoading" stripe>
             <el-table-column prop="promotionCode" label="编码" width="120" />
             <el-table-column prop="name" label="名称" min-width="160" />
-            <el-table-column label="类型" width="100"><template #default="{ row }"><el-tag size="small">{{ { discount: '折扣', flash_sale: '秒杀', bundle: '捆绑', coupon: '优惠券', member_exclusive: '会员专享' }[row.type] || row.type }}</el-tag></template></el-table-column>
+            <el-table-column label="类型" width="100"><template #default="{ row }"><el-tag size="small">{{ ({ discount: '折扣', flash_sale: '秒杀', bundle: '捆绑', coupon: '优惠券', member_exclusive: '会员专享' } as Record<string, string>)[row.type] || row.type }}</el-tag></template></el-table-column>
             <el-table-column label="优惠" width="120"><template #default="{ row }">{{ row.discountType === 'fixed_amount' ? '¥' + Number(row.discountValue).toFixed(2) : Number(row.discountValue) + '%' }}</template></el-table-column>
-            <el-table-column label="适用范围" width="120"><template #default="{ row }">{{ { all: '全部', category: '按分类', spu: '按SPU', sku: '按SKU' }[row.scope] || row.scope }}</template></el-table-column>
+            <el-table-column label="适用范围" width="120"><template #default="{ row }">{{ ({ all: '全部', category: '按分类', spu: '按SPU', sku: '按SKU' } as Record<string, string>)[row.scope] || row.scope }}</template></el-table-column>
             <el-table-column label="使用量" width="140"><template #default="{ row }"><el-progress :percentage="getPromoUsagePercent(row)" :stroke-width="6" :status="getPromoUsageStatus(row)" style="width:100%" /><span style="font-size:10px;color:#909399">{{ row.usedCount || 0 }}/{{ row.totalLimit || '∞' }}</span></template></el-table-column>
             <el-table-column label="可叠加" width="80"><template #default="{ row }"><el-tag :type="row.stackable ? 'success' : 'info'" size="small">{{ row.stackable ? '是' : '否' }}</el-tag></template></el-table-column>
             <el-table-column label="有效期" width="200"><template #default="{ row }">{{ formatDate(row.startTime) }} ~ {{ formatDate(row.endTime) }}</template></el-table-column>
-            <el-table-column label="状态" width="90"><template #default="{ row }"><el-tag :type="{ draft: 'info', active: 'success', paused: 'warning', expired: 'danger' }[row.status]" size="small">{{ promoStatusLabel(row.status) }}</el-tag></template></el-table-column>
+            <el-table-column label="状态" width="90"><template #default="{ row }"><el-tag :type="({ draft: 'info', active: 'success', paused: 'warning', expired: 'danger' } as Record<string, string>)[row.status]" size="small">{{ promoStatusLabel(row.status) }}</el-tag></template></el-table-column>
             <el-table-column label="操作" width="280"><template #default="{ row }"><el-button v-if="row.status === PROMOTION_STATUS.draft" type="success" link size="small" @click="handlePromoStatus(row, PROMOTION_STATUS.active)">启用</el-button><el-button v-if="row.status === PROMOTION_STATUS.active" type="warning" link size="small" @click="handlePromoStatus(row, PROMOTION_STATUS.paused)">暂停</el-button><el-button type="primary" link size="small" @click="openPromoDialog(row)">编辑</el-button><el-button type="info" link size="small" @click="handleCopyPromo(row)">复制</el-button><el-button type="danger" link size="small" @click="handleDeletePromo(row.promotionId)">删除</el-button></template></el-table-column>
           </el-table>
         </div>
@@ -123,7 +123,7 @@
           <el-table :data="memberPricingRules" v-loading="memberRulesLoading" stripe @row-dblclick="(row: any) => openMemberPricingRuleDialog(row)" highlight-current-row>
             <el-table-column prop="memberLevel?.levelName" label="等级" width="80" />
             <el-table-column prop="skuId" label="SKU" width="200" show-overflow-tooltip />
-            <el-table-column label="规则类型" width="120"><template #default="{ row }"><el-tag :type="{ discount: '', fixed_price: 'danger', extra_discount: 'success' }[row.ruleType] || 'info'" size="small">{{ { discount: '折扣率', fixed_price: '固定价', extra_discount: '额外折扣' }[row.ruleType] }}</el-tag></template></el-table-column>
+            <el-table-column label="规则类型" width="120"><template #default="{ row }"><el-tag :type="({ discount: '', fixed_price: 'danger', extra_discount: 'success' } as Record<string, string>)[row.ruleType] || 'info'" size="small">{{ ({ discount: '折扣率', fixed_price: '固定价', extra_discount: '额外折扣' } as Record<string, string>)[row.ruleType] }}</el-tag></template></el-table-column>
             <el-table-column label="规则值" width="140"><template #default="{ row }"><template v-if="row.ruleType === 'fixed_price' && row.fixedPrice">¥{{ Number(row.fixedPrice).toFixed(2) }}</template><template v-else-if="row.ruleType === 'discount' && row.discountRate">{{ (Number(row.discountRate) * 10).toFixed(1) }}折</template><template v-else-if="row.ruleType === 'extra_discount' && row.extraDiscount">{{ (Number(row.extraDiscount) * 10).toFixed(1) }}折叠加</template><template v-else>-</template></template></el-table-column>
             <el-table-column prop="priority" label="优先级" width="70" />
             <el-table-column label="状态" width="70"><template #default="{ row }"><el-tag :type="row.isActive ? 'success' : 'info'" size="small">{{ row.isActive ? '启用' : '禁用' }}</el-tag></template></el-table-column>
@@ -173,7 +173,7 @@
       <template v-if="historyDetailRow">
         <el-descriptions :column="2" border size="large">
           <el-descriptions-item label="SKU 编码" :span="2"><strong>{{ historyDetailRow.skuCode || historyDetailRow.skuId }}</strong><span v-if="historyDetailRow.skuName" style="color: #909399; margin-left: 8px">{{ historyDetailRow.skuName }}</span></el-descriptions-item>
-          <el-descriptions-item label="价格类型"><el-tag :type="{ cost: 'warning', retail: 'success', min: 'info' }[historyDetailRow.priceType] || 'info'" size="small">{{ { cost: '成本价', retail: '统一零售价', min: '最低售价' }[historyDetailRow.priceType] || historyDetailRow.priceType }}</el-tag></el-descriptions-item>
+          <el-descriptions-item label="价格类型"><el-tag :type="({ cost: 'warning', retail: 'success', min: 'info' } as Record<string, string>)[historyDetailRow.priceType] || 'info'" size="small">{{ ({ cost: '成本价', retail: '统一零售价', min: '最低售价' } as Record<string, string>)[historyDetailRow.priceType] || historyDetailRow.priceType }}</el-tag></el-descriptions-item>
           <el-descriptions-item label="变更幅度"><span v-if="historyDetailRow.oldValue !== null && historyDetailRow.oldValue !== undefined"><span style="color: #909399; text-decoration: line-through">¥{{ Number(historyDetailRow.oldValue).toFixed(2) }}</span><span style="margin: 0 8px">→</span><span :style="{ color: Number(historyDetailRow.newValue) > Number(historyDetailRow.oldValue) ? '#f56c6c' : '#67c23a', fontWeight: 'bold' }">¥{{ Number(historyDetailRow.newValue).toFixed(2) }}</span></span><span v-else><el-tag type="primary" size="small">首次定价</el-tag><span style="margin-left: 8px; font-weight: bold">¥{{ Number(historyDetailRow.newValue).toFixed(2) }}</span></span></el-descriptions-item>
           <el-descriptions-item label="操作人">{{ historyDetailRow.changedBy || '系统' }}</el-descriptions-item>
           <el-descriptions-item label="变更时间">{{ new Date(historyDetailRow.changedAt).toLocaleString('zh-CN') }}</el-descriptions-item>
@@ -219,7 +219,7 @@
 
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useDict } from '@/composables/useDict'
 import {
@@ -262,8 +262,7 @@ const wholesaleForm = reactive<any>({ tierId: '', tierCode: '', tierName: '', mi
 
 const loadWholesale = async () => { wholesaleLoading.value = true; try { const res: any = await getWholesaleTiers(); wholesaleList.value = res.data || res.items || res || [] } catch (e: unknown) { ElMessage.error('加载阶梯失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } finally { wholesaleLoading.value = false } }
 const openWholesaleDialog = (row?: any) => { if (row) Object.assign(wholesaleForm, { ...row, _discountDisplay: Math.round(row.discountRate * 100) }); else Object.assign(wholesaleForm, { tierId: '', tierCode: '', tierName: '', minQuantity: 1, maxQuantity: null, discountRate: 0.8, description: '', _discountDisplay: 80 }); wholesaleDialogVisible.value = true }
-const handleSaveWholesale = async () => { try { if (wholesaleForm.tierId) { await updateWholesaleTier(wholesaleForm.tierId, { tierName: wholesaleForm.tierName, minQuantity: wholesaleForm.minQuantity, maxQuantity: wholesaleForm.maxQuantity || null, discountRate: wholesaleForm.discountRate, description: wholesaleForm.description }); ElMessage.success('更新成功') } else { wholesaleForm.tierId = 'wt-' + Date.now() + '-' + crypto.randomUUID().slice(0, 8); await createWholesaleTier({ tierId: wholesaleForm.tierId, tierCode: wholesaleForm.tierCode, tierName: wholesaleForm.tierName, minQuantity: wholesaleForm.minQuantity, maxQuantity: wholesaleForm.maxQuantity || null, discountRate: wholesaleForm.discountRate, description: wholesaleForm.description }); ElMessage.success('创建成功') } wholesaleDialogVisible.value = false; selectedWholesales.value = []; await loadWholesale() } catch (e: unknown) { ElMessage.error('保存失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } }
-const handleDeleteWholesale = async (tierId: string) => { try { await deleteWholesaleTier(tierId); ElMessage.success('已删除'); await loadWholesale() } catch (e: unknown) { ElMessage.error('删除失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } }
+const handleSaveWholesale = async () => { try { if (wholesaleForm.tierId) { await updateWholesaleTier(wholesaleForm.tierId, { tierName: wholesaleForm.tierName, minQuantity: wholesaleForm.minQuantity, maxQuantity: wholesaleForm.maxQuantity || null, discountRate: wholesaleForm.discountRate, description: wholesaleForm.description }); ElMessage.success('更新成功') } else { wholesaleForm.tierId = 'wt-' + Date.now() + '-' + crypto.randomUUID().slice(0, 8); await createWholesaleTier({ tierId: wholesaleForm.tierId, tierCode: wholesaleForm.tierCode, tierName: wholesaleForm.tierName, minQuantity: wholesaleForm.minQuantity, maxQuantity: wholesaleForm.maxQuantity || null, discountRate: wholesaleForm.discountRate, description: wholesaleForm.description }); ElMessage.success('创建成功') } wholesaleDialogVisible.value = false; selectedWholesales.value = []; await loadWholesale() } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error('保存失败: ' + err) } }
 const batchDeleteWholesales = async () => { try { await ElMessageBox.confirm('确认删除选中的 ' + selectedWholesales.value.length + ' 个阶梯？（软删除）', '批量删除', { type: 'warning' }); for (const row of selectedWholesales.value) { if (row.tierId) await deleteWholesaleTier(row.tierId) } selectedWholesales.value = []; ElMessage.success('已删除'); await loadWholesale() } catch (e: unknown) { if (e !== 'cancel') ElMessage.error('批量删除失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } }
 
 // ===== 协议价管理 =====
@@ -305,7 +304,7 @@ const loadPromotions = async () => { promoLoading.value = true; try { const res:
 const openPromoDialog = (row?: any) => { if (row) Object.assign(promoForm, { ...row, startTime: row.startTime ? new Date(row.startTime).toISOString().split('T')[0] : '', endTime: row.endTime ? new Date(row.endTime).toISOString().split('T')[0] : '' }); else Object.assign(promoForm, { promotionId: 'promo-' + Date.now(), promotionCode: '', name: '', type: 'discount', scope: 'all', scopeIds: [], discountType: 'percent', discountValue: 10, minAmount: null, maxDiscount: null, startTime: '', endTime: '', userLimit: null, totalLimit: null, priority: 0, stackable: false, status: 'draft' }); promoDialogVisible.value = true }
 const handleSavePromo = async () => { try { if (promoForm.promotionId && !promoForm._isNew) { await updatePromotion(promoForm.promotionId, promoForm); ElMessage.success('更新成功') } else { await createPromotion(promoForm); ElMessage.success('创建成功') } promoDialogVisible.value = false; loadPromotions() } catch (e: unknown) { ElMessage.error('保存失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } }
 const handleDeletePromo = async (id: string) => { try { await deletePromotion(id); ElMessage.success('已删除'); loadPromotions() } catch (e: unknown) { ElMessage.error('删除失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } }
-const handlePromoStatus = async (row: any, status: string) => { try { await updatePromotionStatus(row.promotionId, { status }); ElMessage.success('状态已更新'); loadPromotions() } catch (e: unknown) { ElMessage.error('操作失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } }
+const handlePromoStatus = async (row: any, status: string) => { try { await updatePromotionStatus(row.promotionId, status); ElMessage.success('状态已更新'); loadPromotions() } catch (e: unknown) { ElMessage.error('操作失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } }
 const handleCopyPromo = (row: any) => { Object.assign(promoForm, { ...row, promotionId: 'promo-' + Date.now(), promotionCode: '', _isNew: true, name: row.name + ' (副本)' }); promoDialogVisible.value = true }
 const formatDate = (d: string) => d ? new Date(d).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-'
 const getPromoUsagePercent = (row: any) => row.totalLimit ? Math.round((row.usedCount || 0) / row.totalLimit * 100) : 0
@@ -313,7 +312,6 @@ const getPromoUsageStatus = (row: any) => { const pct = getPromoUsagePercent(row
 
 // ===== 会员定价规则 =====
 const memberLevels = ref<any[]>([])
-const loadMemberLevels = async () => { try { const res: any = await getMemberLevels(); memberLevels.value = res.data || res.items || res || [] } catch {} }
 const memberPricingRules = ref<any[]>([])
 const memberRulesLoading = ref(false)
 const memberRuleFilter = reactive({ levelCode: '', skuId: '' })
