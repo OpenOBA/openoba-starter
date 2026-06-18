@@ -35,7 +35,7 @@
         <!-- ✅ F3-5: 状态筛选器改为字典动态渲染 -->
         <el-form-item label="状态">
           <el-select v-model="query.status" placeholder="全部" clearable @clear="loadData" @change="loadData">
-            <el-option v-for="d in afterSaleStatusDict.items" :key="d.code" :label="d.name" :value="d.code" />
+            <el-option v-for="d in afterSaleStatusItems" :key="d.code" :label="d.name" :value="d.code" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -215,16 +215,18 @@
 import { ref, reactive, onMounted } from 'vue'
 import { getAfterSalesList, getAfterSalesStats, reviewAfterSales, processAfterSales, createAfterSales, getAfterSalesDetail, getAfterSalesLogs } from '@/api/afterSales'
 import { getOrderList } from '@/api/order'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { computed } from 'vue'
 import { useDict } from '@/composables/useDict'
 
-const afterSaleStatusDict = useDict('dict_after_sale_status')
+const afterSaleStatusDict = useDict('dict_after_sale_status');
+const afterSaleStatusItems = computed(() => afterSaleStatusDict.items.value);
 const AFTER_SALES_STATUS = { pending: 'pending', approved: 'approved', rejected: 'rejected', returning: 'returning', received: 'received', refunded: 'refunded', completed: 'completed', closed: 'closed' } as const
 
 const orderList = ref<any[]>([])
 
 const loading = ref(false)
-const tableData = ref([])
+const tableData = ref<Record<string, unknown>[]>([])
 const total = ref(0)
 
 const query = reactive({
@@ -252,7 +254,7 @@ async function doReview() {
     await reviewAfterSales(reviewItem.value.id, { action: reviewAction.value, ...reviewForm })
     ElMessage.success(reviewAction.value === 'approve' ? '已批准' : '已拒绝')
     reviewVisible.value = false; loadData(); loadStats()
-  } catch (e: unknown) { ElMessage.error(e.message || '审核失败') }
+  } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '审核失败') }
 }
 
 // 收货
@@ -260,7 +262,7 @@ async function doProcess(row: any, action: string) {
   try {
     await processAfterSales(row.id, { action })
     ElMessage.success('操作成功'); loadData()
-  } catch (e: unknown) { ElMessage.error(e.message || '操作失败') }
+  } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '操作失败') }
 }
 
 // 退款
@@ -269,14 +271,14 @@ const refundItem = ref<any>(null)
 const refundForm = reactive({ actualRefundAmount: 0, refundMethod: 'original', note: '' })
 function showRefundDialog(row: Record<string, unknown>) {
   refundItem.value = row
-  refundForm.actualRefundAmount = parseFloat(row.actualRefundAmount || row.refundAmount) || 0
+  refundForm.actualRefundAmount = parseFloat(String(row.actualRefundAmount ?? row.refundAmount ?? '')) || 0
   refundForm.refundMethod = 'original'; refundForm.note = ''; refundVisible.value = true
 }
 async function doRefund() {
   try {
     await processAfterSales(refundItem.value.id, { action: 'refund', ...refundForm })
     ElMessage.success('退款成功'); refundVisible.value = false; loadData(); loadStats()
-  } catch (e: unknown) { ElMessage.error(e.message || '退款失败') }
+  } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '退款失败') }
 }
 
 // 新建售后
@@ -284,7 +286,7 @@ const createVisible = ref(false)
 const createForm = reactive({ orderId: '', afterSalesType: 'return', reasonType: 'quality', reasonDetail: '', refundAmount: 0 })
 function showCreateDialog() { createForm.orderId = ''; createForm.reasonDetail = ''; createForm.refundAmount = 0; createVisible.value = true }
 async function doCreate() {
-  try { await createAfterSales(createForm); ElMessage.success('售后申请已提交'); createVisible.value = false; loadData(); loadStats() } catch (e: unknown) { ElMessage.error(e.message || '提交失败') }
+  try { await createAfterSales(createForm); ElMessage.success('售后申请已提交'); createVisible.value = false; loadData(); loadStats() } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '提交失败') }
 }
 
 // 详情
@@ -302,12 +304,12 @@ interface AfterSalesLog {
 const detailLogs = ref<AfterSalesLog[]>([])
 async function viewDetail(row: Record<string, unknown>) {
   try {
-    const res = await getAfterSalesDetail(row.id)
-    detailData.value = res.data || res
-    const logRes = await getAfterSalesLogs(row.id)
-    detailLogs.value = logRes.data || logRes || []
+    const res = await getAfterSalesDetail(String(row.id ?? ''))
+    detailData.value = res
+    const logRes = await getAfterSalesLogs(String(row.id ?? ''))
+    detailLogs.value = (logRes || []) as AfterSalesLog[]
     detailVisible.value = true
-  } catch (e: unknown) { ElMessage.error(e.message || '加载详情失败') }
+  } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '加载详情失败') }
 }
 
 function statusTag(status: string) {
@@ -342,15 +344,15 @@ async function loadData() {
     if (query.afterSalesType) params.afterSalesType = query.afterSalesType
     if (query.status) params.status = query.status
     const res = await getAfterSalesList(params)
-    tableData.value = res.items || res.data?.items || []
-    total.value = res.total || res.data?.total || 0
-  } catch (e: unknown) { ElMessage.error(e.message || '加载售后失败') } finally { loading.value = false }
+    tableData.value = res.items || []
+    total.value = res.total || 0
+  } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '加载售后失败') } finally { loading.value = false }
 }
 
 async function loadStats() {
   try {
     const res = await getAfterSalesStats()
-    const d = res.data || res
+    const d = res || null
     Object.assign(stats, { total: d.total || 0, pending: d.pending || 0, approved: d.approved || 0, completed: d.completed || 0 })
   } catch (e: unknown) { console.error('加载售后统计失败', e) }
 }
@@ -358,7 +360,7 @@ async function loadStats() {
 async function loadOrderList() {
   try {
     const res = await getOrderList({ page: 1, pageSize: 200 })
-    orderList.value = res.items || res.data?.items || []
+    orderList.value = res.items || []
   } catch (e: unknown) { console.error('加载订单列表失败', e) }
 }
 
