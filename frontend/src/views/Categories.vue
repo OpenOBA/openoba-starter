@@ -21,7 +21,7 @@
             @node-click="handleNodeClick"
             @node-drag-end="handleDragEnd"
           >
-            <template #default="{ node, data }">
+            <template #default="{ data }">
               <span class="tree-node" :class="{ active: selectedId === data.categoryId }">
                 <span class="node-icon">{{ data.icon || '' }}</span>
                 <span class="node-label">{{ data.categoryName }}</span>
@@ -96,12 +96,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, nextTick } from 'vue'
+import { ref, reactive, onMounted, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { ElTree } from 'element-plus'
 import {
   getCategoriesTree,
-  getCategoriesFlat,
   createCategory,
   updateCategory,
   deleteCategory,
@@ -145,9 +144,11 @@ const form = reactive({
 // === 数据加载 ===
 async function loadTree() {
   try {
-    treeData.value = await getCategoriesTree()
+    const data = await getCategoriesTree()
+    treeData.value = Array.isArray(data) ? data as CategoryNode[] : []
   } catch (e: unknown) {
-    ElMessage.error(e.message)
+    const err = e instanceof Error ? e.message : String(e)
+    ElMessage.error(err)
   }
 }
 
@@ -247,13 +248,12 @@ async function handleSave() {
       await updateCategory(form.categoryId, payload)
       ElMessage.success('分类已更新')
     } else {
-      const result = await createCategory(payload)
+      const result = await createCategory(payload) as Record<string, unknown>
       ElMessage.success('分类已创建')
-      // 新创建的节点：设置 selectedId 以便后续编辑
       if (result?.categoryId) {
-        selectedId.value = result.categoryId
-        form.categoryId = result.categoryId
-        form.categoryCode = result.categoryCode || form.categoryCode
+        selectedId.value = String(result.categoryId ?? '')
+        form.categoryId = String(result.categoryId ?? '')
+        form.categoryCode = String(result.categoryCode ?? form.categoryCode)
       }
     }
     isNewNode.value = false
@@ -265,7 +265,8 @@ async function handleSave() {
       }
     })
   } catch (e: unknown) {
-    ElMessage.error(e.message)
+    const err = e instanceof Error ? e.message : String(e)
+    ElMessage.error(err)
   }
 }
 
@@ -277,7 +278,8 @@ async function handleDelete() {
     selectedId.value = ''
     loadTree()
   } catch (e: unknown) {
-    ElMessage.error(e.message)
+    const err = e instanceof Error ? e.message : String(e)
+    ElMessage.error(err)
   }
 }
 
@@ -303,7 +305,8 @@ async function handleDragEnd(
     ElMessage.success('已移动')
     loadTree()
   } catch (e: unknown) {
-    ElMessage.error(e.message)
+    const err = e instanceof Error ? e.message : String(e)
+    ElMessage.error(err)
     loadTree() // 回滚显示
   }
 }
