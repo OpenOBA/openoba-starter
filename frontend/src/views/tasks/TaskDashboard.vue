@@ -31,6 +31,7 @@
       <AgentSidebar :agents="agentList" @select="onAgentSelect" @create="goToAgentManagement" @update:agents="onAgentsUpdate" />
 
       <EraChatWelcome
+        ref="eraChatWelcomeRef"
         :agent-list="agentList"
         :creating="creating"
         :messages="messages"
@@ -39,11 +40,12 @@
         @quick-task="quickTask"
         @send="handleCallingSend"
         @agent-select="onAgentSelect"
-        @template-edit="editTemplate"
+        @template-edit="handleTemplateEdit"
         @template-remove="removeTemplate"
-        @template-add="openAddTemplate"
+        @template-add="handleTemplateAdd"
         @template-reset="resetTemplates"
         @template-apply="applyTemplate"
+        @templates-saved="onTemplatesSaved"
         @cancel-confirm="cancelConfirm"
         @execute-confirm="executeConfirm"
         @go-to-task="goToTask"
@@ -89,6 +91,7 @@ import type { AgentEntry } from '@/components/AgentSidebar.vue'
 import CallingInput from '@/components/CallingInput.vue'
 import { getAgents } from '@/api/system'
 import { useERASettings } from '@/composables/useERASettings'
+import { useTemplates } from '@/composables/useTemplates'
 import request from '@/api/request'
 import { useUserStore } from '@/stores/user'
 
@@ -96,6 +99,28 @@ const router = useRouter()
 const { settings: eraSettings } = useERASettings()
 const userStore = useUserStore()
 const loginUsername = computed(() => userStore.userInfo?.username || '用户')
+const eraChatWelcomeRef = ref<InstanceType<typeof EraChatWelcome>>()
+
+// ── 常用语模板 ──
+const {
+  templates,
+  applyTemplate,
+  removeTemplate,
+  resetTemplates,
+} = useTemplates()
+
+function onTemplatesSaved(items: { icon: string; text: string; fill: string }[]) {
+  templates.value = items
+}
+
+// 桥接：templateAdd / templateEdit 需要打开 EraChatWelcome 内部的弹窗
+// 覆盖 useTemplates 的版本，转发到子组件的 defineExpose 方法
+function handleTemplateAdd() {
+  eraChatWelcomeRef.value?.openAddTemplate()
+}
+function handleTemplateEdit(index: number) {
+  eraChatWelcomeRef.value?.editTemplate(index)
+}
 
 // ── 模型选择（首页）──
 const selectedModel = ref(eraSettings.agent.defaultModel || '')
@@ -388,27 +413,6 @@ function onAgentsUpdate(agents: AgentEntry[]) {
   agentList.value = agents
   saveAgents(agents)
 }
-
-// 常用语模板
-function loadTemplates(): TemplateItem[] {
-  try {
-    const raw = localStorage.getItem(TPL_STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch { return [] }
-}
-
-function saveTemplates(items: TemplateItem[]) {
-  localStorage.setItem(TPL_STORAGE_KEY, JSON.stringify(items))
-}
-
-const defaultTemplates: TemplateItem[] = [
-  { icon: '', text: '上架新品', fill: '上架一款新的，主打市场，需要几种框型，参考风格' },
-  { icon: '', text: '写小红书', fill: '为新品写一篇小红书种草笔记，面向女性用户，突出换框如换衣，语气轻松种草' },
-  { icon: '', text: '销售分析', fill: '分析最近一周的销售数据，对比TOP3畅销款，找出滞销原因并给出建议' },
-  { icon: '', text: '配色方案', fill: '为春季新品设计配色方案，参考今年流行色趋势，考虑冷暖皮适配' },
-  { icon: '', text: '定价策略', fill: '为新品制定定价策略，参考竞品定价，考虑成本因素和会员折扣' },
-  { icon: '', text: '竞品分析', fill: '分析竞品在框型/定价/营销上的表现，找出我们的差异化切入' },
-]
 
 onMounted(() => { loadAgentList(); loadTasks(); loadModels() })
 </script>

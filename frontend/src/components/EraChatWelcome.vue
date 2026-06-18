@@ -146,7 +146,7 @@ const emit = defineEmits<{
   cancelConfirm: [index: number]
   executeConfirm: [index: number]
   goToTask: [taskId: string]
-  templatesSaved: []
+  templatesSaved: [items: TemplateItem[]]
 }>()
 
 const chatAreaRef = ref<HTMLElement>()
@@ -180,9 +180,8 @@ function saveTemplate() {
     items.push({ ...editingTemplate })
   }
   showTemplateDialog.value = false
-  // 通知父组件保存模板
-  ;(props as any)._onTemplatesSaved?.(items)
-  emit('templatesSaved')
+  // 将完整 items 传出，父组件负责持久化
+  emit('templatesSaved', items)
 }
 
 // 暴露给父组件
