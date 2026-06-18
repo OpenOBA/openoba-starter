@@ -59,7 +59,7 @@ export function useCustomers() {
     try {
       const res = await getCustomerList(query);
       if (res && Array.isArray(res.items)) {
-        tableData.value = res.items;
+        tableData.value = res.items as unknown as Customer[];
         total.value = res.total ?? res.items.length;
       } else if (Array.isArray(res)) {
         tableData.value = res;
@@ -69,7 +69,8 @@ export function useCustomers() {
         total.value = 0;
       }
     } catch (e: unknown) {
-      ElMessage.error(e.message || '加载失败');
+      const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error(err || '加载失败');
     } finally {
       loading.value = false;
     }
@@ -82,23 +83,24 @@ export function useCustomers() {
     }
     isEdit.value = !!row;
     if (row) {
-      editId.value = row.customerId || '';
-      form.customerType = row.customerType || 'retail';
-      form.customerLevel = row.customerLevel || 'normal';
-      form.companyName = row.companyName || '';
-      form.contactName = row.contactName || '';
-      form.phone = row.phone || '';
-      form.email = row.email || '';
-      form.wechatId = row.wechatId || '';
-      form.nickname = row.nickname || '';
-      form.address = row.address || '';
-      form.city = row.city || '';
-      form.province = row.province || '';
-      form.status = row.status || 'active';
-      form.notes = row.notes || '';
-      form.referralSource = row.referralSource || '';
-      form.preferredStyle = row.preferredStyle || '';
-      form.subscriptionStatus = row.subscriptionStatus || '';
+      const r = row as Record<string, string | undefined>;
+      editId.value = r.customerId || '';
+      form.customerType = r.customerType || 'retail';
+      form.customerLevel = r.customerLevel || 'normal';
+      form.companyName = r.companyName || '';
+      form.contactName = r.contactName || '';
+      form.phone = r.phone || '';
+      form.email = r.email || '';
+      form.wechatId = r.wechatId || '';
+      form.nickname = r.nickname || '';
+      form.address = r.address || '';
+      form.city = r.city || '';
+      form.province = r.province || '';
+      form.status = r.status || 'active';
+      form.notes = r.notes || '';
+      form.referralSource = r.referralSource || '';
+      form.preferredStyle = r.preferredStyle || '';
+      form.subscriptionStatus = r.subscriptionStatus || '';
     } else {
       editId.value = '';
       form.customerType = 'retail';
@@ -135,7 +137,8 @@ export function useCustomers() {
       dialogVisible.value = false;
       loadData();
     } catch (e: unknown) {
-      ElMessage.error(e.message || '保存失败');
+      const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error(err || '保存失败');
     } finally {
       saving.value = false;
     }
@@ -143,11 +146,12 @@ export function useCustomers() {
 
   async function handleDelete(row: Record<string, unknown>) {
     try {
-      await deleteCustomer(row.customerId);
+      await deleteCustomer(String(row.customerId ?? ''));
       ElMessage.success('客户已删除');
       loadData();
     } catch (e: unknown) {
-      ElMessage.error(e.message || '删除失败');
+      const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error(err || '删除失败');
     }
   }
 

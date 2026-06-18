@@ -72,8 +72,8 @@ const cleanParams = (p: Record<string, any>) => {
   return cleaned
 }
 
-export const getCustomerList = (params: { page?: number; pageSize?: number; keyword?: string; customerType?: string; customerLevel?: string; status?: string }) =>
-  request.get<any, { items: Customer[]; total: number; page: number; pageSize: number }>('/customers', { params: cleanParams(params) })
+export const getCustomerList = (params: { page?: number; pageSize?: number; keyword?: string; customerType?: string; customerLevel?: string; status?: string }): Promise<{ items: Customer[]; total: number; page: number; pageSize: number }> =>
+  request.get('/customers', { params: cleanParams(params) })
 
 export const getCustomerDetail = (id: string) =>
   request.get<Customer>(`/customers/${id}`)
