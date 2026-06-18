@@ -43,8 +43,8 @@
             </el-table-column>
             <el-table-column label="性别" width="80">
               <template #default="{ row }">
-                <el-tag :type="{ female: 'danger', male: 'primary', unisex: 'info', limited: 'warning' }[row.gender] || 'info'" size="small">
-                  {{ { female: '女款', male: '男款', unisex: '通用', limited: '限量' }[row.gender] || row.gender || '-' }}
+                <el-tag :type="({ female: 'danger', male: 'primary', unisex: 'info', limited: 'warning' } as Record<string, string>)[row.gender] || 'info'" size="small">
+                  {{ ({ female: '女款', male: '男款', unisex: '通用', limited: '限量' } as Record<string, string>)[row.gender] || row.gender || '-' }}
                 </el-tag>
               </template>
             </el-table-column>
@@ -248,61 +248,17 @@
       @close="setDialogVisible = false"
       @saved="loadSets"
     />
-    <!-- 批量上传 Dialog -->
-    <el-dialog v-model="batchDialogVisible" title="批量上传图片" width="640px">
-      <el-tabs v-model="batchTab">
-        <!-- Tab 1: URL 批量 -->
-        <el-tab-pane label="URL 输入" name="url">
-          <el-alert title="每行一个图片 URL，格式：URL | 类型 | 排序 | 主图(Y/N) | 替代文本" type="info" :closable="false" style="margin-bottom: 12px" />
-          <el-input v-model="batchText" type="textarea" :rows="10" placeholder="示例：
-https://cdn.example.com/img1.jpg | main | 0 | Y | 马卡龙粉主图
-https://cdn.example.com/img2.jpg | gallery | 1 | N | 侧面展示" />
-          <div class="batch-hint">
-            <p>类型可选：main / gallery / detail / lifestyle / 360view / website_banner</p>
-          </div>
-        </el-tab-pane>
-        <!-- Tab 2: 本地文件批量上传 -->
-        <el-tab-pane label="本地上传" name="local">
-          <input type="file" ref="batchFileInput" accept="image/*" multiple style="display: none" @change="onBatchFileSelect" />
-          <div style="margin-bottom: 12px">
-            <el-button @click="triggerBatchFileSelect">选择多张图片</el-button>
-            <span v-if="batchUploading" style="color: #409eff; margin-left: 12px">上传中... {{ batchUploadedCount }}/{{ batchFileList.length }}</span>
-            <span v-else-if="batchUploadedCount > 0" style="color: #67c23a; margin-left: 12px">已上传 {{ batchUploadedCount }} 张</span>
-          </div>
-          <div v-if="batchFileList.length > 0" class="batch-file-list">
-            <div v-for="(f, i) in batchFileList" :key="i" class="batch-file-item">
-              <span>{{ i + 1 }}. {{ f.name }}</span>
-              <el-tag v-if="f.status === 'uploading'" type="warning" size="small">上传中</el-tag>
-              <el-tag v-else-if="f.status === 'success'" type="success" size="small">成功</el-tag>
-              <el-tag v-else-if="f.status === 'error'" type="danger" size="small">失败</el-tag>
-            </div>
-          </div>
-          <div class="batch-hint">
-            <p>✅ 上传后将自动创建图集（gallery）类型图片，可在表格中调整顺序和类型</p>
-          </div>
-        </el-tab-pane>
-      </el-tabs>
-      <template #footer>
-        <el-button @click="batchDialogVisible = false">取消</el-button>
-        <el-button v-if="batchTab === 'url'" type="primary" @click="handleBatchUpload">📤 开始上传</el-button>
-        <el-button v-if="batchTab === 'local' && batchFileList.length > 0 && !batchUploading" type="primary" @click="startBatchFileUpload">📤 开始上传 ({{ batchFileList.length }} 张)</el-button>
-      </template>
-    </el-dialog>
-    
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed, watch } from 'vue';
 import { ElMessage } from 'element-plus';
-import { Rank } from '@element-plus/icons-vue';
 import {
-  getSpus, createSpu, updateSpu, deleteSpu,
-  getSkus, createSku, updateSku, deleteSku,
+  getSpus, deleteSpu,
+  getSkus, deleteSku,
   getTierPricings,
-  getSets, createSet, updateSet, deleteSet,
-  getSkuImages, createSkuImage, batchCreateSkuImages, updateSkuImage, deleteSkuImage, reorderSkuImages,
-  uploadImage,
+  getSets, deleteSet,
   getFrameMaterials, getFrameTypes, getNosePads, getHinges, getSurfaceTreatments,
   getSeriesList, getEffectTags,
 } from '@/api/product';
@@ -338,9 +294,6 @@ const schemaConfig = computed(() => schemaData.value?.config);
 const sceneTagOptions = computed(() => schemaConfig.value?.sceneTags || ["通勤","职场","约会","拍照","运动","旅行","休闲","派对"]);
 const genderOptions = computed(() => schemaConfig.value?.genderOptions || [{ value:"female",label:"女款"},{ value:"male",label:"男款"},{ value:"unisex",label:"中性"},{ value:"limited",label:"限量" }]);
 const statusOptions = computed(() => schemaConfig.value?.statusOptions || [{ value:"on_sale",label:"在售"},{ value:"draft",label:"草稿"},{ value:"off_sale",label:"下架" }]);
-const shapeLabels = computed(() => schemaConfig.value?.shapeLabels || {});
-const seriesLabels = computed(() => schemaConfig.value?.seriesLabels || {});
-const faceShapeLabelsConfig = computed(() => schemaConfig.value?.faceShapeLabels || {});
 const tierLabelsConfig = computed(() => schemaConfig.value?.tierLabels || {});
 const spuEditRow = ref<any>(null);
 const skuEditRow = ref<any>(null);
@@ -399,14 +352,6 @@ const frameTypes = ref<any[]>([]);
 const nosePads = ref<any[]>([]);
 const hinges = ref<any[]>([]);
 const surfaceTreatments = ref<any[]>([]);
-const faceShapeOptions = [
-  { label: '圆脸', value: 'round' },
-  { label: '椭圆脸', value: 'oval' },
-  { label: '方脸', value: 'square' },
-  { label: '菱形脸', value: 'diamond' },
-  { label: '心形脸', value: 'heart' },
-  { label: '长脸', value: 'oblong' },
-];
 const seriesList = ref<any[]>([]);
 const computedSeriesList = computed(() => seriesList.value.map((s: Record<string, unknown>) => ({ code: s.code, name: s.name })));
 
@@ -416,7 +361,7 @@ const skinEffectTags = computed(() => skinToneEffects.value);
 const faceEffectTags = computed(() => faceShapeEffects.value);
 const loadEffectTags = async () => {
   try {
-    const [skin, face]: Record<string, unknown>[] = await Promise.all([getEffectTags('skin_tone'), getEffectTags('face_shape')]);
+    const [skin, face]: any[] = await Promise.all([getEffectTags('skin_tone'), getEffectTags('face_shape')]);
     skinToneEffects.value = Array.isArray(skin) ? skin : [];
     faceShapeEffects.value = Array.isArray(face) ? face : [];
   } catch (e) {}
@@ -424,7 +369,7 @@ const loadEffectTags = async () => {
 
 const loadTechDicts = async () => {
   try {
-    const [fm, ft, np, hg, st, sl]: Record<string, unknown>[] = await Promise.all([
+    const [fm, ft, np, hg, st, sl]: any[] = await Promise.all([
       getFrameMaterials(), getFrameTypes(), getNosePads(), getHinges(), getSurfaceTreatments(), getSeriesList(),
     ]);
     seriesList.value = sl.data || sl.items || sl || [];
@@ -451,12 +396,12 @@ const spuDialogVisible = ref(false);
 const loadSpus = async () => {
   spuLoading.value = true;
   try {
-    const res = await getSpus({ page: spuPage.value, pageSize: spuPageSize.value, ...spuSearch });
+    const res: any = await getSpus({ page: spuPage.value, pageSize: spuPageSize.value, ...spuSearch });
     if (Array.isArray(res)) {
       spuList.value = res
       spuTotal.value = res.length
     } else if (res && typeof res === 'object' && Array.isArray(res.items)) {
-      spuList.value = res.items.map((i) => ({ ...i }))
+      spuList.value = res.items.map((i: any) => ({ ...i }))
       spuTotal.value = res.total || res.items.length
     } else {
       spuList.value = []
@@ -478,9 +423,6 @@ const openSpuDialog = (row?: any) => {
 };
 const batchEditSpus = () => { if(spuSelection.value.length===1) openSpuDialog(spuSelection.value[0]); else if(spuSelection.value.length>1) ElMessage.warning('暂仅支持单条编辑'); };
 const batchDeleteSpus = async () => { try { for(const r of spuSelection.value) await deleteSpu(r.spuId); ElMessage.success(spuSelection.value.length+' 条已删除'); spuSelection.value=[]; loadSpus(); } catch { ElMessage.error('删除失败'); } };
-const handleDeleteSpu = async (id: string) => {
-  try { await deleteSpu(id); ElMessage.success('已删除'); loadSpus(); } catch (e: unknown) { ElMessage.error((e as any)?.message || '删除失败'); }
-};
 
 // ===== SKU =====
 const skuList = ref<any[]>([]);
@@ -496,12 +438,12 @@ const loadSkus = async () => {
   skuLoading.value = true;
   try {
     const cleanSearch = Object.fromEntries(Object.entries(skuSearch).filter(([_,v]) => v !== undefined && v !== null && v !== ''));
-    const res = await getSkus({ page: skuPage.value, pageSize: skuPageSize.value, ...cleanSearch });
+    const res: any = await getSkus({ page: skuPage.value, pageSize: skuPageSize.value, ...cleanSearch });
     if (Array.isArray(res)) {
       skuList.value = res
       skuTotal.value = res.length
     } else if (res && typeof res === 'object' && Array.isArray(res.items)) {
-      skuList.value = res.items.map((i) => ({ ...i }))
+      skuList.value = res.items.map((i: any) => ({ ...i }))
       skuTotal.value = res.total || res.items.length
     } else {
       skuList.value = []
@@ -516,22 +458,12 @@ const openSkuDialog = (row?: any) => {
 };
 const batchEditSkus = () => { if(skuSelection.value.length===1) openSkuDialog(skuSelection.value[0]); else if(skuSelection.value.length>1) ElMessage.warning('暂仅支持单条编辑'); };
 const batchDeleteSkus = async () => { try { for(const r of skuSelection.value) await deleteSku(r.skuId); ElMessage.success(skuSelection.value.length+' 条已删除'); skuSelection.value=[]; loadSkus(); } catch { ElMessage.error('删除失败'); } };
-const handleDeleteSku = async (id: string) => {
-  try {
-    await deleteSku(id)
-    ElMessage.success('SKU 已删除')
-    loadSkus()
-    skuEditRow.value = null
-  } catch (e: unknown) {
-    ElMessage.error((e as any)?.message || '删除失败')
-  }
-};
 
 // ===== 结构标准 =====
 const structureStandardList = ref<any[]>([]);
 const loadStructureStandards = async () => {
   try {
-    const res = await getStructureList({ page: 1, pageSize: 500 })
+    const res: any = await getStructureList({ page: 1, pageSize: 500 })
     // request.ts 拦截器已经解包
     if (Array.isArray(res)) {
       structureStandardList.value = res
@@ -548,7 +480,7 @@ const loadStructureStandards = async () => {
 // ===== Category (供 SPU/SKU/Set 表单下拉选择) =====
 const categoryList = ref<any[]>([]);
 const loadCategoryList = async () => {
-  try { categoryList.value = await getCategoriesFlat(); }
+  try { categoryList.value = await getCategoriesFlat() as any; }
   catch { categoryList.value = []; }
 };
 
@@ -561,7 +493,7 @@ const setEditRow = ref<Record<string, unknown> | null>(null);
 
 const loadSets = async () => {
   setLoading.value = true;
-  try { const res = await getSets({}); setList.value = Array.isArray(res.items) ? res.items : (res.data?.items || []); }
+  try { const res: any = await getSets({}); setList.value = Array.isArray(res.items) ? res.items : (res.data?.items || []); }
   catch { setList.value = []; }
   finally { setLoading.value = false; }
 };
@@ -573,9 +505,6 @@ const openSetDialog = (row?: any) => {
 
 const batchEditSets = () => { if (setSelection.value.length === 1) openSetDialog(setSelection.value[0]); else ElMessage.warning("请只勾选一个套装进行编辑"); };
 const batchDeleteSets = async () => { try { for (const r of setSelection.value) await deleteSet(r.setId); ElMessage.success("已删除"); setSelection.value=[]; loadSets(); } catch(e:unknown){ ElMessage.error((e as any)?.message || "批量删除失败"); } };
-const handleDeleteSet = async (id: string) => {
-  try { await deleteSet(id); ElMessage.success("已删除"); loadSets(); } catch (e: unknown) { ElMessage.error((e as any)?.message || "删除失败"); }
-};
 
 
 // ===== SKU 列表（供 SkuImagePanel + SetDialog 使用）=====
