@@ -88,7 +88,7 @@ export const deleteCustomer = (id: string) =>
   request.delete(`/customers/${id}`)
 
 // ===== Contacts =====
-export const getContacts = (customerId: string) =>
+export const getContacts = (customerId: string): Promise<Record<string, unknown>[]> =>
   request.get<Contact[]>(`/customers/${customerId}/contacts`)
 
 export const addContact = (data: CreateUpdateData) =>
@@ -101,7 +101,7 @@ export const deleteContact = (id: string) =>
   request.delete(`/customers/contacts/${id}`)
 
 // ===== Addresses =====
-export const getAddresses = (customerId: string) =>
+export const getAddresses = (customerId: string): Promise<Record<string, unknown>[]> =>
   request.get<Address[]>(`/customers/${customerId}/addresses`)
 
 export const addAddress = (data: CreateUpdateData) =>
@@ -127,7 +127,7 @@ export const deleteTierPricing = (id: string) =>
   request.delete(`/customers/pricings/${id}`)
 
 // ===== 处方 =====
-export const getPrescriptions = (customerId: string) =>
+export const getPrescriptions = (customerId: string): Promise<Record<string, unknown>[]> =>
   request.get<any[]>(`/customers/${customerId}/prescriptions`)
 
 export const addPrescription = (data: CreateUpdateData) =>
@@ -137,7 +137,7 @@ export const deletePrescription = (id: string) =>
   request.delete(`/customers/prescriptions/${id}`)
 
 // ===== 客户镜片 =====
-export const getCustomerLenses = (customerId: string) =>
+export const getCustomerLenses = (customerId: string): Promise<Record<string, unknown>[]> =>
   request.get<any[]>(`/customers/${customerId}/lenses`)
 
 export const getCustomerLensSummary = (customerId: string): Promise<{ lenses: Array<Record<string, unknown>> }> =>
@@ -150,7 +150,7 @@ export const deleteCustomerLens = (id: string) =>
   request.delete(`/customers/lenses/${id}`)
 
 // ===== 客户镜框 =====
-export const getCustomerFrames = (lensId: string) =>
+export const getCustomerFrames = (lensId: string): Promise<Record<string, unknown>[]> =>
   request.get<any[]>(`/customers/lenses/${lensId}/frames`)
 
 export const addCustomerFrame = (data: CreateUpdateData) =>
@@ -204,11 +204,11 @@ export const getMemberLevelLogs = (customerId: string) =>
 export const getPointsTransactions = (customerId: string) =>
   request.get<any[]>(`/customers/${customerId}/points-transactions`)
 
-export const getAccountInfo = (customerId: string) =>
+export const getAccountInfo = (customerId: string): Promise<Record<string, unknown>> =>
   request.get<any>(`/customers/${customerId}/account-info`)
 
 // ===== 客户订单列表（复用 order API） =====
-export const getCustomerOrders = (customerId: string, page = 1, pageSize = 20) =>
+export const getCustomerOrders = (customerId: string, page = 1, pageSize = 20): Promise<Record<string, unknown>> =>
   request.get<any>(`/orders`, { params: { customerId, page, pageSize } })
 
 // ===== 官网账户管理（管理端 API） =====
@@ -246,21 +246,21 @@ export interface LoginLog {
   createdAt: string
 }
 
-export const getWebsiteAccount = (customerId: string) =>
+export const getWebsiteAccount = (customerId: string): Promise<Record<string, unknown>> =>
   request.get<WebsiteAccount>(`/customer-auth-admin/${customerId}`)
 
-export const getLoginLogs = (customerId: string, limit = 20) =>
+export const getLoginLogs = (customerId: string, limit = 20): Promise<{ total: number; logs: Record<string, unknown>[] }> =>
   request.get<{ total: number; logs: LoginLog[] }>(`/customer-auth-admin/${customerId}/login-logs`, { params: { limit } })
 
-export const registerWebsiteAccount = (customerId: string) =>
+export const registerWebsiteAccount = (customerId: string): Promise<{ message: string }> =>
   request.post<{ message: string; phone: string; initialPassword: string }>(`/customer-auth-admin/${customerId}/register`)
 
-export const resetPassword = (customerId: string) =>
+export const resetPassword = (customerId: string): Promise<{ message: string }> =>
   request.post<{ message: string; newPin: string }>(`/customer-auth-admin/${customerId}/reset-password`)
 
-export const toggleAccountStatus = (customerId: string, status: string) =>
+export const toggleAccountStatus = (customerId: string, status: string): Promise<{ message: string; status: string }> =>
   request.post<{ message: string; status: string }>(`/customer-auth-admin/${customerId}/toggle-status`, { status })
 
-export const sendLoginCode = (customerId: string) =>
+export const sendLoginCode = (customerId: string): Promise<{ message: string }> =>
   request.post<{ message: string }>(`/customer-auth-admin/${customerId}/send-login-code`)
 

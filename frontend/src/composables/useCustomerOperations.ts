@@ -2,7 +2,7 @@ import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
   addContact, addAddress, updateAddress, deleteAddress,
-  addTierPricing, addPrescription, deletePrescription,
+  addTierPricing, addPrescription, deletePrescription, getPrescriptions,
   getCustomerLenses, getCustomerLensSummary, addCustomerLens, deleteCustomerLens,
   getContacts, getAddresses,
 } from '@/api/customer'
@@ -19,7 +19,6 @@ export function useCustomerOperations(
   detail: ReturnType<typeof import('vue').ref<any>>,
   contacts: ReturnType<typeof import('vue').ref<any[]>>,
   addresses: ReturnType<typeof import('vue').ref<any[]>>,
-  tierPricings: ReturnType<typeof import('vue').ref<any[]>>,
   prescriptions: ReturnType<typeof import('vue').ref<any[]>>,
   customerLenses: ReturnType<typeof import('vue').ref<any[]>>,
   lensSummary: ReturnType<typeof import('vue').ref<any>>,
@@ -57,8 +56,8 @@ export function useCustomerOperations(
   const prescriptionDialogVisible = ref(false)
   const prescriptionForm = reactive<Record<string, any>>({})
   function openPrescriptionDialog() { Object.assign(prescriptionForm, { label: '', odSphere: null, odCylinder: null, odAxis: null, odAdd: null, osSphere: null, osCylinder: null, osAxis: null, osAdd: null, pdValue: null, sourceType: 'manual_upload', prescriptionDate: '', expireDate: '' }); prescriptionDialogVisible.value = true }
-  async function handleAddPrescription() { await addPrescription(detail.value.customerId, prescriptionForm); ElMessage.success('处方已添加'); prescriptions.value = await import('@/api/customer').then(m => m.getPrescriptions(detail.value.customerId)); prescriptionDialogVisible.value = false }
-  async function handleDeletePrescription(id: string) { await deletePrescription(id); ElMessage.success('处方已删除'); prescriptions.value = await import('@/api/customer').then(m => m.getPrescriptions(detail.value.customerId)) }
+  async function handleAddPrescription() { await addPrescription({ ...prescriptionForm, customerId: detail.value.customerId }); ElMessage.success('处方已添加'); prescriptions.value = await getPrescriptions(detail.value.customerId); prescriptionDialogVisible.value = false }
+  async function handleDeletePrescription(id: string) { await deletePrescription(id); ElMessage.success('处方已删除'); prescriptions.value = await getPrescriptions(detail.value.customerId) }
 
   // ===== 镜片 =====
   const lensDialogVisible = ref(false)
@@ -75,10 +74,10 @@ export function useCustomerOperations(
 
   async function loadWebsiteAccount() { if (!detail.value) return; try { websiteAccount.value = await getWebsiteAccount(detail.value.customerId); if (websiteAccount.value?.accountStatus !== 'none') loadLoginLogs() } catch { websiteAccount.value = null } }
   async function loadLoginLogs() { if (!detail.value) return; loginLogsLoading.value = true; try { const res = await getLoginLogs(detail.value.customerId, 20); loginLogs.value = res.logs || [] } catch { loginLogs.value = [] } finally { loginLogsLoading.value = false } }
-  async function handleRegisterAccount() { if (!detail.value) return; accountLoading.value = true; try { await registerWebsiteAccount(detail.value.customerId); ElMessage.success({ message: '官网账户已创建！', duration: 6000, showClose: true }); await loadWebsiteAccount() } catch (e: unknown) { ElMessage.error((e as any).response?.data?.message || '创建失败') } finally { accountLoading.value = false } }
-  async function handleResetPassword() { if (!detail.value) return; accountLoading.value = true; try { await resetPassword(detail.value.customerId); ElMessage.success({ message: '密码已重置', duration: 6000, showClose: true }) } catch (e: unknown) { ElMessage.error((e as any).response?.data?.message || '重置失败') } finally { accountLoading.value = false } }
-  async function handleSendLoginCode() { if (!detail.value) return; accountLoading.value = true; try { const res = await sendLoginCode(detail.value.customerId); ElMessage.success(res.message || '验证码已发送') } catch (e: unknown) { ElMessage.error((e as any).response?.data?.message || '发送失败') } finally { accountLoading.value = false } }
-  async function handleStatusChange(status: string) { if (!detail.value) return; try { const res = await toggleAccountStatus(detail.value.customerId, status); ElMessage.success(res.message); await loadWebsiteAccount() } catch (e: unknown) { ElMessage.error((e as any).response?.data?.message || '操作失败') } }
+  async function handleRegisterAccount() { if (!detail.value) return; accountLoading.value = true; try { await registerWebsiteAccount(detail.value.customerId); ElMessage.success({ message: '官网账户已创建！', duration: 6000, showClose: true }); await loadWebsiteAccount() } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '创建失败') } finally { accountLoading.value = false } }
+  async function handleResetPassword() { if (!detail.value) return; accountLoading.value = true; try { await resetPassword(detail.value.customerId); ElMessage.success({ message: '密码已重置', duration: 6000, showClose: true }) } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '重置失败') } finally { accountLoading.value = false } }
+  async function handleSendLoginCode() { if (!detail.value) return; accountLoading.value = true; try { const res = await sendLoginCode(detail.value.customerId); ElMessage.success(res.message || '验证码已发送') } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '发送失败') } finally { accountLoading.value = false } }
+  async function handleStatusChange(status: string) { if (!detail.value) return; try { const res = await toggleAccountStatus(detail.value.customerId, status); ElMessage.success(res.message); await loadWebsiteAccount() } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '操作失败') } }
 
   return {
     contactDialogVisible, contactForm, openContactDialog, handleAddContact,
