@@ -261,7 +261,7 @@ async function generateERDL() {
  generatedYaml.value = ''
 
  try {
- const res = await generateERDLFromPrompt(nlPrompt.value)
+ const res: any = await generateERDLFromPrompt(nlPrompt.value)
  generatedYaml.value = res.yaml
  generatedValid.value = res.valid
  yamlCode.value = res.yaml
@@ -301,7 +301,7 @@ async function validateYaml() {
  validated.value = false
 
  try {
- const res = await validatePlaygroundYaml(yamlCode.value)
+ const res: any = await validatePlaygroundYaml(yamlCode.value)
  errors.value = res.errors || []
  if (res.valid) {
  validated.value = true
@@ -326,7 +326,7 @@ async function loadYaml() {
  errors.value = []
 
  try {
- const res = await loadPlaygroundYaml(yamlCode.value)
+ const res: any = await loadPlaygroundYaml(yamlCode.value)
  parsedEntities.value = res.entities || []
  parsedRules.value = res.rulesets || []
  parsedAgents.value = res.agents || []
@@ -366,7 +366,7 @@ function clearEditor() {
 
 onMounted(async () => {
  try {
- stats.value = await getERDLStats()
+ stats.value = await getERDLStats() as any
  } catch {
  // 初次加载可能无数据
  }
