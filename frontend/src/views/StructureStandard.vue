@@ -304,19 +304,20 @@ const uploadUrl = computed(() => `/structures/${editId.value}/upload`)
 
 // 自定义上传：用 request.post 替代原生 XMLHttpRequest
 async function handleUpload(options: Record<string, unknown>) {
-  const { file, onSuccess, onError } = options
+  const { file, onSuccess, onError } = options as { file: File; onSuccess: (res: unknown) => void; onError: (e: unknown) => void };
   const formData = new FormData()
   formData.append('file', file)
   try {
     const res = await request.post(uploadUrl.value, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
-    onSuccess?.(res)
+    onSuccess(res)
     ElMessage.success('上传成功')
     loadAttachments(editId.value)
   } catch (e: unknown) {
-    onError?.(e)
-    const msg = e?.response?.data?.message || e?.message || '未知错误'
+    onError(e)
+    const err = e instanceof Error ? e.message : String(e);
+    const msg = err || '未知错误'
     ElMessage.error(`上传失败: ${msg}`)
   }
 }
@@ -333,8 +334,8 @@ const shapeDict = useDict('structure_shape')
 const seriesDict = useDict('structure_series')
 
 // el-select :options 需要 { label, value } 格式
-const shapeOptions = computed(() => shapeDict.items.value.map((s: Record<string, unknown>) => ({ label: `${s.name} (${s.code})`, value: s.code })))
-const seriesOptions = computed(() => seriesDict.items.value.map((s: Record<string, unknown>) => ({ label: `${s.name} (${s.code})`, value: s.code })))
+const shapeOptions = computed(() => shapeDict.items.value.map((s) => ({ label: `${s.name} (${s.code})`, value: s.code })))
+const seriesOptions = computed(() => seriesDict.items.value.map((s) => ({ label: `${s.name} (${s.code})`, value: s.code })))
 const detailVisible = ref(false)
 const isEdit = ref(false)
 const editId = ref('')
@@ -357,7 +358,6 @@ function updateStandardCode() {
 }
 
 const attachments = ref<any[]>([])
-const imagePreviewUrl = ref('')
 
 const rules = {
   shapeCode: [{ required: true, message: '请选择造型', trigger: 'change' }],
@@ -433,7 +433,7 @@ async function handleSave() {
       ElMessage.success('创建成功')
       // 保存后自动切换为编辑态，用户可直接上传附件
       isEdit.value = true
-      editId.value = result.data?.structureId || result.structureId
+      editId.value = result.structureId
       attachments.value = []
       // 不关闭对话框，不刷新列表，让用户继续操作
     }
@@ -444,15 +444,9 @@ async function handleSave() {
   }
 }
 
-async function handleDelete(row: Record<string, unknown>) {
-  await deleteStructure(row.structureId)
-  ElMessage.success('删除成功')
-  loadData()
-}
-
 async function openDetail(row: Record<string, unknown>) {
-  detail.value = await getStructureDetail(row.structureId)
-  frames.value = await getCompatibleFrames(row.externalCode)
+  detail.value = await getStructureDetail(String(row.structureId ?? ''))
+  frames.value = await getCompatibleFrames(String(row.externalCode ?? ''))
   detailVisible.value = true
 }
 
@@ -460,7 +454,7 @@ async function openDetail(row: Record<string, unknown>) {
 async function loadAttachments(structureId: string) {
   try {
     const detail = await getStructureDetail(structureId)
-    attachments.value = detail.attachments || []
+    attachments.value = (detail as unknown as Record<string, unknown>).attachments as any[] || []
   } catch {}
 }
 
@@ -486,7 +480,7 @@ function beforeUpload(file: File) {
 }
 
 function previewImage(row: Record<string, unknown>) {
-  ElMessageBox.alert(`<img src="${BASE_URL}${row.fileUrl}" style="max-width:100%;max-height:80vh" />`, row.fileName, { dangerouslyUseHTMLString: true })
+  ElMessageBox.alert(`<img src="${BASE_URL}${String(row.fileUrl ?? '')}" style="max-width:100%;max-height:80vh" />`, String(row.fileName ?? ''), { dangerouslyUseHTMLString: true, customClass: '' })
 }
 
 async function deleteAttachment(attachmentId: string) {

@@ -89,7 +89,7 @@
             <el-table-column label="可行性" width="100">
               <template #default="{ row }">
                 <el-tag :type="row.feasibility === 'feasible' ? 'success' : row.feasibility === 'not_feasible' ? 'danger' : 'warning'" size="small">
-                  {{ { feasible: '可行', not_feasible: '不可行', conditional: '条件可行' }[row.feasibility] || row.feasibility }}
+                  {{ ({ feasible: '可行', not_feasible: '不可行', conditional: '条件可行' } as Record<string, string>)[row.feasibility] || row.feasibility }}
                 </el-tag>
               </template>
             </el-table-column>
@@ -159,7 +159,7 @@
             <el-table-column label="状态" width="80">
               <template #default="{ row }">
                 <el-tag :type="row.status === 'active' ? 'success' : row.status === 'draft' ? 'info' : ''" size="small">
-                  {{ { draft: '草稿', active: '启用', archived: '归档' }[row.status] || row.status }}
+                  {{ ({ draft: '草稿', active: '启用', archived: '归档' } as Record<string, string>)[row.status] || row.status }}
                 </el-tag>
               </template>
             </el-table-column>
@@ -342,7 +342,7 @@
         <el-table-column prop="roleInPalette" label="角色" width="100">
           <template #default="{ row }">
             <el-tag :type="row.roleInPalette === 'primary' ? 'primary' : row.roleInPalette === 'secondary' ? 'warning' : 'info'" size="small">
-              {{ { primary: '主色', secondary: '辅色', accent: '点缀' }[row.roleInPalette] || row.roleInPalette }}
+              {{ ({ primary: '主色', secondary: '辅色', accent: '点缀' } as Record<string, string>)[row.roleInPalette] || row.roleInPalette }}
             </el-tag>
           </template>
         </el-table-column>
@@ -479,7 +479,7 @@ const spuColors = ref<any[]>([]);
 
 const loadDicts = async () => {
   try { materials.value = await getDictLensMaterials(); } catch {}
-  try { const r = await getDictSkuColors(); spuColors.value = r.items || r; } catch {}
+  try { const r = await getDictSkuColors(); spuColors.value = r || []; } catch {}
 };
 
 // ===== Tab 1: 标准色盘（第一位） =====
@@ -493,9 +493,8 @@ const colorForm = reactive<any>({ colorId: '', colorCode: '', colorName: '', col
 const loadColors = async () => {
   colorLoading.value = true;
   try {
-    const res = await getColors({ keyword: colorSearch.value || undefined } as any);
-    if (Array.isArray(res)) { colorList.value = res.filter((c: Record<string, unknown>) => c.colorId); }
-    else if (res?.items) { colorList.value = res.items.filter((c: Record<string, unknown>) => c.colorId); }
+    const res = await getColors({ keyword: colorSearch.value || undefined });
+    if (Array.isArray(res.items)) { colorList.value = res.items.filter((c) => c.colorId); }
   } catch (e: unknown) { ElMessage.error((e as Error).message); }
   finally { colorLoading.value = false; }
 };
@@ -622,10 +621,10 @@ const paletteItemForm = reactive<any>({ paletteId: '', colorCode: '', roleInPale
 const openPaletteItemDialog = async (row: Record<string, unknown>) => {
   currentPalette.value = row;
   try {
-    const res = await getColorPalettes({ page: 1, pageSize: 100 } as any);
-    const allPalettes = res.items || res;
-    const found = allPalettes.find((p: any) => p.paletteId === row.paletteId);
-    currentPaletteItems.value = found?.items || [];
+    const res = await getColorPalettes({ page: 1, pageSize: 100 });
+    const allPalettes = res.items;
+    const found = allPalettes.find((p: Record<string, unknown>) => p.paletteId === row.paletteId);
+    currentPaletteItems.value = (found?.items as Record<string, unknown>[]) || [];
   } catch { currentPaletteItems.value = []; }
   paletteItemDialogVisible.value = true;
   paletteItemFormVisible.value = false;

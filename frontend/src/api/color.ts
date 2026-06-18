@@ -30,7 +30,7 @@ export function getColorProject(id: string) { return request.get(`/colors/projec
 export function createColorProject(data: CreateUpdateData) { return request.post('/colors/projects', data); }
 export function updateColorProject(id: string, data: CreateUpdateData) { return request.put(`/colors/projects/${id}`, data); }
 export function deleteColorProject(id: string) { return request.delete(`/colors/projects/${id}`); }
-export function getProjectColors(projectId: string) { return request.get(`/colors/projects/${projectId}/colors`); }
+export function getProjectColors(projectId: string): Promise<Record<string, unknown>[]> { return request.get(`/colors/projects/${projectId}/colors`); }
 export function addProjectColor(data: CreateUpdateData) { return request.post('/colors/project-colors', data); }
 export function deleteProjectColor(id: string) { return request.delete(`/colors/project-colors/${id}`); }
 
