@@ -1,7 +1,6 @@
 import { ref, computed } from 'vue'
-import { ElMessage } from 'element-plus'
 import {
-  getCustomerList, getCustomerDetail, getContacts, getAddresses,
+  getCustomerDetail, getContacts, getAddresses,
   getTierPricings, getPrescriptions, getCustomerLenses, getCustomerLensSummary,
   getMemberLevelLogs, getPointsTransactions, getCustomerOrders,
 } from '@/api/customer'
@@ -51,24 +50,25 @@ export function useCustomerDetail() {
   })
 
   async function openDetail(row: Record<string, unknown>) {
-    detail.value = await getCustomerDetail(row.customerId)
-    contacts.value = await getContacts(row.customerId)
-    addresses.value = await getAddresses(row.customerId)
-    try { tierPricings.value = await getTierPricings(row.customerId) } catch { tierPricings.value = [] }
-    try { prescriptions.value = await getPrescriptions(row.customerId) } catch { prescriptions.value = [] }
-    try { customerLenses.value = await getCustomerLenses(row.customerId) } catch { customerLenses.value = [] }
-    try { lensSummary.value = await getCustomerLensSummary(row.customerId) } catch { lensSummary.value = null }
-    try { memberLevelLogs.value = await getMemberLevelLogs(row.customerId) } catch { memberLevelLogs.value = [] }
-    try { pointsTransactions.value = await getPointsTransactions(row.customerId) } catch { pointsTransactions.value = [] }
+    const cid = String(row.customerId ?? '')
+    detail.value = await getCustomerDetail(cid)
+    contacts.value = await getContacts(cid)
+    addresses.value = await getAddresses(cid)
+    try { tierPricings.value = await getTierPricings(cid) } catch { tierPricings.value = [] }
+    try { prescriptions.value = await getPrescriptions(cid) } catch { prescriptions.value = [] }
+    try { customerLenses.value = await getCustomerLenses(cid) } catch { customerLenses.value = [] }
+    try { lensSummary.value = await getCustomerLensSummary(cid) } catch { lensSummary.value = null }
+    try { memberLevelLogs.value = await getMemberLevelLogs(cid) } catch { memberLevelLogs.value = [] }
+    try { pointsTransactions.value = await getPointsTransactions(cid) } catch { pointsTransactions.value = [] }
     loadCustomerOrders(1)
   }
 
   async function loadCustomerOrders(page: number) {
     ordersLoading.value = true
     try {
-      const res: any = await getCustomerOrders(detail.value.customerId, { page, pageSize: 10 })
-      customerOrders.value = res?.items || res?.data?.items || []
-      orderTotal.value = res?.total || res?.data?.total || 0
+      const res = await getCustomerOrders(detail.value.customerId, page, 10)
+      customerOrders.value = (res as Record<string, unknown>).items as Record<string, unknown>[] || []
+      orderTotal.value = Number((res as Record<string, unknown>).total ?? 0)
       orderPage.value = page
     } catch { customerOrders.value = [] }
     finally { ordersLoading.value = false }

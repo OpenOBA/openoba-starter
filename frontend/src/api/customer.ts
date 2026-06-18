@@ -75,7 +75,7 @@ const cleanParams = (p: Record<string, any>) => {
 export const getCustomerList = (params: { page?: number; pageSize?: number; keyword?: string; customerType?: string; customerLevel?: string; status?: string }): Promise<{ items: Customer[]; total: number; page: number; pageSize: number }> =>
   request.get('/customers', { params: cleanParams(params) })
 
-export const getCustomerDetail = (id: string) =>
+export const getCustomerDetail = (id: string): Promise<Record<string, unknown>> =>
   request.get<Customer>(`/customers/${id}`)
 
 export const createCustomer = (data: CreateUpdateData) =>
@@ -198,10 +198,10 @@ export const scanMemberDowngradesNew = () =>
   request.post<any>('/customers/member-downgrade-scan')
 
 // ===== P1+ 客户管理重构 =====
-export const getMemberLevelLogs = (customerId: string) =>
+export const getMemberLevelLogs = (customerId: string): Promise<Record<string, unknown>[]> =>
   request.get<any[]>(`/customers/${customerId}/member-level-logs`)
 
-export const getPointsTransactions = (customerId: string) =>
+export const getPointsTransactions = (customerId: string): Promise<Record<string, unknown>[]> =>
   request.get<any[]>(`/customers/${customerId}/points-transactions`)
 
 export const getAccountInfo = (customerId: string): Promise<Record<string, unknown>> =>
