@@ -224,7 +224,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
   getSubSkus, createSubSku, updateSubSku, deleteSubSku,
@@ -317,10 +317,10 @@ const onCategoryClick = (data: Record<string, unknown>) => {
 
 const showSkuDialog = (row?: Record<string, unknown>) => {
   if (row?.id) {
-    const sv = row.specValues || {}
+    const sv = (row.specValues || {}) as Record<string, string>
     Object.assign(skuForm, {
       id: row.id, code: row.code, name: row.name,
-      brand: sv.brand || row.brand || '秒镜', model: sv.model || row.model || '',
+      brand: (sv.brand || row.brand || '秒镜') as string, model: (sv.model || row.model || '') as string,
       categoryId: row.categoryId, specTemplateId: row.specTemplateId || '',
       standardId: row.standardId || '',
       price: Number(row.price) || 0, costPrice: Number(row.costPrice) || 0,
@@ -391,15 +391,7 @@ const saveSku = async () => {
 const batchEditSubSkus = () => { if(subSkuSelection.value.length===1) showSkuDialog(subSkuSelection.value[0]); else if(subSkuSelection.value.length>1) ElMessage.warning('暂仅支持单条编辑'); };
 const batchRemoveSubSkus = async () => { try { for(const r of subSkuSelection.value) await deleteSubSku(r.id); ElMessage.success(subSkuSelection.value.length+' 条已下架'); subSkuSelection.value=[]; loadList(); } catch { ElMessage.error('操作失败'); } };
 
-const removeSku = async (id: string) => {
-  try {
-    await deleteSubSku(id)
-    ElMessage.success('已下架')
-    loadList()
-  } catch (e: unknown) {
-    ElMessage.error((e as any)?.message || '操作失败')
-  }
-}
+// 下架
 
 const batchDeleteSubSkus = async () => { try { for(const r of subSkuSelection.value) await deleteSubSku(r.id); ElMessage.success(subSkuSelection.value.length+' 条已删除'); subSkuSelection.value=[]; loadList(); } catch { ElMessage.error('删除失败'); } };
 

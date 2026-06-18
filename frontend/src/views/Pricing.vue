@@ -229,7 +229,7 @@ import {
   getSkus,
   getPromotions, createPromotion, updatePromotion, deletePromotion, updatePromotionStatus,
 } from '@/api/product'
-import { getCustomerList, getTierPricings as getCustomerPricings, addTierPricing, updateTierPricing as updateCustomerPricing, deleteTierPricing as deleteCustomerPricing, getMemberLevels, getMemberPricingRules, createMemberPricingRule, updateMemberPricingRule, deleteMemberPricingRule } from '@/api/customer'
+import { getCustomerList, getTierPricings as getCustomerPricings, addTierPricing, updateTierPricing as updateCustomerPricing, deleteTierPricing as deleteCustomerPricing, getMemberPricingRules, createMemberPricingRule, updateMemberPricingRule, deleteMemberPricingRule } from '@/api/customer'
 
 const PROMOTION_STATUS = { draft: 'draft', active: 'active', paused: 'paused', expired: 'expired' } as const
 const promoStatusDict = useDict('dict_promotion_status')
