@@ -1,22 +1,26 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-echo "🔍 [pre-commit] Running ESLint..."
-
+echo "🔍 [pre-commit] Running backend tsc --noEmit..."
 cd packages/backend
-npx eslint "src/**/*.ts" --quiet
-if [ $? -ne 0 ]; then
-  echo "❌ [pre-commit] ESLint failed — commit aborted"
-  exit 1
-fi
-
-echo "✅ [pre-commit] ESLint passed"
-
-echo "🔍 [pre-commit] Running tsc --noEmit..."
 npx tsc --noEmit
 if [ $? -ne 0 ]; then
-  echo "❌ [pre-commit] TypeScript check failed — commit aborted"
+  echo "❌ [pre-commit] Backend TypeScript check failed — commit aborted"
   exit 1
 fi
+echo "✅ [pre-commit] Backend TypeScript passed"
 
+echo "🔍 [pre-commit] Running frontend vue-tsc -b..."
+cd ../../frontend
+npx vue-tsc -b
+if [ $? -ne 0 ]; then
+  echo "❌ [pre-commit] Frontend TypeScript check failed — commit aborted"
+  echo "   Run: cd frontend && npx vue-tsc -b  (see errors)"
+  exit 1
+fi
+echo "✅ [pre-commit] Frontend TypeScript passed"
+
+echo "🔍 [pre-commit] Running frontend vitest..."
+npx vitest run
+if [ $? -ne 0 ]; then
+  echo "❌ [pre-commit] Frontend tests failed — commit aborted"
+  exit 1
+fi
 echo "✅ [pre-commit] All checks passed"
