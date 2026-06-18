@@ -65,7 +65,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import request from '@/api/request'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 
 const loading = ref(false)
 const dataLoading = ref(false)
@@ -581,8 +581,8 @@ onMounted(async () => {
         tableName: name,
         displayName: displayNameMap[name] || name,
       }))
-  } catch (e: unknown) {
-    ElMessage.error('加载字典列表失败: ' + (e.message || ''))
+  } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+    ElMessage.error('加载字典列表失败: ' + (err || ''))
   } finally {
     loading.value = false
   }
@@ -597,11 +597,11 @@ async function onSelectDict(row: Record<string, unknown>) {
     const items = res.data || res || []
     dictData.value = Array.isArray(items) ? items : []
     // 构建列配置
-    const config = dictFieldConfigs[row.tableName]
+    const config = dictFieldConfigs[String(row.tableName ?? '')]
     if (config) {
-      dictColumns.value = config.fields.map(f => ({
-        prop: f.key,
-        label: f.label,
+      dictColumns.value = config.fields.map((f: Record<string, unknown>) => ({
+        prop: String(f.key ?? ''),
+        label: String(f.label ?? ''),
         width: f.key === 'sort_order' ? 80 : undefined,
       }))
     } else if (dictData.value.length > 0) {
@@ -610,10 +610,10 @@ async function onSelectDict(row: Record<string, unknown>) {
         .filter(k => !['id', 'created_at', 'updated_at', 'deleted_at'].includes(k))
         .map(k => ({ prop: k, label: k }))
     }
-  } catch (e: unknown) {
+  } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
     dictData.value = []
     dictColumns.value = []
-    ElMessage.error(e.message || '加载字典数据失败')
+    ElMessage.error(err || '加载字典数据失败')
   } finally {
     dataLoading.value = false
   }
@@ -641,10 +641,11 @@ function openAdd() {
   dialogTitle.value = '新增字典项'
   formFields.value = config.fields
   form.value = {}
-  config.fields.forEach(f => {
-    if (f.type === 'switch') form.value[f.key] = true
-    else if (f.type === 'number') form.value[f.key] = 0
-    else form.value[f.key] = ''
+  config.fields.forEach((f: Record<string, unknown>) => {
+    const k = String(f.key ?? '');
+    if (f.type === 'switch') form.value[k] = true
+    else if (f.type === 'number') form.value[k] = 0
+    else form.value[k] = ''
   })
   dialogVisible.value = true
 }
@@ -660,9 +661,10 @@ function openEdit(row: Record<string, unknown>) {
   formFields.value = config.fields
   form.value = { ...row }
   // 数字 0/1 → 布尔，适配 el-switch
-  config.fields.forEach(f => {
-    if (f.type === 'switch' && typeof form.value[f.key] === 'number') {
-      form.value[f.key] = form.value[f.key] === 1
+  config.fields.forEach((f: Record<string, unknown>) => {
+    const k = String(f.key ?? '');
+    if (f.type === 'switch' && typeof form.value[k] === 'number') {
+      form.value[k] = form.value[k] === 1
     }
   })
   dialogVisible.value = true
@@ -674,7 +676,8 @@ async function onSave() {
 
   // 校验必填
   for (const f of config.fields) {
-    if (f.required && !form.value[f.key]) {
+    const k = String(f.key ?? '');
+    if (f.required && !form.value[k]) {
       ElMessage.warning(`${f.label} 不能为空`)
       return
     }
@@ -684,10 +687,11 @@ async function onSave() {
   try {
     const payload = { ...form.value }
     // 开关字段统一转为 0/1
-    config.fields.forEach(f => {
+    config.fields.forEach((f: Record<string, unknown>) => {
+      const k = String(f.key ?? '');
       if (f.type === 'switch') {
-        const v = payload[f.key]
-        payload[f.key] = (v === true || v === 1) ? 1 : 0
+        const v = payload[k]
+        payload[k] = (v === true || v === 1) ? 1 : 0
       }
     })
 
@@ -702,30 +706,15 @@ async function onSave() {
     dialogVisible.value = false
     // 刷新数据
     await onSelectDict(selectedDict.value)
-  } catch (e: unknown) {
-    ElMessage.error(e.message || '保存失败')
+  } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+    ElMessage.error(err || '保存失败')
   } finally {
     saving.value = false
   }
 }
 
 function onBatchEdit() { if(dictSelection.value.length===1) openEdit(dictSelection.value[0]); else if(dictSelection.value.length>1) ElMessage.warning('暂仅支持单条编辑'); }
-async function onBatchDelete() { try { for(const r of dictSelection.value) await request.delete(`/dict/${selectedDict.value.tableName}/${encodeURIComponent(r[getFormConfig(selectedDict.value.tableName).keyField])}`); dictSelection.value=[]; await onSelectDict(selectedDict.value); ElMessage.success('批量删除成功'); } catch { ElMessage.error('删除失败'); } }
-
-async function onDelete(row: Record<string, unknown>) {
-  const config = getFormConfig(selectedDict.value.tableName)
-  if (!config) return
-
-  try {
-    await ElMessageBox.confirm('确定删除该字典项？', '确认删除', { type: 'warning' })
-    const keyVal = row[config.keyField]
-    await request.delete(`/dict/${selectedDict.value.tableName}/${encodeURIComponent(keyVal)}`)
-    ElMessage.success('删除成功')
-    await onSelectDict(selectedDict.value)
-  } catch (e: unknown) {
-    if (e !== 'cancel') ElMessage.error(e.message || '删除失败')
-  }
-}
+async function onBatchDelete() { try { for(const r of dictSelection.value) await request.delete(`/dict/${selectedDict.value.tableName}/${encodeURIComponent(String(r[getFormConfig(selectedDict.value.tableName)?.keyField ?? ''] ?? ''))}`); dictSelection.value=[]; await onSelectDict(selectedDict.value); ElMessage.success('批量删除成功'); } catch { ElMessage.error('删除失败'); } }
 </script>
 
 <style scoped>
