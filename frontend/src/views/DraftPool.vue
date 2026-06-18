@@ -65,7 +65,7 @@
             </template>
           </el-table-column>
         </el-table>
-        <el-pagination v-if="total>0" :total="total" :page-size="20" layout="total,prev,pager,next" @current-change="(p: number) => {filters.page=p;fetchDrafts()}"/>
+        <el-pagination v-if="total>0" :total="total" :page-size="20" layout="total,prev,pager,next" @current-change="p=>{filters.page=p;fetchDrafts()}"/>
       </el-tab-pane>
 
       <el-tab-pane label="批次管理" name="batches">
@@ -198,27 +198,27 @@
           <el-divider content-position="left">SKU 列表 ({{ detailSkus.length }})</el-divider>
           <el-table :data="detailSkus" stripe border size="small">
             <el-table-column prop="colorCode" label="色彩" width="110">
-              <template #default="{ $index }">
+              <template #default="{ row, $index }">
                 <el-input v-model="detailSkus[$index].colorCode" size="small" />
               </template>
             </el-table-column>
             <el-table-column prop="colorName" label="色名" width="90">
-              <template #default="{ $index }">
+              <template #default="{ row, $index }">
                 <el-input v-model="detailSkus[$index].colorName" size="small" />
               </template>
             </el-table-column>
             <el-table-column prop="skinToneEffect" label="肤色效果" width="140">
-              <template #default="{ $index }">
+              <template #default="{ row, $index }">
                 <el-input v-model="detailSkus[$index].skinToneEffect" size="small" />
               </template>
             </el-table-column>
             <el-table-column prop="faceShapeEffect" label="脸型效果" width="140">
-              <template #default="{ $index }">
+              <template #default="{ row, $index }">
                 <el-input v-model="detailSkus[$index].faceShapeEffect" size="small" />
               </template>
             </el-table-column>
             <el-table-column prop="displayName" label="展示名" min-width="160">
-              <template #default="{ $index }">
+              <template #default="{ row, $index }">
                 <el-input v-model="detailSkus[$index].displayName" size="small" />
               </template>
             </el-table-column>
@@ -246,6 +246,7 @@ import {
   getBatches, createBatch, completeBatch,
   getPackages, updateDraft,
 } from '../api/draft-pool';
+import { getDictCache } from '../utils/dict-cache';
 
 const activeTab = ref('drafts');
 const loading = ref(false);
@@ -262,11 +263,13 @@ const filters = ref<any>({ page: 1, pageSize: 20 });
 const waitlist = ref({ draft: 0, reviewed: 0 });
 const showCreateDialog = ref(false);
 const showCreateBatch = ref(false);
+const showRejectDialog = ref(false);
 const showDetail = ref(false);
 const showWaitlist = ref(false);
 
 // 多选删除
 const selectedDrafts = ref<any[]>([]);
+const draftTable = ref<any>(null);
 
 function onSelectionChange(rows: Record<string, unknown>[]) {
   selectedDrafts.value = rows;
@@ -291,7 +294,7 @@ async function batchPublish() {
   try { await ElMessageBox.confirm(`确定发布选中的 ${selectedDrafts.value.length} 个草稿？`, '批量发布', { type: 'info' }) } catch { return }
   const ids = selectedDrafts.value.map(d => d.draftId);
   try { await publishDrafts({ draftIds: ids }); ElMessage.success(`已发布 ${ids.length} 项`); selectedDrafts.value = []; fetchDrafts(); }
-  catch (e: any) { ElMessage.error('发布失败: ' + (e.message || '')) }
+  catch (e: unknown) { ElMessage.error('发布失败: ' + (e.message || '')) }
 }
 
 async function batchReject() {
@@ -341,15 +344,15 @@ function formatTime(d: string) { return d ? new Date(d).toLocaleString('zh-CN') 
 async function fetchDrafts() {
   loading.value = true;
   try {
-    const r: any = await queryDrafts(filters.value);
+    const r = await queryDrafts(filters.value);
     draftList.value = r.items;
     total.value = r.total;
-  } catch (e: any) { ElMessage.error('加载失败: ' + (e.message||'')); }
+  } catch (e: unknown) { ElMessage.error('加载失败: ' + (e.message||'')); }
   finally { loading.value = false; }
 }
-async function fetchWaitlist() { try { waitlist.value = await getWaitlistCount() as any; showWaitlist.value = true; } catch {} }
-async function fetchBatches() { try { batchList.value = await getBatches() as any; } catch {} }
-async function fetchPackages() { try { pkgList.value = await getPackages() as any; } catch {} }
+async function fetchWaitlist() { try { waitlist.value = await getWaitlistCount(); showWaitlist.value = true; } catch {} }
+async function fetchBatches() { try { batchList.value = await getBatches(); } catch {} }
+async function fetchPackages() { try { pkgList.value = await getPackages(); } catch {} }
 
 function onTabChange(tab: any) {
   if (tab.props.name === 'batches') fetchBatches();
@@ -364,7 +367,7 @@ async function submitDraft() {
     ElMessage.success('草稿创建成功');
     showCreateDialog.value = false;
     fetchDrafts();
-  } catch (e: any) { ElMessage.error('创建失败: ' + (e.message||'')); }
+  } catch (e: unknown) { ElMessage.error('创建失败: ' + (e.message||'')); }
 }
 
 async function submitBatch() {
@@ -373,7 +376,7 @@ async function submitBatch() {
     ElMessage.success('批次已创建');
     showCreateBatch.value = false;
     fetchBatches();
-  } catch (e: any) { ElMessage.error((e.message||'')); }
+  } catch (e: unknown) { ElMessage.error((e.message||'')); }
 }
 
 async function finishBatch(id: string) {
@@ -382,19 +385,19 @@ async function finishBatch(id: string) {
 
 async function doReview(row: any, action: string, reason?: string) {
   try {
-    const payload: Record<string, any> = { action };
+    const payload: Record<string, unknown> = { action };
     if (reason) payload.rejectedReason = reason;
-    await reviewDraftApi(row.draftId, payload as any);
+    await reviewDraftApi(row.draftId, payload);
     ElMessage.success(statusLabel(row.status) + (action === 'reject' ? '→ 已驳回' : '→ 已审'));
     fetchDrafts();
-  } catch (e: any) { ElMessage.error((e.message||'')); }
+  } catch (e: unknown) { ElMessage.error((e.message||'')); }
 }
 
 // batchApprove / batchPublish / batchReject / batchDelete 在上面已定义
 
 async function openDetail(row: Record<string, unknown>) {
   try {
-    const r: any = await getDraftDetail(row.draftId as string);
+    const r = await getDraftDetail(row.draftId);
     detailDraft.value = r.draft;
     detailSkus.value = JSON.parse(JSON.stringify(r.skus || []));  // 深拷贝编辑
     editForm.value = {
@@ -407,7 +410,7 @@ async function openDetail(row: Record<string, unknown>) {
       displayNameTemplate: r.draft.displayNameTemplate || '',
     };
     showDetail.value = true;
-  } catch (e: any) {
+  } catch (e: unknown) {
     ElMessage.error('加载详情失败: ' + (e.message || ''));
   }
 }
@@ -433,7 +436,7 @@ async function saveDetail() {
     ElMessage.success('草稿已更新');
     showDetail.value = false;
     fetchDrafts();
-  } catch (e: any) {
+  } catch (e: unknown) {
     ElMessage.error('保存失败: ' + (e.message || ''));
   } finally {
     saving.value = false;
