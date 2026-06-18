@@ -227,7 +227,7 @@ import { ElMessage } from 'element-plus'
 const skuList = ref<any[]>([])
 
 const loading = ref(false)
-const tableData = ref([])
+const tableData = ref<Record<string, unknown>[]>([])
 const total = ref(0)
 
 const query = reactive({
@@ -244,7 +244,7 @@ const inVisible = ref(false)
 const inForm = reactive({ skuId: '', quantity: 1, transactionType: 'purchase_in', referenceType: '', referenceId: '', remark: '' })
 function showInDialog() { inForm.skuId = ''; inForm.quantity = 1; inForm.remark = ''; inVisible.value = true }
 async function doStockIn() {
-  try { await stockIn(inForm); ElMessage.success('入库成功'); inVisible.value = false; loadData() } catch (e: unknown) { ElMessage.error(e.message || '入库失败') }
+  try { await stockIn(inForm); ElMessage.success('入库成功'); inVisible.value = false; loadData() } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '入库失败') }
 }
 
 // 出库
@@ -252,7 +252,7 @@ const outVisible = ref(false)
 const outForm = reactive({ skuId: '', quantity: 1, transactionType: 'sale_out', referenceType: '', referenceId: '', remark: '' })
 function showOutDialog() { outForm.skuId = ''; outForm.quantity = 1; outForm.remark = ''; outVisible.value = true }
 async function doStockOut() {
-  try { await stockOut(outForm); ElMessage.success('出库成功'); outVisible.value = false; loadData() } catch (e: unknown) { ElMessage.error(e.message || '出库失败') }
+  try { await stockOut(outForm); ElMessage.success('出库成功'); outVisible.value = false; loadData() } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '出库失败') }
 }
 
 // 盘点调整
@@ -260,34 +260,34 @@ const adjustVisible = ref(false)
 const adjustForm = reactive({ skuId: '', newQuantity: 0, remark: '' })
 function showAdjustDialog() { adjustForm.skuId = ''; adjustForm.newQuantity = 0; adjustForm.remark = ''; adjustVisible.value = true }
 async function doAdjust() {
-  try { await adjustStock(adjustForm); ElMessage.success('调整成功'); adjustVisible.value = false; loadData() } catch (e: unknown) { ElMessage.error(e.message || '调整失败') }
+  try { await adjustStock(adjustForm); ElMessage.success('调整成功'); adjustVisible.value = false; loadData() } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '调整失败') }
 }
 
 // 编辑调整
 const editVisible = ref(false)
 const editForm = reactive({ id: '', skuCode: '', currentQuantity: 0, newQuantity: 0, remark: '' })
 function showEditDialog(row: Record<string, unknown>) {
-  editForm.id = row.id; editForm.skuCode = row.skuCode; editForm.currentQuantity = row.currentQuantity
-  editForm.newQuantity = row.currentQuantity; editForm.remark = ''; editVisible.value = true
+  editForm.id = String(row.id ?? ''); editForm.skuCode = String(row.skuCode ?? ''); editForm.currentQuantity = Number(row.currentQuantity ?? 0)
+  editForm.newQuantity = Number(row.currentQuantity ?? 0); editForm.remark = ''; editVisible.value = true
 }
 async function doEditAdjust() {
   try { await adjustStock({ skuId: editForm.id, newQuantity: editForm.newQuantity, remark: editForm.remark })
-    ElMessage.success('调整成功'); editVisible.value = false; loadData() } catch (e: unknown) { ElMessage.error(e.message || '调整失败') }
+    ElMessage.success('调整成功'); editVisible.value = false; loadData() } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '调整失败') }
 }
 
 // 交易流水
 const txVisible = ref(false)
-const txData = ref([])
+const txData = ref<Record<string, unknown>[]>([])
 const txPage = ref(1)
 const txTotal = ref(0)
 const txSkuId = ref('')
-function viewTransactions(row: Record<string, unknown>) { txSkuId.value = row.skuId; txPage.value = 1; txVisible.value = true; loadTransactions() }
+function viewTransactions(row: Record<string, unknown>) { txSkuId.value = String(row.skuId ?? ''); txPage.value = 1; txVisible.value = true; loadTransactions() }
 async function loadTransactions() {
   try {
     const res = await getTransactions({ skuId: txSkuId.value, page: Number(txPage.value) || 1, pageSize: 10 })
-    txData.value = res.items || res.data?.items || []
-    txTotal.value = res.total || res.data?.total || 0
-  } catch (e: unknown) { ElMessage.error(e.message || '加载流水失败') }
+    txData.value = res.items || []
+    txTotal.value = res.total || 0
+  } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '加载流水失败') }
 }
 
 function txTypeLabel(type: string) {
@@ -311,18 +311,17 @@ async function loadData() {
     if (query.skuCode) params.skuCode = query.skuCode
     if (query.warningOnly) params.warningOnly = query.warningOnly
     const res = await getInventoryList(params)
-    tableData.value = res.items || res.data?.items || []
-    total.value = res.total || res.data?.total || 0
-  } catch (e: unknown) { ElMessage.error(e.message || '加载库存失败') } finally { loading.value = false }
+    tableData.value = res.items || []
+    total.value = res.total || 0
+  } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '加载库存失败') } finally { loading.value = false }
 }
 
 async function loadStats() {
   try {
-    const res = await getInventoryStats()
-    const d = res.data || res
-    stats.total = d.total || 0
-    stats.warning = d.warningCount || d.warning || 0
-    stats.outOfStock = d.outOfStockCount || d.outOfStock || 0
+    const d = await getInventoryStats()
+    stats.total = Number(d?.total ?? 0)
+    stats.warning = Number(d?.warningCount ?? d?.warning ?? 0)
+    stats.outOfStock = Number(d?.outOfStockCount ?? d?.outOfStock ?? 0)
     stats.ok = Math.max(0, stats.total - stats.warning - stats.outOfStock)
   } catch (e: unknown) { console.error('加载库存统计失败', e) }
 }
@@ -330,7 +329,7 @@ async function loadStats() {
 async function loadSkuList() {
   try {
     const res = await getSkus({ page: 1, pageSize: 500 })
-    skuList.value = res.items || res.data?.items || []
+    skuList.value = res.items || []
   } catch (e: unknown) { console.error('加载 SKU 列表失败', e) }
 }
 

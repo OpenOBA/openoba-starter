@@ -1,8 +1,8 @@
 import request from './request'
 
 /** 获取字典项列表 */
-export function getDict(table: string) {
-  return request.get<any[]>(`/dict/${table}`)
+export function getDict(table: string): Promise<DictItem[]> {
+  return request.get(`/dict/${table}`)
 }
 
 /** 新增字典项 */
