@@ -6,7 +6,7 @@ type QueryParams = Record<string, string | number | boolean | undefined>
 type CreateUpdateData = Record<string, unknown>
 
 // ===== 颜色字典 =====
-export function getColors(params?: QueryParams) { return request.get('/products/colors', { params }); }
+export function getColors(params?: QueryParams): Promise<PaginatedData<Record<string,unknown>>> { return request.get('/products/colors', { params }); }
 export function getColor(id: string) { return request.get(`/products/colors/${id}`); }
 export function createColor(data: CreateUpdateData) { return request.post('/products/colors', data); }
 export function updateColor(id: string, data: CreateUpdateData) { return request.put(`/products/colors/${id}`, data); }
@@ -77,7 +77,7 @@ export function deleteSkuImage(id: string) { return request.delete(`/products/sk
 export function reorderSkuImages(data: { skuId: string; imageType: string; orderedIds: string[] }) { return request.post('/products/sku-images/reorder', data); }
 
 // ===== 文件上传 =====
-export function uploadImage(file: File) {
+export function uploadImage(file: File): Promise<Record<string, unknown>> {
   const formData = new FormData();
   formData.append('file', file);
   return request.post('/upload/image', formData, { headers: { 'Content-Type': 'multipart/form-data' } });

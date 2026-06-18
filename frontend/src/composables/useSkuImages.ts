@@ -12,7 +12,7 @@ import {
 } from '@/api/product';
 import type { SkuImage } from '@/types';
 
-export function useSkuImages(skuListRef: ReturnType<typeof ref<any[]>>) {
+export function useSkuImages(_skuListRef: ReturnType<typeof ref<any[]>>) {
   const skuImageList = ref<SkuImage[]>([]);
   const imageLoading = ref(false);
   const imageSearch = reactive({ skuId: '', imageType: '' });
@@ -52,8 +52,8 @@ export function useSkuImages(skuListRef: ReturnType<typeof ref<any[]>>) {
       const res = await getSkuImages({ skuId: imageSearch.skuId, imageType: imageSearch.imageType });
       skuImageList.value = Array.isArray(res) ? res : [];
       originalOrder.value = [...skuImageList.value];
-    } catch (e: unknown) {
-      ElMessage.error(e.message);
+    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error(err);
     } finally {
       imageLoading.value = false;
     }
@@ -108,8 +108,8 @@ export function useSkuImages(skuListRef: ReturnType<typeof ref<any[]>>) {
       }
       imageDialogVisible.value = false;
       loadSkuImages();
-    } catch (e: unknown) {
-      ElMessage.error(e.message);
+    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error(err);
     }
   };
 
@@ -118,8 +118,8 @@ export function useSkuImages(skuListRef: ReturnType<typeof ref<any[]>>) {
       await deleteSkuImage(id);
       ElMessage.success('已删除');
       loadSkuImages();
-    } catch (e: unknown) {
-      ElMessage.error(e.message);
+    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error(err);
     }
   };
 
@@ -127,24 +127,24 @@ export function useSkuImages(skuListRef: ReturnType<typeof ref<any[]>>) {
     imageUploading.value = true;
     try {
       const formData = new FormData();
-      formData.append('file', options.file);
-      const res = await uploadImage(formData);
-      const url = res?.url || res?.data?.url || res?.imageUrl || '';
+      formData.append('file', options.files![0]!);
+      const res: any = await uploadImage(options.files![0]!);
+      const url = res?.url || res?.imageUrl || '';
       if (url) {
         imageForm.imageUrl = url;
         ElMessage.success('上传成功');
       } else {
         ElMessage.error('上传返回无 URL');
       }
-    } catch (e: unknown) {
-      ElMessage.error(e.message || '上传失败');
+    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error(err || '上传失败');
     } finally {
       imageUploading.value = false;
     }
   };
 
   const handleBatchImageUpload = async (options: { skuId?: string; files?: File[]; imageTypes?: string[] }) => {
-    const file = options.file;
+    const file = options.files?.[0];
     if (!file) return;
     batchFileList.value.push({ name: file.name, file, status: 'pending' });
   };
@@ -176,8 +176,8 @@ export function useSkuImages(skuListRef: ReturnType<typeof ref<any[]>>) {
       batchText.value = '';
       batchDialogVisible.value = false;
       loadSkuImages();
-    } catch (e: unknown) {
-      ElMessage.error((e as any)?.message || '批量创建失败');
+    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error(err || '批量创建失败');
     } finally {
       batchUploading.value = false;
     }
@@ -195,23 +195,20 @@ export function useSkuImages(skuListRef: ReturnType<typeof ref<any[]>>) {
     const uploadedImages: { imageUrl: string; fileSize?: number; width?: number; height?: number }[] = [];
     for (const item of pendingFiles) {
       try {
-        const formData = new FormData();
-        formData.append('file', item.file);
-        const res: any = await uploadImage(formData);
-        const result = res?.data || res;
-        const url = result?.url || '';
+        const res: Record<string, unknown> = await uploadImage(item.file);
+        const url = String(res?.url ?? res?.imageUrl ?? '');
         if (url) {
           uploadedImages.push({
             imageUrl: url,
-            fileSize: result?.size,
-            width: result?.width,
-            height: result?.height,
+            fileSize: Number(res?.size ?? 0),
+            width: Number(res?.width ?? 0),
+            height: Number(res?.height ?? 0),
           });
           batchUploadedCount.value++;
         }
         item.status = 'done';
-      } catch (e) {
-        console.warn('[useSkuImages] 单图上传失败:', e instanceof Error ? e.message : String(e))
+      } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+        console.warn('[useSkuImages] 单图上传失败:', err)
         item.status = 'failed';
       }
     }
@@ -231,8 +228,8 @@ export function useSkuImages(skuListRef: ReturnType<typeof ref<any[]>>) {
         batchUploadProgress.value = `已上传 ${uploadedImages.length}/${pendingFiles.length} 张`;
         ElMessage.success(`批量完成：${uploadedImages.length}/${pendingFiles.length} 张`);
         loadSkuImages();
-      } catch (e: unknown) {
-        ElMessage.error(e.message || '批量创建失败');
+      } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+        ElMessage.error(err || '批量创建失败');
       }
     }
     batchUploading.value = false;
@@ -248,12 +245,12 @@ export function useSkuImages(skuListRef: ReturnType<typeof ref<any[]>>) {
       sortOrder: idx + 1,
     }));
     try {
-      await reorderSkuImages(reordered);
+      await reorderSkuImages(reordered as unknown as { skuId: string; imageType: string; orderedIds: string[] });
       ElMessage.success('排序已保存');
       hasReordered.value = false;
       originalOrder.value = [...skuImageList.value];
-    } catch (e: unknown) {
-      ElMessage.error(e.message || '保存排序失败');
+    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error(err || '保存排序失败');
     }
   };
 
