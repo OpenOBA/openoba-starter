@@ -79,16 +79,15 @@
 <script setup lang="ts">
 
 function goToTask(taskId: string) { router.push('/chat/' + taskId) }
-import { ref, reactive, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import EraChatWelcome from '@/components/EraChatWelcome.vue'
 import TaskListPanel from '@/components/TaskListPanel.vue'
 import { queryTasks, createTask, deleteTask } from '@/api/task-engine'
 import type { AgentTask, TaskStatus } from '@/api/task-engine'
 import AgentSidebar from '@/components/AgentSidebar.vue'
 import type { AgentEntry } from '@/components/AgentSidebar.vue'
-import CallingInput from '@/components/CallingInput.vue'
 import { getAgents } from '@/api/system'
 import { useERASettings } from '@/composables/useERASettings'
 import { useTemplates } from '@/composables/useTemplates'
