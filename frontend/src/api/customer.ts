@@ -114,7 +114,7 @@ export const deleteAddress = (id: string) =>
   request.delete(`/customers/addresses/${id}`)
 
 // ===== Tier Pricings =====
-export const getTierPricings = (customerId: string) =>
+export const getTierPricings = (customerId?: string): Promise<Record<string, unknown>[]> =>
   request.get<TierPricing[]>(`/customers/${customerId}/pricings`)
 
 export const addTierPricing = (data: CreateUpdateData) =>

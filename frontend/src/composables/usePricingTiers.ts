@@ -8,7 +8,6 @@ import { ElMessage } from 'element-plus';
 import {
   getTierPricings, createTierPricing, updateTierPricing, deleteTierPricing,
   getWholesaleTiers, createWholesaleTier, updateWholesaleTier, deleteWholesaleTier,
-  getSkus, getPriceHistory,
 } from '@/api/product';
 import { getCustomerList, getTierPricings as getCustomerPricings, addTierPricing, updateTierPricing as updateCustomerPricing, deleteTierPricing as deleteCustomerPricing } from '@/api/customer';
 
@@ -23,9 +22,9 @@ export function usePricingTiers() {
     tierLoading.value = true;
     try {
       const res = await getTierPricings();
-      tierList.value = res.data || res.items || res || [];
-    } catch (e: unknown) {
-      ElMessage.error('加载分级失败: ' + (e.response?.data?.message || e.message));
+      tierList.value = res || [];
+    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error('加载分级失败: ' + (err));
     } finally {
       tierLoading.value = false;
     }
@@ -52,8 +51,8 @@ export function usePricingTiers() {
       }
       tierDialogVisible.value = false;
       await loadTiers();
-    } catch (e: unknown) {
-      ElMessage.error('保存失败: ' + (e.response?.data?.message || e.message));
+    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error('保存失败: ' + (err));
     }
   };
 
@@ -62,8 +61,8 @@ export function usePricingTiers() {
       await deleteTierPricing(id);
       ElMessage.success('删除成功');
       await loadTiers();
-    } catch (e: unknown) {
-      ElMessage.error('删除失败: ' + (e.response?.data?.message || e.message));
+    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error('删除失败: ' + (err));
     }
   };
 
@@ -77,9 +76,9 @@ export function usePricingTiers() {
     wholesaleLoading.value = true;
     try {
       const res = await getWholesaleTiers();
-      wholesaleList.value = res.data || res.items || res || [];
-    } catch (e: unknown) {
-      ElMessage.error('加载阶梯定价失败: ' + (e.response?.data?.message || e.message));
+      wholesaleList.value = res || [];
+    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error('加载阶梯定价失败: ' + (err));
     } finally {
       wholesaleLoading.value = false;
     }
@@ -105,8 +104,8 @@ export function usePricingTiers() {
       }
       wholesaleDialogVisible.value = false;
       await loadWholesaleTiers();
-    } catch (e: unknown) {
-      ElMessage.error('保存失败: ' + (e.response?.data?.message || e.message));
+    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error('保存失败: ' + (err));
     }
   };
 
@@ -115,8 +114,8 @@ export function usePricingTiers() {
       await deleteWholesaleTier(id);
       ElMessage.success('删除成功');
       await loadWholesaleTiers();
-    } catch (e: unknown) {
-      ElMessage.error('删除失败: ' + (e.response?.data?.message || e.message));
+    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error('删除失败: ' + (err));
     }
   };
 
@@ -133,9 +132,9 @@ export function usePricingTiers() {
     agreementLoading.value = true;
     try {
       const res = await getCustomerPricings();
-      agreementList.value = res.data || res.items || res || [];
-    } catch (e: unknown) {
-      ElMessage.error('加载协议价失败: ' + (e.response?.data?.message || e.message));
+      agreementList.value = res || [];
+    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error('加载协议价失败: ' + (err));
     } finally {
       agreementLoading.value = false;
     }
@@ -164,8 +163,8 @@ export function usePricingTiers() {
       }
       agreementDialogVisible.value = false;
       await loadAgreements();
-    } catch (e: unknown) {
-      ElMessage.error('保存失败: ' + (e.response?.data?.message || e.message));
+    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error('保存失败: ' + (err));
     }
   };
 
@@ -174,18 +173,18 @@ export function usePricingTiers() {
       await deleteCustomerPricing(id);
       ElMessage.success('删除成功');
       await loadAgreements();
-    } catch (e: unknown) {
-      ElMessage.error('删除失败: ' + (e.response?.data?.message || e.message));
+    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error('删除失败: ' + (err));
     }
   };
 
   const searchAgreementCustomers = async () => {
     try {
       const res = await getCustomerList(agreementSearch);
-      agreementCustomers.value = res.items || res.data?.items || [];
+      agreementCustomers.value = Array.isArray(res.items) ? res.items : [];
       agreementSearchTotal.value = res.total || 0;
-    } catch (e: unknown) {
-      ElMessage.error('搜索客户失败: ' + (e.response?.data?.message || e.message));
+    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error('搜索客户失败: ' + (err));
     }
   };
 

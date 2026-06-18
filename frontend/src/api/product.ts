@@ -30,12 +30,12 @@ export function deleteSku(id: string) { return request.delete(`/products/skus/${
 export function getProductTiers() { return request.get('/dict/dict_product_tier'); }
 
 // ===== Phase 9A: 价格管理 =====
-export function getTierPricings() { return request.get('/pricing/tiers'); }
+export function getTierPricings(): Promise<any[]> { return request.get('/pricing/tiers'); }
 export function createTierPricing(data: CreateUpdateData) { return request.post('/pricing/tiers', data); }
 export function updateTierPricing(id: string, data: CreateUpdateData) { return request.put(`/pricing/tiers/${id}`, data); }
 export function deleteTierPricing(id: string) { return request.delete(`/pricing/tiers/${id}`); }
 
-export function getWholesaleTiers() { return request.get('/pricing/wholesale'); }
+export function getWholesaleTiers(): Promise<any[]> { return request.get('/pricing/wholesale'); }
 export function createWholesaleTier(data: CreateUpdateData) { return request.post('/pricing/wholesale', data); }
 export function updateWholesaleTier(id: string, data: CreateUpdateData) { return request.put(`/pricing/wholesale/${id}`, data); }
 export function deleteWholesaleTier(id: string) { return request.delete(`/pricing/wholesale/${id}`); }
