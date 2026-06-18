@@ -24,9 +24,10 @@ export function usePricingPromotions() {
     promoLoading.value = true;
     try {
       const res = await getPromotions();
-      promoList.value = res.data || res.items || res || [];
+      promoList.value = res || [];
     } catch (e: unknown) {
-      ElMessage.error('加载促销失败: ' + (e.response?.data?.message || e.message));
+      const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error('加载促销失败: ' + err);
     } finally {
       promoLoading.value = false;
     }
@@ -64,7 +65,8 @@ export function usePricingPromotions() {
       promoDialogVisible.value = false;
       await loadPromotions();
     } catch (e: unknown) {
-      ElMessage.error('保存失败: ' + (e.response?.data?.message || e.message));
+      const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error('保存失败: ' + err);
     }
   };
 
@@ -75,7 +77,10 @@ export function usePricingPromotions() {
       ElMessage.success('删除成功');
       await loadPromotions();
     } catch (e: unknown) {
-      if (e !== 'cancel') ElMessage.error('删除失败: ' + (e.response?.data?.message || e.message));
+      if (e !== 'cancel') {
+        const err = e instanceof Error ? e.message : String(e);
+        ElMessage.error('删除失败: ' + err);
+      }
     }
   };
 
@@ -85,7 +90,8 @@ export function usePricingPromotions() {
       ElMessage.success('状态已更新');
       await loadPromotions();
     } catch (e: unknown) {
-      ElMessage.error('更新状态失败: ' + (e.response?.data?.message || e.message));
+      const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error('更新状态失败: ' + err);
     }
   };
 

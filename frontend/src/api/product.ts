@@ -43,7 +43,7 @@ export function deleteWholesaleTier(id: string) { return request.delete(`/pricin
 export function getPriceHistory(params?: QueryParams) { return request.get('/pricing/history', { params }); }
 
 // ===== 促销管理 =====
-export function getPromotions(params?: QueryParams) { return request.get('/pricing/promotions', { params }); }
+export function getPromotions(params?: QueryParams): Promise<any[]> { return request.get('/pricing/promotions', { params }); }
 export function createPromotion(data: CreateUpdateData) { return request.post('/pricing/promotions', data); }
 export function updatePromotion(id: string, data: CreateUpdateData) { return request.put(`/pricing/promotions/${id}`, data); }
 export function deletePromotion(id: string) { return request.delete(`/pricing/promotions/${id}`); }

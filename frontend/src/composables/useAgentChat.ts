@@ -154,24 +154,24 @@ export function useAgentChat() {
     scrollBottom()
 
     // M2: WS 优先路径
-    if (ws.socket?.connected) {
+    const sock = ws.socket.value; if (sock?.connected) {
       pendingSendKeys.delete(idempotencyKey)
 
-      ws.socket.off('chat.started')
-      ws.socket.off('chat.event')
-      ws.socket.off('chat.done')
-      ws.socket.off('chat.aborted')
-      ws.socket.off('chat.error')
+      sock.off('chat.started')
+      sock.off('chat.event')
+      sock.off('chat.done')
+      sock.off('chat.aborted')
+      sock.off('chat.error')
 
-      ws.socket.on('chat.started', (_payload: any) => {
+      sock.on('chat.started', (_payload: any) => {
         messages.value[msgIdx].statusHint = 'Agent 正在思考...'
       })
 
-      ws.socket.on('chat.event', (payload: any) => {
+      sock.on('chat.event', (payload: any) => {
         handleSSEEvent(payload, msgIdx)
       })
 
-      ws.socket.on('chat.done', (payload: any) => {
+      sock.on('chat.done', (payload: any) => {
         messages.value[msgIdx].agentFooter = {
           name: payload.agentName || 'Agent',
           model: payload.model || '',
@@ -182,7 +182,7 @@ export function useAgentChat() {
         saveReActCache()
       })
 
-      ws.socket.on('chat.aborted', (payload: any) => {
+      sock.on('chat.aborted', (payload: any) => {
         if (payload.partialContent) messages.value[msgIdx].content = payload.partialContent
         messages.value[msgIdx].content += '\n\n*[已中止]*'
         messages.value[msgIdx].streaming = false
@@ -190,7 +190,7 @@ export function useAgentChat() {
         saveCache()
       })
 
-      ws.socket.on('chat.error', (payload: any) => {
+      sock.on('chat.error', (payload: any) => {
         messages.value[msgIdx].content = (payload.message || '会话失败')
         messages.value[msgIdx].streaming = false
         isStreaming.value = false; isLoading.value = false; agentLoading.value = false

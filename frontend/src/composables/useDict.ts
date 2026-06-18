@@ -1,4 +1,4 @@
-import { ref, computed, type Ref } from 'vue'
+import { ref, computed, type Ref, type ComputedRef } from 'vue'
 import request from '@/api/request'
 
 // ============================================================
@@ -50,13 +50,7 @@ console.log(`[useDict] 开始加载字典: ${tableName}`)
 console.log(`[useDict] ${tableName} API 响应:`, res)
       
       // 信任拦截器的解包逻辑，res 应当已经是数组
-      let items: Record<string, unknown>[] = []
-      
-      if (Array.isArray(res)) {
-        items = res
-      } else {
-console.error(`[useDict] ${tableName} 响应格式异常，非数组:`, typeof res, res)
-      }
+      let items: DictItem[] = Array.isArray(res) ? res as DictItem[] : []
       
 console.log(`[useDict] ${tableName} 解析到 ${items.length} 条数据`)
       
@@ -64,7 +58,7 @@ console.log(`[useDict] ${tableName} 解析到 ${items.length} 条数据`)
       const active = items.filter(item => {
         if (!item) return false
         const isActive = item.is_active
-        return isActive === undefined || isActive === true || isActive === 1 || isActive === '1'
+        return isActive === undefined || isActive === 1 || Number(isActive) === 1
       })
       
 console.log(`[useDict] ${tableName}: 原始 ${items.length} 条, 激活 ${active.length} 条`)
@@ -79,8 +73,8 @@ console.log(`[useDict] ${tableName} 激活项示例:`, active.slice(0, 3).map(r 
       
       globalCache.set(tableName, active)
       return active
-    } catch (e: unknown) {
-console.error(`[useDict] 加载 ${tableName} 失败:`, e.message || e)
+    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
+console.error(`[useDict] 加载 ${tableName} 失败:`, err || e)
       // 不缓存空结果，允许下次重试
       return []
     } finally {
@@ -149,8 +143,8 @@ console.log(`[useDict] ${tableName} 缓存为空，清除后重新请求`)
       items.value = result
 console.log(`[useDict] ${tableName} 加载完成，设置 items:`, result.length, '条')
     } catch (e: unknown) {
-      error.value = e
-console.error(`[useDict] ${tableName} 加载失败:`, e.message || e)
+      error.value = e instanceof Error ? e : new Error(String(e))
+console.error(`[useDict] ${tableName} 加载失败:`, e)
     } finally {
       loading.value = false
     }
@@ -179,8 +173,8 @@ console.log(`[useDict] ${tableName} 强制加载完成，共 ${result.length} �
 console.log(`[useDict] ${tableName} 数据示例:`, result.slice(0, 3))
       }
     } catch (e: unknown) {
-      error.value = e
-console.error(`[useDict] ${tableName} 强制加载失败:`, e.message || e)
+      error.value = e instanceof Error ? e : new Error(String(e))
+console.error(`[useDict] ${tableName} 强制加载失败:`, e)
     } finally {
       loading.value = false
     }
@@ -197,7 +191,7 @@ export function useDictBatch() {
     try {
       const items = await fetchDict(tableName)
       dicts.value[key] = items
-    } catch (e) {
+    } catch (e: unknown) {
 console.error(`[useDict] 加载 ${tableName} 失败:`, e)
       dicts.value[key] = []
     }
