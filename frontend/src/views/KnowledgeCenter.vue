@@ -165,7 +165,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Edit, UploadFilled } from '@element-plus/icons-vue'
-import type { UploadFile, UploadInstance, UploadRawFile } from 'element-plus'
+import type { UploadFile, UploadRawFile } from 'element-plus'
 import request from '@/api/request'
 import DOMPurify from 'dompurify'
 
@@ -215,10 +215,12 @@ const showCreate = ref(false)
 const editingId = ref<string | null>(null)
 const showDetailDialog = ref(false)
 const detail = ref<any>(null)
-const uploadRef = ref<UploadInstance>()
 const fileList = ref<UploadFile[]>([])
 
 interface AttachMeta { name: string; type: string; url: string; size?: number }
+
+interface KnowledgePageResponse { items: Record<string, unknown>[]; total: number }
+interface KnowledgeTagResponse { tag: string; count: number }
 
 const form = reactive({
  title: '', type: 'EXPERIENCE', tags: [] as string[], content: '',
@@ -313,10 +315,11 @@ function resetForm() {
 }
 
 function showEdit(row: Record<string, unknown>) {
- editingId.value = row.id
- form.title = row.title; form.type = row.type; form.tags = [...(row.tags || [])]; form.content = row.content
- form.visibility = row.visibility; form.contributor = row.contributor || 'Henry'
- form.existingAttachments = row.attachments ? [...row.attachments] : []
+ editingId.value = String(row.id ?? '')
+  const r = row as Record<string, any>;
+  form.title = String(r.title ?? ''); form.type = String(r.type ?? ''); form.tags = Array.isArray(r.tags) ? [...r.tags] : []; form.content = String(r.content ?? '')
+ form.visibility = String(r.visibility ?? ''); form.contributor = String(r.contributor ?? 'Henry')
+ form.existingAttachments = Array.isArray(r.attachments) ? [...r.attachments] : []
  fileList.value = []
  showDetailDialog.value = false
  showCreate.value = true
@@ -329,19 +332,19 @@ function showEdit(row: Record<string, unknown>) {
 async function load() {
  loading.value = true
  try {
- const params: Record<string, string> = { page: page.value, pageSize: pageSize.value }
+ const params: Record<string, string | number> = { page: page.value, pageSize: pageSize.value }
  if (keyword.value) params.keyword = keyword.value
  if (filterType.value) params.type = filterType.value
  if (filterVis.value) params.visibility = filterVis.value
  if (activeTags.value.length > 0) params.tags = activeTags.value.join(',')
- const r = await request.get('/knowledge', { params })
+ const r: KnowledgePageResponse = await request.get('/knowledge', { params })
  items.value = r.items; total.value = r.total
  } catch { ElMessage.error('加载失败') } finally { loading.value = false }
 }
 
 async function loadTags() {
  try {
- const r = await request.get('/knowledge/tags')
+ const r: KnowledgeTagResponse[] = await request.get('/knowledge/tags')
  tagCloud.value = r
  } catch { /* 静默 */ }
 }
@@ -378,10 +381,10 @@ async function handleSave() {
  const formData = new FormData()
  formData.append('file', f)
  try {
- const r = await request.post('/upload/single', formData, {
+ const r: { url?: string; path?: string } = await request.post('/upload/single', formData, {
  headers: { 'Content-Type': 'multipart/form-data' },
  })
- uploaded.push({ name: f.name, type: f.type, url: r.url || r.path, size: f.size })
+ uploaded.push({ name: f.name, type: f.type, url: r.url || r.path || '', size: f.size })
  } catch {
  ElMessage.warning(`文件 ${f.name} 上传失败，将跳过`)
  }
