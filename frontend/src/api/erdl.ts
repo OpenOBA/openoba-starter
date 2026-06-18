@@ -7,6 +7,7 @@
  */
 
 import request from './request'
+import type { ERDLValidationResult, ERDLLoadResult, ERDLStats } from './api-types'
 
 // ============================================
 // 类型定义
@@ -94,8 +95,8 @@ export function getRulesByTrigger(trigger: string) {
 }
 
 /** 获取注册统计信息 */
-export function getERDLStats() {
-  return request.get<ERDLStats>('/erdl/stats')
+export function getERDLStats(): Promise<ERDLStats> {
+  return request.get('/erdl/stats')
 }
 
 /** 数据校验 */
@@ -123,18 +124,18 @@ export function parseERDLYaml(yaml: string) {
 // ============================================
 
 /** 校验 ERDL YAML 语法 */
-export function validatePlaygroundYaml(yaml: string) {
-  return request.post<ValidationResult>('/erdl/playground/validate', { yaml })
+export function validatePlaygroundYaml(yaml: string): Promise<ERDLValidationResult> {
+  return request.post('/erdl/playground/validate', { yaml })
 }
 
 /** 加载 ERDL YAML 到运行时 */
-export function loadPlaygroundYaml(yaml: string) {
+export function loadPlaygroundYaml(yaml: string): Promise<ERDLLoadResult> {
   return request.post('/erdl/playground/load', { yaml })
 }
 
 /** 🤖 自然语言 → ERDL YAML 生成 */
-export function generateERDLFromPrompt(prompt: string, namespace?: string) {
-  return request.post<{ yaml: string; valid: boolean; errors: string[] }>('/erdl/playground/generate', { prompt, namespace })
+export function generateERDLFromPrompt(prompt: string, namespace?: string): Promise<ERDLValidationResult> {
+  return request.post('/erdl/playground/generate', { prompt, namespace })
 }
 
 // ============================================

@@ -1,4 +1,5 @@
 import request from './request'
+import type { PaginatedData } from './api-types'
 
 export interface StructureStandard {
   structureId: string
@@ -18,8 +19,8 @@ export interface StructureStandard {
   updatedAt: string
 }
 
-export const getStructureList = (params: { page?: number; pageSize?: number; keyword?: string; shapeCode?: string; seriesCode?: string; status?: string }) =>
-  request.get<any, { items: StructureStandard[]; total: number; page: number; pageSize: number }>('/structures', { params })
+export const getStructureList = (params: { page?: number; pageSize?: number; keyword?: string; shapeCode?: string; seriesCode?: string; status?: string }): Promise<PaginatedData<StructureStandard>> =>
+  request.get('/structures', { params })
 
 export const getStructureDetail = (id: string) =>
   request.get<StructureStandard>(`/structures/${id}`)

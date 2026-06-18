@@ -1,4 +1,5 @@
 import request from './request';
+import type { DictItem } from './api-types';
 
 // ===== 分类管理 =====
 
@@ -8,7 +9,7 @@ export function getCategoriesTree() {
 }
 
 /** 获取扁平列表（供下拉选择等场景） */
-export function getCategoriesFlat() {
+export function getCategoriesFlat(): Promise<DictItem[]> {
   return request.get('/categories/flat');
 }
 

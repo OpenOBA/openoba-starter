@@ -140,8 +140,8 @@ export const deletePrescription = (id: string) =>
 export const getCustomerLenses = (customerId: string) =>
   request.get<any[]>(`/customers/${customerId}/lenses`)
 
-export const getCustomerLensSummary = (customerId: string) =>
-  request.get<any>(`/customers/${customerId}/lens-summary`)
+export const getCustomerLensSummary = (customerId: string): Promise<{ lenses: Array<Record<string, unknown>> }> =>
+  request.get(`/customers/${customerId}/lens-summary`)
 
 export const addCustomerLens = (data: CreateUpdateData) =>
   request.post<any>('/customers/lenses', data)

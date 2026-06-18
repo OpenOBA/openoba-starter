@@ -1,15 +1,16 @@
 import request from './request';
+import type { PaginatedData } from './api-types';
 
 // ── 通用 CRUD 类型 ──
 type QueryParams = Record<string, string | number | boolean | undefined>
 type CreateUpdateData = Record<string, unknown>
 
 // ===== 订单 =====
-export function getOrderList(params?: QueryParams) {
+export function getOrderList(params?: QueryParams): Promise<PaginatedData<Record<string, unknown>>> {
   return request.get('/orders', { params });
 }
 
-export function getOrderDetail(id: string) {
+export function getOrderDetail(id: string): Promise<Record<string, unknown>> {
   return request.get(`/orders/${id}`);
 }
 

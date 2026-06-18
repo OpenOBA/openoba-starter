@@ -99,12 +99,12 @@ export function createDraftSpu(data: CreateUpdateData) {
   return request.post<DraftSpu>('/draft-pool/drafts', data);
 }
 
-export function queryDrafts(params?: QueryParams) {
-  return request.get<{ items: DraftSpu[]; total: number }>('/draft-pool/drafts', { params });
+export function queryDrafts(params?: QueryParams): Promise<{ items: DraftSpu[]; total: number }> {
+  return request.get('/draft-pool/drafts', { params });
 }
 
-export function getDraftDetail(id: string) {
-  return request.get<{ draft: DraftSpu; skus: DraftSku[] }>(`/draft-pool/drafts/${id}`);
+export function getDraftDetail(id: string): Promise<{ draft: DraftSpu; skus: DraftSku[] }> {
+  return request.get(`/draft-pool/drafts/${id}`);
 }
 
 export function updateDraft(id: string, data: CreateUpdateData) {
@@ -115,8 +115,8 @@ export function deleteDraft(id: string) {
   return request.delete(`/draft-pool/drafts/${id}`);
 }
 
-export function getWaitlistCount() {
-  return request.get<{ draft: number; reviewed: number }>('/draft-pool/drafts/waitlist-count');
+export function getWaitlistCount(): Promise<{ draft: number; reviewed: number }> {
+  return request.get('/draft-pool/drafts/waitlist-count');
 }
 
 // ======= 评审 =======
@@ -129,8 +129,8 @@ export function publishDrafts(data: { draftIds: string[]; packageName?: string; 
   return request.post<DraftPublishBatch>('/draft-pool/publish', data);
 }
 
-export function getPackages() {
-  return request.get<DraftPublishBatch[]>('/draft-pool/packages');
+export function getPackages(): Promise<DraftPublishBatch[]> {
+  return request.get('/draft-pool/packages');
 }
 
 // ======= 批次 =======
@@ -142,8 +142,8 @@ export function completeBatch(id: string) {
   return request.post<DraftBatch>(`/draft-pool/batches/${id}/complete`);
 }
 
-export function getBatches() {
-  return request.get<DraftBatch[]>('/draft-pool/batches');
+export function getBatches(): Promise<DraftBatch[]> {
+  return request.get('/draft-pool/batches');
 }
 
 // ======= 顾问报告 =======

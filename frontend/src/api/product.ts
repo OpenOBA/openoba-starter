@@ -1,4 +1,5 @@
 import request from './request';
+import type { PaginatedData, DictItem } from './api-types';
 
 // ── 通用 CRUD 类型 ──
 type QueryParams = Record<string, string | number | boolean | undefined>
@@ -12,14 +13,14 @@ export function updateColor(id: string, data: CreateUpdateData) { return request
 export function deleteColor(id: string) { return request.delete(`/products/colors/${id}`); }
 
 // ===== SPU =====
-export function getSpus(params?: QueryParams) { return request.get('/products/spus', { params }); }
+export function getSpus(params?: QueryParams): Promise<PaginatedData<Record<string, unknown>>> { return request.get('/products/spus', { params }); }
 export function getSpu(id: string) { return request.get(`/products/spus/${id}`); }
 export function createSpu(data: CreateUpdateData) { return request.post('/products/spus', data); }
 export function updateSpu(id: string, data: CreateUpdateData) { return request.put(`/products/spus/${id}`, data); }
 export function deleteSpu(id: string) { return request.delete(`/products/spus/${id}`); }
 
 // ===== SKU =====
-export function getSkus(params?: QueryParams) { return request.get('/products/skus', { params }); }
+export function getSkus(params?: QueryParams): Promise<PaginatedData<Record<string, unknown>>> { return request.get('/products/skus', { params }); }
 export function getSku(id: string) { return request.get(`/products/skus/${id}`); }
 export function createSku(data: CreateUpdateData) { return request.post('/products/skus', data); }
 export function updateSku(id: string, data: CreateUpdateData) { return request.put(`/products/skus/${id}`, data); }
@@ -51,15 +52,15 @@ export function calculatePrice(data: CreateUpdateData) { return request.post('/p
 export function scanMemberDowngrades() { return request.post('/pricing/members/downgrade-scan'); }
 
 // ===== Phase 8B: 技术参数字典 =====
-export function getFrameMaterials() { return request.get('/dict/dict_frame_material'); }
-export function getFrameTypes() { return request.get('/dict/dict_frame_type'); }
-export function getNosePads() { return request.get('/dict/dict_nose_pad'); }
-export function getHinges() { return request.get('/dict/dict_hinge'); }
-export function getSurfaceTreatments() { return request.get('/dict/dict_surface_treatment'); }
-export function getSeriesList() { return request.get('/dict/structure_series'); }
+export function getFrameMaterials(): Promise<DictItem[]> { return request.get('/dict/dict_frame_material'); }
+export function getFrameTypes(): Promise<DictItem[]> { return request.get('/dict/dict_frame_type'); }
+export function getNosePads(): Promise<DictItem[]> { return request.get('/dict/dict_nose_pad'); }
+export function getHinges(): Promise<DictItem[]> { return request.get('/dict/dict_hinge'); }
+export function getSurfaceTreatments(): Promise<DictItem[]> { return request.get('/dict/dict_surface_treatment'); }
+export function getSeriesList(): Promise<DictItem[]> { return request.get('/dict/structure_series'); }
 
 // ===== 套装 =====
-export function getSets(params?: QueryParams) { return request.get('/products/sets', { params }); }
+export function getSets(params?: QueryParams): Promise<PaginatedData<Record<string, unknown>>> { return request.get('/products/sets', { params }); }
 export function getSet(id: string) { return request.get(`/products/sets/${id}`); }
 export function createSet(data: CreateUpdateData) { return request.post('/products/sets', data); }
 export function updateSet(id: string, data: CreateUpdateData) { return request.put(`/products/sets/${id}`, data); }
@@ -83,7 +84,7 @@ export function uploadImage(file: File) {
 }
 
 // ===== 🔧 V2.0 效果词库（2026-04-24 新增） =====
-export function getEffectTags(type: 'skin_tone' | 'face_shape') { return request.get(`/products/effects/${type}`); }
+export function getEffectTags(type: 'skin_tone' | 'face_shape'): Promise<DictItem[]> { return request.get(`/products/effects/${type}`); }
 export function getEffectRecommend(colorCode: string) { return request.post('/products/effects/recommend', { colorCode }); }
 
 // ===== S-SKU 副品管理 =====

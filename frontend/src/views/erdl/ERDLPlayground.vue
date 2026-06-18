@@ -201,10 +201,10 @@ const validating = ref(false)
 const loading = ref(false)
 const stats = ref<ERDLStats | null>(null)
 
-const parsedEntities = ref<string[]>([])
-const parsedRules = ref<string[]>([])
-const parsedAgents = ref<string[]>([])
-const parsedKBs = ref<string[]>([])
+const parsedEntities = ref<unknown[]>([])
+const parsedRules = ref<unknown[]>([])
+const parsedAgents = ref<unknown[]>([])
+const parsedKBs = ref<unknown[]>([])
 
 const SAMPLE_YAML = `namespace: com.miaojing.eyewear
 
@@ -262,9 +262,9 @@ async function generateERDL() {
 
  try {
  const res = await generateERDLFromPrompt(nlPrompt.value)
- generatedYaml.value = res.yaml
+ generatedYaml.value = res.yaml || ''
  generatedValid.value = res.valid
- yamlCode.value = res.yaml
+ yamlCode.value = res.yaml || ''
 
  if (res.valid) {
  ElMessage.success(' ERDL 生成成功，语法正确！点击「加载到系统」立即生效')
