@@ -1,16 +1,27 @@
 import axios from 'axios'
-import type { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
+import type { AxiosRequestConfig } from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
 
-const request: AxiosInstance = axios.create({
+// 响应拦截器已解包 AxiosResponse.data，实际返回类型为 T（而非 AxiosResponse<T>）
+// 此模块通过 AnyRequest 类型声明覆盖 axios 的默认类型，使 consumer 无需处理 .data 解包
+type AnyRequest = {
+  get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T>
+  post<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T>
+  put<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T>
+  delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T>
+}
+
+const raw = axios.create({
   baseURL: '/api',
   timeout: 10000,
 })
 
+const request = raw as unknown as AnyRequest
+
 // 请求拦截器 - 注入 JWT token
-request.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
+raw.interceptors.request.use(
+  (config) => {
     const token = localStorage.getItem('access_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
@@ -21,8 +32,8 @@ request.interceptors.request.use(
 )
 
 // 响应拦截器 - 统一处理错误
-request.interceptors.response.use(
-  (response: AxiosResponse) => {
+raw.interceptors.response.use(
+  (response) => {
     const body = response.data
     // 字典 API 等直接返回数组的接口（无 code 字段），直接透传
     if (Array.isArray(body)) {
