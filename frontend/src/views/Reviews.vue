@@ -4,7 +4,7 @@
       <el-input v-model="filters.keyword" placeholder="搜索评价内容/客户名" clearable style="width: 200px" @keyup.enter="loadReviews" />
       <!-- ✅ F3-6: 状态筛选器改为字典动态渲染 -->
       <el-select v-model="filters.status" placeholder="状态" clearable style="width: 120px" @change="loadReviews">
-        <el-option v-for="d in (reviewStatusDict.items || [])" :key="d.code" :label="d.name" :value="d.code" />
+        <el-option v-for="d in reviewStatusItems" :key="d.code" :label="d.name" :value="d.code" />
       </el-select>
       <el-select v-model="filters.minScore" placeholder="最低评分" clearable style="width: 120px" @change="loadReviews">
         <el-option label="1星以上" :value="1" />
@@ -157,12 +157,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { ElMessage } from 'element-plus';
 import { getReviews, reviewAction, replyReview, deleteReview } from '@/api/review';
 import { useDict } from '@/composables/useDict';
 
 const reviewStatusDict = useDict('dict_review_status');
+const reviewStatusItems = computed(() => reviewStatusDict.items.value);
 const REVIEW_STATUS = { pending: 'pending', approved: 'approved', rejected: 'rejected' } as const;
 
 const reviewList = ref<any[]>([]);
@@ -177,7 +178,7 @@ const stats = reactive({ pending: 0, approved: 0, avgScore: '-', todayCount: 0 }
 const loadReviews = async () => {
   loading.value = true;
   try {
-    const res = await getReviews({ ...filters, page: page.value, pageSize }) as any;
+    const res = await getReviews({ ...filters, page: page.value, pageSize } as Record<string, string | number | null | undefined>);
     // request.ts 拦截器已经解包
     if (Array.isArray(res)) {
       reviewList.value = res
@@ -190,7 +191,7 @@ const loadReviews = async () => {
       total.value = 0
     }
     updateStats();
-  } catch (e: unknown) { ElMessage.error(e.message); }
+  } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err); }
   finally { loading.value = false; }
 };
 
@@ -200,7 +201,7 @@ const updateStats = () => {
   const approved = reviewList.value.filter((r: Record<string, unknown>) => r.status === 'approved' && r.overallScore);
   stats.avgScore = approved.length > 0 ? (approved.reduce((s: number, r: any) => s + r.overallScore, 0) / approved.length).toFixed(1) : '-';
   const today = new Date().toISOString().slice(0, 10);
-  stats.todayCount = reviewList.value.filter((r: Record<string, unknown>) => r.createdAt?.startsWith(today)).length;
+  stats.todayCount = reviewList.value.filter((r: Record<string, unknown>) => String(r.createdAt ?? '').startsWith(today)).length;
 };
 
 const onPageChange = (p: number) => { page.value = p; loadReviews(); };
@@ -216,28 +217,28 @@ const openDetailDialog = (row: Record<string, unknown>) => { currentReview.value
 
 // 通过/拒绝
 const handleApprove = async (row: Record<string, unknown>) => {
-  try { await reviewAction(row.reviewId, { action: 'approve' }); ElMessage.success('已通过'); loadReviews(); }
-  catch (e: unknown) { ElMessage.error(e.message); }
+  try { await reviewAction(String(row.reviewId ?? ''), { action: 'approve' }); ElMessage.success('已通过'); loadReviews(); }
+  catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err); }
 };
 const handleReject = async (row: Record<string, unknown>) => {
-  try { await reviewAction(row.reviewId, { action: 'reject' }); ElMessage.success('已拒绝'); loadReviews(); }
-  catch (e: unknown) { ElMessage.error(e.message); }
+  try { await reviewAction(String(row.reviewId ?? ''), { action: 'reject' }); ElMessage.success('已拒绝'); loadReviews(); }
+  catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err); }
 };
 
 // 回复
 const replyVisible = ref(false);
 const replyForm = reactive({ reviewId: '', content: '' });
-const openReplyDialog = (row: Record<string, unknown>) => { replyForm.reviewId = row.reviewId; replyForm.content = ''; replyVisible.value = true; };
+const openReplyDialog = (row: Record<string, unknown>) => { replyForm.reviewId = String(row.reviewId ?? ''); replyForm.content = ''; replyVisible.value = true; };
 const handleReply = async () => {
   if (!replyForm.content.trim()) { ElMessage.warning('请输入回复内容'); return; }
   try { await replyReview(replyForm.reviewId, { content: replyForm.content, replyBy: 'admin' }); ElMessage.success('回复成功'); replyVisible.value = false; loadReviews(); }
-  catch (e: unknown) { ElMessage.error(e.message); }
+  catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err); }
 };
 
 // 删除
 const handleDelete = async (id: string) => {
   try { await deleteReview(id); ElMessage.success('已删除'); loadReviews(); }
-  catch (e: unknown) { ElMessage.error(e.message); }
+  catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err); }
 };
 
 onMounted(() => { loadReviews(); });

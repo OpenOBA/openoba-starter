@@ -2,7 +2,7 @@ import request from './request';
 import type { PaginatedData, DictItem } from './api-types';
 
 // ── 通用 CRUD 类型 ──
-type QueryParams = Record<string, string | number | boolean | undefined>
+type QueryParams = Record<string, string | number | boolean | null | undefined>
 type CreateUpdateData = Record<string, unknown>
 
 export function getReviews(params?: QueryParams): Promise<PaginatedData<Record<string,unknown>>> { return request.get('/reviews', { params }); }
