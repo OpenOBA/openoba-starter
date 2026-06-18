@@ -141,6 +141,10 @@ interface TimelineItem {
   status?: string
   durationMs?: number
   ts?: number
+  _streaming?: boolean
+  _expanded?: boolean
+  progress?: { current: number; total: number; message?: string }
+  streamLines?: string[]
 }
 interface WsPayload {
   runId?: string
@@ -148,6 +152,8 @@ interface WsPayload {
   delta?: string
   message?: string
   partialContent?: string
+  agentName?: string
+  model?: string
 }
 interface ChatSSEEvent {
   type?: string
@@ -159,13 +165,16 @@ interface ChatSSEEvent {
   runId?: string
   partialContent?: string
   message?: string
+  current?: number
+  total?: number
+  line?: string
+  durationMs?: number
 }
 import { ref, shallowRef, triggerRef, computed, onMounted, nextTick, onBeforeUnmount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { ArrowLeft, Promotion } from '@element-plus/icons-vue'
+import { ArrowLeft } from '@element-plus/icons-vue'
 import { getTask, getTaskLogs, approveTask, queryTasks } from '@/api/task-engine'
-import type { AgentTask, TaskStatus } from '@/api/task-engine'
 import request from '@/api/request'
 import { useWsClient } from '@/composables/useWsClient'
 import { useERASettings } from '@/composables/useERASettings'
@@ -181,8 +190,6 @@ const router = useRouter()
 const taskId = computed(() => route.params.id as string)
 const taskTitle = ref('')
 const taskDone = ref(false)
-
-function taskStatusLabel(s: string) { return { drafted: '草稿', proposed: '待同意', executing: '执行中', completed: '已完成', cancelled: '已取消', aborted: '已中止' }[s] || s }
 
 const messages = shallowRef<any[]>([])  // shallowRef — 手动 triggerRef 控制渲染时机
 const inputText = ref('')
@@ -256,16 +263,17 @@ async function loadTask() {
         const parsed = JSON.parse(cached)
         if (Array.isArray(parsed) && parsed.length > 0) {
           // 恢复完整状态（统一时间线: reactTimeline 或 旧版 thoughts/toolCalls/observations）
-          messages.value = parsed.map((m: ChatMsg) => ({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          messages.value = parsed.map((m: any) => ({
             role: m.role,
             content: m.content || '',
             time: m.time || '',
             agentFooter: m.agentFooter || undefined,
             reactTimeline: m.reactTimeline || (m.thoughts || m.toolCalls || m.observations
               ? [
-                  ...(m.thoughts || []).map((t: TimelineItem) => ({ kind: 'thought', text: t.text, ts: Date.now(), text: t.text, ts: Date.now() })),
+                  ...(m.thoughts || []).map((t: TimelineItem) => ({ kind: 'thought' as const, text: t.text, ts: Date.now() })),
                   ...(m.toolCalls || []).map((t: TimelineItem) => ({ kind: 'tool' as const, name: t.name, args: t.args, status: t.status, result: t.result, _expanded: false, ts: Date.now() })),
-                  ...(m.observations || []).map((o: TimelineItem) => ({ kind: 'observation', text: o.text, ts: Date.now() })),
+                  ...(m.observations || []).map((o: TimelineItem) => ({ kind: 'observation' as const, text: o.text, ts: Date.now() })),
                 ]
               : undefined),
             streaming: false,
@@ -285,7 +293,7 @@ async function loadTask() {
 
     if (proposals.length > 0) {
       const initMsg = String(ctx['任务主体'] || t.title)
-      const built: Array<{ role: string; content: string; reactTimeline?: TimelineItem[] }> = [{
+      const built: Array<{ role: string; content: string; reactTimeline?: TimelineItem[]; time?: string; version?: number; status?: string; feedback?: Record<string, unknown> }> = [{
         role: 'human', content: initMsg, time: formatTime(t.createdAt),
       }]
       for (const p of proposals) {
@@ -360,8 +368,9 @@ async function handleAgree() {
   finally { agreeing.value = false }
 }
 
-function insertSummary(t: TimelineItem, fileUrl: string, fileName: string) {
-  const proposals = t.proposals || []
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function insertSummary(t: any, fileUrl: string, fileName: string) {
+  const proposals = (t as any).proposals || []
   const hasProposal = proposals.length > 0
   const lines: string[] = ['**方案已同意 · 执行总结**', '']
   if (hasProposal) {
@@ -374,9 +383,9 @@ function insertSummary(t: TimelineItem, fileUrl: string, fileName: string) {
   }
   const allTools: string[] = []
   for (const m of messages.value) {
-    if (m.role === 'agent' && m.toolCalls) {
-      for (const tc of m.toolCalls || []) {
-        if (!allTools.includes(tc.name)) allTools.push(tc.name)
+    if (m.role === 'agent' && m.reactTimeline) {
+      for (const item of m.reactTimeline) {
+        if (item.kind === 'tool' && item.name && !allTools.includes(item.name)) allTools.push(item.name)
       }
     }
   }
@@ -413,7 +422,7 @@ async function sendMsg(text: string) {
   pendingSendKeys.add(idempotencyKey)
 
   // M1-6: 立即显示 "Agent 正在思考..."
-  const agentMsg: { role: string; content: string; streaming: boolean; reactTimeline?: TimelineItem[] } = {
+  const agentMsg: { role: string; content: string; streaming: boolean; reactTimeline?: TimelineItem[]; time?: string; toolCalls?: never[]; statusHint?: string } = {
     role: 'agent',
     content: '',
     time: formatTime(),
@@ -428,25 +437,26 @@ async function sendMsg(text: string) {
   scrollBottom()
 
   // M2: WS 优先路径
-  if (ws.socket?.connected) {
+  const sock = ws.socket.value
+  if (sock?.connected) {
     pendingSendKeys.delete(idempotencyKey)
 
     // 注册 WS 事件监听（每次消息使用新的 msgIdx）
-    ws.socket.off('chat.started')
-    ws.socket.off('chat.event')
-    ws.socket.off('chat.done')
-    ws.socket.off('chat.aborted')
-    ws.socket.off('chat.error')
+    sock.off('chat.started')
+    sock.off('chat.event')
+    sock.off('chat.done')
+    sock.off('chat.aborted')
+    sock.off('chat.error')
 
-    ws.socket.on('chat.started', (payload: WsPayload) => {
+    sock.on('chat.started', (_payload: WsPayload) => {
       messages.value[msgIdx].statusHint = 'Agent 正在思考...'
     })
 
-    ws.socket.on('chat.event', (payload: WsPayload) => {
+    sock.on('chat.event', (payload: WsPayload) => {
       handleSSEEvent(payload, msgIdx)
     })
 
-    ws.socket.on('chat.done', (payload: WsPayload) => {
+    sock.on('chat.done', (payload: WsPayload) => {
       // 后端 chat.done 事件不返回 model/agentName；用 session 中已知的模型名
       messages.value[msgIdx].agentFooter = {
         name: payload.agentName || 'AI 执行官',
@@ -460,7 +470,7 @@ async function sendMsg(text: string) {
       saveReActCache()
     })
 
-    ws.socket.on('chat.aborted', (payload: WsPayload) => {
+    sock.on('chat.aborted', (payload: WsPayload) => {
       if (payload.partialContent) messages.value[msgIdx].content = payload.partialContent
       messages.value[msgIdx].content += '\n\n*[已中止]*'
       messages.value[msgIdx].streaming = false
@@ -470,7 +480,7 @@ async function sendMsg(text: string) {
       saveCache()
     })
 
-    ws.socket.on('chat.error', (payload: WsPayload) => {
+    sock.on('chat.error', (payload: WsPayload) => {
       messages.value[msgIdx].content = (payload.message || '会话失败')
       messages.value[msgIdx].streaming = false
       isStreaming.value = false
@@ -668,19 +678,19 @@ function handleSSEEvent(json: ChatSSEEvent, msgIdx: number) {
     } else {
       msg.reactTimeline.push({ kind: 'thought', text: json.text, ts: Date.now(), _streaming: true })
     }
-    msg.statusHint = `${json.text.substring(0, 60)}...`
+    msg.statusHint = `${(json.text || '').substring(0, 60)}...`
     triggerRef(messages)
   } else if (json.type === 'tool_start') {
     // 标记上一个 thought 流结束
     const lastThought = msg.reactTimeline[msg.reactTimeline.length - 1]
     if (lastThought?.kind === 'thought') lastThought._streaming = false
-    const entry = { kind: 'tool' as const, name: json.tool, args: json.args, status: 'running' as const, result: '', _expanded: false, ts: Date.now() }
+    const entry = { kind: 'tool' as const, name: json.tool || '', args: json.args, status: 'running' as const, result: '', _expanded: false, ts: Date.now() }
     msg.reactTimeline.push(entry)
-    msg.statusHint = `正在执行: ${json.tool}...`
+    msg.statusHint = `正在执行: ${json.tool || ''}...`
     triggerRef(messages)
   } else if (json.type === 'observation') {
     msg.reactTimeline.push({ kind: 'observation', text: json.text, ts: Date.now() })
-    msg.statusHint = `${json.text.substring(0, 60)}...`
+    msg.statusHint = `${(json.text || '').substring(0, 60)}...`
     triggerRef(messages)
   } else if (json.type === 'tool_progress') {
     // 更新时间线上同名工具的进度
