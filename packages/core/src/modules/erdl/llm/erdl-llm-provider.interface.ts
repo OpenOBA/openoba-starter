@@ -72,6 +72,8 @@ export interface ERDLLLMMessage {
     type: 'function'
     function: { name: string; arguments: string }
   }>
+  /** DeepSeek thinking 模式：多轮对话中必须传回上一轮的 reasoning_content */
+  reasoning_content?: string
 }
 
 /** Function Calling 工具定义 */

@@ -35,20 +35,51 @@ export class ModelRegistryService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    try {
-      const keys = await this.keyRepo.find({ where: { isEnabled: 1 } })
-      for (const k of keys) {
-        try {
-          const apiKey = this.decrypt(k.apiKeyEnc, k.iv, k.authTag)
-          if (apiKey) {
-            const envKey = this.getEnvKey(k.providerCode)
-            process.env[envKey] = apiKey
-            this.logger.log(`Key loaded from DB: ${k.providerCode}`)
-          }
-        } catch { this.logger.warn(`Failed to decrypt key for ${k.providerCode}`) }
+    // DB 连接可能尚未就绪，最多重试 3 次（间隔 2s）
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        await this.reloadKeysFromDB()
+        return
+      } catch (e: unknown) {
+        const msg = (e as Error).message
+        if (attempt < 3) {
+          this.logger.warn(`Key loading attempt ${attempt}/3 failed: ${msg}, retrying in 2s...`)
+          await new Promise(resolve => setTimeout(resolve, 2000))
+        } else {
+          this.logger.error(`Key loading FAILED after 3 attempts: ${msg}`)
+        }
       }
-      this.logger.log(`Model keys loaded: ${keys.length} from DB`)
-    } catch (e: unknown) { this.logger.warn(`Key loading skipped: ${(e as Error).message}`) }
+    }
+  }
+
+  /**
+   * 从 DB 加载所有启用的 API Key 到 process.env。
+   * 公共方法——可供 onModuleInit 和运行时 fallback 调用。
+   */
+  async reloadKeysFromDB(): Promise<number> {
+    const keys = await this.keyRepo.find({ where: { isEnabled: 1 } })
+    let loaded = 0
+    for (const k of keys) {
+      try {
+        const apiKey = this.decrypt(k.apiKeyEnc, k.iv, k.authTag)
+        if (apiKey) {
+          const envKey = this.getEnvKey(k.providerCode)
+          process.env[envKey] = apiKey
+          loaded++
+          this.logger.log(`Key loaded from DB: ${k.providerCode} -> ${envKey} (len=${apiKey.length})`)
+        }
+      } catch (e: unknown) {
+        this.logger.error(`Failed to decrypt key for ${k.providerCode}: ${(e as Error).message}`)
+      }
+    }
+    this.logger.log(`Model keys loaded: ${loaded}/${keys.length} from DB`)
+    if (loaded === 0 && keys.length > 0) {
+      this.logger.error('!! All DB keys failed to decrypt — check SKILL_VAULT_KEY matches the value used during encryption')
+    }
+    if (keys.length === 0) {
+      this.logger.warn('No enabled keys found in DB — LLM calls will fail until a key is configured via Settings')
+    }
+    return loaded
   }
 
   private getEnvKey(providerCode: string): string {

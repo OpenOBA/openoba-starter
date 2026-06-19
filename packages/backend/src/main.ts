@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core'
 import { ValidationPipe, Logger } from '@nestjs/common'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import helmet from 'helmet'
+import * as dotenv from 'dotenv'
 import { AppModule } from './app.module'
 import { HttpExceptionFilter } from './common/filters/http-exception.filter'
 import { TransformInterceptor } from './common/interceptors/transform.interceptor'
@@ -14,6 +15,11 @@ async function bootstrap() {
   // 强制切换工作目录到 backend 目录（确保元镜扫描等模块使用正确路径）
   const backendDir = path.resolve(__dirname, '..')
   process.chdir(backendDir)
+
+  // 显式加载 .env 到 process.env（确保 onModuleInit 执行时 SKILL_VAULT_KEY 等已就绪）
+  // ConfigModule.forRoot 的 dotenv.config() 可能在某些模块的 onModuleInit 之后才执行，
+  // 导致依赖 process.env 的 onModuleInit（如 ModelRegistryService key 解密）读到 undefined
+  dotenv.config({ path: path.join(backendDir, '.env') })
 
   // P1-2: JWT_SECRET 强度检查（生产环境必须更换默认密钥）
   const bootstrapLogger = new Logger('Bootstrap')

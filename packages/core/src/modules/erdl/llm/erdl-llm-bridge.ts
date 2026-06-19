@@ -415,14 +415,15 @@ export class ERDLLLMBridge {
         if (!hasToolCalls) {
           // 将最后的 assistant 消息 push 进 messages（纯文本回复）
           if (assistantContent) {
-            messages.push({ role: 'assistant', content: assistantContent })
-            onEvent({ type: 'content', delta: assistantContent })
+            const sanitizedFinal = this.sanitizeContent(assistantContent)
+            messages.push({ role: 'assistant', content: sanitizedFinal })
+            onEvent({ type: 'content', delta: sanitizedFinal })
           }
           onEvent({ type: 'phase_end', phase: 'ReAct 推理' })
           if (assistantContent) {
             return {
               messages,
-              content: assistantContent,
+              content: this.sanitizeContent(assistantContent),
               model: streamResult.model || '',
               provider: streamResult.provider || '',
               toolCalls: allToolCalls,
@@ -480,7 +481,8 @@ export class ERDLLLMBridge {
         }
       }
 
-      // Push assistant 消息（不包含 reasoning_content — P0 修复）
+      // Push assistant 消息
+      // DeepSeek thinking 模式要求：多轮对话中必须传回 reasoning_content，否则返回 400
       const assistantMsg: any = {
         role: 'assistant',
         content: assistantContent,
@@ -490,9 +492,9 @@ export class ERDLLLMBridge {
           function: { name, arguments: JSON.stringify(args) },
         }],
       }
-      // P0 修复：reasoning_content 不进入 messages 数组
-      // DeepSeek 规定多轮对话中不得回传，否则第二轮起返回 400
-      // 思维链仅通过上方 onEvent({ type:'thought' }) 推送给前端
+      if (reasoningContent) {
+        assistantMsg.reasoning_content = reasoningContent
+      }
       messages.push(assistantMsg)
 
       // ── 执行工具 ──
@@ -622,10 +624,31 @@ export class ERDLLLMBridge {
   private classifyLLMError(msg: string): string {
     const lower = msg.toLowerCase()
     if (lower.includes('timeout') || lower.includes('etimedout')) return '?? LLM 响应超时，请稍后重试'
-    if (lower.includes('econnrefused') || lower.includes('enotfound')) return '?? 无法连接 LLM 服务，请检查网络'
-    if (lower.includes('401') || lower.includes('403') || lower.includes('unauthorized')) return '?? API Key 异常，请联系管理员'
-    if (lower.includes('429') || lower.includes('rate limit')) return '?? 请求过于频繁，请等待 30 秒'
+    if (lower.includes('econnrefused') || lower.includes('enotfound')) return '? 无法连接 LLM 服务，请检查网络'
+    if (lower.includes('401') || lower.includes('403') || lower.includes('unauthorized')) return '? API Key 异常，请联系管理员'
+    if (lower.includes('429') || lower.includes('rate limit')) return '? 请求过于频繁，请等待 30 秒'
     return `?? LLM 服务异常：${msg.substring(0, 100)}`
+  }
+
+  /**
+   * 过滤 DeepSeek thinking 模式泄露到 content 中的内部标记。
+   *
+   * DeepSeek 在 thinking 模式下，有时会在 content 字段中混入：
+   * - DSML 工具调用标记：<｜｜DSML｜｜tool_calls>...<｜｜DSML｜｜/tool_calls>
+   * - DSML invoke 标记：<｜｜DSML｜｜invoke>...<｜｜DSML｜｜/invoke>
+   * - 其他内部推理残留
+   * 这些标记不应出现在用户可见的输出中。
+   */
+  private sanitizeContent(text: string): string {
+    if (!text) return text
+    // 移除 DSML 标记块（<｜｜DSML｜｜...>...</｜｜DSML｜｜> 或自闭合）
+    let cleaned = text.replace(/<｜｜DSML｜｜[^>]*>[\s\S]*?<｜｜DSML｜｜\/[^>]*>/g, '')
+    // 移除未闭合的 DSML 标记碎片
+    cleaned = cleaned.replace(/<｜｜DSML｜｜[^>]*>/g, '')
+    cleaned = cleaned.replace(/<\/｜｜DSML｜｜[^>]*>/g, '')
+    // 移除其他常见的 DeepSeek 内部标记
+    cleaned = cleaned.replace(/<｜[^>]*｜>/g, '')
+    return cleaned
   }
 
   /**
@@ -672,6 +695,8 @@ export class ERDLLLMBridge {
           const msg: Record<string, unknown> = { role: m.role, content: m.content }
           if (m.tool_calls) msg.tool_calls = m.tool_calls
           if (m.tool_call_id) msg.tool_call_id = m.tool_call_id
+          // DeepSeek thinking 模式要求传回 reasoning_content
+          if (m.reasoning_content) msg.reasoning_content = m.reasoning_content
           return msg
         }),
         temperature: 0.3,
@@ -742,8 +767,11 @@ export class ERDLLLMBridge {
                   }
 
                   if (delta.content) {
-                    fullContent += delta.content
-                    onEvent({ type: 'content', delta: delta.content })
+                    const sanitized = this.sanitizeContent(delta.content)
+                    if (sanitized) {
+                      fullContent += sanitized
+                      onEvent({ type: 'content', delta: sanitized })
+                    }
                   }
 
                   if (delta.tool_calls) {
@@ -892,8 +920,11 @@ export class ERDLLLMBridge {
                 onEvent({ type: 'thought', text: delta.reasoning_content })
               }
               if (delta.content) {
-                fullContent += delta.content
-                onEvent({ type: 'content', delta: delta.content })
+                const sanitized = this.sanitizeContent(delta.content)
+                if (sanitized) {
+                  fullContent += sanitized
+                  onEvent({ type: 'content', delta: sanitized })
+                }
               }
             } catch { /* skip malformed line */ }
           }
@@ -1048,11 +1079,10 @@ export class ERDLLLMBridge {
       model: modelId,
       messages: request.messages.map((m: any) => {
         const msg: Record<string, unknown> = { role: m.role, content: m.content }
-        // P0 修复：不在请求消息中包含 reasoning_content
-        // DeepSeek 规定多轮对话中不得回传 reasoning_content，否则返回 400
-        // 思维链仅通过 StreamEvent 推送给前端，不进入 messages 数组
         if (m.tool_calls) msg.tool_calls = m.tool_calls
         if (m.tool_call_id) msg.tool_call_id = m.tool_call_id
+        // DeepSeek thinking 模式要求传回 reasoning_content
+        if (m.reasoning_content) msg.reasoning_content = m.reasoning_content
         return msg
       }),
       temperature: request.temperature ?? 0.7,
