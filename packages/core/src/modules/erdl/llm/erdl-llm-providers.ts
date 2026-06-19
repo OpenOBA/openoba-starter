@@ -21,12 +21,12 @@ const DEEPSEEK_PROVIDER: ERDLLLMProvider = {
   name: 'DeepSeek',
   baseUrl: 'https://api.deepseek.com',
   api: 'openai-completions',
-  defaultModel: 'deepseek-chat',
+  defaultModel: 'deepseek-v4-pro',
   apiKeyEnv: 'DEEPSEEK_API_KEY',
   models: [
     {
-      id: 'deepseek-chat',
-      name: 'DeepSeek Chat',
+      id: 'deepseek-v4-pro',
+      name: 'DeepSeek V4 Pro',
       reasoning: true,
       contextWindow: 1_000_000,
       maxTokens: 384_000,
