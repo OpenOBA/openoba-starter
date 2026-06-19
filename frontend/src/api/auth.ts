@@ -1,7 +1,7 @@
 import request from './request'
 
-export const login = (data: { username: string; password: string }) =>
-  request.post<any, { accessToken: string; user: Record<string, unknown> }>('/auth/login', data)
+export const login = (data: { username: string; password: string }): Promise<{ accessToken: string; user: Record<string, unknown> }> =>
+  request.post('/auth/login', data) as Promise<{ accessToken: string; user: Record<string, unknown> }>
 
 export const getDict = () => request.get<string[]>('/dict')
 export const getDictByTable = (table: string) => request.get<any[]>(`/dict/${table}`)

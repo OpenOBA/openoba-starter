@@ -1,5 +1,5 @@
 import request from './request'
-import type { PaginatedData } from './api-types'
+import type { PaginatedData, DictItem } from './api-types'
 
 export interface StructureStandard {
   structureId: string

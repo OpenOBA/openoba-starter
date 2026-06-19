@@ -75,20 +75,20 @@ export const getCustomerList = (params: { page?: number; pageSize?: number; keyw
   request.get('/customers', { params: cleanParams(params) })
 
 export const getCustomerDetail = (id: string): Promise<Record<string, unknown>> =>
-  request.get<Customer>(`/customers/${id}`)
+  request.get(`/customers/${id}`) as Promise<Record<string, unknown>>
 
-export const createCustomer = (data: CreateUpdateData) =>
-  request.post<Customer>('/customers', data)
+export const createCustomer = (data: CreateUpdateData): Promise<Record<string, unknown>> =>
+  request.post('/customers', data) as Promise<Record<string, unknown>>
 
-export const updateCustomer = (id: string, data: CreateUpdateData) =>
-  request.put<Customer>(`/customers/${id}`, data)
+export const updateCustomer = (id: string, data: CreateUpdateData): Promise<Record<string, unknown>> =>
+  request.put(`/customers/${id}`, data) as Promise<Record<string, unknown>>
 
 export const deleteCustomer = (id: string) =>
   request.delete(`/customers/${id}`)
 
 // ===== Contacts =====
 export const getContacts = (customerId: string): Promise<Record<string, unknown>[]> =>
-  request.get<Contact[]>(`/customers/${customerId}/contacts`)
+  request.get(`/customers/${customerId}/contacts`) as Promise<Record<string, unknown>[]>
 
 export const addContact = (data: CreateUpdateData) =>
   request.post<Contact>('/customers/contacts', data)
@@ -101,7 +101,7 @@ export const deleteContact = (id: string) =>
 
 // ===== Addresses =====
 export const getAddresses = (customerId: string): Promise<Record<string, unknown>[]> =>
-  request.get<Address[]>(`/customers/${customerId}/addresses`)
+  request.get(`/customers/${customerId}/addresses`) as Promise<Record<string, unknown>[]>
 
 export const addAddress = (data: CreateUpdateData) =>
   request.post<Address>('/customers/addresses', data)
@@ -114,7 +114,7 @@ export const deleteAddress = (id: string) =>
 
 // ===== Tier Pricings =====
 export const getTierPricings = (customerId?: string): Promise<Record<string, unknown>[]> =>
-  request.get<TierPricing[]>(`/customers/${customerId}/pricings`)
+  request.get(`/customers/${customerId}/pricings`) as Promise<Record<string, unknown>[]>
 
 export const addTierPricing = (data: CreateUpdateData) =>
   request.post<TierPricing>('/customers/pricings', data)
@@ -246,10 +246,10 @@ export interface LoginLog {
 }
 
 export const getWebsiteAccount = (customerId: string): Promise<Record<string, unknown>> =>
-  request.get<WebsiteAccount>(`/customer-auth-admin/${customerId}`)
+  request.get(`/customer-auth-admin/${customerId}`) as Promise<Record<string, unknown>>
 
 export const getLoginLogs = (customerId: string, limit = 20): Promise<{ total: number; logs: Record<string, unknown>[] }> =>
-  request.get<{ total: number; logs: LoginLog[] }>(`/customer-auth-admin/${customerId}/login-logs`, { params: { limit } })
+  request.get(`/customer-auth-admin/${customerId}/login-logs`, { params: { limit } }) as Promise<{ total: number; logs: Record<string, unknown>[] }>
 
 export const registerWebsiteAccount = (customerId: string): Promise<{ message: string }> =>
   request.post<{ message: string; phone: string; initialPassword: string }>(`/customer-auth-admin/${customerId}/register`)

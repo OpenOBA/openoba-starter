@@ -7,7 +7,8 @@
  */
 
 import request from './request'
-import type { ERDLValidationResult, ERDLLoadResult, ERDLStats } from './api-types'
+import type { ERDLValidationResult, ERDLLoadResult } from './api-types'
+// note: ERDLStats defined locally at L40 to avoid import conflict
 
 // ============================================
 // 类型定义

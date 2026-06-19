@@ -1,4 +1,5 @@
 import request from './request'
+import type { DictItem } from './api-types'
 
 /** 获取字典项列表 */
 export function getDict(table: string): Promise<DictItem[]> {
