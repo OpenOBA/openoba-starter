@@ -616,6 +616,8 @@ async function fetchModels() {
     if (res?.success) {
       const allModels: Array<{ id: string; name: string }> = []
       for (const p of res.providers) {
+        // 只显示已配置 Key 的 Provider 的模型
+        if (!p.hasKey) continue
         for (const m of p.models) {
           allModels.push({ id: m.id || m.modelCode, name: (p.providerName || p.name) + ' · ' + (m.modelName || m.name) })
         }
