@@ -48,7 +48,7 @@
           <!-- computed 类型 → readonly el-input (由系统计算) -->
           <el-input
             v-else-if="attr.type === 'computed'"
-            :model-value="computedValues[attr.key] || '(自动计算)'"
+            :model-value="(computedValues as Record<string,unknown>)[attr.key] || '(自动计算)'"
             readonly
             disabled
           />
@@ -143,7 +143,7 @@ async function loadDicts() {
 
   for (const table of dictTables) {
     try {
-      const res = await request.get(`/dict/${table}`)
+      const res = await request.get(`/dict/${table}`) as Record<string,any>
       const items = res.data?.items || res.data || []
       dictCache.value[table] = items.map((item: Record<string, unknown>) => ({
         label: item.name || item.label || item.code || '',

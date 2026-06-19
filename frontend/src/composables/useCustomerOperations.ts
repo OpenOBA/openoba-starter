@@ -19,6 +19,7 @@ export function useCustomerOperations(
   detail: ReturnType<typeof import('vue').ref<any>>,
   contacts: ReturnType<typeof import('vue').ref<any[]>>,
   addresses: ReturnType<typeof import('vue').ref<any[]>>,
+  _tierPricings: ReturnType<typeof import('vue').ref<any[]>>,
   prescriptions: ReturnType<typeof import('vue').ref<any[]>>,
   customerLenses: ReturnType<typeof import('vue').ref<any[]>>,
   lensSummary: ReturnType<typeof import('vue').ref<any>>,

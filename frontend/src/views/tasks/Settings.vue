@@ -663,10 +663,10 @@ async function activateObaKey() {
   activatingOba.value = true
   obaError.value = ''
   try {
-    const res = await request.post('/system/license/activate', { key: apiKey.obaKey })
+    const res = await request.post('/system/license/activate', { key: apiKey.obaKey }) as Record<string,any>
     obaStatus.value = 'active'
-    obaQuota.value = res.quota || '-'
-    obaSeats.value = res.seats || '-'
+    obaQuota.value = (res.quota || '-') as string
+    obaSeats.value = (res.seats || '-') as string
     localStorage.setItem(LLM_KEY_STORAGE, JSON.stringify({ obaKey: apiKey.obaKey }))
     ElMessage.success('OpenOBA Key 已激活')
   } catch (e: any) {
@@ -680,15 +680,15 @@ async function activateObaKey() {
 const about = reactive({
   version: '-',
   agentCount: 0,
-  apiBase: request.defaults?.baseURL || window.location.origin,
+  apiBase: (request as any).defaults?.baseURL || window.location.origin,
   deployMode: 'operator',
 })
 
 async function loadAbout() {
   // 版本信息：从版本接口获取
   try {
-    const res = await request.get('/system/version/check', { params: { current: '1.4.0-alpha7' } })
-    about.version = res?.currentVersion || '1.4.0-alpha7'
+    const res = await request.get('/system/version/check', { params: { current: '1.4.0-alpha7' } }) as Record<string,any>
+    about.version = res?.currentVersion as string || '1.4.0-alpha7'
     about.deployMode = 'operator'
   } catch {
     about.version = '1.4.0-alpha7'
@@ -706,7 +706,7 @@ async function loadAbout() {
       about.agentCount = 7 // 默认7个Agent
     }
   } catch {
-    about.agentCount = '-'
+    about.agentCount = 0
   }
 }
 

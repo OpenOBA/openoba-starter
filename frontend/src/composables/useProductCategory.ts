@@ -23,7 +23,8 @@ export function useProductCategory() {
     categoryLoading.value = true;
     try {
       const type = categorySearchType.value || undefined;
-      categoryList.value = await getCategoriesFlat({ categoryType: type }) as unknown as ProductCategory[];
+      const flat = await getCategoriesFlat() as unknown as ProductCategory[];
+      categoryList.value = type ? flat.filter((c: ProductCategory) => (c as any).categoryType === type) : flat;
     } catch (e: unknown) {
       const err = e instanceof Error ? e.message : String(e);
       ElMessage.error(err);

@@ -23,7 +23,8 @@ export function useProductSet(
 
   // 选中 SKU 行数据
   const selectedSkuRows = computed(() => {
-    return skuListRef.value.filter((s: Record<string, unknown>) => selectedSkuIds.value.includes(s.skuId));
+    const list = (skuListRef as any).value ?? [] as any[]
+    return list.filter((s: any) => selectedSkuIds.value.includes(s.skuId as string));
   });
 
   // 所有选中 SKU 的零售价累加（价格锚点）
@@ -92,9 +93,10 @@ export function useProductSet(
     setLoading.value = true;
     try {
       const res = await getSets({});
-      setList.value = res.items || res;
+      setList.value = (res.items || res) as unknown as ProductSet[];
     } catch (e: unknown) {
-      ElMessage.error(e.message);
+      const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error(err);
     } finally {
       setLoading.value = false;
     }

@@ -239,11 +239,11 @@ const props = defineProps<{
   visible: boolean
   row?: any | null
   schemaConfig?: RuntimeConfig | null
-  spuList: Record<string, unknown>[]
+  spuList: any[]
   tierList: Record<string, unknown>[]
-  structureStandards: Record<string, unknown>[]
-  skinTags: Record<string, unknown>[]
-  faceTags: Record<string, unknown>[]
+  structureStandards: any[]
+  skinTags: any[]
+  faceTags: any[]
   techDicts: {
     frameMaterials: Record<string, unknown>[]
     frameTypes: Record<string, unknown>[]

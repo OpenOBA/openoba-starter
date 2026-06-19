@@ -44,7 +44,7 @@ export function useProductTechDicts() {
 
   const loadStructureStandards = async () => {
     try {
-      const res = await getStructureList() as any;
+      const res = await getStructureList({ pageSize: 9999 }) as any;
       const raw = (res as any).data || (res as any).items || res || [];
       structureStandards.value = Array.isArray(raw) ? raw : [];
     } catch (e) {

@@ -311,7 +311,7 @@ const skuForm = reactive<any>({
 const specValues = reactive<any>({ refractive_index: '', lens_function: '', coating: '', material: '' })
 
 const onCategoryClick = (data: Record<string, unknown>) => {
-  filterCategoryId.value = data?.id || ''
+  filterCategoryId.value = (data?.id as string) || ''
   loadList()
 }
 

@@ -19,9 +19,9 @@ export function useProductSpu(spuEditRow: ReturnType<typeof ref<ProductSpu | nul
     try {
       const res = await getSpus({ pageSize: 999, ...spuSearch });
       if (Array.isArray(res)) {
-        spuList.value = res;
+        spuList.value = res as unknown as ProductSpu[];
       } else if (res && typeof res === 'object' && Array.isArray(res.items)) {
-        spuList.value = res.items;
+        spuList.value = res.items as unknown as ProductSpu[];
       } else {
         spuList.value = [];
       }
@@ -34,7 +34,7 @@ export function useProductSpu(spuEditRow: ReturnType<typeof ref<ProductSpu | nul
   };
 
   const openSpuDialog = (row?: Record<string, unknown>) => {
-    spuEditRow.value = (row as ProductSpu) || null;
+    spuEditRow.value = (row as unknown as ProductSpu) || null;
     spuDialogVisible.value = true;
   };
 

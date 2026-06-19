@@ -44,7 +44,8 @@ export function useReActTimeline(
   }
 
   function handleSSEEvent(json: ChatSSEEvent, msgIdx: number) {
-    const msg = messages.value[msgIdx]
+    const msgs = messages.value ?? []
+    const msg = msgs[msgIdx]
     if (!msg) return
     if (!msg.reactTimeline) {
       msg.reactTimeline = []

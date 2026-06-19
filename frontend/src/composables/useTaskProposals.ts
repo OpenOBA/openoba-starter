@@ -99,7 +99,8 @@ export function useTaskProposals(
     }
     lines.push('')
     lines.push(` ${new Date().toLocaleString('zh-CN')}`)
-    messages.value.push({
+    const msgs = messages.value ?? []
+    msgs.push({
       role: 'system',
       content: lines.join('\n'),
       time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),

@@ -30,7 +30,7 @@
             <el-select v-model="form.productTier" clearable>
               <el-option v-for="t in effectiveTierList" :key="t.tier_code" :label="t.tier_name" :value="t.tier_code">
                 <span>{{ t.tier_name }}</span>
-                <span :style="{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', background: t.icon_color, marginLeft: '6px' }"></span>
+                <span :style="{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', background: t.icon_color as string, marginLeft: '6px' }"></span>
               </el-option>
             </el-select>
           </el-form-item>
@@ -185,8 +185,8 @@ const generatedName = computed(() => {
   const extCode = struct.externalCode || '???'
   const shapeM: Record<string, string> = props.schemaConfig?.shapeLabels || {}
   const seriesM: Record<string, string> = props.schemaConfig?.seriesLabels || {}
-  const shape = shapeM[struct.shapeCode || ''] || struct.shapeCode || ''
-  const series = seriesM[form.seriesCode] || ''
+  const shape = shapeM[(struct.shapeCode as string) || ''] || (struct.shapeCode as string) || ''
+  const series = seriesM[form.seriesCode as string] || ''
   const genderLabel = form.gender
     ? (props.genderOptions as any[]).find(o => o.value === form.gender)?.label || ''
     : ''

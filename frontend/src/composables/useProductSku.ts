@@ -34,7 +34,7 @@ export function useProductSku(skuEditRow: ReturnType<typeof ref<ProductSku | nul
   };
 
   const openSkuDialog = (row?: Record<string, unknown>) => {
-    skuEditRow.value = (row as ProductSku) || null;
+    skuEditRow.value = (row as unknown as ProductSku) || null;
     skuDialogVisible.value = true;
   };
 
