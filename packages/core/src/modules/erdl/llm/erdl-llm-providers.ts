@@ -203,13 +203,24 @@ export function getAvailableProviders(): ERDLLLMProvider[] {
   return BUILTIN_LLM_PROVIDERS.filter((p) => Boolean(process.env[p.apiKeyEnv]))
 }
 
-/** 获取默认 Provider。preferredProviderCode 有值时优先返回该 provider，否则取第一个可用的。 */
+/** 获取默认 Provider。preferredProviderCode 优先，否则取第一个可用的。 */
 export function getDefaultProvider(preferredProviderCode?: string): ERDLLLMProvider | undefined {
   const available = getAvailableProviders()
   if (preferredProviderCode) {
     return available.find(p => p.id === preferredProviderCode) || available[0]
   }
   return available[0]
+}
+
+/** 获取按 providerCode 排序的可用 Provider 列表（默认排第一） */
+export function getAvailableProvidersWithPriority(preferredProviderCode?: string): ERDLLLMProvider[] {
+  const available = getAvailableProviders()
+  if (!preferredProviderCode) return available
+  const idx = available.findIndex(p => p.id === preferredProviderCode)
+  if (idx <= 0) return available
+  const [preferred] = available.splice(idx, 1)
+  available.unshift(preferred)
+  return available
 }
 
 /** 获取 Provider 的所有 failover 备选 */

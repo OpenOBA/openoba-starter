@@ -37,6 +37,7 @@ import { EntityDataBridge } from '../../erdl/core/entity-data-bridge'
 import { AestheticsService } from '../../aesthetics/aesthetics.service'
 import { InventoryService } from '../../inventory/inventory.service'
 import { SoulService } from '../../soul/soul.service'
+import { ModelRegistryService } from '../../system/model-registry.service'
 
 // 重新导出 AgentTaskType
 export type AgentTaskType = 'product_listing' | 'content_creation' | 'customer_service' | 'tech_support'
@@ -92,6 +93,7 @@ export class AgentExecutorService implements OnModuleInit {
     private readonly aestheticsService: AestheticsService,
     private readonly inventoryService: InventoryService,
     private readonly soulService: SoulService,
+    @Optional() private readonly modelRegistry?: ModelRegistryService,
   ) {}
 
   /** 模块初始化：注册所有 Agent 工具 */
@@ -628,6 +630,21 @@ export class AgentExecutorService implements OnModuleInit {
     const sysStatus = await this.getSystemStatus()
     // 从 ERDL Registry 获取 Entity 定义
     const entityDefs = this.buildEntityPrompt()
+
+    // 📡 默认 Provider：从 DB 读取 is_default=1 的 key 决定优先使用的 provider
+    let defaultProviderCode: string | undefined
+    if (!model && this.modelRegistry) {
+      try {
+        const dbKeys = await this.modelRegistry.getProviderKeys()
+        const defaultKey = dbKeys?.find((k: any) =>
+          (k.models || []).some((m: any) => m.isDefault)
+        )
+        defaultProviderCode = defaultKey?.providerCode
+        if (defaultProviderCode) {
+          this.logger.log(`Default provider from DB: ${defaultProviderCode}`)
+        }
+      } catch { /* no-op */ }
+    }
 
     // 🔐 权限模型：根据 agentCode 解析身份 → 过滤可用工具和安全等级（必须在 systemPrompt 构建之前）
     const taskType = detectIntent(cleanMessage)
