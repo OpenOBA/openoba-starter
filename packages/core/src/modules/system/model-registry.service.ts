@@ -216,15 +216,11 @@ export class ModelRegistryService implements OnModuleInit {
     }
   }
 
-  async setDefaultModel(registryId: string, providerCode: string): Promise<void> {
-    // 先清除该 Provider 下所有模型的默认标记
-    await this.registryRepo.update({ providerCode }, { isDefault: 0 })
-    // 设置新默认
-    await this.registryRepo.update({ id: registryId }, { isDefault: 1 })
-  }
-
-  async unsetDefaultModel(providerCode: string): Promise<void> {
-    await this.registryRepo.update({ providerCode, isDefault: 1 as any }, { isDefault: 0 })
+  /** Toggle 默认模型：翻转 is_default 标记 */
+  async toggleDefaultModel(registryId: string): Promise<void> {
+    const model = await this.registryRepo.findOne({ where: { id: registryId } })
+    if (!model) throw new Error('Model not found')
+    await this.registryRepo.update(registryId, { isDefault: model.isDefault ? 0 : 1 })
   }
 
   async deleteKey(id: string): Promise<void> {

@@ -123,7 +123,7 @@ export class LlmConfigController {
                 where: { providerCode: body.customProviderCode, modelCode: body.modelCode },
               })
               if (models?.length) {
-                await this.modelRegistry.setDefaultModel(models[0].id, body.customProviderCode)
+                await this.modelRegistry.toggleDefaultModel(models[0].id)
               }
             }
           } catch { /* model linking best-effort */ }
@@ -159,11 +159,11 @@ export class LlmConfigController {
       try {
         const kd = await this.modelRegistry.getKeyWithDecrypted(provider)
         if (kd) {
-          const models = await (this.modelRegistry as any).getModels(provider)
-          const matched = models?.find((m: any) => m.modelCode === body.modelCode)
+          const models = await this.modelRegistry.getModels(provider)
+          const matched = models?.find((m) => m.modelCode === body.modelCode)
           if (matched) {
-            await this.modelRegistry.setDefaultModel(matched.id, provider)
-            this.logger.log(`Default model set: ${provider}/${body.modelCode}`)
+            await this.modelRegistry.toggleDefaultModel(matched.id)
+            this.logger.log(`Default model toggled: ${provider}/${body.modelCode}`)
           }
         }
       } catch { /* no-op */ }
@@ -234,20 +234,9 @@ export class LlmConfigController {
   // ============================================================
 
   @Post('llm/config/set-default')
-  async setDefaultModel(@Body() body: { provider: string; modelCode: string; action?: 'set' | 'unset' }) {
+  async setDefaultModel(@Body() body: { modelRegistryId: string }) {
     try {
-      // 取消默认：清除该 provider 下所有默认标记
-      if (body.action === 'unset') {
-        await this.modelRegistry.unsetDefaultModel(body.provider)
-        this.logger.log(`Default model unset: ${body.provider}`)
-        return { success: true }
-      }
-      // 设为默认：在 registry 表中标记
-      const models = await this.modelRegistry.getModels(body.provider)
-      const matched = models?.find((m) => m.modelCode === body.modelCode)
-      if (!matched) return { success: false, error: 'Model not found' }
-      await this.modelRegistry.setDefaultModel(matched.id, body.provider)
-      this.logger.log(`Default model set: ${body.provider}/${body.modelCode}`)
+      await this.modelRegistry.toggleDefaultModel(body.modelRegistryId)
       return { success: true }
     } catch (e: unknown) {
       return { success: false, error: (e as Error).message }

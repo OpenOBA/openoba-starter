@@ -1,0 +1,18 @@
+{
+  "taskId": "dc1c95bafd5047e89f790ece02f06702",
+  "taskTitle": "我来分析真实销售数据，先拉取订单明细和商品信息。Now let me aggregate by product to get the full picture:",
+  "version": 1,
+  "createdAt": "2026-06-19T09:11:12.327Z",
+  "createdBy": "ERA Agent",
+  "approvedBy": null,
+  "userType": "operator",
+  "status": "approved",
+  "files": [
+    {
+      "path": "output.md",
+      "size": 7152
+    }
+  ],
+  "changelog": "Agent 自动交付",
+  "parentVersion": null
+}
