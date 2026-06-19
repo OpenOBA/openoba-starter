@@ -142,10 +142,20 @@ export class ProductSkuService {
       }
     }
 
-    // 构建纯列更新对象：排除关联字段、元数据和非列属性
+    // 构建纯列更新对象：只传需要的列，排除 skuId/createdAt/isDeleted 等
     const updateData: Record<string, any> = { ...rest, productTier: resolvedTier }
     if (spuId) updateData.spuId = spuId
     if (colorCode) updateData.colorCode = colorCode
+
+    // 防御：删除不应更新的字段（前端可能回填了全量 entity 数据）
+    delete updateData.skuId
+    delete updateData.createdAt
+    delete updateData.updatedAt
+    delete updateData.isDeleted
+    delete updateData.spu
+    delete updateData.color
+    delete updateData.primaryImage
+    delete updateData.skuImages
 
     await this.skuRepo.update(id, updateData)
     return this.findOneSku(id)
