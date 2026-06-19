@@ -223,12 +223,13 @@ export class ModelRegistryService implements OnModuleInit {
       // 已存在记录 → 翻转
       const newVal = existing.isDefault ? 0 : 1
       await this.keyModelsRepo.update({ keyId, registryId }, { isDefault: newVal })
+      // 同步 registry 表 is_default（前端 providers 接口展示用）
+      await this.registryRepo.update(registryId, { isDefault: newVal })
       return { isDefault: newVal === 1 }
     }
     // 首次关联 → 先清该 key 下旧默认，再设为默认
     await this.keyModelsRepo.update({ keyId }, { isDefault: 0 })
     await this.keyModelsRepo.insert({ keyId, registryId, isDefault: 1 })
-    // 也同步更新 registry 表 is_default（前端展示用）
     await this.registryRepo.update(registryId, { isDefault: 1 })
     return { isDefault: true }
   }
