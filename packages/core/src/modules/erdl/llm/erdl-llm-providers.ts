@@ -203,9 +203,13 @@ export function getAvailableProviders(): ERDLLLMProvider[] {
   return BUILTIN_LLM_PROVIDERS.filter((p) => Boolean(process.env[p.apiKeyEnv]))
 }
 
-/** 获取默认 Provider（第一个有 API Key 的） */
-export function getDefaultProvider(): ERDLLLMProvider | undefined {
-  return getAvailableProviders()[0]
+/** 获取默认 Provider。preferredProviderCode 有值时优先返回该 provider，否则取第一个可用的。 */
+export function getDefaultProvider(preferredProviderCode?: string): ERDLLLMProvider | undefined {
+  const available = getAvailableProviders()
+  if (preferredProviderCode) {
+    return available.find(p => p.id === preferredProviderCode) || available[0]
+  }
+  return available[0]
 }
 
 /** 获取 Provider 的所有 failover 备选 */
