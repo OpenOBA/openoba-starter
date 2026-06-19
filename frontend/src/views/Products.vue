@@ -303,7 +303,7 @@ const genderLabels: Record<string, string> = { female: '女款', male: '男款',
 
 const spuEditRow = ref<any>(null);
 const skuEditRow = ref<any>(null);
-function onSpuDialogSaved() { loadSpus(); spuEditRow.value = null; }
+function onSpuDialogSaved() { loadSpus(); loadSpusAll(); spuEditRow.value = null; }
 function onSkuDialogSaved() { loadSkus(); skuEditRow.value = null; }
 const techDictsData = computed(() => ({ frameMaterials: frameMaterials.value, frameTypes: frameTypes.value, nosePads: nosePads.value, hinges: hinges.value, surfaceTreatments: surfaceTreatments.value }));
 const activeTierMap = computed(() => tierLabelsConfig.value && Object.keys(tierLabelsConfig.value).length ? tierLabelsConfig.value : TIER_MAP);
@@ -525,8 +525,8 @@ const loadSkusAll = async () => {
 }
 
 const TAB_LOADERS: Record<string, (() => void)[]> = {
-  spu: [loadSpus],
-  sku: [loadSkus],
+  spu: [loadSpus, loadSpusAll],
+  sku: [loadSkus, loadSpusAll],
   set: [loadSets],
   'sku-image': [loadSkusAll],
 };
