@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, Like, FindOptionsWhere, FindOperator } from 'typeorm'
 import { ProductSku } from './entity/product-sku.entity'
@@ -26,6 +26,7 @@ interface StructWhere extends FindOptionsWhere<StructureStandard> {
 
 @Injectable()
 export class ProductSkuService {
+  private readonly logger = new Logger(ProductSkuService.name)
   private readonly priceFields = [
     { key: 'retailPrice', type: 'number' },
     { key: 'costPrice', type: 'number' },
@@ -72,6 +73,7 @@ export class ProductSkuService {
   }
 
   async createSku(dto: any) {
+    try {
     const { spuId, colorCode, ...rest } = dto
     if (!spuId) throw new BadRequestException('spuId 不能为空')
     // V3.0: colorCode 为必填字段
@@ -106,6 +108,10 @@ export class ProductSkuService {
     }
 
     return this.findOneSku(saved.skuId)
+    } catch (err: any) {
+      this.logger.error(`createSku failed: ${err?.message}`, err?.stack)
+      throw err
+    }
   }
 
   async updateSku(id: string, dto: any) {
