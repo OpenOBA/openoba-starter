@@ -35,6 +35,27 @@ import { MessageService } from './message.service'
 import { DeliverableService } from '../deliverable/deliverable.service'
 import type { StreamEvent } from '../stream/stream-event.types'
 
+/** 底层 provider model → 用户可读的模型展示名 */
+const MODEL_DISPLAY: Record<string, string> = {
+  'deepseek/deepseek-v4-pro': 'DeepSeek V4 Pro',
+  'alibaba-cloud/qwen3.6-plus': 'Qwen 3.6 Plus',
+  'qwen3.6-plus': 'Qwen 3.6 Plus',
+  'deepseek-v4-pro': 'DeepSeek V4 Pro',
+  'qwen/qwen3.6-plus': 'Qwen 3.6 Plus',
+}
+
+/** 将 executor 返回的 "Provider / ... / modelId" 转成用户可读名称 */
+function normalizeModelName(raw: string): string {
+  // 格式如 "Qwen / 阿里百炼 / qwen3.6-plus" 或 "DeepSeek / DeepSeek / deepseek-v4-pro"
+  // 优先用 MODEL_DISPLAY 映射 raw 中的 modelId 段
+  for (const [key, display] of Object.entries(MODEL_DISPLAY)) {
+    if (raw.includes(key)) return display
+  }
+  // 回退：取最后一段作为 model id
+  const parts = raw.split(' / ')
+  return parts[parts.length - 1] || raw
+}
+
 @WebSocketGateway({
   path: '/eros/ws',
   // P1-1: CORS 按环境切换（生产只允许指定域名）
@@ -215,7 +236,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           role: 'agent',
           content: this.runRegistry.getPartialContent(runId),
         }).catch(() => {})
-        client.emit('chat.done', { runId, model: this.executor.getUsedModel(), agentName: 'OpenOBA Agent' })
+        const usedModel = this.executor.getUsedModel() || data.model || ''
+        const modelDisplay = normalizeModelName(usedModel)
+        client.emit('chat.done', { runId, model: modelDisplay, agentName: 'AI 执行官' })
 
         // B4: 自动创建交付物
         this.tryCreateDeliverable(sessionKey, runId).catch(err =>
