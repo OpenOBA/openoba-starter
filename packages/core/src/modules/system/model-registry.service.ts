@@ -216,20 +216,25 @@ export class ModelRegistryService implements OnModuleInit {
     }
   }
 
-  /** Toggle 默认模型：翻转 is_default 标记。id 可以是 DB UUID 或 modelCode */
-  async toggleDefaultModel(idOrCode: string): Promise<void> {
-    let model = await this.registryRepo.findOne({ where: { id: idOrCode } })
-    if (!model) {
-      // 回退：按 modelCode 查找
-      model = await this.registryRepo.findOne({ where: { modelCode: idOrCode } })
+  /** Toggle 默认模型：对指定 key+model 翻转 is_default */
+  async setDefaultModel(keyId: string, registryId: string): Promise<{ isDefault: boolean }> {
+    const existing = await this.keyModelsRepo.findOne({ where: { keyId, registryId } })
+    if (existing) {
+      // 已存在记录 → 翻转
+      const newVal = existing.isDefault ? 0 : 1
+      await this.keyModelsRepo.update({ keyId, registryId }, { isDefault: newVal })
+      return { isDefault: newVal === 1 }
     }
-    if (!model) throw new Error('Model not found: ' + idOrCode)
-    await this.registryRepo.update(model.id, { isDefault: model.isDefault ? 0 : 1 })
+    // 首次关联 → 先清该 key 下旧默认，再设为默认
+    await this.keyModelsRepo.update({ keyId }, { isDefault: 0 })
+    await this.keyModelsRepo.insert({ keyId, registryId, isDefault: 1 })
+    // 也同步更新 registry 表 is_default（前端展示用）
+    await this.registryRepo.update(registryId, { isDefault: 1 })
+    return { isDefault: true }
   }
 
   async deleteKey(id: string): Promise<void> {
     await this.keyRepo.update(id, { isEnabled: 0, updatedAt: new Date() })
-    // 清理关联
     await this.keyModelsRepo.delete({ keyId: id })
   }
 

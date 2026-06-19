@@ -510,13 +510,14 @@ async function doSaveKey(row: KeyRow) {
 async function doSetDefault(row: KeyRow) {
   try {
     const res: any = await request.post('/system/llm/config/set-default', {
-      modelRegistryId: row.registryId,
+      provider: row.providerCode,
+      modelCode: row.modelCode,
     })
     if (res?.success === false) {
       ElMessage.error(res?.error || '操作失败')
       return
     }
-    ElMessage.success(row.isDefault ? '已取消默认' : '已设为默认')
+    ElMessage.success(res?.isDefault ? '已设为默认' : '已取消默认')
     await loadKeyRows()
   } catch {
     ElMessage.error('操作失败')

@@ -123,7 +123,7 @@ export class LlmConfigController {
                 where: { providerCode: body.customProviderCode, modelCode: body.modelCode },
               })
               if (models?.length) {
-                await this.modelRegistry.toggleDefaultModel(models[0].id)
+                await this.modelRegistry.setDefaultModel(kd.key.id, models[0].id)
               }
             }
           } catch { /* model linking best-effort */ }
@@ -162,8 +162,8 @@ export class LlmConfigController {
           const models = await this.modelRegistry.getModels(provider)
           const matched = models?.find((m) => m.modelCode === body.modelCode)
           if (matched) {
-            await this.modelRegistry.toggleDefaultModel(matched.id)
-            this.logger.log(`Default model toggled: ${provider}/${body.modelCode}`)
+            await this.modelRegistry.setDefaultModel(kd.key.id, matched.id)
+            this.logger.log(`Default model sync: ${provider}/${body.modelCode}`)
           }
         }
       } catch { /* no-op */ }
@@ -234,10 +234,18 @@ export class LlmConfigController {
   // ============================================================
 
   @Post('llm/config/set-default')
-  async setDefaultModel(@Body() body: { modelRegistryId: string }) {
+  async setDefaultModel(@Body() body: { provider: string; modelCode: string }) {
     try {
-      await this.modelRegistry.toggleDefaultModel(body.modelRegistryId)
-      return { success: true }
+      // 获取该 provider 的 key（已被 onModuleInit 解密导入 process.env）
+      const kd = await this.modelRegistry.getKeyWithDecrypted(body.provider)
+      if (!kd) return { success: false, error: '请先配置该 Provider 的 API Key' }
+      // 找到对应的 model registry 记录
+      const models = await this.modelRegistry.getModels(body.provider)
+      const matched = models?.find((m) => m.modelCode === body.modelCode)
+      if (!matched) return { success: false, error: 'Model not found' }
+      const result = await this.modelRegistry.setDefaultModel(kd.key.id, matched.id)
+      this.logger.log(`Default model ${result.isDefault ? 'set' : 'unset'}: ${body.provider}/${body.modelCode}`)
+      return { success: true, isDefault: result.isDefault }
     } catch (e: unknown) {
       return { success: false, error: (e as Error).message }
     }

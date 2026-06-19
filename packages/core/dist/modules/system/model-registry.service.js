@@ -209,11 +209,17 @@ let ModelRegistryService = ModelRegistryService_1 = class ModelRegistryService {
             return null;
         }
     }
-    async toggleDefaultModel(registryId) {
-        const model = await this.registryRepo.findOne({ where: { id: registryId } });
-        if (!model)
-            throw new Error('Model not found');
-        await this.registryRepo.update(registryId, { isDefault: model.isDefault ? 0 : 1 });
+    async setDefaultModel(keyId, registryId) {
+        const existing = await this.keyModelsRepo.findOne({ where: { keyId, registryId } });
+        if (existing) {
+            const newVal = existing.isDefault ? 0 : 1;
+            await this.keyModelsRepo.update({ keyId, registryId }, { isDefault: newVal });
+            return { isDefault: newVal === 1 };
+        }
+        await this.keyModelsRepo.update({ keyId }, { isDefault: 0 });
+        await this.keyModelsRepo.insert({ keyId, registryId, isDefault: 1 });
+        await this.registryRepo.update(registryId, { isDefault: 1 });
+        return { isDefault: true };
     }
     async deleteKey(id) {
         await this.keyRepo.update(id, { isEnabled: 0, updatedAt: new Date() });

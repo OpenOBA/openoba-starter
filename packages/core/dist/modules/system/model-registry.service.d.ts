@@ -40,7 +40,9 @@ export declare class ModelRegistryService implements OnModuleInit {
         key: ModelKey;
         apiKey: string;
     } | null>;
-    toggleDefaultModel(registryId: string): Promise<void>;
+    setDefaultModel(keyId: string, registryId: string): Promise<{
+        isDefault: boolean;
+    }>;
     deleteKey(id: string): Promise<void>;
     deleteModel(id: string): Promise<void>;
     getEnabledProvidersWithModels(): Promise<{
