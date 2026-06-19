@@ -236,15 +236,15 @@ export class LlmConfigController {
   @Post('llm/config/set-default')
   async setDefaultModel(@Body() body: { provider: string; modelCode: string; action?: 'set' | 'unset' }) {
     try {
-      // 取消默认：直接该 provider 下所有模型取消默认
+      // 取消默认：清除该 provider 下所有默认标记
       if (body.action === 'unset') {
-        await (this.modelRegistry as any).unsetDefaultModel(body.provider)
+        await this.modelRegistry.unsetDefaultModel(body.provider)
         this.logger.log(`Default model unset: ${body.provider}`)
         return { success: true }
       }
-      // 设为默认：直接在 registry 表中设默认
-      const models = await (this.modelRegistry as any).getModels(body.provider)
-      const matched = models?.find((m: any) => m.modelCode === body.modelCode)
+      // 设为默认：在 registry 表中标记
+      const models = await this.modelRegistry.getModels(body.provider)
+      const matched = models?.find((m) => m.modelCode === body.modelCode)
       if (!matched) return { success: false, error: 'Model not found' }
       await this.modelRegistry.setDefaultModel(matched.id, body.provider)
       this.logger.log(`Default model set: ${body.provider}/${body.modelCode}`)

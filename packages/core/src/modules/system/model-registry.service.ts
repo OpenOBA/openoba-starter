@@ -216,17 +216,25 @@ export class ModelRegistryService implements OnModuleInit {
     }
   }
 
-  async setDefaultModel(keyId: string, registryId: string): Promise<void> {
-    // 先清除该 Key 下所有默认标记
-    await this.keyModelsRepo.update({ keyId }, { isDefault: 0 })
+  async setDefaultModel(registryId: string, providerCode: string): Promise<void> {
+    // 先清除该 Provider 下所有模型的默认标记
+    await this.registryRepo.update({ providerCode }, { isDefault: 0 })
     // 设置新默认
-    await this.keyModelsRepo.update({ keyId, registryId }, { isDefault: 1 })
+    await this.registryRepo.update({ id: registryId }, { isDefault: 1 })
+  }
+
+  async unsetDefaultModel(providerCode: string): Promise<void> {
+    await this.registryRepo.update({ providerCode, isDefault: 1 as any }, { isDefault: 0 })
   }
 
   async deleteKey(id: string): Promise<void> {
     await this.keyRepo.update(id, { isEnabled: 0, updatedAt: new Date() })
     // 清理关联
     await this.keyModelsRepo.delete({ keyId: id })
+  }
+
+  async deleteModel(id: string): Promise<void> {
+    await this.registryRepo.update(id, { isEnabled: 0, updatedAt: new Date() })
   }
 
   // ============== P1-1: 获取已启用 Provider 及模型列表 ==============
