@@ -502,7 +502,7 @@ async function handleSave() {
 
   saving.value = true
   try {
-    const dropKeys = ['spu', 'color', 'primaryImage', 'skuImages']
+    const dropKeys = ['spu', 'color', 'primaryImage', 'skuImages', 'skuId', 'skuCode', 'skuBarcode', 'ean13', 'status', 'isDeleted', 'createdAt', 'updatedAt', 'warningQuantity', 'spuId']
     const saveData: Record<string, any> = {}
     for (const key of Object.keys(form)) {
       if (!dropKeys.includes(key) && form[key] !== undefined && form[key] !== null) {
@@ -512,6 +512,9 @@ async function handleSave() {
     if (saveData.retailPrice === undefined || saveData.retailPrice === null) {
       saveData.retailPrice = 0
     }
+    // 必填字段：从 form 显式注入（不在 dropKeys 排除之列）
+    saveData.spuId = form.spuId || undefined
+    saveData.colorCode = form.colorCode || undefined
     if (saveData.templeMaterial === '__same') {
       saveData.templeMaterial = saveData.frameMaterial || ''
     }
@@ -522,9 +525,6 @@ async function handleSave() {
     delete saveData.totalWidth; delete saveData.frameHeight
     const isNew = !isEdit.value
     if (isNew) {
-      delete saveData.skuId
-      delete saveData.skuCode
-      delete saveData.skuBarcode
       await createSku(saveData)
     } else {
       await updateSku(props.row.skuId, saveData)
