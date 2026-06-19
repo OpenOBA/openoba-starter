@@ -48,7 +48,7 @@ export class OrderItem {
   @Column({ comment: '小计',  type: 'decimal', precision: 12, scale: 2 })
   subtotal: number
 
-  @Column({ name: 'structure_standard_code', length: 64, comment: '结构标准锚点（交易快照）' })
+  @Column({ name: 'structure_standard_code', length: 64, default: '', comment: '结构标准锚点（交易快照）' })
   structureStandardCode: string
 
   @Column({ comment: '产品层级(color/style)',  name: 'product_tier', length: 20, nullable: true })
