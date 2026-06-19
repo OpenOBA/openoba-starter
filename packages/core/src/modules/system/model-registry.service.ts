@@ -220,15 +220,16 @@ export class ModelRegistryService implements OnModuleInit {
   async setDefaultModel(keyId: string, registryId: string): Promise<{ isDefault: boolean }> {
     const existing = await this.keyModelsRepo.findOne({ where: { keyId, registryId } })
     if (existing) {
-      // 已存在记录 → 翻转
+      // 已存在记录 → 翻转（复合主键必须用 query 更新）
       const newVal = existing.isDefault ? 0 : 1
-      await this.keyModelsRepo.update({ keyId, registryId }, { isDefault: newVal })
-      // 同步 registry 表 is_default（前端 providers 接口展示用）
+      await this.keyModelsRepo.query(
+        'UPDATE sys_model_key_models SET is_default = ? WHERE key_id = ? AND registry_id = ?',
+        [newVal, keyId, registryId]
+      )
       await this.registryRepo.update(registryId, { isDefault: newVal })
       return { isDefault: newVal === 1 }
     }
     // 首次关联 → 先清该 key 下旧默认，再设为默认
-    await this.keyModelsRepo.update({ keyId }, { isDefault: 0 })
     await this.keyModelsRepo.insert({ keyId, registryId, isDefault: 1 })
     await this.registryRepo.update(registryId, { isDefault: 1 })
     return { isDefault: true }
