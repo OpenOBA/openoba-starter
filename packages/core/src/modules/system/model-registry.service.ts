@@ -216,11 +216,15 @@ export class ModelRegistryService implements OnModuleInit {
     }
   }
 
-  /** Toggle 默认模型：翻转 is_default 标记 */
-  async toggleDefaultModel(registryId: string): Promise<void> {
-    const model = await this.registryRepo.findOne({ where: { id: registryId } })
-    if (!model) throw new Error('Model not found')
-    await this.registryRepo.update(registryId, { isDefault: model.isDefault ? 0 : 1 })
+  /** Toggle 默认模型：翻转 is_default 标记。id 可以是 DB UUID 或 modelCode */
+  async toggleDefaultModel(idOrCode: string): Promise<void> {
+    let model = await this.registryRepo.findOne({ where: { id: idOrCode } })
+    if (!model) {
+      // 回退：按 modelCode 查找
+      model = await this.registryRepo.findOne({ where: { modelCode: idOrCode } })
+    }
+    if (!model) throw new Error('Model not found: ' + idOrCode)
+    await this.registryRepo.update(model.id, { isDefault: model.isDefault ? 0 : 1 })
   }
 
   async deleteKey(id: string): Promise<void> {
