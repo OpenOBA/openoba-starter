@@ -16,7 +16,7 @@
  <template #default="{ row }">
  <span>{{ row.displayName }}</span>
  <el-tag size="small" style="margin-left:6px" :type="row.category === 'core' ? '' : row.category === 'industry' ? 'success' : 'warning'">
- {{ {core:'核心',industry:'行业',platform:'平台',community:'社区'}[row.category] || row.category }}
+ {{ ({core:'核心',industry:'行业',platform:'平台',community:'社区'} as Record<string,string>)[row.category] || row.category }}
  </el-tag>
  </template>
  </el-table-column>
@@ -113,7 +113,7 @@ async function handleRefresh() {
  const r = await refreshSkills()
  ElMessage.success(`已刷新，${r.refreshed} 个 SKILL`)
  await fetchSkills()
- } catch (e: unknown) { ElMessage.error(e.message || '刷新失败') }
+ } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '刷新失败') }
  finally { refreshing.value = false }
 }
 
@@ -131,7 +131,7 @@ async function saveKey(row: SkillKey & { _value?: string }) {
  try {
  await setSkillKey(currentSkill.value.skillName, row.keyName, row._value)
  ElMessage.success('已保存')
- } catch (e: unknown) { ElMessage.error(e.message || '保存失败') }
+ } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '保存失败') }
 }
 
 onMounted(() => { fetchSkills() })

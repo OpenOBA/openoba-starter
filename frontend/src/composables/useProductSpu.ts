@@ -5,7 +5,7 @@
  */
 import { ref, reactive } from 'vue';
 import { ElMessage } from 'element-plus';
-import { getSpus, createSpu, updateSpu, deleteSpu } from '@/api/product';
+import { getSpus, deleteSpu } from '@/api/product';
 import type { ProductSpu } from '@/types';
 
 export function useProductSpu(spuEditRow: ReturnType<typeof ref<ProductSpu | null>>) {

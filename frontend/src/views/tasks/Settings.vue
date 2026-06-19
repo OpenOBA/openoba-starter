@@ -710,13 +710,7 @@ async function loadAbout() {
   }
 }
 
-async function resetToDefaultsConfirm() {
-  try {
-    await ElMessageBox.confirm('确定恢复所有设置为默认值？', '恢复默认', { type: 'warning' })
-    resetToDefaults()
-    ElMessage.success('已恢复默认设置')
-  } catch { /* cancelled */ }
-}
+
 
 onMounted(() => { loadLlmConfig(); fetchModels(); loadKeyRows(); loadAbout() })
 </script>

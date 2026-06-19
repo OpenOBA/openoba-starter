@@ -1,5 +1,4 @@
 ﻿import { ref } from 'vue'
-import { ElMessage } from 'element-plus'
 import { getAgents } from '@/api/system'
 import type { AgentEntry } from '@/components/AgentSidebar.vue'
 

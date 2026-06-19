@@ -78,14 +78,13 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { getTask, getTaskLogs } from '@/api/task-engine'
 import type { AgentTask, CognitiveLog, TaskStatus } from '@/api/task-engine'
 
 const route = useRoute()
-const router = useRouter()
 
 const loading = ref(false)
 const task = ref<AgentTask | null>(null)

@@ -68,7 +68,7 @@
       <el-table-column label="活跃状态" width="90">
         <template #default="{ row }">
           <el-tag :type="row.activityStatus === 'active' ? 'success' : row.activityStatus === 'dormant' ? 'warning' : 'danger'" size="small">
-            {{ { active: '活跃', dormant: '沉默', inactive: '流失' }[row.activityStatus] }}
+            {{ ({ active: '活跃', dormant: '沉默', inactive: '流失' } as Record<string,string>)[row.activityStatus] }}
           </el-tag>
         </template>
       </el-table-column>
@@ -99,7 +99,7 @@
       <el-table-column label="流失风险" width="90">
         <template #default="{ row }">
           <el-tag :type="row.churnRisk === 'high' ? 'danger' : row.churnRisk === 'medium' ? 'warning' : 'success'" size="small">
-            {{ { high: '高', medium: '中', low: '低' }[row.churnRisk] || '-' }}
+            {{ ({ high: '高', medium: '中', low: '低' } as Record<string,string>)[row.churnRisk] || '-' }}
           </el-tag>
         </template>
       </el-table-column>

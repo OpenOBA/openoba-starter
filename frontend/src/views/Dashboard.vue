@@ -164,8 +164,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { getCustomerList } from '@/api/customer'
 import { getOrderStats } from '@/api/order'
@@ -173,10 +172,9 @@ import { getSpus } from '@/api/product'
 import { getAfterSalesStats } from '@/api/afterSales'
 import { getTaskStats } from '@/api/task-engine'
 import { Connection } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+
 import request from '@/api/request'
 
-const router = useRouter()
 const userStore = useUserStore()
 
 const stats = reactive({

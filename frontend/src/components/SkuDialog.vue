@@ -389,7 +389,6 @@ const displayName = computed(() => {
   const genderM: Record<string, string> = props.schemaConfig?.genderOptions
     ? Object.fromEntries(props.schemaConfig.genderOptions.map(o => [o.value, o.label]))
     : { female: '女款', male: '男款', unisex: '中性', limited: '限量' }
-  const extCode = struct.externalCode || '???'
   const shapeName = shapeM[struct.shapeCode] || struct.shapeCode || ''
   const seriesName = seriesM[spu.seriesCode] || ''
   const colorName = color?.colorName || '未知色'

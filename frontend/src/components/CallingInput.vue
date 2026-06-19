@@ -101,10 +101,12 @@ const emit = defineEmits<{
 }>()
 
 const text = ref('')
-const inputRef = ref()
 const fileInputRef = ref<HTMLInputElement>()
 const selectedAgents = ref<AgentEntry[]>([])
 const attachedFiles = ref<File[]>([])
+// bound in <template ref="inputRef">, noUnusedLocals suppressed via void
+const inputRef = ref()
+void inputRef
 // 模型来源：首页 Header 的 eraSettings.agent.defaultModel
 import { useERASettings } from '@/composables/useERASettings'
 const { settings: eraSettings } = useERASettings()

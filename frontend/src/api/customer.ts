@@ -1,7 +1,6 @@
 import request from './request'
 
 // ── 通用 CRUD 类型 ──
-type QueryParams = Record<string, string | number | boolean | undefined>
 type CreateUpdateData = Record<string, unknown>
 
 export interface Customer {

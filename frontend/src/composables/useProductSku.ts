@@ -5,7 +5,7 @@
  */
 import { ref, reactive } from 'vue';
 import { ElMessage } from 'element-plus';
-import { getSkus, createSku, updateSku, deleteSku } from '@/api/product';
+import { getSkus, deleteSku } from '@/api/product';
 import type { ProductSku } from '@/types';
 
 export function useProductSku(skuEditRow: ReturnType<typeof ref<ProductSku | null>>) {

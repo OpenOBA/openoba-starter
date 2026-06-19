@@ -239,7 +239,6 @@ export function checkEscalations(): Promise<{ escalated: number }> {
 
 /** 发送消息到 Agent → 返回 SSE 流 */
 export function sendMessage(taskId: string, message: string): Promise<Response> {
-  const token = localStorage.getItem('access_token')
-  // H14: 保留原生fetch（SSE/body流式）
+  // H14: request 拦截器已处理 token 注入，无需手动读取
   return request.post(`/eros/tasks/${taskId}/message`, { message })
 }

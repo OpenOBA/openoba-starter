@@ -384,7 +384,7 @@ function viewSchema(entity: ERDLEntity) {
  schemaDialogVisible.value = true
 }
 
-function onSchemaChange(s: FormSchema) {
+function onSchemaChange(_s: FormSchema) {
  // selectedSchema already updated by v-model
 }
 

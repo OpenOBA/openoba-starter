@@ -33,6 +33,8 @@ export interface ERDLRule {
   isActive: boolean
   createdAt: string
   version: number
+  /** UI-only: debounce flag during toggle */
+  _toggling?: boolean
 }
 
 export interface ERDLStats {

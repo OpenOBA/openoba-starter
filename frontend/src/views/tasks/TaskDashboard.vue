@@ -213,7 +213,7 @@ const filterStatus = ref('')
 const searchKeyword = ref('')
 const displayLimit = ref(10) // 默认显示 10 条，超出显示"查看更多"
 const hasMore = ref(false)
-const activeCollapse = ref<string[]>([])
+
 
 // 多选删除
 const selectedIds = ref<string[]>([])
@@ -237,10 +237,7 @@ async function batchDelete() {
 }
 
 // 展示的任务列表：搜索模式下显示全部匹配结果，非搜索模式限制 displayLimit
-const displayedTasks = computed(() => {
-  if (searchKeyword.value) return tasks.value
-  return tasks.value.slice(0, displayLimit.value)
-})
+
 const chatAreaRef = ref<HTMLElement>()
 const callingInputRef = ref()
 
@@ -257,15 +254,7 @@ interface ChatMessage {
 }
 const messages = ref<ChatMessage[]>([])
 
-const statusLabel = (s: TaskStatus) => ({
-  drafted: '草稿', proposed: '待同意', revised: '修订中',
-  executing: '执行中', delivered: '已交付', published: '已发布',
-  completed: '已完成', cancelled: '已取消', aborted: '已中止', escalated: '已升级',
-}[s] || s)
-const statusTagType = (s: TaskStatus) => {
-  const m: Record<string, string> = { drafted: 'info', proposed: 'warning', revised: 'info', executing: 'primary', delivered: 'success', published: 'success', completed: 'success', cancelled: 'danger', aborted: 'danger', escalated: 'warning' }
-  return m[s] || 'info'
-}
+
 
 function now() { return new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) }
 
@@ -282,7 +271,6 @@ function onAgentSelect(agent: AgentEntry) {
 }
 
 function quickTask(type: string) {
-  const t = now()
   const taskMap: Record<string, { text: string; type: string }> = {
     product: { text: '上架一款钛合金圆框系列，主打25-35岁轻奢女性', type: 'product_listing' },
     content: { text: '为钛合金圆框系列写一篇小红书种草笔记', type: 'content_creation' },
@@ -386,27 +374,11 @@ function loadMore() {
   hasMore.value = total.value > displayLimit.value
 }
 
-function formatTaskTime(t: string) {
-  if (!t) return '-'
-  const d = new Date(t)
-  const now = new Date()
-  const diff = now.getTime() - d.getTime()
-  if (diff < 86400000) return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-  if (diff < 604800000) return Math.floor(diff / 86400000) + '天前'
-  return d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })
-}
+
 
 function goDetail(task: AgentTask) { router.push(`/chat/${task.id}`) }
 
-async function handleDelete(task: AgentTask) {
-  try {
-    await deleteTask(task.id)
-    ElMessage.success(`任务 ${task.taskNo} 已删除`)
-    loadTasks()
-  } catch (e: unknown) {
-    ElMessage.error(`删除失败: ${(e as any)?.message || e}`)
-  }
-}
+
 
 function onAgentsUpdate(agents: AgentEntry[]) {
   agentList.value = agents

@@ -1,5 +1,5 @@
 import request from './request';
-import type { PaginatedData, DictItem } from './api-types';
+import type { PaginatedData } from './api-types';
 
 // ── 通用 CRUD 类型 ──
 type QueryParams = Record<string, string | number | boolean | undefined>
