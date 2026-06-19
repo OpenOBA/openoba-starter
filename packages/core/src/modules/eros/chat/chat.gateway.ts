@@ -34,26 +34,18 @@ import { ChatSessionManager } from './chat.session-manager'
 import { MessageService } from './message.service'
 import { DeliverableService } from '../deliverable/deliverable.service'
 import type { StreamEvent } from '../stream/stream-event.types'
+import { getAvailableProviders } from '../../erdl/llm/erdl-llm-providers'
 
-/** 底层 provider model → 用户可读的模型展示名 */
-const MODEL_DISPLAY: Record<string, string> = {
-  'deepseek/deepseek-v4-pro': 'DeepSeek V4 Pro',
-  'alibaba-cloud/qwen3.6-plus': 'Qwen 3.6 Plus',
-  'qwen3.6-plus': 'Qwen 3.6 Plus',
-  'deepseek-v4-pro': 'DeepSeek V4 Pro',
-  'qwen/qwen3.6-plus': 'Qwen 3.6 Plus',
-}
-
-/** 将 executor 返回的 "Provider / ... / modelId" 转成用户可读名称 */
-function normalizeModelName(raw: string): string {
-  // 格式如 "Qwen / 阿里百炼 / qwen3.6-plus" 或 "DeepSeek / DeepSeek / deepseek-v4-pro"
-  // 优先用 MODEL_DISPLAY 映射 raw 中的 modelId 段
-  for (const [key, display] of Object.entries(MODEL_DISPLAY)) {
-    if (raw.includes(key)) return display
+/** 从 provider 配置中查找 model id 对应的用户可读名称 */
+function getModelDisplayName(rawModelRef: string): string {
+  const providers = getAvailableProviders()
+  for (const p of providers) {
+    for (const m of p.models) {
+      if (rawModelRef.includes(m.id)) return m.name
+    }
   }
-  // 回退：取最后一段作为 model id
-  const parts = raw.split(' / ')
-  return parts[parts.length - 1] || raw
+  // 回退：取最后一段
+  return rawModelRef.split(' / ').pop() || rawModelRef
 }
 
 @WebSocketGateway({
@@ -237,7 +229,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           content: this.runRegistry.getPartialContent(runId),
         }).catch(() => {})
         const usedModel = this.executor.getUsedModel() || data.model || ''
-        const modelDisplay = normalizeModelName(usedModel)
+        const modelDisplay = getModelDisplayName(usedModel)
         client.emit('chat.done', { runId, model: modelDisplay, agentName: 'AI 执行官' })
 
         // B4: 自动创建交付物
