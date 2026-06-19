@@ -274,6 +274,7 @@
                   </el-button>
                   <!-- 设为默认 → 所有模型行都显示，用户自己选 -->
                   <el-button
+                    v-if="row.hasKey"
                     size="small"
                     text
                     :type="row.isDefault ? 'warning' : 'info'"
@@ -281,7 +282,7 @@
                     @click="doSetDefault(row)"
                   >
                     <el-icon><StarFilled v-if="row.isDefault" /><Star v-else /></el-icon>
-                    <span style="font-size:12px;margin-left:2px">{{ row.isDefault ? '默认' : '默认' }}</span>
+                    <span style="font-size:12px;margin-left:2px">默认</span>
                   </el-button>
                   <!-- 删除按钮 → 所有模型行都可见：有 key 删 key，无 key 删模型记录 -->
                   <el-button
@@ -441,7 +442,8 @@ async function loadKeyRows() {
 
       for (const m of (p.models || [])) {
         const modelKeyInfo = keyInfo?.models?.find((mk: any) => mk.modelCode === m.modelCode || mk.modelCode === m.id)
-        const isDefault = m.isDefault || modelKeyInfo?.isDefault || false
+        // 默认标记统一从 key models 关联表读取（DB 权威来源）
+        const isDefault = modelKeyInfo?.isDefault || false
 
         rows.push({
           keyId: keyInfo?.id || '',
