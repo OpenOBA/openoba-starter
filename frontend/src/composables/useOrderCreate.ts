@@ -67,7 +67,7 @@ export function useOrderCreate() {
       if (res?.lenses?.length > 0) {
         const activeLens = res.lenses.find((l: any) => l.status === 'active') || res.lenses[0]
         const code = activeLens.lensStandardCode
-        const rxInfo = activeLens.prescription ? `球镜: OD${activeLens.prescription.odSphere}/OS${activeLens.prescription.osSphere}` : ''
+        const rxInfo = activeLens.prescription ? `球镜: OD${(activeLens.prescription as any).odSphere}/OS${(activeLens.prescription as any).osSphere}` : ''
         historyLensNotice.value = `🔩 该客户历史镜片：${code}${rxInfo ? ' | ' + rxInfo : ''}`
         const matched = lensOptions.value.find((l) => l.externalCode === code)
         if (matched) createForm.structureStandardCode = matched.structureId

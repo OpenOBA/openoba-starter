@@ -23,9 +23,10 @@ export function useProductCategory() {
     categoryLoading.value = true;
     try {
       const type = categorySearchType.value || undefined;
-      categoryList.value = await getCategoriesFlat({ categoryType: type });
+      categoryList.value = await getCategoriesFlat({ categoryType: type }) as unknown as ProductCategory[];
     } catch (e: unknown) {
-      ElMessage.error(e.message);
+      const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error(err);
     } finally {
       categoryLoading.value = false;
     }
@@ -69,7 +70,8 @@ export function useProductCategory() {
       categoryDialogVisible.value = false;
       loadCategories();
     } catch (e: unknown) {
-      ElMessage.error(e.message);
+      const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error(err);
     }
   };
 
@@ -79,7 +81,8 @@ export function useProductCategory() {
       ElMessage.success('分类已删除');
       loadCategories();
     } catch (e: unknown) {
-      ElMessage.error(e.message);
+      const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error(err);
     }
   };
 

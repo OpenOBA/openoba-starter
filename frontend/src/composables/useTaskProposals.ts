@@ -31,7 +31,7 @@ export function useTaskProposals(
   const showAgreeBtn = computed(() => {
     if (taskDone.value) return false
     if (agentLoading.value) return false
-    const hasAgentReply = messages.value.some((m: any) => m.role === 'agent' && m.content && !m.streaming)
+    const hasAgentReply = (messages.value ?? []).some((m: any) => m.role === 'agent' && m.content && !m.streaming)
     return hasAgentReply
   })
 
@@ -43,7 +43,7 @@ export function useTaskProposals(
     agreeing.value = true
     try {
       await approveTask(taskId.value, { action: 'approved' })
-      for (const msg of messages.value) {
+      for (const msg of (messages.value ?? [])) {
         if (msg.role === 'proposal' && msg.status !== 'accepted') msg.status = 'accepted'
       }
       const t = await getTask(taskId.value)
@@ -83,7 +83,7 @@ export function useTaskProposals(
       lines.push(`**版本**：V${last.version}`)
     }
     const allTools: string[] = []
-    for (const m of messages.value) {
+    for (const m of (messages.value ?? [])) {
       if (m.role === 'agent' && m.toolCalls) {
         for (const tc of m.toolCalls || []) {
           if (!allTools.includes(tc.name)) allTools.push(tc.name)

@@ -26,14 +26,15 @@ export function useProductSpu(spuEditRow: ReturnType<typeof ref<ProductSpu | nul
         spuList.value = [];
       }
     } catch (e: unknown) {
-      ElMessage.error(e.message);
+      const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error(err);
     } finally {
       spuLoading.value = false;
     }
   };
 
   const openSpuDialog = (row?: Record<string, unknown>) => {
-    spuEditRow.value = row || null;
+    spuEditRow.value = (row as ProductSpu) || null;
     spuDialogVisible.value = true;
   };
 
@@ -43,7 +44,8 @@ export function useProductSpu(spuEditRow: ReturnType<typeof ref<ProductSpu | nul
       ElMessage.success('已删除');
       loadSpus();
     } catch (e: unknown) {
-      ElMessage.error(e.message);
+      const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error(err);
     }
   };
 

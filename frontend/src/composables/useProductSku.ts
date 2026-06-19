@@ -19,21 +19,22 @@ export function useProductSku(skuEditRow: ReturnType<typeof ref<ProductSku | nul
     try {
       const res = await getSkus({ pageSize: 999, ...skuSearch });
       if (Array.isArray(res)) {
-        skuList.value = res;
+        skuList.value = res as unknown as ProductSku[];
       } else if (res && typeof res === 'object' && Array.isArray(res.items)) {
-        skuList.value = res.items;
+        skuList.value = res.items as unknown as ProductSku[];
       } else {
         skuList.value = [];
       }
     } catch (e: unknown) {
-      ElMessage.error(e.message);
+      const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error(err);
     } finally {
       skuLoading.value = false;
     }
   };
 
   const openSkuDialog = (row?: Record<string, unknown>) => {
-    skuEditRow.value = row || null;
+    skuEditRow.value = (row as ProductSku) || null;
     skuDialogVisible.value = true;
   };
 
@@ -43,7 +44,8 @@ export function useProductSku(skuEditRow: ReturnType<typeof ref<ProductSku | nul
       ElMessage.success('已删除');
       loadSkus();
     } catch (e: unknown) {
-      ElMessage.error(e.message);
+      const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error(err);
     }
   };
 

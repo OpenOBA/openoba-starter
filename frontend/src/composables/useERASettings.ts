@@ -137,17 +137,17 @@ function load(): ERASettings {
 }
 
 function deepMerge<T extends Record<string, any>>(base: T, override: Partial<T>): T {
-  const result = { ...base }
+  const result = { ...base } as Record<string, any>
   for (const key of Object.keys(base)) {
     if (override[key] !== undefined) {
       if (typeof base[key] === 'object' && !Array.isArray(base[key]) && typeof override[key] === 'object') {
-        result[key] = deepMerge(base[key], override[key])
+        result[key] = deepMerge(base[key], override[key] as any)
       } else {
         result[key] = override[key]
       }
     }
   }
-  return result
+  return result as T
 }
 
 function save(settings: ERASettings) {

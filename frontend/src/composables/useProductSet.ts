@@ -152,7 +152,8 @@ export function useProductSet(
       setDialogVisible.value = false;
       loadSets();
     } catch (e: unknown) {
-      ElMessage.error(e.message);
+      const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error(err);
     }
   };
 
@@ -162,7 +163,8 @@ export function useProductSet(
       ElMessage.success('已删除');
       loadSets();
     } catch (e: unknown) {
-      ElMessage.error(e.message);
+      const err = e instanceof Error ? e.message : String(e);
+      ElMessage.error(err);
     }
   };
 

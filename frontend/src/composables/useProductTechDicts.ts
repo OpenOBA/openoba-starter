@@ -27,8 +27,8 @@ export function useProductTechDicts() {
   const loadTechDicts = async () => {
     try {
       const [fm, ft, np, hi, st, sl, et] = await Promise.all([
-        getFrameMaterials(), getFrameTypes(), getNosePads(), getHinges(),
-        getSurfaceTreatments(), getSeriesList(), getEffectTags(),
+        getFrameMaterials() as Promise<any[]>, getFrameTypes() as Promise<any[]>, getNosePads() as Promise<any[]>, getHinges() as Promise<any[]>,
+        getSurfaceTreatments() as Promise<any[]>, getSeriesList() as Promise<any[]>, getEffectTags('skin_tone') as Promise<any[]>,
       ]);
       frameMaterials.value = Array.isArray(fm) ? fm : (fm as any).data || [];
       frameTypes.value = Array.isArray(ft) ? ft : (ft as any).data || [];
@@ -44,7 +44,7 @@ export function useProductTechDicts() {
 
   const loadStructureStandards = async () => {
     try {
-      const res = await getStructureList();
+      const res = await getStructureList() as any;
       const raw = (res as any).data || (res as any).items || res || [];
       structureStandards.value = Array.isArray(raw) ? raw : [];
     } catch (e) {
@@ -54,7 +54,7 @@ export function useProductTechDicts() {
 
   const loadEffectTagsInner = async () => {
     try {
-      const et = await getEffectTags();
+      const et = await getEffectTags('skin_tone') as any;
       effectTags.value = Array.isArray(et) ? et : (et as any).data || [];
     } catch (e) {
       console.warn('[useProductTechDicts] 加载效果词失败', e);
@@ -65,12 +65,12 @@ export function useProductTechDicts() {
   const tierList = ref<ProductTier[]>([]);
   const loadTiers = async () => {
     try {
-      const res = await getTierPricings();
-      const raw = res.data || res.items || res || [];
+      const res = await getTierPricings() as any;
+      const raw = (res as any).data || (res as any).items || res || [];
       tierList.value = raw.map((t: Record<string, unknown>) => ({
-        tier_code: t.tierCode || t.tier_code,
-        tier_name: t.tierName || t.tier_name,
-        icon_color: TIER_MAP[t.tierCode || t.tier_code]?.color || '#999',
+        tier_code: (t.tierCode || (t as any).tier_code) as string,
+        tier_name: (t.tierName || (t as any).tier_name) as string,
+        icon_color: TIER_MAP[String(t.tierCode || (t as any).tier_code)]?.color || '#999',
         ...t,
       }));
     } catch (e) {
