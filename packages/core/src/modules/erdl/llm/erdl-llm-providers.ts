@@ -198,9 +198,24 @@ export function findProviderForModel(modelId: string): ERDLLLMProvider | undefin
   return BUILTIN_LLM_PROVIDERS.find((p) => p.models.some((m) => m.id === modelId))
 }
 
-/** 获取所有可用 Provider（已配置 API Key） */
+/** 所有被视为"未配置"的占位符值（大小写不敏感） */
+const INVALID_API_KEY_PLACEHOLDERS = new Set(['', 'temp', 'placeholder', 'changeme', 'your_api_key', 'xxx'])
+
+/**
+ * 判断某个 env 值是否为"有效"的 API Key。
+ * 仅做轻量校验：非空、非占位符、长度 >= 16（主流 LLM Key 均 >= 20 字符）。
+ * 注意：本函数不验证 Key 在远端是否真的可用，仅过滤明显的占位符。
+ */
+function isValidApiKey(envKey: string): boolean {
+  const val = (process.env[envKey] || '').trim()
+  if (val.length < 16) return false
+  if (INVALID_API_KEY_PLACEHOLDERS.has(val.toLowerCase())) return false
+  return true
+}
+
+/** 获取所有可用 Provider（已配置有效 API Key） */
 export function getAvailableProviders(): ERDLLLMProvider[] {
-  return BUILTIN_LLM_PROVIDERS.filter((p) => Boolean(process.env[p.apiKeyEnv]))
+  return BUILTIN_LLM_PROVIDERS.filter((p) => isValidApiKey(p.apiKeyEnv))
 }
 
 /** 获取默认 Provider。preferredProviderCode 优先，否则取第一个可用的。 */

@@ -713,7 +713,7 @@ export class AgentExecutorService implements OnModuleInit {
       : systemPrompt
 
     const result = await this.llmBridge.queryWithToolsLegacy(
-      enhancedSystemPrompt, fullUserMessage, tools, toolExecutor, onEvent,
+      enhancedSystemPrompt, fullUserMessage, tools, toolExecutor, onEvent, defaultProviderCode,
     )
 
     // V1.3: 用实际 Provider 的名称（name）而非 id 显示签名

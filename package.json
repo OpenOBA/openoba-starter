@@ -19,7 +19,7 @@
     "uuid": "^11.0.0"
   },
   "scripts": {
-    "build:backend": "npm run build -w packages/backend",
+    "build:backend": "npm run build -w packages/core && npm run build -w packages/backend",
     "start:backend": "node packages/backend/dist/main.js",
     "start:frontend": "npm run dev -w frontend",
     "update-core": "scripts/update-core.bat",

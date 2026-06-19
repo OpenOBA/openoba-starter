@@ -256,6 +256,7 @@ export class ERDLLLMBridge {
     tools: ERDLLMTool[],
     toolExecutor: (name: string, args: Record<string, unknown>) => Promise<string>,
     onEvent: (e: import('../../eros/stream/stream-event.types').StreamEvent) => void,
+    preferredProviderCode?: string,
   ): Promise<{ content: string; model: string; provider: string }> {
     const messages: ERDLLLMMessage[] = [
       { role: 'system', content: systemPrompt },
@@ -267,7 +268,7 @@ export class ERDLLLMBridge {
     // P0-2: 外层最多 3 次重试（仅重试异常中断，正常终止直接返回）
     const MAX = 3
     for (let i = 0; i < MAX; i++) {
-      const round = await this.queryWithToolsStream(messages, tools, toolExecutor, onEvent)
+      const round = await this.queryWithToolsStream(messages, tools, toolExecutor, onEvent, undefined, preferredProviderCode)
       if (!round.toolCalls || round.toolCalls.length === 0) {
         // 正常终止：LLM 返回了纯文本回复 → 直接返回，不重试
         finalContent = round.content || ''
@@ -316,6 +317,7 @@ export class ERDLLLMBridge {
     toolExecutor: (name: string, args: Record<string, unknown>) => Promise<string>,
     onEvent: (e: import('../../eros/stream/stream-event.types').StreamEvent) => void,
     abortSignal?: AbortSignal,
+    preferredProviderCode?: string,
   ): Promise<{
     messages: ERDLLLMMessage[]
     content: string
@@ -349,7 +351,7 @@ export class ERDLLLMBridge {
         })
         try {
           const lastResult = await this.streamReActRound(
-            this.trimHistoryByTokenBudget(messages), [], onEvent, abortSignal,
+            this.trimHistoryByTokenBudget(messages), [], onEvent, abortSignal, preferredProviderCode,
           )
           const lastContent = lastResult.assistantContent || 'Agent 已达到执行上限，请刷新页面重新开始。'
           onEvent({ type: 'content', delta: lastContent })
@@ -373,7 +375,7 @@ export class ERDLLLMBridge {
       // ── LLM 调用（V1.3 流式）──
       let streamResult: { assistantContent: string; reasoningContent: string; rawToolCalls: any[] | null; model: string; provider: string }
       try {
-        streamResult = await this.streamReActRound(trimmedMessages, tools, onEvent, abortSignal)
+        streamResult = await this.streamReActRound(trimmedMessages, tools, onEvent, abortSignal, preferredProviderCode)
       } catch (llmErr: any) {
         const errMsg = llmErr instanceof Error ? llmErr.message : String(llmErr)
         this.logger.error(`[ReAct] 第${round}轮 LLM 调用失败: ${errMsg}`)
@@ -640,6 +642,7 @@ export class ERDLLLMBridge {
     tools: ERDLLMTool[],
     onEvent: (e: import('../../eros/stream/stream-event.types').StreamEvent) => void,
     abortSignal?: AbortSignal,
+    preferredProviderCode?: string,
   ): Promise<{
     assistantContent: string
     reasoningContent: string
@@ -647,7 +650,7 @@ export class ERDLLLMBridge {
     model: string
     provider: string
   }> {
-    const primary = getDefaultProvider()
+    const primary = getDefaultProvider(preferredProviderCode)
     if (!primary) throw new Error('[streamReActRound] 无默认 Provider 配置')
     const fallbacks = getFailoverProviders(primary.id)
     const allProviders = [primary, ...fallbacks]

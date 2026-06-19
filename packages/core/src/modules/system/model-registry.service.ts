@@ -216,22 +216,38 @@ export class ModelRegistryService implements OnModuleInit {
     }
   }
 
-  /** Toggle 默认模型：对指定 key+model 翻转 is_default */
+  /**
+   * Toggle 默认模型：对指定 key+model 翻转 is_default。
+   *
+   * 数据一致性规则：
+   *  - 同一个 keyId 下最多只允许一条 is_default=1（设新默认前先清旧默认）
+   *  - 仅写 sys_model_key_models（Key 级默认），不污染 sys_model_registry（Provider 级默认）
+   *  - 复合主键 (key_id, registry_id) 必须用原生 SQL 更新（TypeORM Repository.update 不支持复合主键）
+   */
   async setDefaultModel(keyId: string, registryId: string): Promise<{ isDefault: boolean }> {
     const existing = await this.keyModelsRepo.findOne({ where: { keyId, registryId } })
     if (existing) {
-      // 已存在记录 → 翻转（复合主键必须用 query 更新）
+      // 已存在记录 → 翻转（复合主键必须用原生 SQL 更新）
       const newVal = existing.isDefault ? 0 : 1
+      if (newVal === 1) {
+        // 设为默认前，先清除同 key 下其他记录的默认标记，保证唯一性
+        await this.keyModelsRepo.query(
+          'UPDATE sys_model_key_models SET is_default = 0 WHERE key_id = ? AND registry_id <> ?',
+          [keyId, registryId],
+        )
+      }
       await this.keyModelsRepo.query(
         'UPDATE sys_model_key_models SET is_default = ? WHERE key_id = ? AND registry_id = ?',
-        [newVal, keyId, registryId]
+        [newVal, keyId, registryId],
       )
-      await this.registryRepo.update(registryId, { isDefault: newVal })
       return { isDefault: newVal === 1 }
     }
-    // 首次关联 → 先清该 key 下旧默认，再设为默认
+    // 首次关联 → 先清该 key 下旧默认，再插入新默认
+    await this.keyModelsRepo.query(
+      'UPDATE sys_model_key_models SET is_default = 0 WHERE key_id = ?',
+      [keyId],
+    )
     await this.keyModelsRepo.insert({ keyId, registryId, isDefault: 1 })
-    await this.registryRepo.update(registryId, { isDefault: 1 })
     return { isDefault: true }
   }
 
