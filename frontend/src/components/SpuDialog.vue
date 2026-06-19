@@ -19,7 +19,11 @@
         </el-col>
         <el-col :span="12">
           <el-form-item label="SPU 名称">
-            <el-input v-model="form.spuName" placeholder="输入 SPU 名称" />
+            <el-input v-model="form.spuName" placeholder="输入 SPU 名称">
+              <template #append>
+                <el-button @click="fillSpuName" :disabled="!generatedName">✨ 建议</el-button>
+              </template>
+            </el-input>
           </el-form-item>
         </el-col>
       </el-row>
@@ -194,9 +198,23 @@ const generatedName = computed(() => {
   return `秒镜 S${extCode} · ${shape}${series}系列${genderPart}`
 })
 
+// 自动填充：当 generatedName 变化时，如果 spuName 为空则自动建议
+watch(generatedName, (name) => {
+  if (name && !form.spuName) {
+    form.spuName = name
+  }
+})
+
 function copyName() {
   navigator.clipboard?.writeText(generatedName.value)
   ElMessage.success('已复制')
+}
+
+function fillSpuName() {
+  if (generatedName.value) {
+    form.spuName = generatedName.value
+    ElMessage.success('已填充系统建议名称')
+  }
 }
 
 function resetForm() {

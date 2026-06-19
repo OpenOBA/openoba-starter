@@ -124,22 +124,30 @@ export class ProductSkuService {
       item.spu = newSpu as any
     }
 
-    if (colorCode) (item as Partial<ProductSku> & { colorCode?: string }).colorCode = colorCode
-    const merged = { ...item, ...rest, productTier: resolvedTier, spu: item.spu }
+    if (colorCode) {
+      (item as Partial<ProductSku> & { colorCode?: string }).colorCode = colorCode
+      dto.colorCode = colorCode
+    }
 
     // 自动生成展示名
     const typedItem2 = item as Partial<ProductSku> & { skinToneEffect?: string; faceShapeEffect?: string }
     if (!dto.skinToneEffect) dto.skinToneEffect = typedItem2.skinToneEffect
     if (!dto.faceShapeEffect) dto.faceShapeEffect = typedItem2.faceShapeEffect
     const needRegen = dto.skinToneEffect || dto.faceShapeEffect || colorCode
+    const mergedForName = { ...item, ...rest, productTier: resolvedTier, spu: item.spu }
     if (needRegen) {
-      const displayName = await this.generateSkuDisplayName(merged)
+      const displayName = await this.generateSkuDisplayName(mergedForName)
       if (displayName && displayName !== '??? · ???系列') {
-        Object.assign(merged, { skuName: displayName })
+        ;(rest as any).skuName = displayName
       }
     }
 
-    await this.skuRepo.update(id, merged)
+    // 构建纯列更新对象：排除关联字段、元数据和非列属性
+    const updateData: Record<string, any> = { ...rest, productTier: resolvedTier }
+    if (spuId) updateData.spuId = spuId
+    if (colorCode) updateData.colorCode = colorCode
+
+    await this.skuRepo.update(id, updateData)
     return this.findOneSku(id)
   }
 

@@ -144,6 +144,10 @@ export class CreateSubSkuCategoryDto {
 }
 
 export class UpdateSubSkuCategoryDto {
+  @ApiPropertyOptional({ description: '分类编码（一般不修改）' })
+  @IsOptional() @IsString()
+  code?: string
+
   @ApiPropertyOptional({ description: '分类名称' })
   @IsOptional() @IsString()
   name?: string

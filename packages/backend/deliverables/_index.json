@@ -1,0 +1,23 @@
+{
+  "workspace": "C:\\Users\\99tan\\openoba\\repos\\openoba-starter\\packages\\backend",
+  "deliverableRoot": "C:\\Users\\99tan\\openoba\\repos\\openoba-starter\\packages\\backend\\deliverables",
+  "updatedAt": "2026-06-19T06:36:17.661Z",
+  "entries": [
+    {
+      "taskId": "74804988fe9a452da00787a5aec0031d",
+      "title": "先查询订单数据和商品数据，了解当前销售状况。ERP 中有 3 个 SPU 和 3 个 SKU，但需要查看订单数据来分析销售情况。让我查询订单和库存数据。",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-19T06:36:17.615Z"
+    },
+    {
+      "taskId": "TEST-20260528-001",
+      "title": "测试交付物-钛合金圆框方案",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-05-27T23:23:26.000Z"
+    }
+  ]
+}

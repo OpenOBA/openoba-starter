@@ -511,6 +511,11 @@ export class ProductService {
     if (dto.isPrimary) {
       await this.clearPrimaryForType(dto.skuId, dto.imageType)
     }
+    // 防御：删除非数据库列和主键（防止 TypeORM create() 误用空字符串主键）
+    delete dto.imageId
+    delete dto.createdAt
+    delete dto.updatedAt
+    delete dto.sku
     const entity = this.skuImageRepo.create(dto)
     return this.skuImageRepo.save(entity)
   }
@@ -538,6 +543,11 @@ export class ProductService {
       imgDto.imageUrl = this.validateImageUrl(imgDto.imageUrl)
       // imageType 校验
       imgDto.imageType = this.validateImageType(imgDto.imageType)
+      // 防御：删除非数据库列和主键
+      delete (imgDto as any).imageId
+      delete (imgDto as any).createdAt
+      delete (imgDto as any).updatedAt
+      delete (imgDto as any).sku
       const entity = this.skuImageRepo.create(imgDto)
       const saved = await this.skuImageRepo.save(entity)
       results.push(saved)

@@ -1,0 +1,18 @@
+{
+  "taskId": "74804988fe9a452da00787a5aec0031d",
+  "taskTitle": "先查询订单数据和商品数据，了解当前销售状况。ERP 中有 3 个 SPU 和 3 个 SKU，但需要查看订单数据来分析销售情况。让我查询订单和库存数据。",
+  "version": 1,
+  "createdAt": "2026-06-19T06:36:17.560Z",
+  "createdBy": "ERA Agent",
+  "approvedBy": null,
+  "userType": "operator",
+  "status": "approved",
+  "files": [
+    {
+      "path": "output.md",
+      "size": 8124
+    }
+  ],
+  "changelog": "Agent 自动交付",
+  "parentVersion": null
+}
