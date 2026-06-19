@@ -8,7 +8,7 @@
  * 4. 超时处理
  * 5. 错误消息格式化（数组/字符串）
  */
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 
 // ═══════════════════════════════════════
 // 模拟 localStorage
@@ -24,15 +24,14 @@ const mockLS = {
 // 重建 request.ts 逻辑（mock 外部依赖）
 // ═══════════════════════════════════════
 
-let capturedHeaders: Record<string, string> = {}
-let lastErrorMsg = ''
 let didRedirect = false
 let didClearStorage = false
 
 function simulateRequestInterceptor(config: { headers: Record<string, string> }) {
+  const headers = config.headers as Record<string, string>
   const token = mockLS.getItem('access_token')
   if (token) {
-    config.headers['Authorization'] = `Bearer ${token}`
+    headers['Authorization'] = `Bearer ${token}`
   }
   return config
 }
@@ -52,14 +51,12 @@ function simulateResponseInterceptor(responseData: any, status: number) {
   const { code, message, data } = responseData || {}
   if (code === 0) return data
   const errMsg = Array.isArray(message) ? message.join('; ') : (message || '请求失败')
-  lastErrorMsg = errMsg
   return Promise.reject(new Error(errMsg))
 }
 
 describe('Request 拦截器 — Token 注入', () => {
   beforeEach(() => {
     Object.keys(store).forEach(k => delete store[k])
-    capturedHeaders = {}
     didRedirect = false
     didClearStorage = false
   })
@@ -68,21 +65,21 @@ describe('Request 拦截器 — Token 注入', () => {
     mockLS.setItem('access_token', 'jwt-token-123')
     const config = { headers: {} }
     simulateRequestInterceptor(config)
-    expect(config.headers['Authorization']).toBe('Bearer jwt-token-123')
+    expect((config.headers as Record<string, string>)['Authorization']).toBe('Bearer jwt-token-123')
   })
 
   it('无 token 时不注入 Authorization', () => {
     const config = { headers: {} }
     simulateRequestInterceptor(config)
-    expect(config.headers['Authorization']).toBeUndefined()
+    expect((config.headers as Record<string, string>)['Authorization']).toBeUndefined()
   })
 
   it('不会覆盖已有的自定义 header', () => {
     mockLS.setItem('access_token', 'jwt-456')
     const config = { headers: { 'X-Custom': 'value' } }
     simulateRequestInterceptor(config)
-    expect(config.headers['X-Custom']).toBe('value')
-    expect(config.headers['Authorization']).toBe('Bearer jwt-456')
+    expect((config.headers as Record<string, string>)['X-Custom']).toBe('value')
+    expect((config.headers as Record<string, string>)['Authorization']).toBe('Bearer jwt-456')
   })
 })
 

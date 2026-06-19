@@ -8,27 +8,27 @@
  * 4. 上传接口 Content-Type
  * 5. 路径参数注入正确性
  */
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest'
 
 // ═══════════════════════════════════════
 // Mock request 实例
 // ═══════════════════════════════════════
 const mockCalls: Array<{ method: string; url: string; data?: any; params?: any; config?: any }> = []
-const mockRequest = {
-  get: vi.fn((url, config) => {
-    mockCalls.push({ method: 'GET', url, params: config?.params })
+const mockRequest: Record<string, Mock> = {
+  get: vi.fn((url?: string, config?: any) => {
+    mockCalls.push({ method: 'GET', url: url ?? '', params: config?.params })
     return Promise.resolve([])
   }),
-  post: vi.fn((url, data, config) => {
-    mockCalls.push({ method: 'POST', url, data, config })
+  post: vi.fn((url?: string, data?: any, config?: any) => {
+    mockCalls.push({ method: 'POST', url: url ?? '', data, config })
     return Promise.resolve({})
   }),
-  put: vi.fn((url, data) => {
-    mockCalls.push({ method: 'PUT', url, data })
+  put: vi.fn((url?: string, data?: any) => {
+    mockCalls.push({ method: 'PUT', url: url ?? '', data })
     return Promise.resolve({})
   }),
-  delete: vi.fn((url) => {
-    mockCalls.push({ method: 'DELETE', url })
+  delete: vi.fn((url?: string) => {
+    mockCalls.push({ method: 'DELETE', url: url ?? '' })
     return Promise.resolve({})
   }),
 }

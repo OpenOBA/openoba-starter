@@ -6,14 +6,14 @@
  * 2. 客户 CRUD + 手机号校验 + 会员升级
  * 3. 任务引擎 CRUD + SSE 流式
  */
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest'
 
 const mockCalls: Array<{ method: string; url: string; data?: any; params?: any }> = []
-const mockRequest = {
-  get: vi.fn((url, config) => { mockCalls.push({ method: 'GET', url, params: config?.params }); return Promise.resolve({}) }),
-  post: vi.fn((url, data) => { mockCalls.push({ method: 'POST', url, data }); return Promise.resolve({}) }),
-  put: vi.fn((url, data) => { mockCalls.push({ method: 'PUT', url, data }); return Promise.resolve({}) }),
-  delete: vi.fn((url) => { mockCalls.push({ method: 'DELETE', url }); return Promise.resolve({}) }),
+const mockRequest: Record<string, Mock> = {
+  get: vi.fn((url?: string, config?: any) => { mockCalls.push({ method: 'GET', url: url ?? '', params: config?.params }); return Promise.resolve({}) }),
+  post: vi.fn((url?: string, data?: any) => { mockCalls.push({ method: 'POST', url: url ?? '', data }); return Promise.resolve({}) }),
+  put: vi.fn((url?: string, data?: any) => { mockCalls.push({ method: 'PUT', url: url ?? '', data }); return Promise.resolve({}) }),
+  delete: vi.fn((url?: string) => { mockCalls.push({ method: 'DELETE', url: url ?? '' }); return Promise.resolve({}) }),
 }
 
 function resetMocks() { mockCalls.length = 0; Object.values(mockRequest).forEach((f: any) => f.mockClear()) }
