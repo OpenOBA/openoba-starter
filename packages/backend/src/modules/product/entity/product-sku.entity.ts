@@ -146,6 +146,6 @@ export class ProductSku {
   spu: ProductSpu
 
   @ManyToOne(() => DictSkuColor)
-  @JoinColumn({ name: 'color_code' })
+  @JoinColumn({ name: 'color_code', referencedColumnName: 'colorCode' })
   color: DictSkuColor
 }
