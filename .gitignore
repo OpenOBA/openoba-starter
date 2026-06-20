@@ -41,6 +41,9 @@ openoba-core/
 tmp-*.js
 tmp-*.ts
 
+# 编译产物混入 src（仅保留 dist/ 下的编译输出）
+packages/core/src/**/*.js
+
 # 临时工作目录
 tmp/
 temp/
