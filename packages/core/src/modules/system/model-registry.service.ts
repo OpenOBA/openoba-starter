@@ -11,6 +11,7 @@ import { ModelKeyModels } from './model-key-models.entity'
 import { TokenUsage } from './token-usage.entity'
 import { ModelConnectionLog } from './model-connection-log.entity'
 import { v4 as uuidv4 } from 'uuid'
+import { validateFetchUrl } from '../../common/utils/url-validator'
 
 const ALGO = 'aes-256-gcm'
 
@@ -364,7 +365,11 @@ export class ModelRegistryService implements OnModuleInit {
     }
 
     const provider = await this.providerRepo.findOne({ where: { providerCode: dto.providerCode } })
-    const baseUrl = provider?.baseUrl || 'https://api.deepseek.com'
+    const baseUrl = dto.baseUrl || provider?.baseUrl || 'https://api.deepseek.com'
+
+    // SSRF 防护
+    const validationError = validateFetchUrl(baseUrl)
+    if (validationError) return { ok: false, latencyMs: 0, error: validationError }
 
     const start = Date.now()
     return new Promise((resolve) => {
