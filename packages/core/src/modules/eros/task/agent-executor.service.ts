@@ -565,7 +565,9 @@ export class AgentExecutorService implements OnModuleInit {
           { taskId, content: `⚠️ Agent 分析出错：${msg}\n\n请检查后端日志或重试。` },
           'agent',
         )
-      } catch { /* 静默 */ }
+      } catch (e: unknown) {
+        this.logger.warn('submitReport 重试失败', (e as Error).message)
+      }
       return ''
     }
   }
@@ -644,7 +646,9 @@ export class AgentExecutorService implements OnModuleInit {
         if (defaultProviderCode) {
           this.logger.log(`Default provider from DB: ${defaultProviderCode}`)
         }
-      } catch { /* no-op */ }
+      } catch (e: unknown) {
+        this.logger.warn('查询 DB 默认模型失败，回退到内置顺序', (e as Error).message)
+      }
     }
 
     // 🔐 权限模型：根据 agentCode 解析身份 → 过滤可用工具和安全等级（必须在 systemPrompt 构建之前）
@@ -657,7 +661,9 @@ export class AgentExecutorService implements OnModuleInit {
         effectiveAgentType = identity.agentType || 'sub'
         effectiveClearance = identity.securityClearance || 'L1'
         this.logger.log(`🔐 权限过滤: agent=${agentCode} type=${effectiveAgentType} clearance=${effectiveClearance}`)
-      } catch { /* fallback to default */ }
+      } catch (e: unknown) {
+        this.logger.warn('身份解析失败，使用兜底身份', (e as Error).message)
+      }
     }
     // 按 agentType 过滤工具列表（非 Main Agent 排除 file_edit/tsc_check/git_diff）
     const tools = this.toolRegistry.getDefinitions(effectiveAgentType)
@@ -1536,7 +1542,10 @@ export class AgentExecutorService implements OnModuleInit {
         this.taskRepo.manager.query('SELECT COUNT(1) as cnt FROM dict_effect_tag WHERE is_active=1'),
       ])
       return { spuCount: Number(spuCount), skuCount: Number(skuCount), effectCount: Number(effectCount) }
-    } catch { return { spuCount: '?', skuCount: '?', effectCount: '?' } }
+    } catch (e: unknown) {
+      this.logger.warn('getSystemStatus 查询失败', (e as Error).message)
+      return { spuCount: '?', skuCount: '?', effectCount: '?' }
+    }
   }
 
   // ═══════════════════════════════════════════
@@ -1653,7 +1662,8 @@ export class AgentExecutorService implements OnModuleInit {
       }
 
       return ''
-    } catch {
+    } catch (e: unknown) {
+      this.logger.warn('buildSkillContext 失败', (e as Error).message)
       return ''
     }
   }
@@ -1714,7 +1724,12 @@ export class AgentExecutorService implements OnModuleInit {
             lines.push('（暂无数据）')
             lines.push('')
           }
-        } catch { /* 表不存在则跳过 */ }
+        } catch (e: unknown) {
+          this.logger.debug(
+            `Entity prompt 查询失败 (表 ${tableName}): ${(e as Error).message}`,
+          )
+          /* 表不存在则跳过 */
+        }
       }
 
       // 额外：字典表（效果词/材质/色彩）— 这些在 registry 中无 Entity，但 LLM 需要
