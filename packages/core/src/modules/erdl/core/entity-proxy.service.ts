@@ -169,6 +169,7 @@ export class EntityProxyService {
     count: number
     sql?: string
     error?: string
+    preview?: boolean
   }> {
     const mapping = this.getMapping(params.namespace, params.entity)
     if (!mapping) return { success: false, rows: [], count: 0, error: `未知实体: ${params.entity}` }
@@ -221,7 +222,7 @@ export class EntityProxyService {
       this.logger.log(`[EntityProxy] QUERY: ${sql}`)
 
       if (!this.dataSource) {
-        return { success: true, rows: [], count: 0, sql, error: 'No database connection (preview mode)' }
+        return { success: true, rows: [], count: 0, sql, preview: true }
       }
 
       const rows = await this.dataSource.query(columns === '*' ? sql : sql, values)
@@ -317,7 +318,7 @@ export class EntityProxyService {
       this.logger.log(`[EntityProxy] INSERT: ${sql}`)
 
       if (!this.dataSource) {
-        return { success: true, sql, error: 'No database connection (preview mode)' }
+        return { success: false, sql, error: 'No database connection' }
       }
 
       const r = await this.dataSource.query(sql, values)
@@ -396,7 +397,7 @@ export class EntityProxyService {
       this.logger.log(`[EntityProxy] UPDATE: ${sql}`)
 
       if (!this.dataSource) {
-        return { success: true, sql, error: 'No database connection (preview mode)' }
+        return { success: false, sql, error: 'No database connection' }
       }
 
       const r = await this.dataSource.query(sql, values)
@@ -448,7 +449,7 @@ export class EntityProxyService {
       this.logger.log(`[EntityProxy] SOFT DELETE: ${sql}`)
 
       if (!this.dataSource) {
-        return { success: true, sql, error: 'No database connection (preview mode)' }
+        return { success: false, sql, error: 'No database connection' }
       }
 
       const r = await this.dataSource.query(sql, values)
