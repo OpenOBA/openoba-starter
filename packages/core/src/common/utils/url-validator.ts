@@ -20,7 +20,7 @@ export function validateFetchUrl(url: string): string | null {
     const h = parsed.hostname.toLowerCase()
     // IPv4 内网 + IPv6 回环 + IPv6 映射 + 链路本地
     if (
-      /^(127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|169\.254\.|localhost|0\.0\.0\.0)$/.test(
+      /^((127\.|10\.|192\.168\.|169\.254\.)\d+\.\d+(\.\d+)?|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|localhost|0\.0\.0\.0)$/.test(
         h,
       )
     ) {
