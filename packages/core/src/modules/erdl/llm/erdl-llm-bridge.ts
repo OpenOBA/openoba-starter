@@ -1112,7 +1112,7 @@ export class ERDLLLMBridge {
         let data = ''
         res.on('data', c => data += c)
         res.on('end', () => {
-          if (res.statusCode !== 200) return reject(new Error('DeepSeek '+res.statusCode+': '+data.substring(0,300)))
+          if (res.statusCode !== 200) return reject(new Error(provider.id+' '+res.statusCode+': '+data.substring(0,300)))
           try {
             const json = JSON.parse(data)
             const cost = ((json.usage?.prompt_tokens||0)/1_000_000)*(model.cost?.input||0) + ((json.usage?.completion_tokens||0)/1_000_000)*(model.cost?.output||0)

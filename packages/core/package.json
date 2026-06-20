@@ -2,7 +2,7 @@
   "name": "@openoba/core",
   "version": "1.4.0-alpha8",
   "private": true,
-  "description": "OpenOBA Core Engine 鈥?AI Agent Execution Runtime",
+  "description": "OpenOBA Core Engine — AI Agent Execution Runtime",
   "license": "BSL-1.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

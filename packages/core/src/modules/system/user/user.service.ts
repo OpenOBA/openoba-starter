@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common'
+import { Injectable, NotFoundException, ConflictException, BadRequestException, Logger } from '@nestjs/common'
 import * as crypto from 'crypto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, In } from 'typeorm'
@@ -11,6 +11,8 @@ import { AgentManifestService } from '../agent/agent-manifest.service'
 
 @Injectable()
 export class UserService {
+  private readonly logger = new Logger(UserService.name)
+
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
@@ -87,7 +89,7 @@ export class UserService {
       })
     } catch (e: any) {
       // Sub Agent 创建失败不阻塞用户创建
-      console.warn(`⚠️ Sub Agent 创建失败: ${e.message}`)
+      this.logger.warn(`Sub Agent 创建失败: ${(e as Error).message}`)
     }
 
     return { ...result, initialPassword: dto.password ? null : password }
@@ -212,7 +214,7 @@ export class UserService {
     try {
       await this.agentManifestService.updateStatusByCode(`user-${id}`, 'inactive')
     } catch (e: any) {
-      console.warn(`⚠️ Sub Agent 挂起失败: ${e.message}`)
+      this.logger.warn(`Sub Agent 挂起失败: ${(e as Error).message}`)
     }
     return { message: '用户已删除' }
   }
@@ -231,7 +233,7 @@ export class UserService {
       const agentStatus = user.status === 'active' ? 'active' : 'inactive'
       await this.agentManifestService.updateStatusByCode(`user-${id}`, agentStatus)
     } catch (e: any) {
-      console.warn(`⚠️ Agent 状态联动失败: ${e.message}`)
+      this.logger.warn(`Agent 状态联动失败: ${(e as Error).message}`)
     }
     return this.findOne(id)
   }
