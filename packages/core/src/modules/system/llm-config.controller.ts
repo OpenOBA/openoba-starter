@@ -8,6 +8,7 @@ import {
   getAvailableProviders,
   findProviderForModel,
 } from '../erdl/llm/erdl-llm-providers'
+import { validateFetchUrl } from '../../common/utils/url-validator'
 import type { ERDLLLMProvider } from '../erdl/llm/erdl-llm-provider.interface'
 import { ModelRegistryService } from './model-registry.service'
 
@@ -124,6 +125,13 @@ export class LlmConfigController {
     }
 
     const baseUrl = body.baseUrl || provider?.baseUrl || 'https://api.deepseek.com'
+
+    // SSRF 防护：校验 baseUrl 不指向内网
+    const validationError = validateFetchUrl(baseUrl)
+    if (validationError) {
+      return { success: false, error: validationError }
+    }
+
     return new Promise((resolve) => {
       const url = `${baseUrl}/v1/models`
       const req = httpsRequest(

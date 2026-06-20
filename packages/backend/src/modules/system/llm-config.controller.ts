@@ -8,6 +8,7 @@ import {
   BUILTIN_LLM_PROVIDERS,
   getAvailableProviders,
 } from '@openoba/core/dist/modules/erdl/llm/erdl-llm-providers'
+import { validateFetchUrl } from '@openoba/core/dist/common/utils/url-validator'
 
 @Controller('system')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -200,6 +201,11 @@ export class LlmConfigController {
     const apiKey = body.apiKey || (providerDef ? process.env[providerDef.apiKeyEnv] : '') || ''
     if (!apiKey) return { success: false, error: 'API Key 未配置' }
     const baseUrl = body.baseUrl || providerDef?.baseUrl || 'https://api.deepseek.com'
+
+    // SSRF 防护
+    const validationError = validateFetchUrl(baseUrl)
+    if (validationError) return { success: false, error: validationError }
+
     return new Promise((resolve) => {
       const req = httpsRequest(
         baseUrl + '/v1/models',

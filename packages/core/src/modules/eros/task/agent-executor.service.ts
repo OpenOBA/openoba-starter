@@ -38,6 +38,7 @@ import { AestheticsService } from '../../aesthetics/aesthetics.service'
 import { InventoryService } from '../../inventory/inventory.service'
 import { SoulService } from '../../soul/soul.service'
 import { ModelRegistryService } from '../../system/model-registry.service'
+import { validateFetchUrl } from '../../../common/utils/url-validator'
 
 // 重新导出 AgentTaskType
 export type AgentTaskType = 'product_listing' | 'content_creation' | 'customer_service' | 'tech_support'
@@ -1981,7 +1982,7 @@ export class AgentExecutorService implements OnModuleInit {
 
   private async executeWebFetch(url: string, mode: string, maxChars?: number): Promise<string> {
     // SSRF 防护：URL 白名单校验
-    const validationError = this.validateFetchUrl(url)
+    const validationError = validateFetchUrl(url)
     if (validationError) return validationError
 
     try {
@@ -2276,17 +2277,6 @@ private buildRuleBlock(): string {
 
   /** SSRF 防护：校验 web_fetch URL（H05+H07修复：IPv6映射+DNS重绑定标记）
    *  TODO: 生产环境需使用 dns.promises.resolve4 在被fetch前二次验证IP */
-  private validateFetchUrl(url: string): string | null {
-    try {
-      const parsed = new URL(url)
-      if (!['http:', 'https:'].includes(parsed.protocol)) return `❌ 不支持的协议: ${parsed.protocol}`
-      const h = parsed.hostname.toLowerCase()
-      // IPv4 内网 + IPv6 回环 + IPv6 映射 + 链路本地
-      if (/^(127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|169\.254\.|localhost|0\.0\.0\.0)$/.test(h)) return `❌ 禁止访问内网地址: ${h}`
-      if (h === '::1' || h.startsWith('fc') || h.startsWith('fe80') || h.startsWith('::ffff:')) return `❌ 禁止访问内网/IPv6映射地址: ${h}`
-      return null
-    } catch { return `❌ 无效URL: ${url}` }
-  }
 }
 
 // ═══════════════════════════════════════════
