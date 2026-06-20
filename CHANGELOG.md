@@ -38,6 +38,37 @@
 - **S-SYSTEMIC: 前端 UTF-8 编码系统性修复**：17 个 composable 文件中文乱码修复（useTemplates / useTaskList / useTaskProposals / useOrderUtils / useReActTimeline / useAgentChat / useCustomerDetail / useCustomerForm / useCustomerOperations / useCustomerUtils / useHistoryTasks / useOrderCreate / useOrderStats / useProductTechDicts / useProductCategory / usePricingTiers / vite.config）
 - **DPO 姓名公示**：DPO-APPOINTMENT.md / PRIVACY-POLICY.md / TELEMETRY.md 三份文件 DPO 姓名更新为 唐启鑫
 
+### Security (Sprint 0)
+- **P0-1: executeGitDiff 命令注入修复**：`execSync` → `execFileSync` 参数分离 + mode 白名单校验 + filePath 正则白名单纵深防御
+- **P0-2: executeFileEdit 路径穿越修复**：`resolve` 后增加 `startsWith(projectRoot)` 边界校验，防止越界访问 .env/passwd
+- **P0-3: SSRF 修复**：提取公共 `url-validator.ts` validateFetchUrl，拦截内网/IPv6 回环/链路本地地址，应用到 core + backend 两个 llm-config.controller
+
+### Fixed (Sprint 1)
+- **P1-1: 22 处静默 catch 清理**：agent-executor(6) + soul.service(3) + erdl-llm-bridge(6) + meta-mirror(3) + org-info.builder(2) + 6 文件收尾(14)，全部补齐 logger.warn/debug
+- **P1-2: deployment 事务原子性**：添加 startTransaction/commit/rollback + queryRunner release 移至 finally 防止连接泄漏
+- **P1-3: entity-proxy success 语义统一**：4 处 `success:true + error` → `success:false + error` / `success:true + preview:true`
+- **P1-4: 前端死代码清理**：删除 useReActTimeline.ts + useAgentChat.ts（491 行，5/6 字段与后端 StreamEvent 不匹配 + Authorization 占位符未替换）
+- **P1-5: LLM config API 前后端对齐**：`providerCode` → `provider`；删除 `PUT /system/llm/models/default` 死路由；新增 `getProviders()` / `setDefaultModel()`
+- **P1-6: getReportTargets 端点修复**：新建 `TaskController` 提供 `GET /eros/report-targets`，前端从 `/eros/tasks/stats` 改为正确端点
+- **P1-7: 重复 write 死代码删除**：agent-executor.service.ts 2225-2231 行删除（与 S0-2 合并执行）
+
+### Engineering (Sprint 2)
+- **AgentManifest agentCode 对齐**：`openoba-main` → `main-agent`（DB 直连验证：sys_agent_manifest 中实际为 main-agent）
+- **agent_memory 列名修复**：SQL `agent_code` → `owner_agent`（DB 直连验证：agent_memory 表中实际列名）
+- **BOM 清理 + 编码规范化**：41 个 .ts 文件去除 UTF-8 BOM；添加 .gitattributes（LF 统一）+ .editorconfig（UTF-8 + 2 spaces）
+- **src 下 .js 编译产物清理**：10 个文件删除 + .gitignore 规则 `packages/core/src/**/*.js`
+- **package.json 乱码修复**：description "鈥?" → "—"
+- **console.warn → Logger**：UserService 3 处 console.warn 替换为 logger.warn
+- **Vault Key PBKDF2 升级**：单轮 SHA256 → PBKDF2 10 万轮 + salt；decrypt 先试 V2 失败回退 V1（向后兼容）
+- **JWT 弱密钥对齐**：core main.ts 对齐 backend main.ts 的长度/生产 exit 校验
+- **callProvider 去硬编码**：错误信息 `'DeepSeek' + statusCode` → `provider.id + statusCode`
+
+### Testing & Docs (Sprint 3)
+- **单元测试扩展**：entity-proxy.service.spec.ts (5 tests) + erdl-llm-providers.spec.ts (9 tests)，全量 4 suites 34 tests 通过
+- **SECURITY.md**：新建 packages/core/SECURITY.md（漏洞上报渠道 + 安全架构说明）
+- **IRateLimiter → RateLimiter**：6 文件 8 处引用精确替换，去掉 I 前缀
+- **版本号同步 bump**：根/backend/frontend 1.4.0-alpha7 → 1.4.0-alpha9；core 1.4.0-alpha8 → 1.4.0-alpha9；9 处全链路同步
+
 ### Security
 - **P1-1**: expr-eval@2.0.2 replaced with self-developed SafeExpr engine (GHSA-8gw3-rxh4-v6jx + GHSA-jc85-fpwf-qm7x)
 - **P0-2**: All 36 `Math.random()` calls replaced with cryptographically secure `crypto.randomUUID()` / `crypto.randomInt()`

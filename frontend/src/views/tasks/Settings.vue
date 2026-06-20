@@ -688,11 +688,11 @@ const about = reactive({
 async function loadAbout() {
   // 版本信息：从版本接口获取
   try {
-    const res = await request.get('/system/version/check', { params: { current: '1.4.0-alpha7' } }) as Record<string,any>
-    about.version = res?.currentVersion as string || '1.4.0-alpha7'
+    const res = await request.get('/system/version/check', { params: { current: '1.4.0-alpha9' } }) as Record<string,any>
+    about.version = res?.currentVersion as string || '1.4.0-alpha9'
     about.deployMode = 'operator'
   } catch {
-    about.version = '1.4.0-alpha7'
+    about.version = '1.4.0-alpha9'
     about.deployMode = 'operator'
   }
 

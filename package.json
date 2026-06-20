@@ -1,6 +1,6 @@
 {
   "name": "openoba-starter",
-  "version": "1.4.0-alpha7",
+  "version": "1.4.0-alpha9",
   "private": true,
   "description": "OpenOBA Starter — AI Executive Officer with Eyewear Reference Implementation",
   "workspaces": [
