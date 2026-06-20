@@ -115,7 +115,9 @@ ${mainLine}
         GROUP BY r.role_code, r.role_name
         ORDER BY r.role_code
       `)
-    } catch { /* 表可能未初始化 */ }
+    } catch (e: unknown) {
+      this.logger.debug(`角色查询失败（表可能未初始化）: ${(e as Error).message}`)
+    }
 
     // 查询 Agent 列表（岗位信息从 sys_user → sys_role 联表获取）
     let agentRows: AgentSummaryRow[] = []
@@ -140,7 +142,9 @@ ${mainLine}
           r.role_code,
           u.real_name
       `)
-    } catch { /* 表可能未初始化 */ }
+    } catch (e: unknown) {
+      this.logger.debug(`Agent 查询失败（表可能未初始化）: ${(e as Error).message}`)
+    }
 
     const mainAgent = agentRows.find(r => r.agent_type === 'main')
 
