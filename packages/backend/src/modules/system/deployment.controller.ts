@@ -5,12 +5,13 @@
  * @since 2026-05-23
  */
 
-import { Controller, Get, Post, Put, Body, Param, UseGuards } from '@nestjs/common'
+import { Controller, Get, Post, Put, Body, Param, UseGuards, Req, Inject } from '@nestjs/common'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { Roles } from '../../common/decorators/roles.decorator'
 import { ApiOperation } from '@nestjs/swagger'
 import { DeploymentService } from './deployment.service'
 import { EntitySyncService } from './entity-sync.service'
+import { RateLimiter } from '@openoba/core/dist/common/rate-limiter'
 
 const ENGINE_CORE_PATHS = [
   // Core 引擎保护路径（闭源模块）
@@ -27,6 +28,7 @@ export class DeploymentController {
   constructor(
     private readonly deployment: DeploymentService,
     private readonly entitySync: EntitySyncService,
+    @Inject('RATE_LIMITER') private readonly rateLimiter: RateLimiter,
   ) {}
 
   // ═══ 模式管理 ═══
@@ -154,7 +156,15 @@ export class DeploymentController {
   @Post('migrate')
   @Roles('super_admin', 'admin')
   @ApiOperation({ summary: '执行 Migration SQL（仅 ADD COLUMN，安全模式）' })
-  async runMigration(@Body() body: { sql: string }) {
+  async runMigration(@Body() body: { sql: string }, @Req() req: any) {
+    // 限流：3 次/分钟，防止重复迁移
+    const ip = req.ip || 'unknown'
+    const { lockedUntil } = await this.rateLimiter.attempt(`deploy-migrate:${ip}`, 3, 60_000)
+    if (lockedUntil > Date.now()) {
+      const waitSec = Math.ceil((lockedUntil - Date.now()) / 1000)
+      return { success: false, message: `迁移过于频繁，请 ${waitSec} 秒后重试` }
+    }
+
     if (!body.sql || typeof body.sql !== 'string') {
       return { success: false, message: '缺少 sql 参数' }
     }
@@ -195,7 +205,13 @@ export class DeploymentController {
   @Post('rollback')
   @Roles('super_admin')
   @ApiOperation({ summary: '回滚生产到指定版本' })
-  rollback(@Body() body: { targetVersion: string; fullRollback?: boolean }) {
+  async rollback(@Body() body: { targetVersion: string; fullRollback?: boolean }, @Req() req: any) {
+    // 限流：2 次/分钟，防止重复回滚
+    const ip = req.ip || 'unknown'
+    const { lockedUntil } = await this.rateLimiter.attempt(`deploy-rollback:${ip}`, 2, 60_000)
+    if (lockedUntil > Date.now()) {
+      return { success: false, message: `回滚过于频繁，请 ${Math.ceil((lockedUntil - Date.now()) / 1000)} 秒后重试` }
+    }
     return this.deployment.rollback(body.targetVersion, body.fullRollback)
   }
 }

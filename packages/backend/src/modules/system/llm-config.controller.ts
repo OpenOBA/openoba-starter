@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Delete, Body, Param, Logger, UseGuards } from '@nestjs/common'
+import { Controller, Post, Get, Delete, Body, Param, Logger, UseGuards, Inject, Req } from '@nestjs/common'
 import { request as httpsRequest } from 'https'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { RolesGuard } from '../../common/guards/roles.guard'
@@ -9,6 +9,7 @@ import {
   getAvailableProviders,
 } from '@openoba/core/dist/modules/erdl/llm/erdl-llm-providers'
 import { validateFetchUrl } from '@openoba/core/dist/common/utils/url-validator'
+import { RateLimiter } from '@openoba/core/dist/common/rate-limiter'
 
 @Controller('system')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -16,7 +17,10 @@ import { validateFetchUrl } from '@openoba/core/dist/common/utils/url-validator'
 export class LlmConfigController {
   private readonly logger = new Logger(LlmConfigController.name)
 
-  constructor(private readonly modelRegistry: ModelRegistryService) {}
+  constructor(
+    private readonly modelRegistry: ModelRegistryService,
+    @Inject('RATE_LIMITER') private readonly rateLimiter: RateLimiter,
+  ) {}
 
   // ============================================================
   //  P1-1: 数据库优先 — Provider 列表（ERA-Chat 下拉框 + Settings 列表共用）
@@ -179,7 +183,15 @@ export class LlmConfigController {
   // ============================================================
 
   @Post('llm/test')
-  async testLlmConnection(@Body() body: { provider: string; apiKey: string; baseUrl?: string }) {
+  async testLlmConnection(@Body() body: { provider: string; apiKey: string; baseUrl?: string }, @Req() req: any) {
+    // 限流：10 次/分钟，防止暴力探测
+    const ip = req.ip || 'unknown'
+    const { lockedUntil } = await this.rateLimiter.attempt(`llm-test:${ip}`, 10, 60_000)
+    if (lockedUntil > Date.now()) {
+      const waitSec = Math.ceil((lockedUntil - Date.now()) / 1000)
+      return { success: false, error: `请求过于频繁，请 ${waitSec} 秒后重试` }
+    }
+
     // SSRF 防护：校验 baseUrl（主路径 + 兜底路径通用）
     if (body.baseUrl) {
       const validationError = validateFetchUrl(body.baseUrl)
