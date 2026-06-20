@@ -143,20 +143,22 @@ export class MetaMirrorService implements OnModuleInit {
         const content = fs.readFileSync(eslintPath, 'utf-8')
         const ruleMatches = content.match(/'[^']+'/g) || []
         eslintRules.push(...ruleMatches.slice(0, 10).map((s: string) => s.replace(/'/g, '')))
-      } catch { /* ignore */ }
+      } catch (e: unknown) {
+        this.logger.debug(`.eslintrc 解析失败: ${(e as Error).message}`)
+      }
     }
 
     // tsconfig
     const tsconfigPath = path.join(this.projectRoot, 'tsconfig.json')
     let tsconfig: Record<string, unknown> = {}
     if (fs.existsSync(tsconfigPath)) {
-      try { tsconfig = JSON.parse(fs.readFileSync(tsconfigPath, 'utf-8')) } catch {
+      try { tsconfig = JSON.parse(fs.readFileSync(tsconfigPath, 'utf-8')) } catch (e: unknown) {
         // JSON 带注释（如 tsconfig.json 的 // H10备注），strip 后重试
         try {
           const raw = fs.readFileSync(tsconfigPath, 'utf-8')
           const cleaned = raw.replace(/(['"]?)\s*\/\/\s.*$/gm, '$1').replace(new RegExp(',\\s*\\}'), '}')
           tsconfig = JSON.parse(cleaned)
-        } catch { /* ignore */ }
+        } catch (e: unknown) { this.logger.debug(`tsconfig strip 后仍解析失败: ${(e as Error).message}`) }
       }
     }
 
