@@ -1,5 +1,5 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+import * as mysql from 'mysql2/promise'
 
 /**
  * WizardGuard — 初装向导安全守卫
@@ -12,12 +12,38 @@ import { ConfigService } from '@nestjs/config'
 @Injectable()
 export class WizardGuard implements CanActivate {
   private readonly logger = new Logger(WizardGuard.name)
+  private static initialized = false
 
-  constructor(private configService: ConfigService) {}
-
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest()
     const ip = request.ip || request.socket?.remoteAddress || 'unknown'
+
+    // 0. 初始化完成后自动关闭 Wizard
+    if (WizardGuard.initialized) {
+      throw new ForbiddenException('Wizard 已永久关闭（系统初始化已完成）')
+    }
+
+    try {
+      const conn = await mysql.createConnection({
+        host: process.env.DB_HOST || 'localhost',
+        port: parseInt(process.env.DB_PORT || '3306'),
+        user: process.env.DB_USERNAME || 'root',
+        password: process.env.DB_PASSWORD || '',
+        database: process.env.DB_DATABASE || 'openoba_starter',
+        connectTimeout: 3000,
+      })
+      const [rows] = await conn.execute("SELECT COUNT(*) AS cnt FROM sys_user WHERE username = ?", ['admin'])
+      const adminExists = ((rows as any[])[0]?.cnt || 0) > 0
+      await conn.end()
+
+      if (adminExists) {
+        WizardGuard.initialized = true
+        throw new ForbiddenException('Wizard 已永久关闭（系统初始化已完成）')
+      }
+    } catch (e) {
+      if (e instanceof ForbiddenException) throw e
+      this.logger.warn(`Wizard DB 检查失败（可能尚未初始化）: ${(e as Error).message}`)
+    }
 
     // 1. IP 白名单
     const allowIps = (process.env.WIZARD_ALLOW_IPS || '127.0.0.1,::1,::ffff:127.0.0.1').split(',')
