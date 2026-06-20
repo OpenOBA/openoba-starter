@@ -127,7 +127,7 @@ export class FileReaderService {
       switch (ext) {
         case '.json':
           content = fs.readFileSync(absPath, 'utf-8')
-          try { parsed = JSON.parse(content) } catch { /* keep as text */ }
+          try { parsed = JSON.parse(content) } catch { /* JSON 解析失败，保留原始文本 */ }
           break
 
         case '.csv':
@@ -401,7 +401,8 @@ export class FileReaderService {
         parts.push(`[Sheet: ${sheetName}]\n${csv}`)
       }
       return parts.join('\n\n')
-    } catch {
+    } catch (e: unknown) {
+      this.logger.debug(`Excel 解析失败: ${(e as Error).message}`)
       return `[Excel 文件: ${path.basename(absPath)}，xlsx 解析需安装 xlsx 包]`
     }
   }
@@ -412,7 +413,8 @@ export class FileReaderService {
       const mammoth = require('mammoth')
       const result = await mammoth.extractRawText({ path: absPath })
       return result.value
-    } catch {
+    } catch (e: unknown) {
+      this.logger.debug(`Word 解析失败: ${(e as Error).message}`)
       return `[Word 文件: ${path.basename(absPath)}，docx 解析需安装 mammoth 包]`
     }
   }
@@ -424,7 +426,8 @@ export class FileReaderService {
       const dataBuffer = fs.readFileSync(absPath)
       const data = await pdfParse(dataBuffer)
       return data.text
-    } catch {
+    } catch (e: unknown) {
+      this.logger.debug(`PDF 解析失败: ${(e as Error).message}`)
       return `[PDF 文件: ${path.basename(absPath)}，pdf 解析需安装 pdf-parse 包]`
     }
   }
@@ -443,12 +446,14 @@ export class FileReaderService {
       // 清理多余空白
       const clean = body.replace(/\n{3,}/g, '\n\n').replace(/[ \t]{2,}/g, ' ')
       return title ? `# ${title}\n\n${clean}` : clean
-    } catch {
+    } catch (e: unknown) {
+      this.logger.debug(`HTML cheerio 解析失败: ${(e as Error).message}`)
       try {
         // fallback: 简单去标签
         const html = fs.readFileSync(absPath, 'utf-8')
         return html.replace(/<[^>]+>/g, '').replace(/\n{3,}/g, '\n\n').trim()
-      } catch {
+      } catch (e: unknown) {
+        this.logger.debug(`HTML fallback 解析失败: ${(e as Error).message}`)
         return `[HTML 文件: ${path.basename(absPath)}]`
       }
     }

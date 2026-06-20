@@ -264,7 +264,9 @@ export class ContextInjector {
 
         return { table, fields, relations }
       }
-    } catch { /* ignore */ }
+    } catch (e: unknown) {
+      this.logger.debug(`entity 解析失败: ${(e as Error).message}`)
+    }
     return null
   }
 
@@ -298,7 +300,7 @@ export class ContextInjector {
     try {
       const fp = path.join(this.knowledgeDir, filename)
       if (fs.existsSync(fp)) return fs.readFileSync(fp, 'utf-8')
-    } catch { /* ignore */ }
+    } catch (e: unknown) { this.logger.debug(`知识文件读取失败: ${(e as Error).message}`) }
     return null
   }
 }

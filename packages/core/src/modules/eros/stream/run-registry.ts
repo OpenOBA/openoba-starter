@@ -138,7 +138,9 @@ export class RunRegistry {
   abortByClient(clientId: string): void {
     for (const [runId, entry] of this.runs) {
       if (entry.clientId === clientId) {
-        try { entry.controller.abort() } catch { /* ignore */ }
+        try { entry.controller.abort() } catch (e: unknown) {
+          this.logger.debug(`abort 失败（控制器可能已关闭）: ${(e as Error).message}`)
+        }
         this.logger.log(`Run 因客户端断开而中止: ${runId} (client=${clientId})`)
       }
     }
@@ -286,7 +288,9 @@ export class RunRegistry {
 
     for (const [runId, entry] of this.runs) {
       if (now - entry.createdAt > this.TTL_MS) {
-        try { entry.controller.abort() } catch { /* ignore */ }
+        try { entry.controller.abort() } catch (e: unknown) {
+          this.logger.debug(`TTL abort 失败（控制器可能已关闭）: ${(e as Error).message}`)
+        }
         this.runs.delete(runId)
         cleanedRuns++
       }

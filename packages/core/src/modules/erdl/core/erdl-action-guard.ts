@@ -78,7 +78,7 @@ export class ERDLActionGuard {
     if (choice?.message?.tool_calls && choice.message.tool_calls.length > 0) {
       for (const tc of choice.message.tool_calls) {
         let args: Record<string, unknown> = {}
-        try { args = JSON.parse(tc.function.arguments || '{}') } catch { /* keep empty */ }
+        try { args = JSON.parse(tc.function.arguments || '{}') } catch { /* keep empty, JSON 解析失败时使用空对象 */ }
         actions.push({
           name: tc.function.name,
           args,
@@ -224,7 +224,7 @@ export class ERDLActionGuard {
       const key = m[1]
       const raw = m[2].trim()
       if (parseJSON) {
-        try { args[key] = JSON.parse(raw) } catch { args[key] = raw }
+        try { args[key] = JSON.parse(raw) } catch { args[key] = raw /* JSON 解析失败时保留原始字符串 */ }
       } else {
         args[key] = raw
       }

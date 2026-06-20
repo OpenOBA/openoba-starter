@@ -84,7 +84,9 @@ export class ModuleScanner {
             controllers: controllerNames,
             entities,
           })
-        } catch { /* skip */ }
+        } catch (e: unknown) {
+          this.logger.debug(`模块文件解析失败: ${(e as Error).message}`)
+        }
       }
 
       // 进入子目录

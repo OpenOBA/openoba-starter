@@ -175,7 +175,9 @@ export class DeliverableService {
       if (fs.existsSync(indexPath)) {
         return JSON.parse(fs.readFileSync(indexPath, 'utf-8'))
       }
-    } catch { /* ignore */ }
+    } catch (e: unknown) {
+      this.logger.debug(`索引文件读取失败: ${(e as Error).message}`)
+    }
     return { workspace: rootDir, deliverableRoot: path.join(rootDir, 'deliverables'), updatedAt: '', entries: [] }
   }
 
