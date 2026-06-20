@@ -3,7 +3,7 @@ import { Response } from 'express'
 import { AuthService } from './auth.service'
 import { IsString, IsNotEmpty, MinLength, MaxLength } from 'class-validator'
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger'
-import { IRateLimiter } from '../../common/rate-limiter'
+import { RateLimiter } from '../../common/rate-limiter'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { Public } from '../../common/decorators/public.decorator'
 
@@ -34,7 +34,7 @@ export class AuthController {
 
   constructor(
     private authService: AuthService,
-    @Inject('RATE_LIMITER') private rateLimiter: IRateLimiter,
+    @Inject('RATE_LIMITER') private rateLimiter: RateLimiter,
   ) {}
 
   @Post('login')

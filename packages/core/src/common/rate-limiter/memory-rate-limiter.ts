@@ -1,9 +1,9 @@
 // V1.4-b #15: 内存限流器（默认实现）
 // 单实例部署时使用，多实例部署需 RedisRateLimiter
 
-import { IRateLimiter } from './rate-limiter.interface'
+import { RateLimiter } from './rate-limiter.interface'
 
-export class MemoryRateLimiter implements IRateLimiter {
+export class MemoryRateLimiter implements RateLimiter {
   private readonly store = new Map<string, { count: number; lockUntil: number }>()
 
   async attempt(key: string, maxAttempts: number, windowMs: number) {

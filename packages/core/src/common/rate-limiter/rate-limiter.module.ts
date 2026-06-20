@@ -2,7 +2,7 @@
 // 开发环境自动回退 Memory，生产环境需配置 REDIS_URL
 
 import { Module, Global, Logger, OnModuleInit } from '@nestjs/common'
-import { IRateLimiter } from './rate-limiter.interface'
+import { RateLimiter } from './rate-limiter.interface'
 import { MemoryRateLimiter } from './memory-rate-limiter'
 
 @Global()
@@ -10,7 +10,7 @@ import { MemoryRateLimiter } from './memory-rate-limiter'
   providers: [
     {
       provide: 'RATE_LIMITER',
-      useFactory: (): IRateLimiter => {
+      useFactory: (): RateLimiter => {
         const redisUrl = process.env.REDIS_URL
 
         if (redisUrl) {
