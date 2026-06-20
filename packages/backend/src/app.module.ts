@@ -119,6 +119,9 @@ import { SoulModule } from '@openoba/core/dist/modules/soul/soul.module'
       }),
     }),
 
+    // S1-6: TaskController 所需的 ReportTarget Repository
+    TypeOrmModule.forFeature([ReportTarget]),
+
     // 业务模块
     AuthModule,
     SystemModule,
