@@ -271,7 +271,9 @@ ${erdlHint}
         })
         lines.push('【最近记忆】\n' + summaries.join('\n'))
       }
-    } catch { /* 表可能未初始化 */ }
+    } catch (e: unknown) {
+      this.logger.debug(`cognitive_log 查询失败（表可能未初始化）: ${(e as Error).message}`)
+    }
 
     // V1.3 专利对齐 — L3 持久记忆注入（agent_memory）
     try {
@@ -291,7 +293,9 @@ ${erdlHint}
         })
         lines.push('📚 历史经验教训：\n' + memoryLines.join('\n'))
       }
-    } catch { /* 表可能未初始化，静默降级 */ }
+    } catch (e: unknown) {
+      this.logger.debug(`agent_memory 查询失败（表可能未初始化）: ${(e as Error).message}`)
+    }
 
     return lines.join('\n\n')
   }
@@ -342,7 +346,9 @@ ${erdlHint}
           roleCodes = rows.filter((r: any) => r.role_code).map((r: any) => r.role_code)
           roleNames = rows.filter((r: any) => r.role_name).map((r: any) => r.role_name)
         }
-      } catch { /* 表可能未初始化 */ }
+      } catch (e: unknown) {
+        this.logger.debug(`用户信息查询失败（表可能未初始化）: ${(e as Error).message}`)
+      }
     }
 
     return {
