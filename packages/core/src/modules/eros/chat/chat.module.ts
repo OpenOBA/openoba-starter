@@ -30,12 +30,14 @@ import { AestheticsModule } from '../../aesthetics/aesthetics.module'
 import { InventoryModule } from '../../inventory/inventory.module'
 import { DeliverableModule } from '../deliverable/deliverable.module'
 import { HttpModule } from '@nestjs/axios'
+import { ChatMessage } from './chat-message.entity'
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       AgentTask, ReportTarget, AgentRegistry, CognitiveLog,
       KnowledgeEntry, PublishPackage, SystemModuleRegistry, DraftSpu,
+      ChatMessage,
     ]),
     HttpModule,
     JwtModule,

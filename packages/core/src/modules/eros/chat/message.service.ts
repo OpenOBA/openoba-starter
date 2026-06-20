@@ -7,9 +7,12 @@
  * @license BSL-1.1
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, Optional } from '@nestjs/common'
 import * as fs from 'fs'
 import * as path from 'path'
+import { Repository } from 'typeorm'
+import { InjectRepository } from '@nestjs/typeorm'
+import { ChatMessage } from './chat-message.entity'
 
 export interface ChatMessageRecord {
   role: 'human' | 'agent' | 'system'
@@ -35,7 +38,10 @@ export class MessageService {
   /** P0-2: sessionKey 白名单校验 — 仅允许字母数字下划线连字符 */
   private static readonly SESSION_KEY_PATTERN = /^[a-zA-Z0-9_-]{1,128}$/
 
-  constructor() {
+  constructor(
+    @Optional() @InjectRepository(ChatMessage)
+    private readonly repo?: Repository<ChatMessage>,
+  ) {
     this.baseDir = path.join(process.cwd(), 'data', 'chat-sessions')
     fs.mkdirSync(this.baseDir, { recursive: true })
   }
@@ -56,6 +62,22 @@ export class MessageService {
    */
   async append(sessionKey: string, message: ChatMessageRecord): Promise<void> {
     const key = this.validateSessionKey(sessionKey)  // P0-2
+
+    // DB 写入（优先）
+    if (this.repo) {
+      try {
+        await this.repo.save({
+          sessionKey: key,
+          role: message.role,
+          content: message.content,
+          reactTimeline: message.reactTimeline || null,
+        })
+      } catch (e: unknown) {
+        this.logger.warn(`DB 写入失败，fallback 到 JSONL: ${(e as Error).message}`)
+      }
+    }
+
+    // JSONL 追加（向后兼容）
     const filePath = path.join(this.baseDir, `${key}.jsonl`)
     const line = JSON.stringify({
       ...message,
@@ -71,6 +93,29 @@ export class MessageService {
    */
   async getHistory(sessionKey: string, limit = 50): Promise<ChatMessageRecord[]> {
     const key = this.validateSessionKey(sessionKey)  // P0-2
+
+    // DB 优先
+    if (this.repo) {
+      try {
+        const rows = await this.repo.find({
+          where: { sessionKey: key },
+          order: { createdAt: 'ASC' },
+          take: limit,
+        })
+        if (rows.length > 0) {
+          return rows.map((r) => ({
+            role: r.role as ChatMessageRecord['role'],
+            content: r.content,
+            time: r.createdAt?.toISOString(),
+            reactTimeline: r.reactTimeline || undefined,
+          }))
+        }
+      } catch (e: unknown) {
+        this.logger.warn(`DB 查询失败，fallback 到 JSONL: ${(e as Error).message}`)
+      }
+    }
+
+    // JSONL fallback
     const filePath = path.join(this.baseDir, `${key}.jsonl`)
     if (!fs.existsSync(filePath)) return []
 
@@ -80,6 +125,8 @@ export class MessageService {
     const messages = lines.slice(-limit).map(line => {
       try { return JSON.parse(line) } catch { return null }
     }).filter(Boolean) as ChatMessageRecord[]
+
+    return messages
 
     return messages
   }
@@ -115,6 +162,17 @@ export class MessageService {
    */
   async deleteSession(sessionKey: string): Promise<void> {
     const key = this.validateSessionKey(sessionKey)  // P0-2
+
+    // DB 删除
+    if (this.repo) {
+      try {
+        await this.repo.delete({ sessionKey: key })
+      } catch (e: unknown) {
+        this.logger.warn(`DB 删除失败: ${(e as Error).message}`)
+      }
+    }
+
+    // JSONL 删除
     const filePath = path.join(this.baseDir, `${key}.jsonl`)
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath)
