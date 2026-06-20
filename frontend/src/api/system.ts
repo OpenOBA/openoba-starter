@@ -266,23 +266,30 @@ export function getProviderKeys(): Promise<ProviderKeyItem[]> {
 }
 
 export function saveProviderKey(data: {
-  providerCode: string
+  provider: string
   apiKey: string
   label?: string
   baseUrl?: string
+  modelCode?: string
 }) {
   return request.post('/system/llm/config', data)
 }
 
 export function testProviderKey(data: {
-  providerCode: string
+  provider: string
   apiKey?: string
 }) {
   return request.post('/system/llm/test', data)
 }
 
-export function setDefaultModel(data: { keyId: string; registryId: string }) {
-  return request.put('/system/llm/models/default', data)
+// 获取可用 Provider 列表
+export function getProviders() {
+  return request.get('/system/llm/providers')
+}
+
+// 设置默认模型（后端路由: POST /system/llm/config/set-default）
+export function setDefaultModel(data: { provider: string; modelCode: string }) {
+  return request.post('/system/llm/config/set-default', data)
 }
 
 export function deleteProviderKey(id: string) {
