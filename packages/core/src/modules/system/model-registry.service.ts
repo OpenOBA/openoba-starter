@@ -400,6 +400,27 @@ export class ModelRegistryService implements OnModuleInit {
 
   // ============== Token 用量 ==============
 
+  private readonly DAILY_QUOTA = parseInt(process.env.DAILY_TOKEN_QUOTA || '1000000', 10)
+
+  /** 检查 Token 配额 */
+  async checkQuota(agentCode: string): Promise<{ allowed: boolean; usedToday: number; quota: number }> {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    try {
+      const result = await this.usageRepo
+        .createQueryBuilder('u')
+        .select('SUM(u.totalTokens)', 'total')
+        .where('u.agentCode = :agentCode', { agentCode })
+        .andWhere('u.createdAt >= :today', { today })
+        .getRawOne()
+      const usedToday = parseInt(result?.total || '0', 10)
+      return { allowed: usedToday < this.DAILY_QUOTA, usedToday, quota: this.DAILY_QUOTA }
+    } catch (e: unknown) {
+      this.logger.warn(`Quota check failed: ${(e as Error).message}`)
+      return { allowed: true, usedToday: 0, quota: this.DAILY_QUOTA }
+    }
+  }
+
   async logUsage(dto: {
     agentCode: string
     modelCode: string
