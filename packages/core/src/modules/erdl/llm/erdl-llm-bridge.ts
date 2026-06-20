@@ -15,7 +15,7 @@
  * 5. ������ v1 API��ERDLRecommendController ����Ķ���
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, Optional, Inject, forwardRef } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
 import { firstValueFrom } from 'rxjs'
 import { ERDLRegistry, EntityRegistration } from '../core/erdl-registry'
@@ -26,6 +26,7 @@ import {
   findProviderForModel,
   estimateTokens,
 } from './erdl-llm-providers'
+import { ModelRegistryService } from '../../system/model-registry.service'
 import type {
   ERDLLLMProvider,
   ERDLLLMRequest,
@@ -68,6 +69,8 @@ export class ERDLLLMBridge {
     private readonly registry: ERDLRegistry,
     private readonly httpService: HttpService,
     private readonly actionGuard: ERDLActionGuard,
+    @Optional() @Inject(forwardRef(() => ModelRegistryService))
+    private readonly modelRegistry?: ModelRegistryService,
   ) {}
 
   // ==========================================
@@ -1072,6 +1075,21 @@ export class ERDLLLMBridge {
     return getDefaultProvider()?.id
   }
 
+  /** B-4: 从 DB 解密获取 API Key（fallback .env） */
+  private async resolveKeyFromDB(providerId: string): Promise<string | undefined> {
+    if (!this.modelRegistry) return undefined
+    try {
+      const kd = await (this.modelRegistry as any).getKeyWithDecrypted?.(providerId)
+      if (kd?.apiKey) {
+        this.logger.log(`API Key resolved from DB: ${providerId}`)
+        return kd.apiKey
+      }
+    } catch (e: unknown) {
+      this.logger.debug(`DB key lookup failed for ${providerId}: ${(e as Error).message}`)
+    }
+    return undefined
+  }
+
   // ==========================================
   // ˽�з���
   /** ���õ��� Provider��ԭ�� https.request���ƹ� axios 400�� */
@@ -1080,6 +1098,7 @@ export class ERDLLLMBridge {
     request: ERDLLLMRequest,
   ): Promise<ERDLLLMResponse> {
     const apiKey = process.env[provider.apiKeyEnv]
+      || (await this.resolveKeyFromDB(provider.id))
     if (!apiKey) throw new Error('API key not set: '+provider.apiKeyEnv)
     const modelId = request.model || provider.defaultModel
     const model = provider.models.find(m => m.id === modelId)
