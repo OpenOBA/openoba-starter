@@ -15,11 +15,32 @@ async function bootstrap() {
   const backendDir = path.resolve(__dirname, '..')
   process.chdir(backendDir)
 
-  // P0-4: 启动时检测默认密钥并警告
+  // P0-4: 启动时检测弱密钥
+  const bootstrapLogger = new Logger('Bootstrap')
+  const jwtSecret = process.env.JWT_SECRET || ''
+  const customerSecret = process.env.CUSTOMER_JWT_SECRET || ''
+  const weakSecrets: string[] = []
+
+  if (jwtSecret.length < 16 || jwtSecret === 'temp' || jwtSecret.startsWith('change_me')) {
+    weakSecrets.push('JWT_SECRET')
+  }
+  if (customerSecret && (customerSecret.length < 16 || customerSecret === 'temp' || customerSecret.startsWith('change_me'))) {
+    weakSecrets.push('CUSTOMER_JWT_SECRET')
+  }
+
+  if (weakSecrets.length > 0) {
+    const msg = `⚠️  检测到弱密钥: ${weakSecrets.join(', ')}。请修改 .env 中对应值（至少 32 字符随机串）`
+    if (process.env.NODE_ENV === 'production' || process.env.APP_ENV === 'production') {
+      bootstrapLogger.error(msg)
+      bootstrapLogger.error('生产环境拒绝以弱密钥启动，进程退出')
+      process.exit(1)
+    }
+    bootstrapLogger.warn(msg)
+  }
+
+  // SKILL_VAULT_KEY / DEEPSEEK_API_KEY 占位符检查
   const defaultSecrets = ['change_me_to_random', 'change/me/to/random', 'sk-your-deepseek']
   const secretsToCheck: Record<string, string> = {
-    JWT_SECRET: 'JWT 签名',
-    CUSTOMER_JWT_SECRET: 'Customer JWT 签名',
     SKILL_VAULT_KEY: 'Skill 密钥加密',
     DEEPSEEK_API_KEY: 'DeepSeek API',
   }
