@@ -26,6 +26,7 @@ import { UploadModule } from './modules/upload/upload.module'
 import { AestheticsModule } from './modules/aesthetics/aesthetics.module'
 import { DraftPoolModule } from './modules/draft-pool/draft-pool.module'
 import { DictConstantsModule } from './common/dict-constants.module'
+import { TaskController } from './modules/system/task.controller'
 // ===== Core 闭源引擎（通过 @openoba/core npm 包引用） =====
 // Entity 显式注册（确保 TypeORM 识别 Core 模块的数据表）
 // V1.4-b M2: 统一从 barrel 出口导入
@@ -175,5 +176,6 @@ import { SoulModule } from '@openoba/core/dist/modules/soul/soul.module'
     // SOUL — Agent 统一人格系统（@Global）
     SoulModule,
   ],
+  controllers: [TaskController],
 })
 export class AppModule {}

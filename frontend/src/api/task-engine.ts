@@ -228,7 +228,7 @@ export function getPendingApprovals(reportTo: string): Promise<AgentTask[]> {
 // ── 汇报对象 API ──
 
 export function getReportTargets(): Promise<ReportTarget[]> {
-  return request.get('/eros/tasks/stats')
+  return request.get('/eros/report-targets')
 }
 
 export function checkEscalations(): Promise<{ escalated: number }> {
