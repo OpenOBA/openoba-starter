@@ -356,7 +356,7 @@ SKILL_VAULT_KEY=${skillKey}
       // W-P1-02修复：同步自定义管理员密码到数据库
       if (adminPass !== 'admin123' || (adminUser && adminUser !== 'admin')) {
         try {
-          const bcrypt = require('bcryptjs')
+          const bcrypt = require('bcrypt')
           const hash = await bcrypt.hash(adminPass, 10)
           const conn = await mysql.createConnection({
             host: body.dbHost || 'localhost',

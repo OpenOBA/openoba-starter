@@ -3,7 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm'
 import { JwtService } from '@nestjs/jwt'
 import { AuthService } from './auth.service'
 import { User } from '../system/user/user.entity'
-import * as bcrypt from 'bcryptjs'
+import * as bcrypt from 'bcrypt'
 
 function mockRepo() {
   return {
