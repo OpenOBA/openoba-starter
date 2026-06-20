@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, In } from 'typeorm'
-import { createCipheriv, createDecipheriv, randomBytes, createHash } from 'crypto'
+import { createCipheriv, createDecipheriv, randomBytes, createHash, pbkdf2Sync } from 'crypto'
 import { request as httpsRequest } from 'https'
 import { request as httpRequest } from 'http'
 import { ModelProvider } from './model-provider.entity'
@@ -17,7 +17,6 @@ const ALGO = 'aes-256-gcm'
 @Injectable()
 export class ModelRegistryService implements OnModuleInit {
   private readonly logger = new Logger(ModelRegistryService.name)
-  private vaultKey: Buffer | null = null
 
   constructor(
     @InjectRepository(ModelProvider)
@@ -95,12 +94,28 @@ export class ModelRegistryService implements OnModuleInit {
 
   // ============== 加密 ==============
 
-  private getVaultKey(): Buffer {
-    if (this.vaultKey) return this.vaultKey
+  // V1: 单轮 SHA256（向后兼容旧数据）
+  private getVaultKeyV1(): Buffer {
     const raw = process.env.SKILL_VAULT_KEY
     if (!raw) throw new Error('SKILL_VAULT_KEY not set')
-    this.vaultKey = createHash('sha256').update(raw).digest()
-    return this.vaultKey
+    return createHash('sha256').update(raw).digest()
+  }
+
+  // V2: PBKDF2 10 万轮 + salt（V1.4.0-alpha9 升级）
+  private getVaultKeyV2(): Buffer {
+    const raw = process.env.SKILL_VAULT_KEY
+    if (!raw) throw new Error('SKILL_VAULT_KEY not set')
+    // 确定性 salt：从 SKILL_VAULT_KEY 后半段派生，确保重启后一致
+    const salt = createHash('sha256').update('openoba-vault-v2:' + raw).digest().subarray(0, 16)
+    return pbkdf2Sync(raw, salt, 100_000, 32, 'sha256')
+  }
+
+  // V2 cache（encrypt 用 V2，避免每次 pbkdf2）
+  private vaultKeyV2: Buffer | null = null
+  private getVaultKey(): Buffer {
+    if (this.vaultKeyV2) return this.vaultKeyV2
+    this.vaultKeyV2 = this.getVaultKeyV2()
+    return this.vaultKeyV2
   }
 
   encrypt(plaintext: string): { encrypted: string; iv: string; authTag: string } {
@@ -117,12 +132,23 @@ export class ModelRegistryService implements OnModuleInit {
   }
 
   decrypt(encrypted: string, ivHex: string, authTagHex: string): string {
-    const key = this.getVaultKey()
-    const decipher = createDecipheriv(ALGO, key, Buffer.from(ivHex, 'hex'))
-    decipher.setAuthTag(Buffer.from(authTagHex, 'hex'))
-    let decrypted = decipher.update(encrypted, 'hex', 'utf8')
-    decrypted += decipher.final('utf8')
-    return decrypted
+    // 先试 V2 key，失败回退 V1（向后兼容旧加密数据）
+    try {
+      const key = this.getVaultKey()
+      const decipher = createDecipheriv(ALGO, key, Buffer.from(ivHex, 'hex'))
+      decipher.setAuthTag(Buffer.from(authTagHex, 'hex'))
+      let decrypted = decipher.update(encrypted, 'hex', 'utf8')
+      decrypted += decipher.final('utf8')
+      return decrypted
+    } catch {
+      // V2 解密失败，尝试 V1 key（兼容旧数据）
+      const keyV1 = this.getVaultKeyV1()
+      const decipher = createDecipheriv(ALGO, keyV1, Buffer.from(ivHex, 'hex'))
+      decipher.setAuthTag(Buffer.from(authTagHex, 'hex'))
+      let decrypted = decipher.update(encrypted, 'hex', 'utf8')
+      decrypted += decipher.final('utf8')
+      return decrypted
+    }
   }
 
   // ============== Provider ==============
