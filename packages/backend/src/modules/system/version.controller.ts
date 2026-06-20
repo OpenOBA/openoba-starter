@@ -1,7 +1,7 @@
 import { Controller, Get, Query, Logger } from '@nestjs/common'
 import { request as httpsRequest } from 'https'
 
-const DEFAULT_VERSION = '1.4.0-alpha7'
+const DEFAULT_VERSION = '1.4.0-alpha9'
 
 /**
  * 版本检查 / 升级信息控制器

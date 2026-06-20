@@ -76,8 +76,8 @@ const latestVersion = ref('')
 
 async function loadVersion() {
   try {
-    const res: any = await request.get('/system/version/check')
-    versionText.value = res?.currentVersion || 'v1.0.0'
+    const res: any = await request.get('/system/version/check', { params: { current: '1.4.0-alpha9' } })
+    versionText.value = res?.currentVersion || 'v1.4.0-alpha9'
     hasUpdate.value = res?.hasUpdate || false
     latestVersion.value = res?.latestVersion || ''
   } catch {
