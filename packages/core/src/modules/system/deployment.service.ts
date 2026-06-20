@@ -426,10 +426,11 @@ export class DeploymentService {
       ? (process.env.DB_DATABASE || 'openoba_core') + '_staging'
       : process.env.DB_DATABASE || 'openoba_core'
 
+    const queryRunner = this.dataSource.createQueryRunner()
+    await queryRunner.connect()
+
     try {
-      // 使用 TypeORM 原生查询执行迁移
-      const queryRunner = this.dataSource.createQueryRunner()
-      await queryRunner.connect()
+      await queryRunner.startTransaction()
       await queryRunner.query(`USE \`${dbName}\``)
 
       // 按分号拆分 SQL 语句逐条执行
@@ -442,11 +443,14 @@ export class DeploymentService {
         await queryRunner.query(stmt)
       }
 
-      await queryRunner.release()
+      await queryRunner.commitTransaction()
       this.logger.log(`✅ 数据库迁移完成 (${env})`)
     } catch (e: any) {
-      this.logger.error(`数据库迁移失败: ${e.message}`)
+      await queryRunner.rollbackTransaction()
+      this.logger.error(`数据库迁移失败，已回滚: ${e.message}`)
       throw e
+    } finally {
+      await queryRunner.release()
     }
   }
 
