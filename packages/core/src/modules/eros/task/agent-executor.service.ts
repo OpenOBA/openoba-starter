@@ -2245,11 +2245,22 @@ export class AgentExecutorService implements OnModuleInit {
   private executeGitDiff(mode: string, filePath?: string): string {
     try {
       const cp = require('child_process')
-      let cmd = 'git ' + (mode === 'status' ? 'status --short' : mode === 'diff' ? 'diff' : 'diff --stat')
-      if (filePath) cmd += ' -- ' + filePath
-      const out = cp.execSync(cmd, { cwd: require('path').resolve(process.cwd(), '..'), timeout: 10000, encoding: 'utf-8' }).trim()
+      // 安全：mode 白名单校验，防止命令注入
+      const ALLOWED_MODES = new Set(['status', 'diff', 'stat'])
+      if (!ALLOWED_MODES.has(mode)) return '无效的 git 模式: ' + mode
+      const args = mode === 'status' ? ['status', '--short'] : mode === 'diff' ? ['diff'] : ['diff', '--stat']
+      if (filePath) {
+        // 安全：白名单校验 filePath，纵深防御（execFileSync 参数分离已是主防线）
+        if (!/^[a-zA-Z0-9_\-./\\ ]+$/.test(filePath)) return 'filePath 包含非法字符'
+        args.push('--', filePath)
+      }
+      const projectRoot = require('path').resolve(process.cwd(), '..')
+      const out = cp.execFileSync('git', args, { cwd: projectRoot, timeout: 10000, encoding: 'utf-8' }).trim()
       return out || '无变更'
-    } catch (e: any) { return 'Git 操作失败: ' + (e.stderr || e.message || '') }
+    } catch (e: unknown) {
+      this.logger.warn('executeGitDiff 失败', (e as Error).message)
+      return 'Git 操作失败: ' + ((e as any).stderr || (e as Error).message || '')
+    }
   }
 private buildRuleBlock(): string {
     return [
