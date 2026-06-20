@@ -2166,9 +2166,14 @@ export class AgentExecutorService implements OnModuleInit {
   
   private executeFileEdit(args: Record<string, any>): string {
     try {
+      const path = require('path')
       const { operation, filePath, oldStr, newStr, content } = args
-      const projectRoot = require('path').resolve(process.cwd(), '..')
-      const resolved = require('path').resolve(require('path').isAbsolute(filePath) ? filePath : require('path').join(projectRoot, filePath))
+      const projectRoot = path.resolve(process.cwd(), '..')
+      const resolved = path.resolve(path.isAbsolute(filePath) ? filePath : path.join(projectRoot, filePath))
+      // 安全：路径边界校验，防止越界访问（如 ../../.env 或 /etc/passwd）
+      if (!resolved.startsWith(projectRoot + path.sep) && resolved !== projectRoot) {
+        return `❌ 禁止越界访问：${filePath} 不在项目目录内`
+      }
       if (operation === 'read') {
         const fs = require('fs')
         if (!fs.existsSync(resolved)) {
@@ -2222,15 +2227,11 @@ export class AgentExecutorService implements OnModuleInit {
         const tscResult = this.executeTscCheck('backend')
         return `✅ 已修改: ${filePath}\n📋 ${tscResult}`
       }
-      if (operation === 'write') {
-        require('fs').mkdirSync(require('path').dirname(resolved), { recursive: true })
-        require('fs').writeFileSync(resolved, content, 'utf-8')
-        // 🚀 闭环：覆写成功后自动 tsc_check
-        const tscResult2 = this.executeTscCheck('backend')
-        return `✅ 已写入: ${filePath}\n📋 ${tscResult2}`
-      }
       return '未知操作: ' + operation
-    } catch (e: any) { return '文件操作失败: ' + e.message }
+    } catch (e: unknown) {
+      this.logger.warn('executeFileEdit 失败', (e as Error).message)
+      return '文件操作失败: ' + (e as Error).message
+    }
   }
 
   private executeTscCheck(project: string): string {
