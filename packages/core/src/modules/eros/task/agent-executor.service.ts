@@ -39,6 +39,7 @@ import { InventoryService } from '../../inventory/inventory.service'
 import { SoulService } from '../../soul/soul.service'
 import { ModelRegistryService } from '../../system/model-registry.service'
 import { validateFetchUrl } from '../../../common/utils/url-validator'
+import { TIMEOUT } from '../../../common/constants/timeouts'
 
 // 重新导出 AgentTaskType
 export type AgentTaskType = 'product_listing' | 'content_creation' | 'customer_service' | 'tech_support'
@@ -2278,7 +2279,7 @@ export class AgentExecutorService implements OnModuleInit {
     try {
       const cp = require('child_process')
       const dir = project === 'frontend' ? require('path').resolve(process.cwd(), '..', 'frontend') : process.cwd()
-      cp.execSync('npx tsc --noEmit', { cwd: dir, timeout: 30000 })
+      cp.execSync('npx tsc --noEmit', { cwd: dir, timeout: TIMEOUT.TSC_CHECK })
       return '✅ TS编译通过'
     } catch (e: any) { return '❌ 编译失败: ' + (e.stderr || e.message).substring(0, 300) }
   }
@@ -2296,7 +2297,7 @@ export class AgentExecutorService implements OnModuleInit {
         args.push('--', filePath)
       }
       const projectRoot = require('path').resolve(process.cwd(), '..')
-      const out = cp.execFileSync('git', args, { cwd: projectRoot, timeout: 10000, encoding: 'utf-8' }).trim()
+      const out = cp.execFileSync('git', args, { cwd: projectRoot, timeout: TIMEOUT.GIT_CMD, encoding: 'utf-8' }).trim()
       return out || '无变更'
     } catch (e: unknown) {
       this.logger.warn('executeGitDiff 失败', (e as Error).message)

@@ -10,6 +10,7 @@ import {
 } from '@openoba/core/dist/modules/erdl/llm/erdl-llm-providers'
 import { validateFetchUrl } from '@openoba/core/dist/common/utils/url-validator'
 import { RateLimiter } from '@openoba/core/dist/common/rate-limiter'
+import { TIMEOUT } from '@openoba/core/dist/common/constants/timeouts'
 
 @Controller('system')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -230,7 +231,7 @@ export class LlmConfigController {
         {
           method: 'GET',
           headers: { Authorization: 'Bearer ' + apiKey },
-          timeout: 8000,
+          timeout: TIMEOUT.LLM_TEST,
         },
         (res: any) => {
           let d = ''

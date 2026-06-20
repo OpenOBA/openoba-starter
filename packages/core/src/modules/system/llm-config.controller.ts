@@ -9,6 +9,7 @@ import {
   findProviderForModel,
 } from '../erdl/llm/erdl-llm-providers'
 import { validateFetchUrl } from '../../common/utils/url-validator'
+import { TIMEOUT } from '../../common/constants/timeouts'
 import type { ERDLLLMProvider } from '../erdl/llm/erdl-llm-provider.interface'
 import { ModelRegistryService } from './model-registry.service'
 
@@ -139,7 +140,7 @@ export class LlmConfigController {
         {
           method: 'GET',
           headers: { Authorization: `Bearer ${apiKey}` },
-          timeout: 8000,
+          timeout: TIMEOUT.LLM_TEST,
         },
         (res) => {
           let data = ''

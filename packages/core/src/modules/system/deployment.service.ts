@@ -8,6 +8,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { execSync, execFileSync, spawn } from 'child_process'
 import { DataSource } from 'typeorm'
+import { TIMEOUT } from '../../common/constants/timeouts'
 import * as fs from 'fs'
 import * as path from 'path'
 import { TRANSITIONS, DeltaStatus } from './delta-state-machine'
@@ -461,7 +462,7 @@ export class DeploymentService {
   private findProcessPid(port: number): number | null {
     try {
       // V1.4-b #39: port 已 parseInt 校验，保留 execSync（含 shell 管道）
-      const result = execSync(`netstat -ano | findstr ":${port}"`, { encoding: 'utf-8', timeout: 5000 })
+      const result = execSync(`netstat -ano | findstr ":${port}"`, { encoding: 'utf-8', timeout: TIMEOUT.MYSQL_PROBE })
       const match = result.match(/LISTENING\s+(\d+)/)
       return match ? parseInt(match[1]) : null
     } catch (e: unknown) {
@@ -508,7 +509,7 @@ export class DeploymentService {
   private gitExec(cmd: string): string {
     // V1.4-b #39: execSync → execFileSync，参数分离防注入
     const args = cmd.split(/\s+/).filter(Boolean)
-    return execFileSync('git', args, { cwd: this.projectRoot, encoding: 'utf-8', timeout: 15000 })
+    return execFileSync('git', args, { cwd: this.projectRoot, encoding: 'utf-8', timeout: TIMEOUT.GIT_CMD })
   }
 
   /** 检查 Git 仓库是否可用（降级：无 Git 时跳过分支操作） */
@@ -527,7 +528,7 @@ export class DeploymentService {
     const parts = cmd.split(/\s+/).filter(Boolean)
     const program = parts[0]
     const args = parts.slice(1)
-    return execFileSync(program, args, { encoding: 'utf-8', timeout: 30000, ...opts })
+    return execFileSync(program, args, { encoding: 'utf-8', timeout: TIMEOUT.DEPLOY_CMD, ...opts })
   }
 
   private loadDeltas(): DeltaRecord[] {

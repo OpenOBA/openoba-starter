@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { RateLimiterModule } from './common/rate-limiter'
 import { ServeStaticModule } from '@nestjs/serve-static'
 import { join } from 'path'
+import { TIMEOUT } from '@openoba/core/dist/common/constants/timeouts'
 import { SchemaModule } from './schemas/schema.module'
 import { AuthModule } from './modules/auth/auth.module'
 import { SystemModule } from './modules/system/system.module'
@@ -112,7 +113,7 @@ import { SoulModule } from '@openoba/core/dist/modules/soul/soul.module'
         // 生产连接池配置
         extra: {
           connectionLimit: 50,
-          connectTimeout: 10000,
+          connectTimeout: TIMEOUT.MYSQL_CONNECT,
           waitForConnections: true,
           queueLimit: 0,
         },

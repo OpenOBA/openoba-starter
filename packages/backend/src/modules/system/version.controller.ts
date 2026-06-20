@@ -1,5 +1,6 @@
 import { Controller, Get, Query, Logger } from '@nestjs/common'
 import { request as httpsRequest } from 'https'
+import { TIMEOUT } from '@openoba/core/dist/common/constants/timeouts'
 
 const DEFAULT_VERSION = '1.4.0-alpha9'
 
@@ -60,7 +61,7 @@ export class VersionController {
     return new Promise((resolve, reject) => {
       const url = `https://openoba.com/api/v1/update?current=${encodeURIComponent(current)}&product=core`
       const req = httpsRequest(url, {
-        timeout: 5000,
+        timeout: TIMEOUT.VERSION_CHECK,
         headers: { 'Accept': 'application/json', 'User-Agent': 'OpenOBA-Core' },
       }, (res) => {
         let data = ''
@@ -93,7 +94,7 @@ export class VersionController {
     return new Promise((resolve, reject) => {
       const url = 'https://api.github.com/repos/openoba/core/releases/latest'
       const req = httpsRequest(url, {
-        timeout: 5000,
+        timeout: TIMEOUT.VERSION_CHECK,
         headers: { 'Accept': 'application/vnd.github+json', 'User-Agent': 'OpenOBA-Core' },
       }, (res) => {
         let data = ''

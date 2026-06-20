@@ -17,6 +17,7 @@ import * as mysql from 'mysql2/promise'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as crypto from 'crypto'
+import { TIMEOUT } from '../../common/constants/timeouts'
 
 export interface WizardStatus {
   initialized: boolean
@@ -68,7 +69,7 @@ export class WizardService {
           user: process.env.DB_USERNAME,
           password: process.env.DB_PASSWORD,
           database: process.env.DB_DATABASE,
-          connectTimeout: 3000,
+          connectTimeout: TIMEOUT.MYSQL_PROBE,
         })
         status.checks.database.connected = true
 
@@ -144,7 +145,7 @@ export class WizardService {
         port: port || 3306,
         user: username || 'root',
         password: password || '',
-        connectTimeout: 5000,
+        connectTimeout: TIMEOUT.MYSQL_WIZARD,
       })
       const versionResult = await conn.execute('SELECT VERSION() AS version')
       const versionRows = versionResult[0] as mysql.RowDataPacket[]
@@ -364,7 +365,7 @@ SKILL_VAULT_KEY=${skillKey}
             user: body.dbUsername || 'root',
             password: body.dbPassword,
             database: body.dbDatabase || 'openoba_starter',
-            connectTimeout: 5000,
+            connectTimeout: TIMEOUT.MYSQL_WIZARD,
           })
           await conn.execute('UPDATE sys_user SET password_hash = ? WHERE username = ?', [hash, adminUser])
           await conn.end()

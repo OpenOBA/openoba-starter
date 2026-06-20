@@ -12,6 +12,7 @@ import { TokenUsage } from './token-usage.entity'
 import { ModelConnectionLog } from './model-connection-log.entity'
 import { v4 as uuidv4 } from 'uuid'
 import { validateFetchUrl } from '../../common/utils/url-validator'
+import { TIMEOUT } from '../../common/constants/timeouts'
 
 const ALGO = 'aes-256-gcm'
 
@@ -378,7 +379,7 @@ export class ModelRegistryService implements OnModuleInit {
       const req = transport(url, {
         method: 'GET',
         headers: { Authorization: `Bearer ${apiKey}` },
-        timeout: 10000,
+        timeout: TIMEOUT.LLM_CALL,
       }, (res) => {
         const latencyMs = Date.now() - start
         let data = ''
