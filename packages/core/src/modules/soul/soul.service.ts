@@ -280,7 +280,7 @@ ${erdlHint}
       const memories: any[] = await this.manifestRepo.manager.query(
         `SELECT category, severity, title, content, scope, hit_count
          FROM agent_memory
-         WHERE (agent_code = ? OR scope = 'global')
+         WHERE (owner_agent = ? OR scope = 'global')
            AND status IN ('active', 'reinforced')
          ORDER BY hit_count DESC
          LIMIT 8`,
@@ -369,15 +369,15 @@ ${erdlHint}
   // ═══════════════════════════════════════════
 
   async buildMainSystemPrompt(taskType?: string): Promise<string> {
-    return this.buildSystemPrompt('openoba-main', 'task', taskType)
+    return this.buildSystemPrompt('main-agent', 'task', taskType)
   }
 
   async buildChatSystemPrompt(userMessage?: string): Promise<string> {
-    return this.buildSystemPrompt('openoba-main', 'chat', undefined, userMessage)
+    return this.buildSystemPrompt('main-agent', 'chat', undefined, userMessage)
   }
 
   async buildFullSystemPrompt(): Promise<string> {
-    return this.buildSystemPrompt('openoba-main', 'full')
+    return this.buildSystemPrompt('main-agent', 'full')
   }
 
   async buildUserSystemPrompt(userId: string, taskType?: string): Promise<string> {
