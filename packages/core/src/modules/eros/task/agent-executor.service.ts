@@ -573,6 +573,26 @@ export class AgentExecutorService implements OnModuleInit {
   }
 
   /**
+   * 获取默认 Provider Code（DB 权威 + 兜底）
+   */
+  private async getDefaultProviderCode(taskType?: string): Promise<string | undefined> {
+    if (!this.modelRegistry) return undefined
+    try {
+      const dbKeys = await this.modelRegistry.getProviderKeys()
+      const defaultKey = dbKeys?.find((k: any) =>
+        (k.models || []).some((m: any) => m.isDefault)
+      )
+      if (defaultKey?.providerCode) {
+        this.logger.log(`Default provider from DB: ${defaultKey.providerCode}`)
+        return defaultKey.providerCode
+      }
+    } catch (e: unknown) {
+      this.logger.warn('查询 DB 默认模型失败，回退到内置顺序', (e as Error).message)
+    }
+    return undefined
+  }
+
+  /**
    * 流式执行 — 跟 analyzeAndReport 逻辑相同，但通过 onToken 回调实时推送
    */
   async streamExecute(taskId: string, onEvent: (e: StreamEvent) => void): Promise<{ content: string; model: string; provider: string } | null> {
@@ -597,8 +617,9 @@ export class AgentExecutorService implements OnModuleInit {
     const toolExecutor = this.toolRegistry.createExecutor()
     const userMessage = this.buildUserMessageWithHistory(task)
 
+    const defaultProviderCode = await this.getDefaultProviderCode(task.type)
     const result = await this.llmBridge.queryWithToolsLegacy(
-      systemPrompt, userMessage, tools, toolExecutor, onEvent,
+      systemPrompt, userMessage, tools, toolExecutor, onEvent, defaultProviderCode,
     )
 
     const defaultProvider = getDefaultProvider()
@@ -936,6 +957,7 @@ export class AgentExecutorService implements OnModuleInit {
     const userMessage = this.buildUserMessageWithHistory(task)
 
     // V1.4: 切换到多轮 FC（while 循环，最多 5 轮）
+    const defaultProviderCode = this.getDefaultProviderCode(task.type)
     const result = await this.llmBridge.queryWithToolsLegacy(
       systemPrompt,
       userMessage,
@@ -1098,6 +1120,7 @@ export class AgentExecutorService implements OnModuleInit {
     const userMessage = `任务：${task.title}\n${task.context ? `补充信息：${JSON.stringify(task.context)}` : ''}`
 
     // V1.4: 多轮 FC
+    const defaultProviderCode = await this.getDefaultProviderCode(task.type)
     const result = await this.llmBridge.queryWithToolsLegacy(
       systemPrompt,
       userMessage,
@@ -1134,6 +1157,7 @@ export class AgentExecutorService implements OnModuleInit {
     const userMessage = this.buildUserMessageWithHistory(task)
 
     // V1.4: 多轮 FC
+    const defaultProviderCode = await this.getDefaultProviderCode(task.type)
     const result = await this.llmBridge.queryWithToolsLegacy(
       systemPrompt,
       userMessage,
