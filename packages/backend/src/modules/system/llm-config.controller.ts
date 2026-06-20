@@ -180,6 +180,12 @@ export class LlmConfigController {
 
   @Post('llm/test')
   async testLlmConnection(@Body() body: { provider: string; apiKey: string; baseUrl?: string }) {
+    // SSRF 防护：校验 baseUrl（主路径 + 兜底路径通用）
+    if (body.baseUrl) {
+      const validationError = validateFetchUrl(body.baseUrl)
+      if (validationError) return { success: false, error: validationError }
+    }
+
     // 主路径：使用 ModelRegistryService
     try {
       const result = await this.modelRegistry.testConnection({
