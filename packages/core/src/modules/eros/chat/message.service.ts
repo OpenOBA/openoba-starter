@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ERA Chat Message Service — JSONL 会话持久化
  *
  * @file message.service.ts

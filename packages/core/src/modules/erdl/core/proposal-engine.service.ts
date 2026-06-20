@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 秒镜科技 · ERDL 议会模型 — 提案引擎 + 冲突校验
  *
  * @file ProposalEngine + ValidationEngine

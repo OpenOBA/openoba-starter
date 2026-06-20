@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 秒镜科技 · ERDL 议会模型 — 全局快照管理器
  *
  * @file SnapshotManager Service

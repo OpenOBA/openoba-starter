@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ER-OS StreamEvent — 企业级流式事件模型
  *
  * @file stream-event.types.ts

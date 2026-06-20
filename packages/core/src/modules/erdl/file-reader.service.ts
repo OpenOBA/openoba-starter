@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 秒镜科技 · ERDL — FileReader Service
  *
  * @file FileReaderService — Agent 文件读取能力

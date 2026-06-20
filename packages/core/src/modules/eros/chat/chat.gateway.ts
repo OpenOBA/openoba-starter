@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ERA Chat WebSocket Gateway — 主入口
  *
  * @file chat.gateway.ts

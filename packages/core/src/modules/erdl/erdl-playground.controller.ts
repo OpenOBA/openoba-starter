@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 秒镜科技 · ERDL — Enterprise Resource Definition Language
  *
  * @file ERDL Playground Controller — 在线编辑器 + 自然语言生成 API

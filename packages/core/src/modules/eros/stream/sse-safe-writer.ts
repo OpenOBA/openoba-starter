@@ -1,4 +1,4 @@
-﻿/**
+/**
  * OpenOBA ERA — SSE Safe Writer
  *
  * @file sse-safe-writer.ts

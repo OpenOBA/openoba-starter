@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ER-OS Run Registry — Agent 执行生命周期管理
  *
  * @file run-registry.ts

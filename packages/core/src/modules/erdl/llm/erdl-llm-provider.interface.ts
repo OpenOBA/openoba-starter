@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 秒镜科技 · ERDL — LLM Provider 接口定义
  *
  * @file ERDL LLM Provider 接口 + 模型定义类型

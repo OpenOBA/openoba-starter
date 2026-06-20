@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 秒镜科技 · ERDL 议会模型 — 不可变规则存储 Service
  *
  * @file RuleStore Service

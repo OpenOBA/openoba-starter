@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 秒镜科技 · ERDL 议会模型 — 全局快照 Entity
  *
  * @file ERDLSnapshot Entity

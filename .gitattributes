@@ -1,22 +1,10 @@
-# OpenOBA Git Attributes
-# 统一换行符为 LF，避免 Windows/Mac/Linux 差异
-
 * text=auto eol=lf
-
-# 二进制文件
-*.png binary
-*.jpg binary
-*.jpeg binary
-*.gif binary
-*.ico binary
-*.ttf binary
-*.woff binary
-*.woff2 binary
-*.eot binary
-*.tgz binary
-*.zip binary
-
-# 脚本文件强制 LF
-*.sh text eol=lf
+*.ts text eol=lf
+*.vue text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.js text eol=lf
 *.bat text eol=crlf
-*.cmd text eol=crlf
+*.ps1 text eol=crlf

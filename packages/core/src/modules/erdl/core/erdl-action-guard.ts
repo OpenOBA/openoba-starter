@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 秒镜科技 · ERDL V1.5 — Action Guard
  *
  * @file ERDL Action Guard — LLM 输出协议转换层

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 秒镜科技 · ERDL — Enterprise Resource Definition Language
  *
  * @file Rule Definition — 规则类型定义

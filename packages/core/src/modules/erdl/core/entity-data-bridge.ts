@@ -1,4 +1,4 @@
-﻿export class EntityDataBridge {
+export class EntityDataBridge {
   constructor(entityName: string, namespace: string, registry?: any) {}
   export(data: Record<string, unknown>[], format: string) { return '' }
   mapColumns(columns: string[]) { return {} }

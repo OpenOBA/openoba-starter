@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ERA Chat Session Manager — WS 连接池与会话管理
  *
  * @file chat.session-manager.ts

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SOUL 模块 — 类型定义
  *
  * @file soul.types.ts

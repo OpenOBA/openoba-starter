@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 秒镜科技 · ERDL 议会模型 — 规则事件总线
  *
  * @file RuleEventBus Service

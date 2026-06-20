@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 秒镜科技 · ERDL — MCP Server 桩
  *
  * @file MCP Server Controller — 标准 Model Context Protocol 接口

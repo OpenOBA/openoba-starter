@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 秒镜科技 · ERDL — Enterprise Resource Definition Language
  *
  * @file ERDL Module — NestJS 模块定义（v2：含议会模型）

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 秒镜科技 · ERDL — Enterprise Resource Definition Language
  *
  * @file ERDL Schema Generator — 表单 Schema 生成器

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ERA Chat WebSocket 消息类型定义
  *
  * @file chat.types.ts

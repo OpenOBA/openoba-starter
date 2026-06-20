@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ERA Chat Module — WebSocket 通信模块
  *
  * @file chat.module.ts

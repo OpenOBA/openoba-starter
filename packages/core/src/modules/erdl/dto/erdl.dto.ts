@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 秒镜科技 · ERDL — DTO 定义
  *
  * @file erdl.dto.ts

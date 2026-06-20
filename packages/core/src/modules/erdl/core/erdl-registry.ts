@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 秒镜科技 · ERDL — Enterprise Resource Definition Language
  *
  * @file ERDL Registry — 运行时注册中心

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 秒镜科技 · ERDL V1.3 — Entity Proxy Service
  *
  * @file ERDL 实体代理引擎：Agent 操作语义 Entity → 翻译为 SQL → 执行

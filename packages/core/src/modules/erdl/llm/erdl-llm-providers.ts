@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 秒镜科技 · ERDL — 内置 LLM Provider 注册表
  *
  * @file ERDL 内置 Provider 定义（DeepSeek + Qwen）
