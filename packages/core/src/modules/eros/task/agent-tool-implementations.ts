@@ -44,11 +44,11 @@ export class AgentToolImplementations {
 
 
   // 工具间共享查询缓存 (executeCsvExport)
-  private queryCache = new Map<string, { data: any[]; timestamp: number }>()
+  private queryCache = new Map<string, { data: Record<string, unknown>[]; timestamp: number }>()
   private readonly CACHE_MAX_SIZE = 50
   private readonly CACHE_TTL_MS = 5 * 60 * 1000  // 5 分钟
 
-  private cacheSet(key: string, data: any[]): void {
+  private cacheSet(key: string, data: Record<string, unknown>[]): void {
     if (this.queryCache.size >= this.CACHE_MAX_SIZE) {
       let oldestKey = ''
       let oldestTime = Infinity
@@ -60,7 +60,7 @@ export class AgentToolImplementations {
     this.queryCache.set(key, { data, timestamp: Date.now() })
   }
 
-  private cacheGet(key: string): any[] | null {
+  private cacheGet(key: string): Record<string, unknown>[] | null {
     const entry = this.queryCache.get(key)
     if (!entry) return null
     if (Date.now() - entry.timestamp > this.CACHE_TTL_MS) {
@@ -177,14 +177,14 @@ export class AgentToolImplementations {
       lines.push(`## 知识库: "${keyword}" (${publicEntries.length} 条)`)
       for (const e of publicEntries) {
         lines.push(`- [${e.id}] ${e.title}`)
-        lines.push(`  ${(e as any).content?.substring(0, 150) || ''}...`)
+        lines.push(`  ${(e as { content?: string }).content?.substring(0, 150) || ''}...`)
       }
     }
     if (privateEntries.length > 0) {
       lines.push(`## 私有知识 (${privateEntries.length} 条)`)
       for (const e of privateEntries) {
         lines.push(`- [${e.id}] ${e.title}`)
-        lines.push(`  ${(e as any).content?.substring(0, 150) || ''}...`)
+        lines.push(`  ${(e as { content?: string }).content?.substring(0, 150) || ''}...`)
       }
     }
     if (publicEntries.length + privateEntries.length === 0) {
@@ -208,11 +208,11 @@ export class AgentToolImplementations {
     const action = rawAction === 'query' ? 'read' : rawAction
     const values = args.values || args.data
     const where = args.where
-    const select = (args as any).select
+    const select = (args as Record<string, unknown>).select
     const ns = 'industry.eyewear'
 
     // 安全红线：禁止系统表
-    const mapping = (this.proxy as any).getMapping?.(ns, entity)
+    const mapping = (this.proxy as unknown as { getMapping?: (ns: string, entity: string) => { table: string } }).getMapping?.(ns, entity)
     if (mapping && this.FORBIDDEN_TABLES.has(mapping.table)) {
       return `❌ 禁止操作: ${mapping.table} 是系统安全表`
     }
@@ -238,7 +238,7 @@ export class AgentToolImplementations {
                 const docNo = values['docNo'] as string
                 if (docNo) {
                   const docs = await this.inventoryService.findDocuments({ status: 'pending' })
-                  const doc = docs.items.find((d: any) => d.docNo === docNo)
+                  const doc = docs.items.find((d: { docNo?: string }) => d.docNo === docNo)
                   if (doc) {
                     await this.inventoryService.confirmDocument(doc.id, 'agent')
                     return `✅ 入库单 ${docNo} 已创建并执行！| ${entity} | 库存已更新（事务保护）`
@@ -278,13 +278,13 @@ export class AgentToolImplementations {
             namespace: ns,
             entity,
             where,
-            limit: (args as any).limit || 30,
-            offset: (args as any).offset || 0,
-          } as any)
+            limit: Number((args as Record<string, unknown>).limit) || 30,
+            offset: Number((args as Record<string, unknown>).offset) || 0,
+          })
           if (!result.success) return `❌ 查询失败: ${result.error}`
-          const rows = result.rows || []
+          const rows = (result as { rows?: Record<string, unknown>[] } | undefined)?.rows || []
           if (rows.length === 0) return `📭 ${entity}: 无匹配数据`
-          const cols = select || (rows.length > 0 ? Object.keys(rows[0]).filter(k => k !== 'id') : ['*'])
+          const cols = (select as string[] | undefined) || (rows.length > 0 ? Object.keys(rows[0]).filter(k => k !== 'id') : ['*'])
           let table = `## ${entity} (${rows.length} 条)\n\n`
           table += '| ' + cols.join(' | ') + ' |\n'
           table += '|' + cols.map(() => '---').join('|') + '|\n'
@@ -338,7 +338,7 @@ export class AgentToolImplementations {
   // executeFileEdit — 文件编辑（read/write/replace）
   // ═══════════════════════════════════════════
 
-  executeFileEdit(args: Record<string, any>): string {
+  executeFileEdit(args: Record<string, unknown>): string {
     try {
       const nodePath = require('path');
       const { operation, filePath, oldStr, newStr, content } = args;
@@ -354,19 +354,19 @@ export class AgentToolImplementations {
           let hint = '文件不存在: ' + filePath;
           if (nodeFs.existsSync(parentDir) && nodeFs.statSync(parentDir).isDirectory()) {
             const parentEntries = nodeFs.readdirSync(parentDir, { withFileTypes: true }).slice(0, 20);
-            const dirList = parentEntries.map((e: any) => (e.isDirectory() ? '📁 ' : '📄 ') + e.name).join(', ');
+            const dirList = parentEntries.map((e: fs.Dirent) => (e.isDirectory() ? '📁 ' : '📄 ') + e.name).join(', ');
             hint += '\n💡 父目录内容: ' + dirList;
           }
           return hint;
         }
         if (nodeFs.statSync(resolved).isDirectory()) {
           const entries = nodeFs.readdirSync(resolved, { withFileTypes: true }).slice(0, 30);
-          return entries.map((e: any) => (e.isDirectory() ? '📁' : '📄') + ' ' + e.name).join('\n');
+          return entries.map((e: fs.Dirent) => (e.isDirectory() ? '📁' : '📄') + ' ' + e.name).join('\n');
         }
         const data = nodeFs.readFileSync(resolved, 'utf-8');
         const fileLines = data.split('\n');
-        const maxL = parseInt(args['limit'] || '5000');
-        const startL = parseInt(args['offset'] || '0');
+        const maxL = parseInt(String(args['limit'] || '5000'));
+        const startL = parseInt(String(args['offset'] || '0'));
         const slice = startL > 0 ? fileLines.slice(startL, startL + maxL) : fileLines.slice(0, maxL);
         const isTruncated = fileLines.length > maxL;
         const truncatedNote = isTruncated ? '\n⚠️ 截断：仅展示前 ' + maxL + ' 行，共 ' + fileLines.length + ' 行。用 offset=' + maxL + ' 读取后续内容。' : '';
@@ -433,7 +433,7 @@ export class AgentToolImplementations {
       const out = cp.execFileSync('git', gitArgs, { cwd: projectRoot, timeout: TIMEOUT.GIT_CMD, encoding: 'utf-8' }).trim();
       return out || '无变更';
     } catch (e: unknown) {
-      return 'Git 操作失败: ' + ((e as any).stderr || (e as Error).message || '');
+      return 'Git 操作失败: ' + ((e as { stderr?: string }).stderr || (e as Error).message || '');
     }
   }
 
@@ -441,7 +441,7 @@ export class AgentToolImplementations {
   // executeDraftCreate — 创建草稿
   // ═══════════════════════════════════════════
 
-  async executeDraftCreate(args: { spuName: string; gender: string; shapeCode: string; seriesCode: string; structureStandardCode: string; spuDescription?: string; skus?: any[] }): Promise<string> {
+  async executeDraftCreate(args: { spuName: string; gender: string; shapeCode: string; seriesCode: string; structureStandardCode: string; spuDescription?: string; skus?: Record<string, unknown>[] }): Promise<string> {
     try {
       // 效果词容错：查询字典并模糊匹配
       const effectRows = await this.taskRepo.manager.query(
@@ -450,11 +450,11 @@ export class AgentToolImplementations {
       const validSkinCodes = effectRows.filter(r => r.effect_type === 'skin_tone').map(r => r.effect_code)
       const validFaceCodes = effectRows.filter(r => r.effect_type === 'face_shape').map(r => r.effect_code)
 
-      const skus = (args.skus || []).map((sku: any) => {
-        const fixed: any = { ...sku }
-        const matchedSkin = this.fuzzyMatchEffect(sku.skinToneEffect, validSkinCodes)
+      const skus = (args.skus || []).map((sku: Record<string, unknown>) => {
+        const fixed: Record<string, unknown> = { ...sku }
+        const matchedSkin = this.fuzzyMatchEffect(String(sku.skinToneEffect || ''), validSkinCodes)
         if (matchedSkin) fixed.skinToneEffect = matchedSkin
-        const matchedFace = this.fuzzyMatchEffect(sku.faceShapeEffect, validFaceCodes)
+        const matchedFace = this.fuzzyMatchEffect(String(sku.faceShapeEffect || ''), validFaceCodes)
         if (matchedFace) fixed.faceShapeEffect = matchedFace
         return fixed
       })
@@ -485,8 +485,8 @@ export class AgentToolImplementations {
             spuDescription: args.spuDescription || '',
             skus: skus,
           },
-        } as any)
-        universalDraftId = (universalDraft as any)?.id || ''
+        } as Parameters<typeof this.draftService.create>[0])
+      universalDraftId = (universalDraft as { id?: string })?.id || ''
       } catch (e: unknown) {
         this.logger.warn(`通用草稿同步失败: ${(e as Error).message}`)
       }
@@ -513,11 +513,11 @@ export class AgentToolImplementations {
   // executeDraftAddSku — 为草稿 SPU 追加 SKU
   // ═══════════════════════════════════════════
 
-  async executeDraftAddSku(args: { spuId: string; skus: any[] }): Promise<string> {
+  async executeDraftAddSku(args: { spuId: string; skus: Record<string, unknown>[] }): Promise<string> {
     try {
       // 从草稿池查找已有 SPU
       const { items } = await this.draftPoolService.queryDrafts({ page: 1, pageSize: 100 })
-      const existingSpu = items.find((d: any) => d.spuId === args.spuId || d.draftId === args.spuId)
+      const existingSpu = items.find((d: { spuId?: string; draftId?: string }) => d.spuId === args.spuId || d.draftId === args.spuId)
       if (!existingSpu) {
         return `❌ 未找到 SPU: ${args.spuId}。请先确认 SPU 存在于草稿池或 ERP 中。可调用 query_erp_data 或 draft_list 查看。`
       }
@@ -529,11 +529,11 @@ export class AgentToolImplementations {
       const validSkinCodes = effectRows.filter(r => r.effect_type === 'skin_tone').map(r => r.effect_code)
       const validFaceCodes = effectRows.filter(r => r.effect_type === 'face_shape').map(r => r.effect_code)
 
-      const skus = (args.skus || []).map((sku: any) => {
-        const fixed: any = { ...sku }
-        const matchedSkin = this.fuzzyMatchEffect(sku.skinToneEffect, validSkinCodes)
+      const skus = (args.skus || []).map((sku: Record<string, unknown>) => {
+        const fixed: Record<string, unknown> = { ...sku }
+        const matchedSkin = this.fuzzyMatchEffect(String(sku.skinToneEffect || ''), validSkinCodes)
         if (matchedSkin) fixed.skinToneEffect = matchedSkin
-        const matchedFace = this.fuzzyMatchEffect(sku.faceShapeEffect, validFaceCodes)
+        const matchedFace = this.fuzzyMatchEffect(String(sku.faceShapeEffect || ''), validFaceCodes)
         if (matchedFace) fixed.faceShapeEffect = matchedFace
         return fixed
       })
@@ -598,15 +598,17 @@ export class AgentToolImplementations {
 
       if (result.errors.length > 0) {
         lines.push('', '❌ 阻断规则：')
-        for (const e of (result.errors as any[])) lines.push(`  · [${e.ruleCode}] ${e.ruleName}: ${e.message}`)
+        for (const e of result.errors) lines.push(`  · [${e}]`)
       }
       if (result.warnings.length > 0) {
         lines.push('', '⚠️ 警告：')
-        for (const w of (result.warnings as any[])) lines.push(`  · [${w.ruleCode}] ${w.ruleName}: ${w.message}`)
+        for (const w of result.warnings) lines.push(`  · [${w}]`)
       }
-      if ((result as any).recommendations?.length > 0) {
+      if ((result as { recommendations?: Array<{ type: string; reason: string; suggestion: string }> }).recommendations && (result as { recommendations?: Array<{ type: string; reason: string; suggestion: string }> }).recommendations!.length > 0) {
         lines.push('', '💡 改进建议：')
-        for (const r of (result as any).recommendations) lines.push(`  · ${r.type}: ${r.reason} → 建议: ${r.suggested}`)
+        for (const r of (result as { recommendations?: Array<{ type: string; reason: string; suggestion: string }> }).recommendations || []) {
+          lines.push(`  · ${r.type}: ${r.reason} → 建议: ${r.suggestion}`)
+        }
       }
 
       return lines.join('\n')
@@ -648,9 +650,9 @@ export class AgentToolImplementations {
   // executeCsvExport — 智能导出
   // ═══════════════════════════════════════════
 
-  async executeCsvExport(entity: string, format: string, data: any[], filename: string): Promise<string> {
+  async executeCsvExport(entity: string, format: string, data: Record<string, unknown>[], filename: string): Promise<string> {
     try {
-      let rows: any[] = data || []
+      let rows: Record<string, unknown>[] = data || []
 
       // 🔑 L1: 有 entity → 自动查询
       if (entity && (!rows || rows.length === 0)) {
@@ -684,7 +686,7 @@ export class AgentToolImplementations {
   // doExport — 实际导出
   // ═══════════════════════════════════════════
 
-  doExport(data: any[], format: string, filename: string): string {
+  doExport(data: Record<string, unknown>[], format: string, filename: string): string {
     const ts = new Date().toISOString().slice(0, 10)
     const uuid = crypto.randomUUID().replace(/-/g, '').substring(0, 8)
     const fname = filename || `export_${ts}_${uuid}`
@@ -695,7 +697,7 @@ export class AgentToolImplementations {
     if (data.length > 0 && typeof data[0] === 'object' && !Array.isArray(data[0])) {
       try {
         const bridge = new EntityDataBridge('StructureStandard', 'industry.eyewear', this.registry)
-        const content = bridge.export(data as Record<string, unknown>[], format as any)
+        const content = bridge.export(data as Record<string, unknown>[], format as "csv" | "markdown" | "json")
         const ext = format === 'markdown' ? 'md' : format
         const fp = path.join(dir, `${fname}.${ext}`)
         fs.writeFileSync(fp, content, 'utf-8')
@@ -712,11 +714,11 @@ export class AgentToolImplementations {
       content = '\uFEFF'
       for (const row of data) {
         const cells = Array.isArray(row)
-          ? row.map((c: any) => {
+          ? row.map((c: unknown) => {
               const v = (c === true || c === 1) ? '是' : (c === false || c === 0) ? '否' : String(c ?? '')
               return `"${v.replace(/"/g, '""')}"`
             })
-          : Object.values(row || {}).map((v: any) => {
+          : Object.values(row || {}).map((v: unknown) => {
               const s = (v === true || v === 1) ? '是' : (v === false || v === 0) ? '否' : String(v ?? '')
               return `"${s.replace(/"/g, '""')}"`
             })
@@ -726,8 +728,8 @@ export class AgentToolImplementations {
     else {
       ext = 'md'
       if (data.length > 0 && Array.isArray(data[0])) {
-        content = '| ' + (data[0] as any[]).map(c => String(c || '')).join(' | ') + ' |\n|' + (data[0] as any[]).map(() => '---').join('|') + '|\n'
-        for (let i = 1; i < data.length; i++) content += '| ' + (data[i] as any[]).map(c => String(c || '')).join(' | ') + ' |\n'
+        content = '| ' + (data[0] as unknown as Record<string, unknown> as unknown as unknown[]).map(c => String(c || '')).join(' | ') + ' |\n|' + (data[0] as any[]).map(() => '---').join('|') + '|\n'
+        for (let i = 1; i < data.length; i++) content += '| ' + (data[i] as unknown as Record<string, unknown> as unknown as unknown[]).map(c => String(c || '')).join(' | ') + ' |\n'
       }
     }
     const fp = path.join(dir, `${fname}.${ext}`)
@@ -740,7 +742,7 @@ export class AgentToolImplementations {
   // executeDataAnalyze — 数据分析
   // ═══════════════════════════════════════════
 
-  executeDataAnalyze(op: string, data: any[], field: string, topN?: number, fField?: string, fVal?: string): string {
+  executeDataAnalyze(op: string, data: Record<string, unknown>[], field: string, topN?: number, fField?: string, fVal?: string): string {
     try {
       if (!data || data.length === 0) return '📭 数据为空'
       switch (op) {
@@ -853,7 +855,7 @@ export class AgentToolImplementations {
   // executeImportExecute — 导入执行
   // ═══════════════════════════════════════════
 
-  async executeImportExecute(entityName: string, data: any[]): Promise<string> {
+  async executeImportExecute(entityName: string, data: Record<string, unknown>[]): Promise<string> {
     try {
       const bridge = new EntityDataBridge(entityName, 'industry.eyewear', this.registry)
       // Auto-map columns
@@ -870,7 +872,7 @@ export class AgentToolImplementations {
       // Validate
       const validation = bridge.validate(normalized.entities)
       if (validation.errors.length > 0 && validation.valid.length === 0) {
-        return `❌ 数据验证失败 (${validation.errors.length} 条错误):\n` + validation.errors.slice(0, 5).map((e: any) => `  · 行${e.row}: ${e.errors.join('; ')}`).join('\n')
+        return `❌ 数据验证失败 (${validation.errors.length} 条错误):\n` + validation.errors.slice(0, 5).map((e: { row?: number; errors?: string[] }) => `  · 行${e.row}: ${(e.errors || []).join('; ')}`).join('\n')
       }
       let created = 0
       const failures: string[] = []
