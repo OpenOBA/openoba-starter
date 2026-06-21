@@ -452,22 +452,10 @@ export class AgentToolImplementations {
 
       const skus = (args.skus || []).map((sku: any) => {
         const fixed: any = { ...sku }
-        if (sku.skinToneEffect && !validSkinCodes.includes(sku.skinToneEffect)) {
-          let best = ''; let bestScore = 0
-          for (const code of validSkinCodes) {
-            const s = this.fuzzyScore(sku.skinToneEffect, code)
-            if (s > bestScore) { bestScore = s; best = code }
-          }
-          if (best && bestScore > 0.4) fixed.skinToneEffect = best
-        }
-        if (sku.faceShapeEffect && !validFaceCodes.includes(sku.faceShapeEffect)) {
-          let best = ''; let bestScore = 0
-          for (const code of validFaceCodes) {
-            const s = this.fuzzyScore(sku.faceShapeEffect, code)
-            if (s > bestScore) { bestScore = s; best = code }
-          }
-          if (best && bestScore > 0.4) fixed.faceShapeEffect = best
-        }
+        const matchedSkin = this.fuzzyMatchEffect(sku.skinToneEffect, validSkinCodes)
+        if (matchedSkin) fixed.skinToneEffect = matchedSkin
+        const matchedFace = this.fuzzyMatchEffect(sku.faceShapeEffect, validFaceCodes)
+        if (matchedFace) fixed.faceShapeEffect = matchedFace
         return fixed
       })
 
@@ -543,16 +531,10 @@ export class AgentToolImplementations {
 
       const skus = (args.skus || []).map((sku: any) => {
         const fixed: any = { ...sku }
-        if (sku.skinToneEffect && !validSkinCodes.includes(sku.skinToneEffect)) {
-          let best = ''; let bestScore = 0
-          for (const code of validSkinCodes) { const s = this.fuzzyScore(sku.skinToneEffect, code); if (s > bestScore) { bestScore = s; best = code } }
-          if (best && bestScore > 0.4) fixed.skinToneEffect = best
-        }
-        if (sku.faceShapeEffect && !validFaceCodes.includes(sku.faceShapeEffect)) {
-          let best = ''; let bestScore = 0
-          for (const code of validFaceCodes) { const s = this.fuzzyScore(sku.faceShapeEffect, code); if (s > bestScore) { bestScore = s; best = code } }
-          if (best && bestScore > 0.4) fixed.faceShapeEffect = best
-        }
+        const matchedSkin = this.fuzzyMatchEffect(sku.skinToneEffect, validSkinCodes)
+        if (matchedSkin) fixed.skinToneEffect = matchedSkin
+        const matchedFace = this.fuzzyMatchEffect(sku.faceShapeEffect, validFaceCodes)
+        if (matchedFace) fixed.faceShapeEffect = matchedFace
         return fixed
       })
 
@@ -946,6 +928,24 @@ export class AgentToolImplementations {
       if (idx >= 0) { matches++; pos = idx + 1 }
     }
     return matches / maxLen
+  }
+
+  /**
+   * 效果词容错：对 AI 产生的非标准效果词进行模糊匹配，映射到字典中的合法编码
+   */
+  private fuzzyMatchEffect(
+    inputValue: string | undefined,
+    validCodes: string[],
+  ): string | undefined {
+    if (!inputValue || validCodes.includes(inputValue)) return inputValue
+    let best = ''
+    let bestScore = 0
+    for (const code of validCodes) {
+      const s = this.fuzzyScore(inputValue, code)
+      if (s > bestScore) { bestScore = s; best = code }
+    }
+    if (best && bestScore > 0.4) return best
+    return undefined
   }
 
 }
