@@ -53,11 +53,11 @@ type DbRow = Record<string, string>
 export class AgentExecutorService implements OnModuleInit {
   private readonly logger = new Logger(AgentExecutorService.name)
   /** 🔐 工具间共享查询缓存 — 每个 chatExecute 调用创建独立的请求级缓存（P1并发隔离） */
-  private queryCache = new Map<string, { data: any[]; timestamp: number }>()
+  private queryCache = new Map<string, { data: Record<string, unknown>[]; timestamp: number }>()
   private readonly CACHE_MAX_SIZE = 50
   private readonly CACHE_TTL_MS = 5 * 60 * 1000  // 5 分钟
 
-  private cacheSet(key: string, data: any[]): void {
+  private cacheSet(key: string, data: Record<string, unknown>[]): void {
     // LRU 淘汰：超过上限时删除最旧条目
     if (this.queryCache.size >= this.CACHE_MAX_SIZE) {
       let oldestKey = ''
@@ -70,7 +70,7 @@ export class AgentExecutorService implements OnModuleInit {
     this.queryCache.set(key, { data, timestamp: Date.now() })
   }
 
-  private cacheGet(key: string): any[] | null {
+  private cacheGet(key: string): Record<string, unknown>[] | null {
     const entry = this.queryCache.get(key)
     if (!entry) return null
     if (Date.now() - entry.timestamp > this.CACHE_TTL_MS) {
@@ -211,8 +211,8 @@ export class AgentExecutorService implements OnModuleInit {
     if (!this.modelRegistry) return undefined
     try {
       const dbKeys = await this.modelRegistry.getProviderKeys()
-      const defaultKey = dbKeys?.find((k: any) =>
-        (k.models || []).some((m: any) => m.isDefault)
+      const defaultKey = dbKeys?.find((k: { models?: Array<{ isDefault?: boolean }> }) =>
+        (k.models || []).some((m: { isDefault?: boolean }) => m.isDefault)
       )
       if (defaultKey?.providerCode) {
         this.logger.log(`Default provider from DB: ${defaultKey.providerCode}`)
@@ -292,8 +292,8 @@ export class AgentExecutorService implements OnModuleInit {
     if (!model && this.modelRegistry) {
       try {
         const dbKeys = await this.modelRegistry.getProviderKeys()
-        const defaultKey = dbKeys?.find((k: any) =>
-          (k.models || []).some((m: any) => m.isDefault)
+        const defaultKey = dbKeys?.find((k: { models?: Array<{ isDefault?: boolean }> }) =>
+          (k.models || []).some((m: { isDefault?: boolean }) => m.isDefault)
         )
         defaultProviderCode = defaultKey?.providerCode
         if (defaultProviderCode) {
@@ -335,7 +335,7 @@ export class AgentExecutorService implements OnModuleInit {
       '知识库在 backend/knowledge/ 目录（由元镜自动生成）。不确定业务规则时调 query_knowledge 查询。',
       '',
       // 🔐 动态工具列表（根据 agentType 过滤，不再 hardcode 全部）
-      `可用工具：${tools.map((t: any) => t.function.name).join('、')}`,
+      `可用工具：${tools.map((t: { function: { name: string } }) => t.function.name).join('、')}`,
       '',
       ...(effectiveAgentType === 'main' ? [
         '📁 项目根目录：backend/src/modules/ 下包含所有源代码。',
@@ -529,7 +529,7 @@ export class AgentExecutorService implements OnModuleInit {
     onEvent: (e: StreamEvent) => void,
   ): Promise<string> {
     const proposals = task.proposals || []
-    const lastProposal = proposals[proposals.length - 1] as any
+    const lastProposal = proposals[proposals.length - 1] as { timestamp?: string; content?: string; feedback?: { reason?: string; suggestions?: string[] } }
     const feedback = lastProposal?.feedback
     const prevReport = ((lastProposal?.content || '') as string).replace(/---\n📋 \*\*本次报告元数据[\s\S]*$/, '').trim()
 
@@ -608,7 +608,7 @@ export class AgentExecutorService implements OnModuleInit {
     const defaultProvider = getDefaultProvider()
     this.usedModel = defaultProvider ? `${defaultProvider.name} / ${result.model}` : result.model
 
-    const tcList = (result as any).toolCalls
+    const tcList = (result as { toolCalls?: Array<{ name: string; args: Record<string, unknown> }> }).toolCalls
     if (tcList && typeof tcList[Symbol.iterator] === 'function') {
       for (const tc of tcList) {
         if (tc.name === 'query_knowledge') {
@@ -724,7 +724,7 @@ export class AgentExecutorService implements OnModuleInit {
     // 如果有历史 proposal（第 2+ 轮）→ 把上一轮方案 + 反馈附上
     const proposals = task.proposals || []
     if (proposals.length > 0) {
-      const last = proposals[proposals.length - 1] as any
+      const last = proposals[proposals.length - 1] as { timestamp?: string; content?: string; feedback?: { reason?: string; suggestions?: string[] } }
       const prevReport = (last?.content || '')
         .replace(/---\n📋 \*\*本次报告元数据[\s\S]*$/, '').trim()
       const feedback = last?.feedback
@@ -767,14 +767,14 @@ export class AgentExecutorService implements OnModuleInit {
   private async executeDraftCreate(args: {
     spuName: string; gender: string; shapeCode: string
     seriesCode: string; structureStandardCode: string
-    spuDescription?: string; skus?: any[]
+    spuDescription?: string; skus?: Record<string, unknown>[]
   }): Promise<string> {
     return this.toolImpls.executeDraftCreate(args)
   }
 
   private async executeDraftAddSku(args: {
     spuId: string
-    skus: any[]
+    skus: Record<string, unknown>[]
   }): Promise<string> {
     return this.toolImpls.executeDraftAddSku(args)
   }
@@ -922,7 +922,7 @@ export class AgentExecutorService implements OnModuleInit {
       const { SkillRegistry } = await import('../skill/skill-registry.entity')
       const { InjectRepository } = await import('@nestjs/typeorm')
       // 由于 NestJS 装饰器必须在类初始化时注入，这里使用动态查询
-      const ds = (this as any)['entityProxy']?.repo?.manager
+      const ds = (this as unknown as { entityProxy?: { repo?: { manager?: { query: Function } } } })?.['entityProxy']?.repo?.manager
       if (!ds) return '' // 无法获取 DataSource
 
       // 简化方案：从 MetaMirrorService 直接调用
@@ -1018,7 +1018,7 @@ export class AgentExecutorService implements OnModuleInit {
   private async collectDictData(lines: string[]): Promise<void> {
     const effects = await this.taskRepo.manager.query(
       `SELECT tag_code, tag_name, effect_category FROM dict_effect_tag WHERE is_active = 1 LIMIT 30`
-    ).catch((e: any) => { this.logger.warn(`M14: 效果词加载失败: ${e?.message || e}`); return [] })
+    ).catch((e: unknown) => { this.logger.warn(`M14: 效果词加载失败: ${(e as Error)?.message || e}`); return [] })
     if (effects.length > 0) {
       const skin = effects.filter((e: DbRow) => e.effect_category === 'skin_tone')
       const face = effects.filter((e: DbRow) => e.effect_category === 'face_shape')
@@ -1029,7 +1029,7 @@ export class AgentExecutorService implements OnModuleInit {
 
     const materials = await this.taskRepo.manager.query(
       'SELECT material_code, material_name FROM dict_material WHERE is_active = 1 LIMIT 10'
-    ).catch((e: any) => { this.logger.warn(`材质加载失败: ${e?.message || e}`); return [] })
+    ).catch((e: unknown) => { this.logger.warn(`材质加载失败: ${(e as Error)?.message || e}`); return [] })
     if (materials.length > 0) {
       lines.push(`材质: ${(materials as DbRow[]).map((m: DbRow) => `${m.material_code}(${m.material_name})`).join('、')}`)
       lines.push('')
@@ -1037,7 +1037,7 @@ export class AgentExecutorService implements OnModuleInit {
 
     const colors = await this.taskRepo.manager.query(
       'SELECT color_code, color_name_cn FROM dict_sku_color WHERE is_active = 1 LIMIT 15'
-    ).catch((e: any) => { this.logger.warn(`色彩加载失败: ${e?.message || e}`); return [] })
+    ).catch((e: unknown) => { this.logger.warn(`色彩加载失败: ${(e as Error)?.message || e}`); return [] })
     if (colors.length > 0) {
       lines.push(`色彩: ${(colors as DbRow[]).map((c: DbRow) => `${c.color_code}(${c.color_name_cn})`).join('、')}`)
       lines.push('')
@@ -1096,7 +1096,7 @@ export class AgentExecutorService implements OnModuleInit {
           lines.push('')
           this.citedKnowledgeIds.push(entry.id)
           // 引用计数 +1
-          this.knowledgeService.cite(entry.id).catch((err: any) => this.logger.warn(`cite failed: ${entry.id}`))
+          this.knowledgeService.cite(entry.id).catch((err: unknown) => this.logger.warn(`cite failed: ${entry.id}`))
         }
       }
 
@@ -1180,11 +1180,11 @@ export class AgentExecutorService implements OnModuleInit {
   // csv_export — 智能导出（自动查询 + 导出）
   // ═══════════════════════════════════════════
 
-  private async executeCsvExport(entity: string, format: string, data: any[], filename: string): Promise<string> {
+  private async executeCsvExport(entity: string, format: string, data: Record<string, unknown>[], filename: string): Promise<string> {
     return this.toolImpls.executeCsvExport(entity, format, data, filename)
   }
 
-  private doExport(data: any[], format: string, filename: string): string {
+  private doExport(data: Record<string, unknown>[], format: string, filename: string): string {
     return this.toolImpls.doExport(data, format, filename)
   }
 
@@ -1196,7 +1196,7 @@ export class AgentExecutorService implements OnModuleInit {
     return this.toolImpls.executeWebFetch(url, mode, maxChars);
   }
 
-  private executeDataAnalyze(op: string, data: any[], field: string, topN?: number, fField?: string, fVal?: string): string {
+  private executeDataAnalyze(op: string, data: Record<string, unknown>[], field: string, topN?: number, fField?: string, fVal?: string): string {
     return this.toolImpls.executeDataAnalyze(op, data, field, topN, fField, fVal)
   }
 
@@ -1208,7 +1208,7 @@ export class AgentExecutorService implements OnModuleInit {
     return this.toolImpls.executeImportMap(columns, entityName)
   }
 
-  private async executeImportExecute(entityName: string, data: any[]): Promise<string> {
+  private async executeImportExecute(entityName: string, data: Record<string, unknown>[]): Promise<string> {
     return this.toolImpls.executeImportExecute(entityName, data)
   }
 
@@ -1218,7 +1218,7 @@ export class AgentExecutorService implements OnModuleInit {
   clearDeltaFiles() { this.sessionDeltaFiles = [] }
 
   
-  private executeFileEdit(args: Record<string, any>): string {
+  private executeFileEdit(args: Record<string, unknown> | { operation: string; filePath: string; oldStr?: string; newStr?: string; content?: string }): string {
     return this.toolImpls.executeFileEdit(args);
   }
 
