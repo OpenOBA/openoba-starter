@@ -37,6 +37,7 @@ import type {
   ERDLLLMMessage,
   ERDLLMTool,
 } from './erdl-llm-provider.interface'
+import type { ILlmSseHandler, ILlmPromptBuilder } from './llm-interfaces'
 import * as https from 'https'
 import * as http from 'http'
 import { IncomingMessage } from 'http'
@@ -62,7 +63,7 @@ export interface RecommendResult {
 // ============================================
 
 @Injectable()
-export class ERDLLLMBridge {
+export class ERDLLLMBridge implements ILlmSseHandler, ILlmPromptBuilder {
   private readonly logger = new Logger(ERDLLLMBridge.name)
 
   constructor(
@@ -648,7 +649,7 @@ export class ERDLLLMBridge {
    * - �����ڲ���������
    * ��Щ��ǲ�Ӧ�������û��ɼ�������С�
    */
-  private sanitizeContent(text: string): string {
+  public sanitizeContent(text: string): string {
     if (!text) return text
     // �Ƴ� DSML ��ǿ飨<����DSML����...>...</����DSML����> ���Ապϣ�
     let cleaned = text.replace(/<����DSML����[^>]*>[\s\S]*?<����DSML����\/[^>]*>/g, '')
@@ -669,7 +670,7 @@ export class ERDLLLMBridge {
    * Failover ���ԣ����ӽ׶γ��� primary Provider��HTTP �� 200 ʱ�л���
    * ��ʽ���������л��������ظ� token �ɱ�����
    */
-  private async streamReActRound(
+  public async streamReActRound(
     messages: ERDLLLMMessage[],
     tools: ERDLLMTool[],
     onEvent: (e: import('../../eros/stream/stream-event.types').StreamEvent) => void,
@@ -862,7 +863,7 @@ export class ERDLLLMBridge {
   /**
    * ��ʽ�������ջظ���SSE��
    */
-  private async streamFinalResponse(
+  public async streamFinalResponse(
     messages: ERDLLLMMessage[],
     onEvent: (e: import('../../eros/stream/stream-event.types').StreamEvent) => void,
     tools?: ERDLLMTool[],  // H15-Ext: ���������ջظ����м������ù���
@@ -1035,7 +1036,7 @@ export class ERDLLLMBridge {
    * Live-ERDL V1.2: ��������ӳ�� Prompt Ƭ��
    * �� Registry �ж�ȡ���� alias��ע�� LLM �� system prompt
    */
-  private buildAliasContext(entities: EntityRegistration[]): string {
+  public buildAliasContext(entities: EntityRegistration[]): string {
     const parts: string[] = []
     const namespace = 'industry.eyewear'
 
@@ -1154,7 +1155,7 @@ export class ERDLLLMBridge {
     })
   }
 
-  private buildRecommendQuery(params: RecommendParams): string {
+  public buildRecommendQuery(params: RecommendParams): string {
     const p: string[] = []
     if (params.faceShape) p.push(params.faceShape)
     if (params.skinTone) p.push(params.skinTone)
@@ -1163,13 +1164,13 @@ export class ERDLLLMBridge {
     return p.join(', ')
   }
 
-  private entityToPrompt(entity: EntityRegistration): string {
+  public entityToPrompt(entity: EntityRegistration): string {
     return Object.entries(entity.properties)
       .map(([k, v]) => k + ': ' + (typeof v === 'object' ? JSON.stringify(v) : String(v)))
       .join(', ')
   }
 
-  private entityToTable(entity: EntityRegistration): Record<string, unknown> {
+  public entityToTable(entity: EntityRegistration): Record<string, unknown> {
     return {
       name: entity.name,
       namespace: entity.namespace,
@@ -1178,7 +1179,7 @@ export class ERDLLLMBridge {
   }
 
   /** ���Ž�����LLM �쳣ʱ�����ۻ��Ĺ��߽�����ɻظ� */
-  private buildGracefulErrorResponse(
+  public buildGracefulErrorResponse(
     allToolCalls: Array<{ name: string; args: Record<string, unknown> }>,
     error: string,
     round: number,
