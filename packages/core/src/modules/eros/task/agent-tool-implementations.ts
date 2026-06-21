@@ -11,6 +11,7 @@
  */
 
 import { Injectable, Logger } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { ERDLRegistry } from '../../erdl/core/erdl-registry'
 import { EntityProxyService } from '../../erdl/core/entity-proxy.service'
@@ -70,6 +71,7 @@ export class AgentToolImplementations {
   }
 
   constructor(
+    @InjectRepository(AgentTask)
     private readonly taskRepo: Repository<AgentTask>,
     private readonly registry: ERDLRegistry,
     private readonly proxy: EntityProxyService,
