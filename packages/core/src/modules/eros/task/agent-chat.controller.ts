@@ -69,8 +69,8 @@ export class AgentChatController {
 
   /** �������Ƽ�� */
   private checkRateLimit(req: Request): void {
-    const jwtPayload = (req as any)?.user
-    const identifier = jwtPayload?.userId || jwtPayload?.sub || (req as any)?.ip || 'unknown'
+    const jwtPayload = (req as import("express").Request)?.user
+    const identifier = jwtPayload?.userId || jwtPayload?.sub || (req as import("express").Request)?.ip || 'unknown'
     const now = Date.now()
     const entry = this.rateLimitMap.get(identifier)
     if (entry && entry.resetAt > now && entry.count >= RATE_LIMIT_MAX) {
@@ -94,12 +94,12 @@ export class AgentChatController {
   }
 
   /** ��������� */
-  private classifyError(e: any): string {
+  private classifyError(e: unknown): string {
     return classifyError(e)
   }
 
   /** �û��ѺõĴ�����Ϣ */
-  private getUserFriendlyMessage(errorType: string, e: any): string {
+  private getUserFriendlyMessage(errorType: string, e: unknown): string {
     return getUserFriendlyMessage(e)
   }
 
@@ -110,7 +110,7 @@ export class AgentChatController {
     res.setHeader('Connection', 'keep-alive')
     res.setHeader('X-Accel-Buffering', 'no')
     res.flushHeaders()
-    const socket = (res as any).socket
+    const socket = (res as import("express").Response).socket
     if (socket) socket.setNoDelay(true)
   }
 
@@ -233,11 +233,11 @@ export class AgentChatController {
               migrationSql = migResult.allSql
               this.logger.log(`?? ��⵽ ${migResult.migrations.length} �� entity ����������� migration`)
             }
-          } catch (e: any) {
+          } catch (e: unknown) {
             this.logger.warn('Migration ����ʧ��: ' + (e?.message || String(e)))
           }
 
-          let delta: any
+          let delta: Record<string, unknown>
           try {
             delta = this.deployment.createDelta({
               type: 'feat',
@@ -256,7 +256,7 @@ export class AgentChatController {
                 { action: 'discard', label: '?? �������', type: 'default' },
               ],
             })
-          } catch (e: any) {
+          } catch (e: unknown) {
             this.logger.warn('Delta ��������ʧ��: ' + (e?.message || String(e)))
             send({
               type: 'delta_report',
@@ -274,7 +274,7 @@ export class AgentChatController {
         // H18: queryWithToolsStream �� while ѭ���ѽ��� �� �������ջظ� + done
         send({ type: 'done' })
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (e?.name === 'AbortError' || abortController.signal.aborted) {
         send({ type: 'aborted', partialContent: this.runRegistry.getPartialContent(runId) })
       } else {
@@ -350,8 +350,8 @@ export class AgentChatController {
 
     // P1�޸����������ƣ���IP��
     // H11�޸���������JWT userId������������IP
-    const jwtPayload = (res.req as any)?.user
-    const identifier = jwtPayload?.userId || jwtPayload?.sub || (res.req as any)?.ip || 'unknown'
+    const jwtPayload = (res.req as import("express").Request)?.user
+    const identifier = jwtPayload?.userId || jwtPayload?.sub || (res.req as import("express").Request)?.ip || 'unknown'
     const now = Date.now()
     const entry = this.rateLimitMap.get(identifier)
     if (entry && entry.resetAt > now && entry.count >= RATE_LIMIT_MAX) {
@@ -368,7 +368,7 @@ export class AgentChatController {
     res.setHeader('X-Accel-Buffering', 'no')
     res.flushHeaders()
 
-    const socket = (res as any).socket
+    const socket = (res as import("express").Response).socket
     if (socket) socket.setNoDelay(true)
 
     // P1�޸����ͻ��˶Ͽ�ʱȡ�� LLM ����
@@ -395,7 +395,7 @@ export class AgentChatController {
       )
       send({ type: 'done' })
       res.end()
-    } catch (e: any) {
+    } catch (e: unknown) {
       send({ type: 'error', text: e?.message || '�Ựʧ��' })
       res.end()
     }
@@ -429,9 +429,9 @@ export class AgentChatController {
   @ApiOperation({ summary: '����������Agent �����ܽ�δ�������������һ��' })
   async smartBoot() {
     const [pendingTasks, reviewedDrafts, draftDrafts] = await Promise.all([
-      this.taskRepo.find({ where: { status: 'processing' as any }, order: { createdAt: 'DESC' }, take: 5 }),
-      this.draftSpuRepo.find({ where: { status: 'reviewed', deletedAt: IsNull() } as any, order: { createdAt: 'DESC' }, take: 10 }),
-      this.draftSpuRepo.find({ where: { status: 'draft', deletedAt: IsNull() } as any, order: { createdAt: 'DESC' }, take: 10 }),
+      this.taskRepo.find({ where: { status: 'processing' }, order: { createdAt: 'DESC' }, take: 5 }),
+      this.draftSpuRepo.find({ where: { status: 'reviewed', deletedAt: IsNull() } , order: { createdAt: 'DESC' }, take: 10 }),
+      this.draftSpuRepo.find({ where: { status: 'draft', deletedAt: IsNull() } , order: { createdAt: 'DESC' }, take: 10 }),
     ])
 
     const lines: string[] = []
@@ -487,7 +487,7 @@ export class AgentChatController {
     @Res() res: Response,
   ) {
     try {
-      const task = await (this.taskService as any).findOne(id)
+      const task = await (this.taskService as unknown as { findOne: (id: string) => Promise<unknown> }).findOne(id)
       if (!task) { res.status(404).json({ error: '���񲻴���' }); return }
 
       const proposals = task.proposals || []
@@ -512,7 +512,7 @@ export class AgentChatController {
         url: fileUrl,
         size: Buffer.byteLength(content, 'utf-8'),
       })
-    } catch (e: any) {
+    } catch (e: unknown) {
       // M02�޸�����й¶�ڲ�������Ϣ
       this.logger.error(`export-md failed:`, e instanceof Error ? e.message : String(e))
       res.status(500).json({ error: '����ʧ�ܣ����Ժ�����' })
