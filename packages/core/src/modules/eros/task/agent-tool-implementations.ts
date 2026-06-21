@@ -11,21 +11,21 @@
  */
 
 import { Injectable, Logger } from '@nestjs/common'
-import type { Repository } from 'typeorm'
-import type { ERDLRegistry } from '../../erdl/core/erdl-registry'
-import type { EntityProxyService } from '../../erdl/core/entity-proxy.service'
-import type { KnowledgeService } from './knowledge.service'
-import type { InventoryService } from '../../inventory/inventory.service'
-import type { AgentTask } from './agent-task.entity'
-import type { AgentSecurityGuard } from './agent-security-guard'
+import { Repository } from 'typeorm'
+import { ERDLRegistry } from '../../erdl/core/erdl-registry'
+import { EntityProxyService } from '../../erdl/core/entity-proxy.service'
+import { KnowledgeService } from './knowledge.service'
+import { InventoryService } from '../../inventory/inventory.service'
+import { AgentTask } from './agent-task.entity'
+import { AgentSecurityGuard } from './agent-security-guard'
+import { DraftPoolService } from '../../draft-pool/draft-pool.service'
+import { DraftService } from '../../draft-pool/draft.service'
+import { AestheticsService } from '../../aesthetics/aesthetics.service'
 import { TIMEOUT } from '../../../common/constants/timeouts'
 import * as crypto from 'crypto'
 import * as fs from 'fs'
 import * as path from 'path'
 import { EntityDataBridge } from '../../erdl/core/entity-data-bridge'
-import type { DraftPoolService } from '../../draft-pool/draft-pool.service'
-import type { DraftService } from '../../draft-pool/draft.service'
-import type { AestheticsService } from '../../aesthetics/aesthetics.service'
 
 type DbRow = Record<string, string>
 
