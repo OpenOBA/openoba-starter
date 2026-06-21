@@ -51,7 +51,7 @@ import {
   ModelProvider,
   TokenUsage,
   ModelConnectionLog,
-} from '@openoba/core/index'
+} from '@openoba/core'
 // Core 模块（按需导入，barrel 不导出模块）
 import { ERDLModule } from '@openoba/core/dist/modules/erdl/erdl.module'
 import { ChatModule } from '@openoba/core/dist/modules/eros/chat/chat.module'
