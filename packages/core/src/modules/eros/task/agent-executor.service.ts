@@ -40,6 +40,7 @@ import { SoulService } from '../../soul/soul.service'
 import { ModelRegistryService } from '../../system/model-registry.service'
 import { AgentSecurityGuard } from './agent-security-guard'
 import { AgentToolRegistrar } from './agent-tool-registrar'
+import { AgentToolImplementations } from './agent-tool-implementations'
 import { TIMEOUT } from '../../../common/constants/timeouts'
 
 // 重新导出 AgentTaskType
@@ -98,6 +99,7 @@ export class AgentExecutorService implements OnModuleInit {
     private readonly soulService: SoulService,
     private readonly securityGuard: AgentSecurityGuard,
     private readonly toolRegistrar: AgentToolRegistrar,
+    private readonly toolImpls: AgentToolImplementations,
     @Optional() private readonly modelRegistry?: ModelRegistryService,
   ) {}
 
@@ -621,116 +623,12 @@ export class AgentExecutorService implements OnModuleInit {
 
   /** 执行 ERP 数据查询工具 */
   private async executeErpQuery(dataType: string): Promise<string> {
-    const lines: string[] = []
-
-    const queries: Record<string, () => Promise<void>> = {
-      spu: async () => {
-        try {
-          const rows = await this.taskRepo.manager.query('SELECT spu_code, spu_name, structure_standard_code, series_code, gender, status FROM product_spu WHERE is_deleted = 0 ORDER BY created_at DESC LIMIT 10')
-          lines.push('## 现有 SPU')
-          if (rows.length === 0) lines.push('（无数据）')
-          else rows.forEach((r: DbRow) => lines.push(`- ${r.spu_code}: ${r.spu_name} | 结构标准:${r.structure_standard_code||'—'} | 系列:${r.series_code||'—'} | 性别:${r.gender||'—'} | ${r.status}`))
-          lines.push('')
-        } catch (e) { lines.push('## 现有 SPU\n（查询失败）\n') }
-      },
-      sku: async () => {
-        try {
-          const rows = await this.taskRepo.manager.query('SELECT sku_code, sku_name, color_code, skin_tone_effect, face_shape_effect, status FROM product_sku WHERE is_deleted = 0 ORDER BY created_at DESC LIMIT 20')
-          lines.push('## 现有 SKU')
-          if (rows.length === 0) lines.push('（无数据）')
-          else rows.forEach((r: DbRow) => lines.push(`- ${r.sku_code}: ${r.sku_name||'—'} | 色号:${r.color_code||'—'} | 肤色效果:${r.skin_tone_effect||'—'} | 脸型效果:${r.face_shape_effect||'—'} | ${r.status}`))
-          lines.push('')
-        } catch (e) { lines.push('## 现有 SKU\n（查询失败: '+String(e).substring(0,80)+'）\n') }
-      },
-      shapes: async () => {
-        try {
-          const rows = await this.taskRepo.manager.query('SELECT shape_code, shape_name FROM structure_shape WHERE is_active=1 ORDER BY sort_order')
-          lines.push('## 可用框型'); rows.forEach((r: DbRow) => lines.push(`- ${r.shape_code}: ${r.shape_name}`)); lines.push('')
-        } catch (e) { lines.push('## 可用框型\n（查询失败）\n') }
-      },
-      colors: async () => {
-        try {
-          const rows = await this.taskRepo.manager.query('SELECT color_code, color_name, color_name_en FROM dict_sku_color WHERE is_active=1 LIMIT 20')
-          lines.push('## 可用色彩'); rows.forEach((r: DbRow) => lines.push(`- ${r.color_code}: ${r.color_name} (${r.color_name_en||''})`)); lines.push('')
-        } catch (e) { lines.push('## 可用色彩\n（查询失败）\n') }
-      },
-      materials: async () => {
-        try {
-          // dict_material 表不存在，跳过
-          lines.push('## 可用材质\n（字典表未配置）\n')
-        } catch (e) { lines.push('## 可用材质\n（查询失败）\n') }
-      },
-      effects: async () => {
-        try {
-          const rows = await this.taskRepo.manager.query('SELECT effect_code, effect_type, effect_name FROM dict_effect_tag WHERE is_active=1 LIMIT 30')
-          lines.push('## 效果词库')
-          const skin = rows.filter((r: DbRow) => r.effect_type==='skin_tone')
-          const face = rows.filter((r: DbRow) => r.effect_type==='face_shape')
-          if (skin.length) lines.push(`肤色: ${skin.map((r: DbRow)=>r.effect_name).join('、')}`)
-          if (face.length) lines.push(`脸型: ${face.map((r: DbRow)=>r.effect_name).join('、')}`)
-          lines.push('')
-        } catch (e) { lines.push('## 效果词库\n（查询失败）\n') }
-      },
-      series: async () => {
-        try {
-          const rows = await this.taskRepo.manager.query('SELECT series_code, series_name FROM structure_series WHERE is_active=1 ORDER BY sort_order')
-          lines.push('## 可用系列'); rows.forEach((r: DbRow) => lines.push(`- ${r.series_code}: ${r.series_name}`)); lines.push('')
-        } catch (e) { lines.push('## 可用系列\n（查询失败）\n') }
-      },
-      rules: async () => {
-        const allRules = this.registry.getRulesByTrigger('Product.price.calculate')
-        const pricing = allRules.filter(r => r.tier==='policy')
-        lines.push('## 生效定价规则')
-        if (pricing.length===0) lines.push('（无特殊规则，按默认定价）')
-        else pricing.forEach(r => lines.push(`- ${r.name}: priority=${r.priority} tier=${r.tier}`))
-        lines.push('')
-      },
-      all: async () => {
-        for (const key of ['spu','sku','shapes','colors','materials','effects','series','rules']) {
-          await queries[key]?.()
-        }
-      },
-    }
-
-    const fn = queries[dataType]
-    if (fn) {
-      await fn()
-    } else {
-      lines.push('未知数据类型: ' + dataType)
-    }
-
-    return lines.join('\n')
+    return this.toolImpls.executeErpQuery(dataType)
   }
 
   /** 执行知识库查询工具 */
   private async executeKnowledgeQuery(keyword: string): Promise<string> {
-    try {
-      // 支持逗号分隔的多关键词
-      const tags = keyword.split(/[,，]/).map(t => t.trim()).filter(Boolean)
-      const { publicEntries, privateEntries } = await this.knowledgeService.searchForAgent({
-        tags: tags.length > 0 ? tags : [keyword],
-        topk: 5,
-      })
-      const lines: string[] = []
-      if (publicEntries.length > 0) {
-        lines.push(`## 知识库: "${keyword}" (${publicEntries.length} 条)`)
-        for (const e of publicEntries) {
-          lines.push(`- [${e.id}] ${e.title}`)
-          lines.push(`  ${e.content.substring(0, 150)}...`)
-          // 引用计数
-          this.citedKnowledgeIds.push(e.id)
-          this.knowledgeService.cite(e.id).catch((err: any) => this.logger.warn(`cite failed: ${e.id} ${err?.message || err}`))
-        }
-      } else {
-        lines.push(`## 知识库: "${keyword}" (无匹配结果)`)
-      }
-      if (privateEntries.length > 0) {
-        lines.push(`🔒 私有知识 ${privateEntries.length} 条（仅标题）: ${privateEntries.map(e=>e.title).join('、')}`)
-      }
-      return lines.join('\n')
-    } catch (e) {
-      return `知识库查询失败: ${e}`
-    }
+    return this.toolImpls.executeKnowledgeQuery(keyword)
   }
 
   // ═══════════════════════════════════════════
@@ -860,96 +758,7 @@ export class AgentExecutorService implements OnModuleInit {
     where?: Record<string, unknown>
     data?: Record<string, unknown>
   }): Promise<string> {
-    const { action: rawAction, entity } = args
-    // 兼容 LLM 可能用的别名: query→read
-    const action = rawAction === 'query' ? 'read' : rawAction
-    const values = args.values || args.data
-    const where = args.where
-    const select = (args as any).select
-    const ns = 'industry.eyewear'
-
-    // 安全红线：禁止系统表（通过 FORBIDDEN_TABLES 检查）
-    const mapping = this.proxy['getMapping']?.(ns, entity)
-    if (mapping && this.FORBIDDEN_TABLES.has(mapping.table)) {
-      return `❌ 禁止操作: ${mapping.table} 是系统安全表`
-    }
-
-    // 安全红线：禁止写系统字段
-    if (values) {
-      for (const key of Object.keys(values)) {
-        if (this.READONLY_FIELDS.has(key)) return `❌ 禁止写系统字段: ${key}`
-      }
-    }
-
-    // 使用 EntityProxy 执行操作
-    try {
-      switch (action) {
-        case 'create': {
-          if (!values || Object.keys(values).length === 0) return '❌ create 需要 values'
-
-          // P0修复：InventoryDocument 创建+确认在同一事务中，防止部分成功
-          if (entity === 'InventoryDocument' && this.proxy.getDataSource()) {
-            try {
-              return await this.proxy.withTransaction(async (manager) => {
-                const r = await this.proxy.insert({ namespace: ns, entity, data: values })
-                if (!r.success) throw new Error(r.error || '创建失败')
-
-                const docNo = values['docNo'] as string
-                if (docNo) {
-                  const docs = await this.inventoryService.findDocuments({ status: 'pending' })
-                  const doc = docs.items.find((d: any) => d.docNo === docNo)
-                  if (doc) {
-                    await this.inventoryService.confirmDocument(doc.id, 'agent')
-                    return `✅ 入库单 ${docNo} 已创建并执行！| ${entity} | 库存已更新（事务保护）`
-                  }
-                }
-                return `✅ create ${entity} 成功（事务保护）| 影响 ${r.affectedRows || 1} 行`
-              })
-            } catch (e: unknown) {
-              this.logger.error(`InventoryDocument 事务创建失败: ${(e as Error).message}`)
-              return `❌ 操作失败（已回滚）: ${(e as Error).message}`
-            }
-          }
-
-          const r = await this.proxy.insert({ namespace: ns, entity, data: values })
-          if (!r.success) return `❌ 创建失败: ${r.error}`
-
-          return `✅ create ${entity} 成功 | 影响 ${r.affectedRows || 1} 行`
-        }
-        case 'update': {
-          if (!where || Object.keys(where).length === 0) return '❌ update 必须带 where（安全红线）'
-          if (!values || Object.keys(values).length === 0) return '❌ update 需要 values'
-          const r = await this.proxy.update({ namespace: ns, entity, data: values, where })
-          return r.success
-            ? `✅ update ${entity} 成功 | 影响 ${r.affectedRows || 0} 行`
-            : `❌ 更新失败: ${r.error}`
-        }
-        case 'delete': {
-          if (!where || Object.keys(where).length === 0) return '❌ delete 必须带 where（安全红线）'
-          const r = await this.proxy.softDelete({ namespace: ns, entity, where })
-          return r.success
-            ? `✅ delete ${entity} 成功 | 影响 ${r.affectedRows || 0} 行`
-            : `❌ 删除失败: ${r.error}`
-        }
-        case 'read': {
-          const r = await this.proxy.query({ namespace: ns, entity, select, where, limit: 20 })
-          if (!r.success) return `❌ 查询失败: ${r.error}`
-          if (r.count === 0) return `📭 ${entity}: 无匹配记录`
-          // 🔑 写入共享缓存（供 csv_export 等后续工具使用）
-          if (r.rows && r.rows.length > 0) {
-            this.cacheSet('last_query', r.rows)
-            this.cacheSet(`entity:${entity}`, r.rows)
-          }
-          const headers = Object.keys(r.rows[0] || {}).join(' | ')
-          const body = r.rows.map((row: any) => Object.values(row).join(' | ')).join('\n')
-          return `📊 ${entity} (${r.count}条):\n${headers}\n${body}`
-        }
-        default: return `❌ 不支持: ${action}。支持: create, read, update, delete`
-      }
-    } catch (e: unknown) {
-      this.logger.error(`[erdl_crud V1.3] ${(e as Error).message}`)
-      return `❌ 操作失败: ${(e as Error).message}`
-    }
+    return this.toolImpls.executeErdlCrud(args)
   }
 
   // ═══════════════════════════════════════════
