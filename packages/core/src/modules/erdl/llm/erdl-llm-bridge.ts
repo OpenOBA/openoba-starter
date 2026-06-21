@@ -155,7 +155,6 @@ export class ERDLLLMBridge implements ILlmSseHandler, ILlmPromptBuilder {
   }
 
   /**
-   * Function Calling ��ѯ �� ReAct ���ְ汾 (V1.5)
    *
    * while ѭ�� + ÿ��ִֻ�е� 1 �����ߣ��� queryWithToolsStream �߼�һ��
    */
@@ -314,7 +313,6 @@ export class ERDLLLMBridge implements ILlmSseHandler, ILlmPromptBuilder {
   }
 
   /**
-   * ��H18 ���հ桿��� while ѭ�� �� DeepSeek �ٷ��Ƽ�ģʽ
    *
    * �����ִ�Ӳ���ޡ���ֹ������
    *   1. LLM ���ش��ı�����Ȼ��ֹ��
@@ -342,7 +340,6 @@ export class ERDLLLMBridge implements ILlmSseHandler, ILlmPromptBuilder {
 
     // ������ 30 �֣����̽��Э���� Agent �������������������м��ٴ�����
     const SOFT_ROUND_LIMIT = 30
-    // �����ޱ仯��⣨���� LLM �˻���Ȧ��
     let lastToolSignature = ''
     let sameToolStreak = 0
     const MAX_SAME_STREAK = 4
@@ -473,7 +470,6 @@ export class ERDLLLMBridge implements ILlmSseHandler, ILlmPromptBuilder {
         onEvent({ type: 'thought', text: assistantContent.trim().substring(0, 300) })
       }
 
-      // V1.3 ר������ �� Action Guard У�飨����ӳ�� + ������ + ö��У�飩
       // ͨ�� ERDL_ACTION_GUARD=false ����������һ������
       if (this.actionGuard.isEnabled()) {
         const parsedAction: ParsedAction = {
@@ -488,7 +484,6 @@ export class ERDLLLMBridge implements ILlmSseHandler, ILlmPromptBuilder {
           onEvent({ type: 'observation', text: `?? ${errorMsg}` })
           continue
         }
-        // ʹ��У���Ĺ淶��������������ӳ������
         if (validationResult.normalizedArgs) {
           args = validationResult.normalizedArgs
         }
@@ -746,7 +741,6 @@ export class ERDLLLMBridge implements ILlmSseHandler, ILlmPromptBuilder {
     return getDefaultProvider()?.id
   }
 
-  /** B-4: 从 DB 解密获取 API Key（fallback .env） */
   private async resolveKeyFromDB(providerId: string): Promise<string | undefined> {
     if (!this.modelRegistry) return undefined
     try {

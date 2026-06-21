@@ -32,7 +32,6 @@ import { ChatMessage, cleanInput, getUserId, classifyError, getUserFriendlyMessa
 export class AgentChatController {
   private readonly logger = new Logger(AgentChatController.name)
 
-  // P1�޸����������ƣ��ڴ滬�����ڣ���ʵ����
   private rateLimitMap = new Map<string, { count: number; resetAt: number }>()
 
   // P1-3: rateLimitMap ����������5���Ӽ����
@@ -259,7 +258,6 @@ export class AgentChatController {
             })
           } catch (e: any) {
             this.logger.warn('Delta ��������ʧ��: ' + (e?.message || String(e)))
-            // ���������ͼ򻯰汨��
             send({
               type: 'delta_report',
               deltaId: 'DELTA-' + Date.now().toString(36),
@@ -405,7 +403,6 @@ export class AgentChatController {
 
   /**
    * Agent Tool ���ֶ˵�
-   * ���ص�ǰ Agent ���õ����� Tool ���壨LLM Function Calling ��ʽ��
    */
   @Get('agent-tools')
   @ApiOperation({ summary: '��ȡ Agent ���ù����б�' })
