@@ -1,0 +1,18 @@
+{
+  "taskId": "cf96ad77b1a74c06b86f11dd262c8ae1",
+  "taskTitle": "让我先拉取订单、订单明细和商品数据，全面掌握情况。好，9 笔订单。接着拉订单明细和商品数据。数据有了雏形。再查缺失的订单明细，以及当前激活的 SKU 列表来做交叉对比。数据齐全了，让我用分析工具做汇总。---",
+  "version": 1,
+  "createdAt": "2026-06-19T20:20:11.631Z",
+  "createdBy": "ERA Agent",
+  "approvedBy": null,
+  "userType": "operator",
+  "status": "approved",
+  "files": [
+    {
+      "path": "output.md",
+      "size": 5603
+    }
+  ],
+  "changelog": "Agent 自动交付",
+  "parentVersion": null
+}

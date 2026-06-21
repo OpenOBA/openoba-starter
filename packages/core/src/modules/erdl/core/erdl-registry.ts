@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 秒镜科技 · ERDL — Enterprise Resource Definition Language
  *
  * @file ERDL Registry — 运行时注册中心
@@ -77,10 +77,10 @@ export class ERDLRegistry {
   private knowledgeBases = new Map<string, KnowledgeBaseRegistration>()
 
   /** Live-ERDL: 同步策略注册表 */
-  private syncPolicies = new Map<string, any>()
+  private syncPolicies = new Map<string, Record<string, unknown>>()
 
   /** Live-ERDL: 语义层配置 */
-  private semanticLayer: any = null
+  private semanticLayer: Record<string, unknown> | null = null
 
   /** Live-ERDL V1.2: 别名映射表 { EntityName → { alias → fieldName } } */
   private aliases = new Map<string, AliasMap>()
@@ -355,12 +355,12 @@ export class ERDLRegistry {
   }
 
   /** Live-ERDL: 获取所有同步策略 */
-  getSyncPolicies(): Map<string, any> {
+  getSyncPolicies(): Map<string, Record<string, unknown>> {
     return this.syncPolicies
   }
 
   /** Live-ERDL: 获取语义层配置 */
-  getSemanticLayer(): any {
+  getSemanticLayer(): Record<string, unknown> | null {
     return this.semanticLayer
   }
 
@@ -582,7 +582,7 @@ export class ERDLRegistry {
       if (e.sourceFile === sourceFile) { this.entities.delete(key); entities++ }
     }
     for (const [key, r] of this.rules) {
-      if ((r as any).sourceFile === sourceFile) { this.rules.delete(key); rules++ }
+      if ((r as unknown as { sourceFile?: string }).sourceFile === sourceFile) { this.rules.delete(key); rules++ }
     }
     for (const [key, a] of this.agents) {
       if (a.sourceFile === sourceFile) { this.agents.delete(key); agents++ }
@@ -602,8 +602,8 @@ export class ERDLRegistry {
         deletedFile = true
         this.logger.log(`[ERDL] 文件已删除: ${sourceFile}`)
       }
-    } catch (e: any) {
-      this.logger.error(`[ERDL] 删除文件失败: ${e.message}`)
+    } catch (e: unknown) {
+      this.logger.error(`[ERDL] 删除文件失败: ${(e as Error).message}`)
     }
 
     this.logger.log(`[ERDL] 卸载完成: ${entities} Entity, ${rules} Rule, ${agents} Agent, ${knowledgeBases} KB`)

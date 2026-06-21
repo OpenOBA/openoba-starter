@@ -13,7 +13,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(username: string, password: string): Promise<any> {
+  async validateUser(username: string, password: string): Promise<{ userId: string; username: string; realName?: string; status?: string; roles?: string[]; roleCodes?: string[] } | null> {
     const user = await this.userRepository.findOne({
       where: { username, isDeleted: false },
     })
@@ -30,7 +30,7 @@ export class AuthService {
        WHERE ur.user_id = ?`,
       [user.userId],
     )
-    const roleCodes = (roles || []).map((r: any) => r.roleCode)
+    const roleCodes = (roles || []).map((r: Record<string, unknown>) => r.roleCode)
 
     return {
       userId: user.userId,
@@ -41,7 +41,7 @@ export class AuthService {
     }
   }
 
-  async login(userData: any) {
+  async login(userData: { userId: string; username: string; roles?: string[]; realName?: string; status?: string; roleCodes?: string[] }) {
     await this.userRepository.update({ userId: userData.userId }, { lastLoginAt: new Date() })
 
     // P0修复：JWT payload 携带 roles，确保 RolesGuard 可正常校验

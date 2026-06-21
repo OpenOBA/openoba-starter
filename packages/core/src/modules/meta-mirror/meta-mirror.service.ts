@@ -97,7 +97,7 @@ export class MetaMirrorService implements OnModuleInit {
 
     // V2.0 P1: ERDL ↔ DTO 一致性审计
     this.logger.log('  🔍 ERDL ↔ DTO 一致性审计...')
-    const enhancedRules = (this.ruleScanner as any).scanEnhanced?.(this.projectRoot) || rules
+    const enhancedRules = (this.ruleScanner as unknown as { scanEnhanced?: Function }).scanEnhanced?.(this.projectRoot) || rules
     const outputDir = path.join(process.cwd(), 'knowledge')
     // DTO 扫描器通过 EntityScanner 间接获取
     const dtoScanner = new (require('./scanners/dto.scanner').DtoScanner)()
@@ -195,7 +195,7 @@ export class MetaMirrorService implements OnModuleInit {
   }
 
   /** 获取实体索引（供 ContextInjector 快速查找） */
-  getEntityIndex(): Record<string, any> {
+  getEntityIndex(): Record<string, unknown> {
     const indexPath = path.join(process.cwd(), 'knowledge', 'entities', '_index.md')
     if (require('fs').existsSync(indexPath)) {
       // 返回简化索引

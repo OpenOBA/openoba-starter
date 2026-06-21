@@ -99,7 +99,7 @@ export class AgentManifestService {
           u.real_name
       `)
       // 转换为 camelCase
-      return rows.map((row: any) => ({
+      return rows.map((row: Record<string, unknown>) => ({
         agentId: row.agent_id,
         agentCode: row.agent_code,
         agentName: row.agent_name,

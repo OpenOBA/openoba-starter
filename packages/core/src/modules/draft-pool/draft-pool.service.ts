@@ -21,7 +21,7 @@ export interface DraftSpuCreateInput {
   structureStandardCode?: string
   spuDescription?: string
   source?: string
-  skus?: any[]
+  skus?: Record<string, unknown>[]
 }
 
 export interface DraftSpuResult {

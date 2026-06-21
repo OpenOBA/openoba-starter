@@ -1,0 +1,18 @@
+{
+  "taskId": "f4272fa898c1435cae98d72fdbb97662",
+  "taskTitle": "好，我来分析销售数据。先同步拉取订单、订单明细和产品数据。现在用数据分析工具做统计：",
+  "version": 1,
+  "createdAt": "2026-06-19T08:54:13.539Z",
+  "createdBy": "ERA Agent",
+  "approvedBy": null,
+  "userType": "operator",
+  "status": "approved",
+  "files": [
+    {
+      "path": "output.md",
+      "size": 5312
+    }
+  ],
+  "changelog": "Agent 自动交付",
+  "parentVersion": null
+}

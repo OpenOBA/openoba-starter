@@ -1,0 +1,18 @@
+{
+  "taskId": "495374d163a349428053c3a614c63734",
+  "taskTitle": "我来分析销售数据。先并行拉取订单明细和商品数据。现在拉取 SPU 和 SKU 数据做交叉分析。",
+  "version": 1,
+  "createdAt": "2026-06-19T17:13:50.663Z",
+  "createdBy": "ERA Agent",
+  "approvedBy": null,
+  "userType": "operator",
+  "status": "approved",
+  "files": [
+    {
+      "path": "output.md",
+      "size": 10241
+    }
+  ],
+  "changelog": "Agent 自动交付",
+  "parentVersion": null
+}

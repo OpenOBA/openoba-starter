@@ -51,7 +51,7 @@ export class RunRegistry {
   private readonly CLEANUP_INTERVAL_MS = 5 * 60 * 1000
 
   /** 幂等缓存：已完成的 run（key → result），5 分钟过期 */
-  private completedRuns = new Map<string, { result: any; createdAt: number }>()
+  private completedRuns = new Map<string, { result: { runId: string; partialContent: string }; createdAt: number }>()
   private readonly COMPLETED_TTL_MS = 5 * 60 * 1000
 
   private cleanupTimer: ReturnType<typeof setInterval> | null = null
@@ -123,8 +123,8 @@ export class RunRegistry {
 
     try {
       entry.controller.abort()
-    } catch (e: any) {
-      this.logger.error(`AbortController 调用失败 [${runId}]: ${e.message}`)
+    } catch (e: unknown) {
+      this.logger.error(`AbortController 调用失败 [${runId}]: ${(e as Error).message}`)
     }
     // 不立即删除 — stream 端点需要读取 partialContent
     // cleanup 会在一段时间后清除
@@ -200,7 +200,7 @@ export class RunRegistry {
   registerIfNew(entry: Omit<RunEntry, 'partialContent' | 'createdAt'> & { createdAt?: number; sessionKey?: string }): {
     runId: string
     status: 'new' | 'cached' | 'in_flight'
-    cachedResult?: any
+    cachedResult?: { runId: string; partialContent: string }
   } {
     if (!entry.idempotencyKey) {
       // 无幂等 key → 直接注册
@@ -229,7 +229,7 @@ export class RunRegistry {
   /**
    * 获取幂等缓存的结果
    */
-  getCachedResult(idempotencyKey: string): any | null {
+  getCachedResult(idempotencyKey: string): { runId: string; partialContent: string } | null {
     const cached = this.completedRuns.get(idempotencyKey)
     if (cached && Date.now() - cached.createdAt < this.COMPLETED_TTL_MS) {
       return cached.result

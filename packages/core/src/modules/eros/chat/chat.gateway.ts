@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ERA Chat WebSocket Gateway — 主入口
  *
  * @file chat.gateway.ts
@@ -106,8 +106,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           client.disconnect()
           return
         }
-      } catch (err: any) {
-        this.logger.warn(`WS 连接拒绝: JWT 验签失败 (client=${client.id}): ${err.message}`)
+      } catch (err: unknown) {
+        this.logger.warn(`WS 连接拒绝: JWT 验签失败 (client=${client.id}): ${(err as Error).message}`)
         client.emit('chat.error', { message: '认证令牌无效或已过期' })
         client.disconnect()
         return
@@ -117,8 +117,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.emit('connected', { clientId: client.id })
 
       this.logger.log(`WS 连接成功: client=${client.id} userId=${userId}`)
-    } catch (e: any) {
-      this.logger.error(`WS 连接异常: ${e.message}`)
+    } catch (e: unknown) {
+      this.logger.error(`WS 连接异常: ${(e as Error).message}`)
       client.disconnect()
     }
   }
@@ -136,7 +136,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('chat.send')
   async handleChatSend(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { sessionKey?: string; message?: string; history?: any[]; idempotencyKey?: string; model?: string },
+    @MessageBody() data: { sessionKey?: string; message?: string; history?: Record<string, unknown>[]; idempotencyKey?: string; model?: string },
   ) {
     const clientInfo = this.sessionManager.getClient(client.id)
     if (!clientInfo) {
@@ -173,8 +173,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (regResult.status === 'cached') {
       const cached = regResult.cachedResult
       if (cached) {
-        client.emit('chat.event', { runId: cached.runId, type: 'content', delta: cached.partialContent })
-        client.emit('chat.done', { runId: cached.runId })
+        client.emit('chat.event', { runId: (cached as { runId: string; partialContent: string }).runId, type: 'content', delta: (cached as { runId: string; partialContent: string }).partialContent })
+        client.emit('chat.done', { runId: (cached as { runId: string; partialContent: string }).runId })
       }
       return
     }
@@ -198,9 +198,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.messageService.append(sessionKey, { role: 'human', content: cleanMessage }).catch(() => {})
 
     // 清洗 history
-    const cleanHistory = (data.history || []).map((h: any) => ({
-      role: h.role,
-      content: (h.content || '').replace(/<[^>]*>/g, ''),
+    const cleanHistory = (data.history || []).map((h: Record<string, unknown>) => ({
+      role: (h.role as string) || 'human',
+      content: ((h.content as string) || '').replace(/<[^>]*>/g, ''),
     }))
 
     // 异步执行 Agent
@@ -237,8 +237,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           this.logger.warn(`[Deliverable] 自动创建交付物失败: ${err.message}`)
         )
       }
-    } catch (e: any) {
-      if (e?.name === 'AbortError' || abortController.signal.aborted) {
+    } catch (e: unknown) {
+      if ((e as Error)?.name === 'AbortError' || abortController.signal.aborted) {
         client.emit('chat.aborted', {
           runId,
           partialContent: this.runRegistry.getPartialContent(runId),
@@ -332,8 +332,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         sessionKey: data.sessionKey,
         messages,
       })
-    } catch (err: any) {
-      this.logger.warn(`chat.history 拒绝: ${err.message}`)
+    } catch (err: unknown) {
+      this.logger.warn(`chat.history 拒绝: ${(err as Error).message}`)
       client.emit('chat.error', { message: '无法获取会话历史' })
     }
   }
@@ -371,8 +371,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           content: partialContent,
         }],
       })
-    } catch (err: any) {
-      this.logger.warn(`[Deliverable] ${taskId}: ${err.message}`)
+    } catch (err: unknown) {
+      this.logger.warn(`[Deliverable] ${taskId}: ${(err as Error).message}`)
     }
   }
 }

@@ -31,7 +31,7 @@ export class AgentStreamController {
     sse.setup()
 
     try {
-      const task = await (this.taskService as any).findOne(id)
+      const task = await (this.taskService as unknown as { findOne: Function }).findOne(id)
       if (!task) { sse.error({ message: '任务不存在' }); return }
 
       // 仅 drafted 状态允许流式（Agent 首次分析）
@@ -59,11 +59,11 @@ export class AgentStreamController {
         )
       }
 
-      const updatedTask = await (this.taskService as any).findOne(id)
+      const updatedTask = await (this.taskService as unknown as { findOne: Function }).findOne(id)
       sse.write({ type: 'done', taskNo: updatedTask?.taskNo, taskId: id })
       sse.done()
-    } catch (e: any) {
-      sse.error({ message: e?.message || '流式输出失败' })
+    } catch (e: unknown) {
+      sse.error({ message: (e as Error)?.message || '流式输出失败' })
     }
   }
 }

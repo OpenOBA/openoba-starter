@@ -15,6 +15,28 @@ import * as path from 'path'
 import type { MirrorRefs, InjectedContext, EntityInfo } from '../types'
 import type { EnhancedRuleInfo } from '../scanners/rule.scanner'
 
+/** Entity field metadata parsed from knowledge markdown */
+interface EntityFieldMeta {
+  name: string
+  columnName: string
+  type: string
+  isNullable: boolean
+  isUnique: boolean
+  isPrimary: boolean
+  isEnum: boolean
+  semanticTag?: string
+  dbPrecision?: { precision: number; scale: number }
+  validations?: { min?: number; max?: number; isEnum?: boolean }
+  enumValues?: string[]
+}
+
+/** Entity relation metadata */
+interface EntityRelationMeta {
+  name: string
+  type: string
+  targetEntity: string
+}
+
 @Injectable()
 export class ContextInjector {
   private readonly logger = new Logger(ContextInjector.name)
@@ -28,7 +50,7 @@ export class ContextInjector {
    * 主入口：根据 mirror_refs 组装 System Prompt 上下文
    */
   inject(mirrorRefs: MirrorRefs): InjectedContext | null {
-    if (!mirrorRefs || Object.keys(mirrorRefs).every(k => !(mirrorRefs as any)[k]?.length)) {
+    if (!mirrorRefs || Object.keys(mirrorRefs).every(k => !((mirrorRefs as Record<string, unknown>)[k] as unknown[])?.length)) {
       return {
         systemPromptBlock: '',
         stats: { entitiesInjected: 0, apisInjected: 0, rulesInjected: 0, conventionsInjected: 0, estimatedTokens: 0 },
@@ -114,14 +136,14 @@ export class ContextInjector {
       let line = '- **' + name + '** (' + '`' + info.table + '`' + ')'
       
       // 提取关键字段（优先价格/标识/状态/枚举）
-      const keyFields = this.selectKeyFields(info.fields as any[], 8)
+      const keyFields = this.selectKeyFields(info.fields as EntityFieldMeta[], 8)
       if (keyFields.length > 0) {
         line += `: ${keyFields.join(', ')}`
       }
 
       // 重要约束
       const constraints: string[] = []
-      for (const f of (info.fields as any[])) {
+      for (const f of (info.fields as EntityFieldMeta[])) {
         if (f.isUnique && !f.isPrimary) constraints.push(`⚠️ ${f.name}: 唯一`)
         if (f.isPrimary) constraints.push(`${f.name}: 主键`)
         if (f.validations?.isEnum) constraints.push(`⚠️ ${f.name}: 枚举`)
@@ -136,8 +158,8 @@ export class ContextInjector {
       // 关联关系
       if (info.relations && info.relations.length > 0) {
         const rels = info.relations
-          .filter((r: any) => entityNames.includes(r.targetEntity))
-          .map((r: any) => `🔗 ${r.name} → ${r.targetEntity} (${r.type})`)
+          .filter((r: EntityRelationMeta) => entityNames.includes(r.targetEntity))
+          .map((r: EntityRelationMeta) => `🔗 ${r.name} → ${r.targetEntity} (${r.type})`)
         for (const r of rels) lines.push(`  ${r}`)
       }
     }
@@ -207,7 +229,7 @@ export class ContextInjector {
    * 从 knowledge/entities/{module}.md 读取实体信息
    * 由于 Markdown 是生成的，这里用简化读取
    */
-  private readEntityFromKnowledge(entityName: string): { table: string; fields: any[]; relations: any[] } | null {
+  private readEntityFromKnowledge(entityName: string): { table: string; fields: EntityFieldMeta[]; relations: EntityRelationMeta[] } | null {
     try {
       // 查找 entities/ 下所有 md 文件中匹配的实体
       const entitiesDir = path.join(this.knowledgeDir, 'entities')
@@ -223,7 +245,7 @@ export class ContextInjector {
         const table = tableMatch?.[1] || ''
 
         // 提取字段（从 Markdown 表格）
-        const fields: any[] = []
+        const fields: EntityFieldMeta[] = []
         const tableRegex = /\| (\w+) \| `(\w+)` \| (\S+) \| ([✅❌]) \| ([^|]*) \| (\S*) \| ([^|]*)\|/g
         let fm
         while ((fm = tableRegex.exec(content)) !== null) {
@@ -249,7 +271,7 @@ export class ContextInjector {
         }
 
         // 提取关系
-        const relations: any[] = []
+        const relations: EntityRelationMeta[] = []
         const relRegex = /\| (\w+) \| (\w+) \| (\w+) \|/g
         const relSection = content.indexOf('### 关系')
         if (relSection >= 0) {
@@ -273,9 +295,9 @@ export class ContextInjector {
   /**
    * 选择关键字段展示（优先价格>标识>展示名>状态>枚举>主键）
    */
-  private selectKeyFields(fields: any[], max: number): string[] {
+  private selectKeyFields(fields: EntityFieldMeta[], max: number): string[] {
     const sorted = [...fields].sort((a, b) => {
-      const score = (f: any) => {
+      const score = (f: EntityFieldMeta) => {
         if (f.semanticTag === 'price') return 100
         if (f.semanticTag === 'identifier' || f.isPrimary) return 90
         if (f.semanticTag === 'display_name') return 80

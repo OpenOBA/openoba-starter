@@ -1,0 +1,18 @@
+{
+  "taskId": "ee27bf6ce4264f53ba6e5a1272e620d5",
+  "taskTitle": "🌟 钛合金圆框系列 · 小红书种草笔记",
+  "version": 1,
+  "createdAt": "2026-06-19T18:12:20.110Z",
+  "createdBy": "ERA Agent",
+  "approvedBy": null,
+  "userType": "operator",
+  "status": "approved",
+  "files": [
+    {
+      "path": "output.md",
+      "size": 6154
+    }
+  ],
+  "changelog": "Agent 自动交付",
+  "parentVersion": null
+}

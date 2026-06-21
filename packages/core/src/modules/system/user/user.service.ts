@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException, Logger } from '@nestjs/common'
+﻿import { Injectable, NotFoundException, ConflictException, BadRequestException, Logger } from '@nestjs/common'
 import * as crypto from 'crypto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, In } from 'typeorm'
@@ -73,7 +73,7 @@ export class UserService {
     }
 
     const saved = await this.userRepository.save(user)
-    const result = { ...saved } as any
+    const result = { ...(saved as unknown as Record<string, unknown>) }
     delete result.passwordHash
 
     // 🚀 自动创建 Sub Agent（ERA-Chat 可见）
@@ -87,7 +87,7 @@ export class UserService {
         securityClearance: this.mapRoleToClearance(roleCode),
         userId: saved.userId,
       })
-    } catch (e: any) {
+    } catch (e: unknown) {
       // Sub Agent 创建失败不阻塞用户创建
       this.logger.warn(`Sub Agent 创建失败: ${(e as Error).message}`)
     }
@@ -112,10 +112,10 @@ export class UserService {
   }
 
   /** 用 raw SQL 加载用户角色（避开 TypeORM ManyToMany JoinTable bug） */
-  private async loadRoles(userIds: string[]): Promise<Map<string, any[]>> {
+  private async loadRoles(userIds: string[]): Promise<Map<string, Record<string, unknown>[]>> {
     if (!userIds.length) return new Map()
     const placeholders = userIds.map(() => '?').join(',')
-    const rows: any[] = await this.userRepository.manager.query(
+    const rows: Record<string, unknown>[] = await this.userRepository.manager.query(
       `SELECT ur.user_id as userId, r.role_id as roleId, r.role_code as roleCode,
               r.role_name as roleName, r.description, r.status,
               r.is_system as isSystem, r.sort_order as sortOrder,
@@ -125,11 +125,11 @@ export class UserService {
        WHERE ur.user_id IN (${placeholders})`,
       userIds,
     )
-    const map = new Map<string, any[]>()
+    const map = new Map<string, Record<string, unknown>[]>()
     for (const row of rows) {
-      const arr = map.get(row.userId) || []
+      const arr = map.get(row.userId as string) || []
       arr.push(row)
-      map.set(row.userId, arr)
+      map.set(row.userId as string, arr)
     }
     return map
   }
@@ -155,7 +155,7 @@ export class UserService {
     // 用 raw SQL 加载角色（避开 ManyToMany JoinTable bug）
     const userIds = list.map(u => u.userId)
     const roleMap = await this.loadRoles(userIds)
-    list.forEach(u => { (u as any).roles = roleMap.get(u.userId) || [] })
+    list.forEach(u => { (u as unknown as Record<string, unknown>).roles = roleMap.get(u.userId) || [] })
 
     // 去除 passwordHash
     const items = list.map(({ passwordHash, ...u }) => u)
@@ -171,7 +171,7 @@ export class UserService {
 
     const roleMap = await this.loadRoles([user.userId])
     const { passwordHash, ...result } = user
-    ;(result as any).roles = roleMap.get(id) || []
+    ;(result as Record<string, unknown>).roles = roleMap.get(id) || []
     return result
   }
 
@@ -213,7 +213,7 @@ export class UserService {
     // 🚀 联动 suspend 对应的 Sub Agent
     try {
       await this.agentManifestService.updateStatusByCode(`user-${id}`, 'inactive')
-    } catch (e: any) {
+    } catch (e: unknown) {
       this.logger.warn(`Sub Agent 挂起失败: ${(e as Error).message}`)
     }
     return { message: '用户已删除' }
@@ -232,7 +232,7 @@ export class UserService {
     try {
       const agentStatus = user.status === 'active' ? 'active' : 'inactive'
       await this.agentManifestService.updateStatusByCode(`user-${id}`, agentStatus)
-    } catch (e: any) {
+    } catch (e: unknown) {
       this.logger.warn(`Agent 状态联动失败: ${(e as Error).message}`)
     }
     return this.findOne(id)

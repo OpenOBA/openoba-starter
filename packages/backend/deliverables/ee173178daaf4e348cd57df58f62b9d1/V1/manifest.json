@@ -1,0 +1,18 @@
+{
+  "taskId": "ee173178daaf4e348cd57df58f62b9d1",
+  "taskTitle": "你好！我是 **openoba-main 的 AI 工作助手**，你的执行工具和决策参谋。",
+  "version": 1,
+  "createdAt": "2026-06-19T17:57:41.502Z",
+  "createdBy": "ERA Agent",
+  "approvedBy": null,
+  "userType": "operator",
+  "status": "approved",
+  "files": [
+    {
+      "path": "output.md",
+      "size": 1024
+    }
+  ],
+  "changelog": "Agent 自动交付",
+  "parentVersion": null
+}

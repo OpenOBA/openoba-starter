@@ -123,7 +123,7 @@ export class AgentTaskService {
         this.agentExecutor.analyzeAndReport(saved.id).then((r) => {
           if (r) this.logger.log(`Agent analyze complete for ${saved.taskNo}`)
         }).catch((e) => {
-          this.logger.error(`Agent analyze error for ${saved.id}: ${e.message}`)
+          this.logger.error(`Agent analyze error for ${saved.id}: ${(e as Error).message}`)
         })
       })
     }
@@ -688,8 +688,8 @@ export class AgentTaskService {
       if (staleTasks.length > 0) {
         this.logger.log(`Auto-recovered ${staleTasks.length} stale executing tasks`)
       }
-    } catch (e: any) {
-      this.logger.error(`Stale task recovery failed: ${e.message}`)
+    } catch (e: unknown) {
+      this.logger.error(`Stale task recovery failed: ${(e as Error).message}`)
     }
   }
 }

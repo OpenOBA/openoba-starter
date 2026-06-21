@@ -1,0 +1,3 @@
+const fs=require('fs');const p='C:/Users/99tan/openoba/repos/openoba-starter/packages/core/src/modules/eros/task/agent-tool-implementations.ts';let c=fs.readFileSync(p,'utf-8');
+c=c.replace("(e: { message?: string }) => `  · 行${e.row}: ${e.errors.join('; ')}`", "(e: { row?: number; errors?: string[] }) => `  · 行${e.row}: ${(e.errors || []).join('; ')}`");
+fs.writeFileSync(p,c,'utf-8');console.log('done')

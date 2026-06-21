@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ERA SOUL 模块 — 核心服务 V2
  *
  * 分层注入模型（模仿 OpenClaw 启动协议）：
@@ -256,7 +256,7 @@ ${erdlHint}
 
     // 最近认知日志（跨会话记忆闭环）
     try {
-      const logs: any[] = await this.manifestRepo.manager.query(
+      const logs: Record<string, unknown>[] = await this.manifestRepo.manager.query(
         `SELECT title, content, created_at
          FROM cognitive_log
          WHERE agent_id = ? OR actor = ?
@@ -265,9 +265,9 @@ ${erdlHint}
         [agentCode, agentCode],
       )
       if (logs.length > 0) {
-        const summaries = logs.map((l: any) => {
-          const time = new Date(l.created_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-          return `- ${time} ${l.title}`
+        const summaries = logs.map((l: Record<string, unknown>) => {
+          const time = new Date(l['created_at'] as string).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+          return `- ${time} ${l['title'] as string}`
         })
         lines.push('【最近记忆】\n' + summaries.join('\n'))
       }
@@ -277,7 +277,7 @@ ${erdlHint}
 
     // V1.3 专利对齐 — L3 持久记忆注入（agent_memory）
     try {
-      const memories: any[] = await this.manifestRepo.manager.query(
+      const memories: Record<string, unknown>[] = await this.manifestRepo.manager.query(
         `SELECT category, severity, title, content, scope, hit_count
          FROM agent_memory
          WHERE (owner_agent = ? OR scope = 'global')
@@ -287,9 +287,9 @@ ${erdlHint}
         [agentCode],
       )
       if (memories.length > 0) {
-        const memoryLines = memories.map((m: any) => {
-          const levelIcon = m.severity === 'block' ? '⛔' : m.severity === 'warning' ? '⚠️' : '💡'
-          return `${levelIcon} [${m.category}] ${m.title}: ${m.content}`
+        const memoryLines = memories.map((m: Record<string, unknown>) => {
+          const levelIcon = m['severity'] as string === 'block' ? '⛔' : m['severity'] as string === 'warning' ? '⚠️' : '💡'
+          return `${levelIcon} [${m['category'] as string}] ${m['title'] as string}: ${m['content'] as string}`
         })
         lines.push('📚 历史经验教训：\n' + memoryLines.join('\n'))
       }
@@ -310,13 +310,13 @@ ${erdlHint}
   // ═══════════════════════════════════════════
 
   private async resolveAgentIdentity(agentCode: string): Promise<AgentIdentity> {
-    let manifest: any = null
+    let manifest: AgentManifest | null = null
     try {
       manifest = await this.manifestRepo.findOne({
         where: { agentCode, status: 'active' },
       })
-    } catch (e: any) {
-      this.logger.warn(`Agent 查询失败: ${e.message}`)
+    } catch (e: unknown) {
+      this.logger.warn(`Agent 查询失败: ${(e as Error).message}`)
     }
 
     if (!manifest) {
@@ -333,7 +333,7 @@ ${erdlHint}
 
     if (manifest.userId) {
       try {
-        const rows: any[] = await this.manifestRepo.manager.query(
+        const rows: Record<string, unknown>[] = await this.manifestRepo.manager.query(
           `SELECT u.real_name, u.username, r.role_code, r.role_name
            FROM sys_user u
            LEFT JOIN sys_user_role ur ON ur.user_id COLLATE utf8mb4_unicode_ci = u.user_id COLLATE utf8mb4_unicode_ci
@@ -342,9 +342,9 @@ ${erdlHint}
           [manifest.userId],
         )
         if (rows.length > 0) {
-          realName = rows[0].real_name || rows[0].username || ''
-          roleCodes = rows.filter((r: any) => r.role_code).map((r: any) => r.role_code)
-          roleNames = rows.filter((r: any) => r.role_name).map((r: any) => r.role_name)
+          realName = (rows[0]['real_name'] as string) || (rows[0]['username'] as string) || ''
+          roleCodes = rows.filter((r: Record<string, unknown>) => r['role_code']).map((r: Record<string, unknown>) => r['role_code'] as string)
+          roleNames = rows.filter((r: Record<string, unknown>) => r['role_name']).map((r: Record<string, unknown>) => r['role_name'] as string)
         }
       } catch (e: unknown) {
         this.logger.debug(`用户信息查询失败（表可能未初始化）: ${(e as Error).message}`)
@@ -398,8 +398,8 @@ ${erdlHint}
         [id, title, JSON.stringify(content), agentCode, agentCode, Date.now()],
       )
       this.logger.log(`🧠 认知日志: ${title}`)
-    } catch (e: any) {
-      this.logger.warn(`认知日志写入失败: ${e.message}`)
+    } catch (e: unknown) {
+      this.logger.warn(`认知日志写入失败: ${(e as Error).message}`)
     }
   }
 }

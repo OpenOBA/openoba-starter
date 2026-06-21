@@ -1,4 +1,4 @@
-/**
+﻿/**
  * �뾵�Ƽ� �� ERDL �� Enterprise Resource Definition Language
  *
  * @file ERDL LLM Bridge v2 �� �� Provider + Failover + Token ����
@@ -183,13 +183,13 @@ export class ERDLLLMBridge implements ILlmSseHandler, ILlmPromptBuilder {
         maxTokens: 2048,  // H16�޸�
       })
 
-      const choice = (result.response as any).rawChoices?.[0]
-
+      const choice = (result.response as { rawChoices?: Array<Record<string, unknown>> }).rawChoices?.[0]
+      const msg = choice ? (choice.message as Record<string, unknown>) : undefined
       // �� tool_calls �� ���ջظ�
-      if (!choice?.message?.tool_calls || choice.message.tool_calls.length === 0) {
+      if (!msg?.tool_calls || (msg.tool_calls as unknown[]).length === 0) {
         const provider = getDefaultProvider()
         return {
-          content: choice?.message?.content || result.response.content,
+          content: (msg?.content as string) || result.response.content,
           model: result.response.model,
           provider: result.response.provider,
           toolCalls: allToolCalls,
@@ -197,37 +197,39 @@ export class ERDLLLMBridge implements ILlmSseHandler, ILlmPromptBuilder {
       }
 
       // ReAct: ִֻ�е� 1 ������
-      const firstTc = choice.message.tool_calls[0]
-      const name = firstTc.function.name
+      const firstTc = (msg!.tool_calls as unknown[])[0] as Record<string, unknown>
+      const tcFn = (firstTc.function as Record<string, unknown>) as { name: string; arguments: string }
+      const name = tcFn.name
       let args: Record<string, unknown> = {}
       // P2�޸���FC��������ʧ��ʱ���ش�����Ǿ�Ĭ�Կղ���ִ��
-      try { args = JSON.parse(firstTc.function.arguments) } catch (e: unknown) {
+      // P2�޸���FC��������ʧ��ʱ���ش�����Ǿ�Ĭ�Կղ���ִ��
+      try { args = JSON.parse(tcFn.arguments) } catch (e: unknown) {
         this.logger.warn(
-          `[ReAct] FC arguments parse failed for ${name}: ${firstTc.function.arguments?.substring(0, 100)}`,
+          `[ReAct] FC arguments parse failed for ${name}: ${tcFn.arguments?.substring(0, 100)}`,
           (e as Error).message,
         )
       }
 
       this.logger.log(`[ReAct] ��${round}��: ${name}(${JSON.stringify(args).substring(0, 100)})`)
 
-      const reasoningContent = choice?.message?.reasoning_content || ''
+      const reasoningContent = (msg?.reasoning_content as string) || ''
+
 
       messages.push({
         role: 'assistant',
-        content: choice.message.content || '',
+        content: (msg!.content as string) || '',
         ...(reasoningContent ? { reasoning_content: reasoningContent } : {}),
-        tool_calls: [firstTc],
+        tool_calls: [{ id: (firstTc.id as string), type: 'function', function: { name, arguments: JSON.stringify(args) } }],
       })
 
       let toolResult: string
       try {
         toolResult = await toolExecutor(name, args)
-      } catch (e: any) {
-        toolResult = `����ִ��ʧ��: ${e.message}`
+      } catch (e: unknown) {
+        toolResult = `����ִ��ʧ��: ${(e as Error).message}`
       }
-
+      messages.push({ role: 'tool', content: toolResult, tool_call_id: (firstTc.id as string) })
       allToolCalls.push({ name, args })
-      messages.push({ role: 'tool', content: toolResult, tool_call_id: firstTc.id })
     }
 
     // ��������ִΣ�ֱ���������ջظ�
@@ -383,10 +385,10 @@ export class ERDLLLMBridge implements ILlmSseHandler, ILlmPromptBuilder {
       }
 
       // ���� LLM ���ã�V1.3 ��ʽ������
-      let streamResult: { assistantContent: string; reasoningContent: string; rawToolCalls: any[] | null; model: string; provider: string }
+      let streamResult: { assistantContent: string; reasoningContent: string; rawToolCalls: Array<{ id: string; type: string; function: { name: string; arguments: string } }> | null; model: string; provider: string }
       try {
         streamResult = await this.streamReActRound(trimmedMessages, tools, onEvent, abortSignal, preferredProviderCode)
-      } catch (llmErr: any) {
+      } catch (llmErr: unknown) {
         const errMsg = llmErr instanceof Error ? llmErr.message : String(llmErr)
         this.logger.error(`[ReAct] ��${round}�� LLM ����ʧ��: ${errMsg}`)
         if (allToolCalls.length > 0) break
@@ -491,7 +493,7 @@ export class ERDLLLMBridge implements ILlmSseHandler, ILlmPromptBuilder {
 
       // Push assistant ��Ϣ
       // DeepSeek thinking ģʽҪ�󣺶��ֶԻ��б��봫�� reasoning_content�����򷵻� 400
-      const assistantMsg: any = {
+      const assistantMsg: ERDLLLMMessage = {
         role: 'assistant',
         content: assistantContent,
         tool_calls: [{
@@ -511,8 +513,8 @@ export class ERDLLLMBridge implements ILlmSseHandler, ILlmPromptBuilder {
       let toolResult: string
       try {
         toolResult = await toolExecutor(name, args)
-      } catch (e: any) {
-        toolResult = `����ִ��ʧ��: ${e.message}`
+      } catch (e: unknown) {
+        toolResult = `����ִ��ʧ��: ${(e as Error).message}`
       }
 
       // ��ʱѹ��
@@ -527,7 +529,7 @@ export class ERDLLLMBridge implements ILlmSseHandler, ILlmPromptBuilder {
       messages.push({ role: 'tool', content: toolResult, tool_call_id: firstTc.id })
 
       // �����¼�
-      onEvent({ type: 'round_done' as any, hasToolCalls: true, toolName: name })
+      onEvent({ type: 'round_done' as const, hasToolCalls: true, toolName: name })
     }
 
     // �����ߴ�� �� ����ժҪ
@@ -568,7 +570,7 @@ export class ERDLLLMBridge implements ILlmSseHandler, ILlmPromptBuilder {
   /** H17: Token budget �ض� history���ֹ���1���ġ�2 tokens��1Ӣ�ġ�4 tokens�� */
   private trimHistoryByTokenBudget(messages: ERDLLLMMessage[]): ERDLLLMMessage[] {
     const provider = getDefaultProvider()
-    const modelDef = provider?.models?.find((m: any) => m.id === provider.defaultModel)
+    const modelDef = provider?.models?.find((m: ERDLModelDefinition) => m.id === provider.defaultModel)
     // DeepSeek V4 ��� 1M��ʵ����Ч ~200K���ñ���ֵ���� API �� context overflow ����
     const CONTEXT_LIMIT = Math.min(modelDef?.contextWindow || 1_000_000, 200_000)
     const OUTPUT_RESERVE = 8192  // Henryԭ�򣺲�����
@@ -744,7 +746,7 @@ export class ERDLLLMBridge implements ILlmSseHandler, ILlmPromptBuilder {
   private async resolveKeyFromDB(providerId: string): Promise<string | undefined> {
     if (!this.modelRegistry) return undefined
     try {
-      const kd = await (this.modelRegistry as any).getKeyWithDecrypted?.(providerId)
+      const kd = await (this.modelRegistry as { getKeyWithDecrypted?: (providerId: string) => Promise<{ apiKey?: string }> }).getKeyWithDecrypted?.(providerId)
       if (kd?.apiKey) {
         this.logger.log(`API Key resolved from DB: ${providerId}`)
         return kd.apiKey
@@ -771,7 +773,7 @@ export class ERDLLLMBridge implements ILlmSseHandler, ILlmPromptBuilder {
     const startTime = Date.now()
     const body: Record<string, unknown> = {
       model: modelId,
-      messages: request.messages.map((m: any) => {
+      messages: request.messages.map((m: ERDLLLMMessage) => {
         const msg: Record<string, unknown> = { role: m.role, content: m.content }
         if (m.tool_calls) msg.tool_calls = m.tool_calls
         if (m.tool_call_id) msg.tool_call_id = m.tool_call_id

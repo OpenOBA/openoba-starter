@@ -152,8 +152,8 @@ export class WizardService {
       const version = (versionRows[0] as mysql.RowDataPacket)?.version as string || 'unknown'
       await conn.end()
       return { success: true, message: `连接成功！MySQL 版本：${version}`, serverVersion: version }
-    } catch (e: any) {
-      let message = e.message || '连接失败'
+    } catch (e: unknown) {
+      let message = (e as Error).message || '连接失败'
       if (message.includes('ER_ACCESS_DENIED_ERROR') || message.includes('Access denied')) {
         message = '用户名或密码错误'
       } else if (message.includes('ECONNREFUSED') || message.includes('ETIMEDOUT')) {
@@ -235,9 +235,9 @@ export class WizardService {
         try {
           await conn.query(sql)
           totalExecuted++
-        } catch (e: any) {
-          if (/already exists|Duplicate/i.test(e.sqlMessage || e.message || '')) { totalSkipped++; continue }
-          errors.push((e.sqlMessage || e.message).substring(0, 120))
+        } catch (e: unknown) {
+          if (/already exists|Duplicate/i.test((e as { sqlMessage?: string }).sqlMessage || (e as Error).message || '')) { totalSkipped++; continue }
+          errors.push(((e as { sqlMessage?: string }).sqlMessage || (e as Error).message).substring(0, 120))
           if (errors.length >= 5) break
         }
       }
@@ -254,8 +254,8 @@ export class WizardService {
           try {
             await conn.query(stmt)
             seedExecuted++
-          } catch (e: any) {
-            this.logger.warn(`种子执行跳过: ${(e.sqlMessage || e.message).substring(0, 100)}`)
+          } catch (e: unknown) {
+            this.logger.warn(`种子执行跳过: ${((e as { sqlMessage?: string }).sqlMessage || (e as Error).message).substring(0, 100)}`)
           }
         }
         this.logger.log(`种子: ${seedExecuted} 条`)
@@ -284,9 +284,9 @@ export class WizardService {
         message: `数据库初始化完成！${totalExecuted} 张表 + ${seedExecuted} 条种子数据。`,
         tablesCreated: tableCount,
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (conn) await conn.end().catch(() => {})
-      return { success: false, message: `初始化异常：${e.message}` }
+      return { success: false, message: `初始化异常：${(e as Error).message}` }
     }
   }
 
@@ -370,8 +370,8 @@ SKILL_VAULT_KEY=${skillKey}
           await conn.execute('UPDATE sys_user SET password_hash = ? WHERE username = ?', [hash, adminUser])
           await conn.end()
           this.logger.log(`管理员 ${adminUser} 密码已同步更新到数据库`)
-        } catch (e: any) {
-          this.logger.warn(`管理员密码同步失败: ${e.message}，请手动修改`)
+        } catch (e: unknown) {
+          this.logger.warn(`管理员密码同步失败: ${(e as Error).message}，请手动修改`)
         }
       }
 
@@ -380,8 +380,8 @@ SKILL_VAULT_KEY=${skillKey}
         message: '配置已保存。请手动重启服务使新配置生效。',
         adminUser,
       }
-    } catch (e: any) {
-      return { success: false, message: `保存配置失败：${e.message}` }
+    } catch (e: unknown) {
+      return { success: false, message: `保存配置失败：${(e as Error).message}` }
     }
   }
 }

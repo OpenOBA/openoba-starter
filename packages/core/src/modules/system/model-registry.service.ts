@@ -162,7 +162,7 @@ export class ModelRegistryService implements OnModuleInit {
   // ============== Registry (纯元数据) ==============
 
   async getModels(providerCode?: string, category?: string): Promise<ModelRegistry[]> {
-    const where: any = { isEnabled: 1 }
+    const where: Record<string, unknown> = { isEnabled: 1 }
     if (providerCode) where.providerCode = providerCode
     if (category) where.category = category
     return this.registryRepo.find({ where, order: { providerCode: 'ASC', modelCode: 'ASC' } })
@@ -231,9 +231,9 @@ export class ModelRegistryService implements OnModuleInit {
     }
   }
 
-  async getProviderKeys(): Promise<any[]> {
+  async getProviderKeys(): Promise<Record<string, unknown>[]> {
     const keys = await this.keyRepo.find({ where: { isEnabled: 1 } })
-    const result: any[] = []
+    const result: Record<string, unknown>[] = []
     for (const k of keys) {
       const links = await this.keyModelsRepo.find({ where: { keyId: k.id } })
       const registryIds = links.map(l => l.registryId)
@@ -263,7 +263,7 @@ export class ModelRegistryService implements OnModuleInit {
   }
 
   async getKeyWithDecrypted(providerCode: string, agentCode?: string): Promise<{ key: ModelKey; apiKey: string } | null> {
-    const where: any = { providerCode, isEnabled: 1, agentCode: agentCode || 'global' }
+    const where: Record<string, unknown> = { providerCode, isEnabled: 1, agentCode: agentCode || 'global' }
     const key = await this.keyRepo.findOne({ where })
     if (!key || !key.apiKeyEnc) return null
     try {

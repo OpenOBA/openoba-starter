@@ -72,7 +72,7 @@ export class AuthController {
       throw new UnauthorizedException(`基础版仅支持 ${maxChatUsers} 个用户使用 Agent 功能。请联系我们升级到 Pro 版。`)
     }
 
-    const result = await this.authService.login(user)
+    const result = await this.authService.login(user as { userId: string; username: string })
 
     // 从 JWT payload 动态计算 Cookie maxAge，与 Token 过期时间保持一致
     const tokenPayload = JSON.parse(Buffer.from(result.accessToken.split('.')[1], 'base64').toString())

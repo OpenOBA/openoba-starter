@@ -46,14 +46,14 @@ export class MenuService {
   /** 平铺列表 */
   async findAll(): Promise<Menu[]> {
     return this.menuRepo.find({
-      where: { isDeleted: false } as any,
+      where: { isDeleted: false } as Record<string, unknown>,
       order: { sortOrder: 'ASC', createdAt: 'ASC' },
     })
   }
 
   async findOne(menuId: string): Promise<Menu> {
     const menu = await this.menuRepo.findOne({
-      where: { menuId, isDeleted: false } as any,
+      where: { menuId, isDeleted: false } as Record<string, unknown>,
     })
     if (!menu) throw new NotFoundException('菜单不存在')
     return menu
@@ -107,8 +107,7 @@ export class MenuService {
     return menus
       .filter((m) => (parentId === null ? !m.parentId : m.parentId === parentId))
       .map((m) => {
-        const node: any = { ...m }
-        node.children = this.buildTree(menus, m.menuId)
+        const node = { ...m, children: this.buildTree(menus, m.menuId) } as unknown as Menu
         return node
       })
   }

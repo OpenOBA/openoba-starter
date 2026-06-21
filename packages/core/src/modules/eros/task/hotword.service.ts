@@ -142,7 +142,7 @@ export class HotwordService implements OnModuleInit {
           actor: 'Live-ERDL',
           actorType: 'system',
           createdAt: Date.now(),
-        } as any)
+        } as Record<string, unknown>)
       }
 
       this.logger.log(`✅ Live-ERDL 更新完成 · ${this.cache.length} 个热词`)
@@ -156,7 +156,7 @@ export class HotwordService implements OnModuleInit {
     try {
       const logs = await this.logRepo.find({
         where: { sourceModule: 'live-erdl' },
-        order: { createdAt: 'DESC' } as any,
+        order: { createdAt: 'DESC' } as Record<string, unknown>,
         take: 20,
       })
 

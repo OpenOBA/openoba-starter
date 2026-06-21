@@ -110,8 +110,8 @@ export class ERDLValidator {
           fieldTypes[fieldName] = propDef
           fieldRequired[fieldName] = false
         } else if (propDef && typeof propDef === 'object') {
-          fieldTypes[fieldName] = (propDef as any).type || 'string'
-          fieldRequired[fieldName] = !!(propDef as any).required
+          fieldTypes[fieldName] = (propDef as { type?: string }).type || 'string' || 'string'
+          fieldRequired[fieldName] = !!(propDef as { required?: boolean }).required
         }
       }
 
@@ -197,8 +197,8 @@ export class ERDLValidator {
         // Formula 语法检查
         if (rule.tier === 'policy' && rule.actions) {
           for (const action of rule.actions) {
-            if (action.type === 'calculate' && (action.params as any)?.formula) {
-              const formula = (action.params as any).formula as string
+            if (action.type === 'calculate' && (action.params as Record<string, unknown>)?.formula) {
+              const formula = (action.params as Record<string, unknown>).formula as string
               issues.push(...this.validateFormula(formula, rule.name, fileName))
             }
           }
@@ -254,7 +254,7 @@ export class ERDLValidator {
     if (!ast.sync_policy) return
 
     for (const [name, policy] of Object.entries(ast.sync_policy)) {
-      const tableName = (policy as any).source?.table
+      const tableName = (policy as { source?: { table?: string } }).source?.table
       if (tableName && !/^[a-zA-Z][a-zA-Z0-9_]*$/.test(tableName)) {
         issues.push({
           severity: 'WARNING',

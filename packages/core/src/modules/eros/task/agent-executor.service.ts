@@ -211,12 +211,12 @@ export class AgentExecutorService implements OnModuleInit {
     if (!this.modelRegistry) return undefined
     try {
       const dbKeys = await this.modelRegistry.getProviderKeys()
-      const defaultKey = dbKeys?.find((k: { models?: Array<{ isDefault?: boolean }> }) =>
+      const defaultKey: Record<string, unknown> | undefined = (dbKeys as Record<string, unknown>[])?.find((k: { models?: Array<{ isDefault?: boolean }> }) =>
         (k.models || []).some((m: { isDefault?: boolean }) => m.isDefault)
       )
       if (defaultKey?.providerCode) {
         this.logger.log(`Default provider from DB: ${defaultKey.providerCode}`)
-        return defaultKey.providerCode
+        return defaultKey.providerCode as string
       }
     } catch (e: unknown) {
       this.logger.warn('查询 DB 默认模型失败，回退到内置顺序', (e as Error).message)
@@ -295,7 +295,7 @@ export class AgentExecutorService implements OnModuleInit {
         const defaultKey = dbKeys?.find((k: { models?: Array<{ isDefault?: boolean }> }) =>
           (k.models || []).some((m: { isDefault?: boolean }) => m.isDefault)
         )
-        defaultProviderCode = defaultKey?.providerCode
+        defaultProviderCode = (defaultKey as Record<string, unknown> | undefined)?.providerCode as string | undefined
         if (defaultProviderCode) {
           this.logger.log(`Default provider from DB: ${defaultProviderCode}`)
         }

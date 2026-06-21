@@ -1,0 +1,18 @@
+{
+  "taskId": "b9dce23bff184480bcb7e71f75744651",
+  "taskTitle": "好的，我来分析销售数据。先拉取订单明细和产品数据。订单数据拿到了，再查订单明细和产品数据。数据已齐全，现在汇总分析。---",
+  "version": 1,
+  "createdAt": "2026-06-21T12:49:52.349Z",
+  "createdBy": "ERA Agent",
+  "approvedBy": null,
+  "userType": "operator",
+  "status": "approved",
+  "files": [
+    {
+      "path": "output.md",
+      "size": 13673
+    }
+  ],
+  "changelog": "Agent 自动交付",
+  "parentVersion": null
+}

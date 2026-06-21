@@ -1,0 +1,175 @@
+{
+  "workspace": "C:\\Users\\99tan\\openoba\\repos\\openoba-starter\\packages\\backend",
+  "deliverableRoot": "C:\\Users\\99tan\\openoba\\repos\\openoba-starter\\packages\\backend\\deliverables",
+  "updatedAt": "2026-06-21T12:49:52.440Z",
+  "entries": [
+    {
+      "taskId": "b9dce23bff184480bcb7e71f75744651",
+      "title": "好的，我来分析销售数据。先拉取订单明细和产品数据。订单数据拿到了，再查订单明细和产品数据。数据已齐全，现在汇总分析。---",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-21T12:49:52.376Z"
+    },
+    {
+      "taskId": "49c0f1cf72a4431a8a183f5de4c1eb6f",
+      "title": "好的，我来分析最近的销售数据。先并行拉取订单、订单明细及相关数据。订单数据已拿到，再查订单明细和商品数据。数据拿到了。现在用分析工具对订单明细进行汇总，并按 SKU 聚合销量。数据基本清晰了，再按 SKU 做个销量排名。---",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-20T10:14:38.745Z"
+    },
+    {
+      "taskId": "cf96ad77b1a74c06b86f11dd262c8ae1",
+      "title": "让我先拉取订单、订单明细和商品数据，全面掌握情况。好，9 笔订单。接着拉订单明细和商品数据。数据有了雏形。再查缺失的订单明细，以及当前激活的 SKU 列表来做交叉对比。数据齐全了，让我用分析工具做汇总。---",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-19T20:20:11.653Z"
+    },
+    {
+      "taskId": "1c60fd68f306498ea2fb06122dff4d99",
+      "title": "让我先查询订单、订单明细和商品数据，获取完整的销售视图。数据较多，让我同时查询订单明细和SKU数据。数据已有，让我用分析工具做精准汇总。让我再查一下那个没有明细的598元订单。数据已齐全，以下是分析报告。",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-19T20:11:53.060Z"
+    },
+    {
+      "taskId": "52d6dbd23ba64389ad6774aae3a70645",
+      "title": "好的，我来分析最近的销售数据。先拉取ERP全貌和订单数据。Now let me aggregate by SKU to get the full picture:",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-19T19:06:16.468Z"
+    },
+    {
+      "taskId": "7dcc4082d42847ef9d9abb220a8d81a6",
+      "title": "已查询完订单和商品数据，以下是销售分析报告：",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-19T19:03:40.152Z"
+    },
+    {
+      "taskId": "4dcc8588758f4887bff9bcaaf2fb3c95",
+      "title": "🌟 钛合金圆框眼镜种草笔记",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-19T18:55:37.464Z"
+    },
+    {
+      "taskId": "d4bd5eddba204e269949cf187df114de",
+      "title": "好的，我先查询订单数据和商品数据，来做销售分析。现在我来对订单明细数据做销售分析。",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-19T18:53:37.286Z"
+    },
+    {
+      "taskId": "708d486c036e461f8613d4c3d273331d",
+      "title": "我是 **openoba-main 的 AI 执行助手**。",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-19T18:50:25.542Z"
+    },
+    {
+      "taskId": "ee27bf6ce4264f53ba6e5a1272e620d5",
+      "title": "🌟 钛合金圆框系列 · 小红书种草笔记",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-19T18:12:20.127Z"
+    },
+    {
+      "taskId": "4ac20ae7851b4298962028512013d7ec",
+      "title": "🌟 钛合金圆框种草笔记",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-19T18:06:48.600Z"
+    },
+    {
+      "taskId": "e7738e8b1f394f019cd9057e2a2e2bf7",
+      "title": "我来分析最近销售数据，先并行拉取订单明细、SKU 和 SPU 数据。Now let me do a topN analysis by quantity sold per SKU:",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-19T18:03:43.726Z"
+    },
+    {
+      "taskId": "ee173178daaf4e348cd57df58f62b9d1",
+      "title": "你好！我是 **openoba-main 的 AI 工作助手**，你的执行工具和决策参谋。",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-19T17:57:41.512Z"
+    },
+    {
+      "taskId": "495374d163a349428053c3a614c63734",
+      "title": "我来分析销售数据。先并行拉取订单明细和商品数据。现在拉取 SPU 和 SKU 数据做交叉分析。",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-19T17:13:50.697Z"
+    },
+    {
+      "taskId": "b0c70d03e7474b7dad7d7147dda465a6",
+      "title": "我先查询系统中的销售数据，同步获取订单、订单明细和产品信息。现在我对销售数据进行汇总分析。",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-19T15:51:47.622Z"
+    },
+    {
+      "taskId": "90f57e2b72ed4cea9989c7126bf0b122",
+      "title": "好的，我来全面分析销售数据。先同时拉取订单明细、SKU、SPU 和库存数据。数据已拉取完毕，现在进行销售分析。",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-19T11:02:54.583Z"
+    },
+    {
+      "taskId": "ae6955fa113d42b881e795ddd3aeef6e",
+      "title": "先查数据全貌和订单结构，并行执行。ERP 数据已获取，但这是产品基础数据。现在查询订单和订单明细来获取销售数据。",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-19T09:33:53.376Z"
+    },
+    {
+      "taskId": "dc1c95bafd5047e89f790ece02f06702",
+      "title": "我来分析真实销售数据，先拉取订单明细和商品信息。Now let me aggregate by product to get the full picture:",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-19T09:11:12.375Z"
+    },
+    {
+      "taskId": "f4272fa898c1435cae98d72fdbb97662",
+      "title": "好，我来分析销售数据。先同步拉取订单、订单明细和产品数据。现在用数据分析工具做统计：",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-19T08:54:13.585Z"
+    },
+    {
+      "taskId": "74804988fe9a452da00787a5aec0031d",
+      "title": "先查询订单数据和商品数据，了解当前销售状况。ERP 中有 3 个 SPU 和 3 个 SKU，但需要查看订单数据来分析销售情况。让我查询订单和库存数据。",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-19T06:36:17.615Z"
+    },
+    {
+      "taskId": "TEST-20260528-001",
+      "title": "测试交付物-钛合金圆框方案",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-05-27T23:23:26.000Z"
+    }
+  ]
+}

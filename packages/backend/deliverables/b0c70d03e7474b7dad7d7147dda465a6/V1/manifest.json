@@ -1,0 +1,18 @@
+{
+  "taskId": "b0c70d03e7474b7dad7d7147dda465a6",
+  "taskTitle": "我先查询系统中的销售数据，同步获取订单、订单明细和产品信息。现在我对销售数据进行汇总分析。",
+  "version": 1,
+  "createdAt": "2026-06-19T15:51:47.595Z",
+  "createdBy": "ERA Agent",
+  "approvedBy": null,
+  "userType": "operator",
+  "status": "approved",
+  "files": [
+    {
+      "path": "output.md",
+      "size": 8241
+    }
+  ],
+  "changelog": "Agent 自动交付",
+  "parentVersion": null
+}

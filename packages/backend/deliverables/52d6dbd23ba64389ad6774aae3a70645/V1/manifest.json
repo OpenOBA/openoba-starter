@@ -1,0 +1,18 @@
+{
+  "taskId": "52d6dbd23ba64389ad6774aae3a70645",
+  "taskTitle": "好的，我来分析最近的销售数据。先拉取ERP全貌和订单数据。Now let me aggregate by SKU to get the full picture:",
+  "version": 1,
+  "createdAt": "2026-06-19T19:06:16.447Z",
+  "createdBy": "ERA Agent",
+  "approvedBy": null,
+  "userType": "operator",
+  "status": "approved",
+  "files": [
+    {
+      "path": "output.md",
+      "size": 5325
+    }
+  ],
+  "changelog": "Agent 自动交付",
+  "parentVersion": null
+}

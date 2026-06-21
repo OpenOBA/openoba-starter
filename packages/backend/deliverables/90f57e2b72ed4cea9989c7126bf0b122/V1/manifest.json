@@ -1,0 +1,18 @@
+{
+  "taskId": "90f57e2b72ed4cea9989c7126bf0b122",
+  "taskTitle": "好的，我来全面分析销售数据。先同时拉取订单明细、SKU、SPU 和库存数据。数据已拉取完毕，现在进行销售分析。",
+  "version": 1,
+  "createdAt": "2026-06-19T11:02:54.559Z",
+  "createdBy": "ERA Agent",
+  "approvedBy": null,
+  "userType": "operator",
+  "status": "approved",
+  "files": [
+    {
+      "path": "output.md",
+      "size": 8965
+    }
+  ],
+  "changelog": "Agent 自动交付",
+  "parentVersion": null
+}
