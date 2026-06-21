@@ -17,6 +17,9 @@ import { MemberLevel } from '../product/entity/member-level.entity'
 import { InventoryService } from '../inventory/inventory.service'
 import { PricingEngineService } from '../product/pricing-engine.service'
 import { CustomerService } from '../customer/customer.service'
+import { OrderCrudService } from './order-crud.service'
+import { OrderQueryService } from './order-query.service'
+import { OrderLifecycleService } from './order-lifecycle.service'
 
 function mockQueryBuilder() {
   const getManyAndCount = jest.fn().mockResolvedValue([[], 0])
@@ -39,7 +42,7 @@ function mockRepo() {
   return {
     create: jest.fn(),
     save: jest.fn(),
-    find: jest.fn(),
+    find: jest.fn().mockResolvedValue([]),
     findOne: jest.fn().mockResolvedValue(null),
     findOneBy: jest.fn(),
     createQueryBuilder: jest.fn().mockReturnValue(qb),
@@ -51,12 +54,26 @@ function mockRepo() {
   }
 }
 
+function mockSubService(methods: Record<string, jest.Mock>) {
+  return methods
+}
+
 describe('OrderService', () => {
   let service: OrderService
   let orderRepo: ReturnType<typeof mockRepo>
+  let queryService: ReturnType<typeof mockSubService>
   let module: TestingModule
 
   beforeEach(async () => {
+    queryService = mockSubService({
+      findOrders: jest.fn(),
+      findOneOrder: jest.fn(),
+      getOrderPayments: jest.fn().mockResolvedValue([]),
+      getOrderShipments: jest.fn().mockResolvedValue([]),
+      getOrderLogs: jest.fn().mockResolvedValue([]),
+      getStats: jest.fn(),
+    })
+
     module = await Test.createTestingModule({
       providers: [
         OrderService,
@@ -76,6 +93,9 @@ describe('OrderService', () => {
         { provide: PricingEngineService, useValue: { calculatePrice: jest.fn() } },
         { provide: CustomerService, useValue: { findById: jest.fn(), updateMemberAssetsAfterPayment: jest.fn() } },
         { provide: DataSource, useValue: { manager: { transaction: jest.fn() } } },
+        { provide: OrderCrudService, useValue: mockSubService({ createOrder: jest.fn(), updateOrder: jest.fn(), updateOrderStatus: jest.fn() }) },
+        { provide: OrderQueryService, useValue: queryService },
+        { provide: OrderLifecycleService, useValue: mockSubService({ cancelOrder: jest.fn(), createPayment: jest.fn(), createShipment: jest.fn(), autoPopulateCustomerLens: jest.fn(), findPaymentByNo: jest.fn(), findShipmentByOrderId: jest.fn() }) },
       ],
     }).compile()
 
@@ -98,22 +118,17 @@ describe('OrderService', () => {
         { orderId: '1', orderCode: 'ORD001', status: 'pending', totalAmount: 299 },
         { orderId: '2', orderCode: 'ORD002', status: 'paid', totalAmount: 199 },
       ]
-      // Mock findOrders 内部调用的 itemRepo.find() 和 addrRepo.find()
-      const itemRepo = module.get(getRepositoryToken(OrderItem))
-      ;(itemRepo.find as jest.Mock).mockResolvedValue([])
-      const addrRepo = module.get(getRepositoryToken(OrderAddress))
-      ;(addrRepo.find as jest.Mock).mockResolvedValue([])
-      mockOrdersResult(mockData)
+      queryService.findOrders.mockResolvedValue({ items: mockData, total: 2, page: 1, pageSize: 20 })
       const result = await service.findOrders({ page: 1, pageSize: 20 })
+      expect(queryService.findOrders).toHaveBeenCalledWith({ page: 1, pageSize: 20 })
       expect(result.items).toHaveLength(2)
       expect(result.total).toBe(2)
     })
 
-    it('should filter by status', async () => {
-      const qb = orderRepo.createQueryBuilder()
-      ;(qb.getManyAndCount as jest.Mock).mockResolvedValue([[], 0])
+    it('should delegate to queryService', async () => {
+      queryService.findOrders.mockResolvedValue({ items: [], total: 0, page: 1, pageSize: 20 })
       await service.findOrders({ status: 'paid' })
-      expect(qb.andWhere).toHaveBeenCalled()
+      expect(queryService.findOrders).toHaveBeenCalledWith({ status: 'paid' })
     })
   })
 })

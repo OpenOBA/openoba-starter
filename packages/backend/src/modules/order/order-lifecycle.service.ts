@@ -22,6 +22,16 @@ import {
 } from './order.constants'
 import { TransactionType } from '../inventory/entity/inventory-transaction.entity'
 
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  [ORDER_STATUS.pending]: [ORDER_STATUS.confirmed, ORDER_STATUS.cancelled],
+  [ORDER_STATUS.confirmed]: [ORDER_STATUS.paid, ORDER_STATUS.cancelled],
+  [ORDER_STATUS.paid]: [ORDER_STATUS.shipped, ORDER_STATUS.cancelled],
+  [ORDER_STATUS.shipped]: [ORDER_STATUS.delivered, ORDER_STATUS.cancelled],
+  [ORDER_STATUS.delivered]: [ORDER_STATUS.completed],
+  [ORDER_STATUS.completed]: [],
+  [ORDER_STATUS.cancelled]: [],
+}
+
 /**
  * 订单生命周期子 Service
  *
@@ -49,15 +59,6 @@ export class OrderLifecycleService {
   // ===== 取消订单 =====
   async cancelOrder(id: string, ensureExistsFn: () => Promise<any>, remark?: string, operator?: string) {
     const order = await ensureExistsFn()
-    const VALID_TRANSITIONS: Record<string, string[]> = {
-      [ORDER_STATUS.pending]: [ORDER_STATUS.confirmed, ORDER_STATUS.cancelled],
-      [ORDER_STATUS.confirmed]: [ORDER_STATUS.paid, ORDER_STATUS.cancelled],
-      [ORDER_STATUS.paid]: [ORDER_STATUS.shipped, ORDER_STATUS.cancelled],
-      [ORDER_STATUS.shipped]: [ORDER_STATUS.delivered, ORDER_STATUS.cancelled],
-      [ORDER_STATUS.delivered]: [ORDER_STATUS.completed],
-      [ORDER_STATUS.completed]: [],
-      [ORDER_STATUS.cancelled]: [],
-    }
     const allowed = VALID_TRANSITIONS[order.status]
     if (!allowed || !allowed.includes(ORDER_STATUS.cancelled)) {
       throw new BadRequestException(`订单状态 ${order.status} 不可取消`)
