@@ -52,7 +52,6 @@ type DbRow = Record<string, string>
 @Injectable()
 export class AgentExecutorService implements OnModuleInit {
   private readonly logger = new Logger(AgentExecutorService.name)
-  private _lastDraftId: string = ''
   /** 🔐 工具间共享查询缓存 — 每个 chatExecute 调用创建独立的请求级缓存（P1并发隔离） */
   private queryCache = new Map<string, { data: any[]; timestamp: number }>()
   private readonly CACHE_MAX_SIZE = 50
