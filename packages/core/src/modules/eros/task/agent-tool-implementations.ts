@@ -310,8 +310,8 @@ export class AgentToolImplementations {
   async executeWebFetch(url: string, mode: string, maxChars?: number): Promise<string> {
     try {
       this.securityGuard.validateFetchUrl(url);
-    } catch (e: any) {
-      return e.message || 'URL 校验失败';
+    } catch (e: unknown) {
+      return (e as Error).message || 'URL 校验失败';
     }
     try {
       const controller = new AbortController();
@@ -411,7 +411,7 @@ export class AgentToolImplementations {
       const dir = project === 'frontend' ? nodePath.resolve(process.cwd(), '..', 'frontend') : process.cwd();
       cp.execSync('npx tsc --noEmit', { cwd: dir, timeout: TIMEOUT.TSC_CHECK });
       return '✅ TS编译通过';
-    } catch (e: any) { return '❌ 编译失败: ' + (e.stderr || e.message).substring(0, 300); }
+    } catch (e: unknown) { const err = e as { stderr?: string; message?: string }; return '❌ 编译失败: ' + (err.stderr || err.message || '').substring(0, 300); }
   }
 
   // ═══════════════════════════════════════════
