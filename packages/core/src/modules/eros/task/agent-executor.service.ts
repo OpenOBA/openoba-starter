@@ -770,157 +770,14 @@ export class AgentExecutorService implements OnModuleInit {
     seriesCode: string; structureStandardCode: string
     spuDescription?: string; skus?: any[]
   }): Promise<string> {
-    try {
-      // 效果词容错：查询字典并模糊匹配
-      const effectRows = await this.taskRepo.manager.query(
-        'SELECT effect_code, effect_type FROM dict_effect_tag WHERE is_active=1'
-      ) as { effect_code: string; effect_type: string }[]
-      const validSkinCodes = effectRows.filter(r => r.effect_type === 'skin_tone').map(r => r.effect_code)
-      const validFaceCodes = effectRows.filter(r => r.effect_type === 'face_shape').map(r => r.effect_code)
-
-      const skus = (args.skus || []).map((sku: any) => {
-        const fixed: any = { ...sku }
-        if (sku.skinToneEffect && !validSkinCodes.includes(sku.skinToneEffect)) {
-          let best = ''; let bestScore = 0
-          for (const code of validSkinCodes) {
-            const s = fuzzyScore(sku.skinToneEffect, code)
-            if (s > bestScore) { bestScore = s; best = code }
-          }
-          if (best && bestScore > 0.4) fixed.skinToneEffect = best
-        }
-        if (sku.faceShapeEffect && !validFaceCodes.includes(sku.faceShapeEffect)) {
-          let best = ''; let bestScore = 0
-          for (const code of validFaceCodes) {
-            const s = fuzzyScore(sku.faceShapeEffect, code)
-            if (s > bestScore) { bestScore = s; best = code }
-          }
-          if (best && bestScore > 0.4) fixed.faceShapeEffect = best
-        }
-        return fixed
-      })
-
-      const draft = await this.draftPoolService.createDraftSpu({
-        spuName: args.spuName,
-        gender: args.gender,
-        shapeCode: args.shapeCode,
-        seriesCode: args.seriesCode,
-        structureStandardCode: args.structureStandardCode,
-        spuDescription: args.spuDescription || '',
-        source: 'ai',
-        skus: skus,
-      })
-      this._lastDraftId = draft.draftId
-
-      // 通用草稿同步
-      let universalDraftId = ''
-      try {
-        const universalDraft = await this.draftService.create({
-          draftType: 'spu',
-          title: args.spuName,
-          bodyJson: {
-            draftId: draft.draftId,
-            spuName: args.spuName,
-            gender: args.gender,
-            shapeCode: args.shapeCode,
-            seriesCode: args.seriesCode,
-            structureStandardCode: args.structureStandardCode,
-            spuDescription: args.spuDescription || '',
-            skus: skus,
-          },
-        } as any)
-        universalDraftId = (universalDraft as any)?.id || ''
-      } catch (e: unknown) {
-        this.logger.warn(`通用草稿同步失败: ${(e as Error).message}`)
-      }
-
-      return [
-        `✅ 草稿已创建 (${draft.draftId})`,
-        universalDraftId ? `🔄 通用草稿已同步 (${universalDraftId})` : '',
-        ``,
-        `📋 SPU: ${args.spuName}`,
-        `👤 性别: ${args.gender}`,
-        `🔧 框型: ${args.shapeCode} | 系列: ${args.seriesCode} | 结构标准: ${args.structureStandardCode}`,
-        `📦 来源: AI 生成 | 状态: 待审核`,
-        `🎨 SKU 数量: ${skus.length}`,
-        ``,
-        `⏳ 下一步：人工在草稿池审核后批量上架。`,
-      ].filter(Boolean).join('\n')
-    } catch (e: unknown) {
-      return `❌ 草稿创建失败: ${(e as Error).message}`
-    }
+    return this.toolImpls.executeDraftCreate(args)
   }
 
   private async executeDraftAddSku(args: {
     spuId: string
     skus: any[]
   }): Promise<string> {
-    try {
-      // 从草稿池查找已有 SPU
-      const { items } = await this.draftPoolService.queryDrafts({ page: 1, pageSize: 100 })
-      const existingSpu = items.find((d: any) => d.spuId === args.spuId || d.draftId === args.spuId)
-      if (!existingSpu) {
-        return `❌ 未找到 SPU: ${args.spuId}。请先确认 SPU 存在于草稿池或 ERP 中。可调用 query_erp_data 或 draft_list 查看。`
-      }
-
-      // 效果词容错（复用 draft_create 的逻辑）
-      const effectRows = await this.taskRepo.manager.query(
-        'SELECT effect_code, effect_type FROM dict_effect_tag WHERE is_active=1'
-      ) as { effect_code: string; effect_type: string }[]
-      const validSkinCodes = effectRows.filter(r => r.effect_type === 'skin_tone').map(r => r.effect_code)
-      const validFaceCodes = effectRows.filter(r => r.effect_type === 'face_shape').map(r => r.effect_code)
-
-      const skus = (args.skus || []).map((sku: any) => {
-        const fixed: any = { ...sku }
-        if (sku.skinToneEffect && !validSkinCodes.includes(sku.skinToneEffect)) {
-          let best = ''; let bestScore = 0
-          for (const code of validSkinCodes) { const s = fuzzyScore(sku.skinToneEffect, code); if (s > bestScore) { bestScore = s; best = code } }
-          if (best && bestScore > 0.4) fixed.skinToneEffect = best
-        }
-        if (sku.faceShapeEffect && !validFaceCodes.includes(sku.faceShapeEffect)) {
-          let best = ''; let bestScore = 0
-          for (const code of validFaceCodes) { const s = fuzzyScore(sku.faceShapeEffect, code); if (s > bestScore) { bestScore = s; best = code } }
-          if (best && bestScore > 0.4) fixed.faceShapeEffect = best
-        }
-        return fixed
-      })
-
-      // 在已有 SPU 上追加 SKU — 通过 erdl_crud create DraftSpuSku
-      let created = 0
-      for (const sku of skus) {
-        try {
-          await this.executeErdlCrud({
-            action: 'create',
-            entity: 'DraftSpuSku',
-            values: {
-              draftId: existingSpu.draftId,
-              spuId: args.spuId,
-              colorCode: sku.colorCode,
-              colorName: sku.colorName || '',
-              skinToneEffect: sku.skinToneEffect || '',
-              faceShapeEffect: sku.faceShapeEffect || '',
-              displayName: sku.displayName || '',
-              retailPrice: sku.retailPrice || 0,
-              status: 'draft',
-            },
-          })
-          created++
-        } catch (e: unknown) {
-          this.logger.warn(`draft_add_sku 单条失败: ${(e as Error).message}`)
-        }
-      }
-
-      return [
-        `✅ 已为 SPU ${existingSpu.spuName || args.spuId} 补充 ${skus.length} 个 SKU 到草稿池 (${existingSpu.draftId})`,
-        ``,
-        `📦 SPU: ${existingSpu.spuName || args.spuId}`,
-        `🎨 SKU 数量: ${skus.length}`,
-        `📝 来源: AI 生成 | 状态: 待审核`,
-        ``,
-        `⏳ 下一步：人工在草稿池审核后批量上架。`,
-      ].join('\n')
-    } catch (e: unknown) {
-      return `❌ SKU补充失败: ${(e as Error).message}`
-    }
+    return this.toolImpls.executeDraftAddSku(args)
   }
 
   private async executeAestheticsCheck(args: {
@@ -928,61 +785,13 @@ export class AgentExecutorService implements OnModuleInit {
     seriesCode?: string; gender?: string
     skinToneEffect?: string; faceShapeEffect?: string
   }): Promise<string> {
-    try {
-      const result = await this.aestheticsService.check({
-        spu: { shapeCode: args.shapeCode, seriesCode: args.seriesCode || '', gender: args.gender || '' },
-        sku: { colorCode: args.colorCode, skinToneEffect: args.skinToneEffect || '', faceShapeEffect: args.faceShapeEffect || '' },
-      })
-
-      if (result.level === 'pass' && result.errors.length === 0 && result.warnings.length === 0) {
-        return '✅ 美学校验通过 — 框型+色彩组合无冲突规则。'
-      }
-
-      const levelCN: Record<string, string> = { block: '🚫 阻断（不推荐上架）', warning: '⚠️ 有警告（建议人工复核）', pass: '✅ 通过' }
-      const lines: string[] = [`🔍 美学校验: ${levelCN[result.level] || result.level}`]
-
-      if (result.errors.length > 0) {
-        lines.push('', '❌ 阻断规则：')
-        for (const e of (result.errors as any[])) lines.push(`  · [${e.ruleCode}] ${e.ruleName}: ${e.message}`)
-      }
-      if (result.warnings.length > 0) {
-        lines.push('', '⚠️ 警告：')
-        for (const w of (result.warnings as any[])) lines.push(`  · [${w.ruleCode}] ${w.ruleName}: ${w.message}`)
-      }
-      if ((result as any).recommendations?.length > 0) {
-        lines.push('', '💡 改进建议：')
-        for (const r of (result as any).recommendations) lines.push(`  · ${r.type}: ${r.reason} → 建议: ${r.suggested}`)
-      }
-
-      return lines.join('\n')
-    } catch (e: unknown) {
-      return `⚠️ 美学校验执行异常: ${(e as Error).message}`
-    }
+    return this.toolImpls.executeAestheticsCheck(args)
   }
 
   private async executeDraftList(args: {
     status?: string; gender?: string; source?: string; pageSize?: number
   }): Promise<string> {
-    try {
-      const { items, total } = await this.draftPoolService.queryDrafts({
-        status: args.status,
-        gender: args.gender,
-        source: args.source,
-        page: 1,
-        pageSize: args.pageSize || 20,
-      })
-      if (items.length === 0) return '📭 草稿池暂无匹配记录。'
-      const lines: string[] = [`📋 草稿池 (共 ${total} 条，显示 ${items.length} 条)：`, '']
-      for (const d of items) {
-        const statusCN: Record<string, string> = { draft: '待审核', reviewed: '已审核', approved: '已通过', published: '已发布', rejected: '已驳回' }
-        const s = statusCN[d.status!] || d.status
-        lines.push(`· ${d.draftId.slice(0,12)} | ${d.spuName} | ${d.gender} | ${d.shapeCode}/${d.seriesCode} | ${d.source} | ${s} | ${d.createdAt?.toString().slice(0,16)}`)
-      }
-      lines.push('', '💡 人工在草稿池审核后批量上架。')
-      return lines.join('\n')
-    } catch (e: unknown) {
-      return `⚠️ 草稿查询失败: ${(e as Error).message}`
-    }
+    return this.toolImpls.executeDraftList(args)
   }
 
   // ═══════════════════════════════════════════
@@ -1373,86 +1182,11 @@ export class AgentExecutorService implements OnModuleInit {
   // ═══════════════════════════════════════════
 
   private async executeCsvExport(entity: string, format: string, data: any[], filename: string): Promise<string> {
-    try {
-      let rows: any[] = data || []
-
-      // 🔑 L1: 有 entity → 自动查询
-      if (entity && (!rows || rows.length === 0)) {
-        this.logger.log(`csv_export: auto-query entity=${entity}`)
-        try {
-          const toolExecutor = this.toolRegistry.createExecutor()
-          const result = await toolExecutor('erdl_crud', { action: 'read', entity })
-          const jsonMatch = result.match(/\[[\s\S]*\]/)
-          if (jsonMatch) { rows = JSON.parse(jsonMatch[0]) }
-        } catch (e: unknown) { return `❌ 自动查询失败: ${(e as Error).message}` }
-      }
-
-      // 🔑 L2: 无 data 且无 entity → 读取共享缓存
-      if ((!rows || rows.length === 0)) {
-        const cached = this.cacheGet('last_query')
-        if (cached && cached.length > 0) {
-          rows = cached
-          this.logger.log(`csv_export: using cached data (${rows.length} rows)`)
-        }
-      }
-
-      if (!rows || rows.length === 0) {
-        return `❌ 数据为空。请先查询数据(如 erdl_crud read StructureStandard)，然后直接调用 csv_export(format:"csv") 即可自动导出上次查询结果`
-      }
-
-      return this.doExport(rows, format, filename)
-    } catch (e: unknown) { return `❌ 导出失败: ${(e as Error).message}` }
+    return this.toolImpls.executeCsvExport(entity, format, data, filename)
   }
 
   private doExport(data: any[], format: string, filename: string): string {
-    const ts = new Date().toISOString().slice(0, 10)
-    const uuid = crypto.randomUUID().replace(/-/g, '').substring(0, 8)
-    const fname = filename || `export_${ts}_${uuid}`
-    const dir = path.join(process.cwd(), 'uploads', 'exports')
-    fs.mkdirSync(dir, { recursive: true })
-
-    // 对象数组 → 用 DataBridge 导出
-    if (data.length > 0 && typeof data[0] === 'object' && !Array.isArray(data[0])) {
-      try {
-        const bridge = new EntityDataBridge('StructureStandard', 'industry.eyewear', this.registry)
-        const content = bridge.export(data as Record<string, unknown>[], format as any)
-        const ext = format === 'markdown' ? 'md' : format
-        const fp = path.join(dir, `${fname}.${ext}`)
-        fs.writeFileSync(fp, content, 'utf-8')
-        return `✅ 已导出: /uploads/exports/${fname}.${ext} (${Buffer.byteLength(content, 'utf-8')} 字节)`
-      } catch (e: unknown) {
-        return `❌ 导出失败: ${(e as Error).message}。请检查字段名是否匹配 Entity 定义。`
-      }
-    }
-
-    let content = ''; let ext = ''
-    if (format === 'csv') {
-      ext = 'csv'
-      // 🔑 UTF-8 BOM (Excel 兼容中文)
-      content = '\uFEFF'
-      for (const row of data) {
-        const cells = Array.isArray(row)
-          ? row.map((c: any) => {
-              const v = (c === true || c === 1) ? '是' : (c === false || c === 0) ? '否' : String(c ?? '')
-              return `"${v.replace(/"/g, '""')}"`
-            })
-          : Object.values(row || {}).map((v: any) => {
-              const s = (v === true || v === 1) ? '是' : (v === false || v === 0) ? '否' : String(v ?? '')
-              return `"${s.replace(/"/g, '""')}"`
-            })
-        content += cells.join(',') + '\n'
-      }
-    } else if (format === 'json') { ext = 'json'; content = JSON.stringify(data, null, 2) }
-    else {
-      ext = 'md'
-      if (data.length > 0 && Array.isArray(data[0])) {
-        content = '| ' + (data[0] as any[]).map(c => String(c || '')).join(' | ') + ' |\n|' + (data[0] as any[]).map(() => '---').join('|') + '|\n'
-        for (let i = 1; i < data.length; i++) content += '| ' + (data[i] as any[]).map(c => String(c || '')).join(' | ') + ' |\n'
-      }
-    }
-    const fp = path.join(dir, `${fname}.${ext}`)
-    fs.writeFileSync(fp, content, 'utf-8')
-    return `✅ 已导出: /uploads/exports/${fname}.${ext} (${Buffer.byteLength(content, 'utf-8')} 字节)`
+    return this.toolImpls.doExport(data, format, filename)
   }
 
   // ═══════════════════════════════════════════
@@ -1464,154 +1198,19 @@ export class AgentExecutorService implements OnModuleInit {
   }
 
   private executeDataAnalyze(op: string, data: any[], field: string, topN?: number, fField?: string, fVal?: string): string {
-    try {
-      if (!data || data.length === 0) return '📭 数据为空'
-      switch (op) {
-        case 'summarize': {
-          const count = data.length
-          const fields = Object.keys(data[0] || {})
-          const lines: string[] = [
-            `📊 数据摘要: ${count} 条记录, ${fields.length} 个字段: ${fields.join(', ')}`,
-          ]
-          for (const f of fields) {
-            const nums = data.map(d => Number(d[f])).filter(n => !isNaN(n))
-            if (nums.length > 0) {
-              const sum = nums.reduce((a, b) => a + b, 0)
-              const avg = (sum / nums.length).toFixed(2)
-              const min = Math.min(...nums)
-              const max = Math.max(...nums)
-              lines.push(`  ${f}: 和=${sum} 均值=${avg} 最小=${min} 最大=${max} (${nums.length}条数值)`)
-            } else {
-              const vals = data.map(d => String(d[f] ?? '—'))
-              const unique = [...new Set(vals)]
-              if (unique.length <= 10) {
-                lines.push(`  ${f}: ${unique.join(' / ')} (${vals.length}条)`)
-              } else {
-                lines.push(`  ${f}: ${unique.length} 种不同值 (${vals.length}条)`)
-              }
-            }
-          }
-          return lines.join('\n')
-        }
-        case 'topN': {
-          if (!field) return '❌ topN 需要 field 参数'
-          const sorted = [...data].sort((a, b) => {
-            const va = Number(a[field]) || 0
-            const vb = Number(b[field]) || 0
-            return vb - va
-          }).slice(0, topN || 5)
-          return `🏆 Top ${topN || 5} by ${field}:\n` + sorted.map((d, i) => `  ${i + 1}. ${JSON.stringify(d)}`).join('\n')
-        }
-        case 'filter': {
-          if (!fField) return '❌ filter 需要 filterField 参数'
-          const filtered = data.filter(d => String(d[fField]) === fVal)
-          return `🔍 过滤结果 (${fField}=${fVal}): ${filtered.length} 条`
-        }
-        case 'trend': {
-          if (!field) return '❌ trend 需要 field 参数'
-          return `📈 趋势分析: 共 ${data.length} 条数据，字段 ${field}`
-        }
-        default: return `❌ 不支持的分析操作: ${op}`
-      }
-    } catch (e: unknown) {
-      return `❌ 数据分析失败: ${(e as Error).message}`
-    }
+    return this.toolImpls.executeDataAnalyze(op, data, field, topN, fField, fVal)
   }
 
   private async executeImportAnalyze(filePath: string): Promise<string> {
-    try {
-      // H04修复：限制路径在 uploads 目录下，防止路径遍历读任意文件
-      const uploadsDir = path.resolve(process.cwd(), 'uploads')
-      const fullPath = path.resolve(path.isAbsolute(filePath) ? filePath : path.join(process.cwd(), filePath))
-      if (!fullPath.startsWith(uploadsDir)) {
-        return `❌ 安全限制：只能分析 uploads 目录下的文件。路径: ${filePath}`
-      }
-      const content = fs.readFileSync(fullPath, 'utf-8')
-      let columns: string[] = []
-      let preview = ''
-      if (fullPath.endsWith('.csv')) {
-        const lines = content.split('\n').filter(l => l.trim())
-        columns = lines[0].split(',').map(c => c.trim().replace(/^"|"$/g, ''))
-        preview = lines.slice(1, 4).join('\n')
-      } else if (fullPath.endsWith('.json')) {
-        const data = JSON.parse(content)
-        if (Array.isArray(data) && data.length > 0) {
-          columns = Object.keys(data[0])
-          preview = JSON.stringify(data.slice(0, 2), null, 2)
-        }
-      }
-      return `📋 导入文件分析:\n  路径: ${fullPath}\n  列名: ${columns.join(', ')}\n  预览:\n${preview}`
-    } catch (e: unknown) {
-      return `❌ 导入文件分析失败: ${(e as Error).message}`
-    }
+    return this.toolImpls.executeImportAnalyze(filePath)
   }
 
   private executeImportMap(columns: string[], entityName: string): string {
-    try {
-      const entity = this.registry.getEntity('industry.eyewear', entityName)
-      if (!entity) return `❌ Entity 不存在: ${entityName}`
-      const entityFields = Object.keys(entity.properties || {})
-      const mapping = columns.map(col => {
-        const match = entityFields.find(f => f.toLowerCase() === col.toLowerCase() || fuzzyScore(col, f) > 0.7)
-        return { source: col, target: match || null }
-      })
-      return `🔗 列映射结果:\n` + mapping.map(m => `  ${m.source} → ${m.target || '(未匹配)'}`).join('\n')
-    } catch (e: unknown) {
-      return `❌ 列映射失败: ${(e as Error).message}`
-    }
+    return this.toolImpls.executeImportMap(columns, entityName)
   }
 
   private async executeImportExecute(entityName: string, data: any[]): Promise<string> {
-    try {
-      const bridge = new EntityDataBridge(entityName, 'industry.eyewear', this.registry)
-      // Auto-map columns
-      const columns = data.length > 0 ? Object.keys(data[0]) : []
-      const mapping = bridge.mapColumns(columns)
-      // Normalize
-      const normalized = bridge.normalize(data, mapping)
-      if (normalized.entities.length === 0) {
-        const detail = normalized.warnings.length > 0
-          ? `: ${normalized.warnings.join('; ')}`
-          : `: 可能原因——entity名不匹配、字段名不存在于${entityName}、或数据格式不符合实体定义。可用 erdl_crud read ${entityName} 查看字段结构。`
-        return `❌ 无有效数据${detail}`
-      }
-      // Validate
-      const validation = bridge.validate(normalized.entities)
-      if (validation.errors.length > 0 && validation.valid.length === 0) {
-        return `❌ 数据验证失败 (${validation.errors.length} 条错误):\n` + validation.errors.slice(0, 5).map((e: any) => `  · 行${e.row}: ${e.errors.join('; ')}`).join('\n')
-      }
-      let created = 0
-      const failures: string[] = []
-      for (const item of validation.valid) {
-        try {
-          await this.executeErdlCrud({ action: 'create', entity: entityName, values: item })
-          created++
-        } catch (e: unknown) {
-          failures.push(`行: ${(e as Error).message}`)
-        }
-      }
-
-      const lines: string[] = []
-      if (created > 0) {
-        lines.push(`✅ 导入完成: ${created}/${validation.valid.length} 条成功写入 ${entityName}`)
-      }
-      if (failures.length > 0) {
-        lines.push(`⚠️ ${failures.length} 条失败: ${failures.slice(0, 3).join(' | ')}`)
-        if (failures.length > 3) lines.push(`  ... 共 ${failures.length} 条失败`)
-      }
-      if (validation.errors.length > 0) {
-        lines.push(`⚠️ ${validation.errors.length} 条校验错误（已跳过）`)
-      }
-      if (validation.valid.length > 0 && created === 0) {
-        lines.push(`❌ 全部写入失败。表 ${entityName} 可能存在唯一键约束冲突（如 skuCode 重复），请检查数据。`)
-      }
-      if (lines.length === 0) {
-        lines.push(`✅ 导入完成: 0 条（无有效数据需要导入）`)
-      }
-      return lines.join('\n')
-    } catch (e: unknown) {
-      return `❌ 导入执行失败: ${(e as Error).message}`
-    }
+    return this.toolImpls.executeImportExecute(entityName, data)
   }
 
   private sessionDeltaFiles: string[] = []
