@@ -4,6 +4,10 @@ import { ProductController } from './product.controller'
 import { ExternalBarcodeMappingController } from './external-barcode-mapping.controller'
 import { PricingController } from './pricing.controller'
 import { ProductService } from './product.service'
+import { ColorService } from './color.service'
+import { SpuService } from './spu.service'
+import { SkuService } from './sku.service'
+import { SetService } from './set.service'
 import { ProductSpuService } from './product-spu.service'
 import { ProductSkuService } from './product-sku.service'
 import { ExternalBarcodeMappingService } from './external-barcode-mapping.service'
@@ -76,12 +80,16 @@ import { ERDLModule } from '@openoba/core/dist/modules/erdl/erdl.module'
   controllers: [ProductController, ExternalBarcodeMappingController, PricingController],
   providers: [
     ProductService,
+    ColorService,
+    SpuService,
+    SkuService,
+    SetService,
     ProductSpuService,
     ProductSkuService,
     ExternalBarcodeMappingService,
     PricingService,
     PricingEngineService,
   ],
-  exports: [ProductService, ProductSpuService, ProductSkuService, PricingService, PricingEngineService],
+  exports: [ProductService, ColorService, SpuService, SkuService, SetService, ProductSpuService, ProductSkuService, PricingService, PricingEngineService],
 })
 export class ProductModule {}

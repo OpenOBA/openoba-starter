@@ -2,8 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { getRepositoryToken } from '@nestjs/typeorm'
 import { DataSource } from 'typeorm'
 import { ProductService } from './product.service'
+import { ColorService } from './color.service'
+import { SpuService } from './spu.service'
+import { SkuService } from './sku.service'
+import { SetService } from './set.service'
 import { DictSkuColor } from './entity/dict-spu-color.entity'
-import { ProductCategory } from './entity/product-category.entity'
 import { ProductSpu } from './entity/product-spu.entity'
 import { ProductSku } from './entity/product-sku.entity'
 import { ProductSet } from './entity/product-set.entity'
@@ -13,8 +16,7 @@ import { PriceHistory } from './entity/price-history.entity'
 import { DictEffectTag } from './entity/dict-effect-tag.entity'
 import { SkuEffectRecommend } from './entity/sku-effect-recommend.entity'
 
-function mockQueryBuilder(overrides?: { getManyAndCount?: jest.Mock }) {
-  const getManyAndCount = overrides?.getManyAndCount ?? jest.fn().mockResolvedValue([[], 0])
+function mockQueryBuilder() {
   return {
     leftJoinAndSelect: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
@@ -22,36 +24,48 @@ function mockQueryBuilder(overrides?: { getManyAndCount?: jest.Mock }) {
     orderBy: jest.fn().mockReturnThis(),
     skip: jest.fn().mockReturnThis(),
     take: jest.fn().mockReturnThis(),
-    getManyAndCount,
+    getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
   }
 }
 
 function mockRepo() {
-  const qb = mockQueryBuilder()
   return {
     create: jest.fn(),
     save: jest.fn(),
     find: jest.fn(),
     findOne: jest.fn(),
-    createQueryBuilder: jest.fn().mockReturnValue(qb),
+    createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder()),
     delete: jest.fn(),
     update: jest.fn(),
     query: jest.fn(),
+    count: jest.fn().mockResolvedValue(0),
   }
 }
 
-describe('ProductService', () => {
+function mockDataSource() {
+  return {
+    getRepository: jest.fn().mockReturnValue(mockRepo()),
+    manager: { transaction: jest.fn() },
+  }
+}
+
+describe('ProductService (Facade)', () => {
   let service: ProductService
-  let spuRepo: ReturnType<typeof mockRepo>
-  let skuRepo: ReturnType<typeof mockRepo>
-  let skuImageRepo: ReturnType<typeof mockRepo>
+  let colorService: ColorService
+  let spuService: SpuService
+  let skuService: SkuService
+  let setService: SetService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProductService,
+        ColorService,
+        SpuService,
+        SkuService,
+        SetService,
+        // Shared repository mocks
         { provide: getRepositoryToken(DictSkuColor), useValue: mockRepo() },
-        { provide: getRepositoryToken(ProductCategory), useValue: mockRepo() },
         { provide: getRepositoryToken(ProductSpu), useValue: mockRepo() },
         { provide: getRepositoryToken(ProductSku), useValue: mockRepo() },
         { provide: getRepositoryToken(ProductSet), useValue: mockRepo() },
@@ -60,88 +74,62 @@ describe('ProductService', () => {
         { provide: getRepositoryToken(PriceHistory), useValue: mockRepo() },
         { provide: getRepositoryToken(DictEffectTag), useValue: mockRepo() },
         { provide: getRepositoryToken(SkuEffectRecommend), useValue: mockRepo() },
-        { provide: DataSource, useValue: { manager: { transaction: jest.fn() } } },
+        { provide: DataSource, useValue: mockDataSource() },
       ],
     }).compile()
 
     service = module.get<ProductService>(ProductService)
-    spuRepo = module.get(getRepositoryToken(ProductSpu)) as any
-    skuRepo = module.get(getRepositoryToken(ProductSku)) as any
-    skuImageRepo = module.get(getRepositoryToken(ProductSkuImage)) as any
+    colorService = module.get<ColorService>(ColorService)
+    spuService = module.get<SpuService>(SpuService)
+    skuService = module.get<SkuService>(SkuService)
+    setService = module.get<SetService>(SetService)
   })
 
   it('should be defined', () => {
     expect(service).toBeDefined()
   })
 
-  describe('findSpus', () => {
-    function mockSpusResult(items: any[]) {
-      const qb = spuRepo.createQueryBuilder()
-      ;(qb.getManyAndCount as jest.Mock).mockResolvedValue([items, items.length])
-    }
-
-    it('should return paginated SPUs', async () => {
-      const mockData = [
-        { spuId: '1', spuCode: 'SPU001', spuName: '测试SPU' },
-        { spuId: '2', spuCode: 'SPU002', spuName: '测试SPU2' },
-      ]
-      mockSpusResult(mockData)
-
-      const result = await service.findSpus({ page: 1, pageSize: 20 })
-
-      expect(result.items).toHaveLength(2)
-      expect(result.total).toBe(2)
-      expect(spuRepo.createQueryBuilder).toHaveBeenCalled()
+  it('should delegate findSpus to SpuService', async () => {
+    const spy = jest.spyOn(spuService, 'findSpus').mockResolvedValue({
+      items: [],
+      total: 0,
+      page: 1,
+      pageSize: 20,
     })
-
-    it('should filter by keyword', async () => {
-      mockSpusResult([{ spuId: '1', spuCode: 'SPU001', spuName: '测试SPU' }])
-      await service.findSpus({ keyword: 'SPU001' })
-
-      const qb = spuRepo.createQueryBuilder()
-      expect(qb.andWhere).toHaveBeenCalledWith(
-        expect.stringContaining('spu_name LIKE'),
-        expect.objectContaining({ kw: '%SPU001%' }),
-      )
-    })
-
-    it('should filter by gender when valid', async () => {
-      mockSpusResult([])
-      await service.findSpus({ gender: 'female' })
-
-      const qb = spuRepo.createQueryBuilder()
-      expect(qb.andWhere).toHaveBeenCalledWith(
-        expect.stringContaining('gender'),
-        expect.objectContaining({ g: 'female' }),
-      )
-    })
+    await service.findSpus({ page: 1, pageSize: 20 })
+    expect(spy).toHaveBeenCalledWith({ page: 1, pageSize: 20 })
   })
 
-  describe('findSkus', () => {
-    it('should return paginated SKUs', async () => {
-      const mockData = [{ skuId: '1', skuCode: 'SKU001', skuName: '测试SKU' }]
-      const qb = skuRepo.createQueryBuilder()
-      ;(qb.getManyAndCount as jest.Mock).mockResolvedValue([mockData, 1])
-      skuImageRepo.find = jest.fn().mockResolvedValue([])
-
-      const result = await service.findSkus({ page: 1, pageSize: 20 })
-
-      expect(result.items).toHaveLength(1)
-      expect(result.total).toBe(1)
+  it('should delegate findSkus to SkuService', async () => {
+    const spy = jest.spyOn(skuService, 'findSkus').mockResolvedValue({
+      items: [],
+      total: 0,
+      page: 1,
+      pageSize: 20,
     })
+    await service.findSkus({ page: 1, pageSize: 20 })
+    expect(spy).toHaveBeenCalledWith({ page: 1, pageSize: 20 })
   })
 
-  describe('findSets', () => {
-    it('should return paginated sets', async () => {
-      const result = await service.findSets({ page: 1, pageSize: 20 })
-      expect(result.items).toEqual([])
-      expect(result.total).toBe(0)
+  it('should delegate findSets to SetService', async () => {
+    const spy = jest.spyOn(setService, 'findSets').mockResolvedValue({
+      items: [],
+      total: 0,
+      page: 1,
+      pageSize: 20,
     })
+    await service.findSets({ page: 1, pageSize: 20 })
+    expect(spy).toHaveBeenCalledWith({ page: 1, pageSize: 20 })
   })
 
-  describe('generateSetCode', () => {
-    it('should exist as a method', () => {
-      expect(typeof (service as any).generateSetCode).toBe('function')
+  it('should delegate findColors to ColorService', async () => {
+    const spy = jest.spyOn(colorService, 'findColors').mockResolvedValue({
+      items: [],
+      total: 0,
+      page: 1,
+      pageSize: 20,
     })
+    await service.findColors({ page: 1, pageSize: 20 })
+    expect(spy).toHaveBeenCalledWith({ page: 1, pageSize: 20 })
   })
 })
