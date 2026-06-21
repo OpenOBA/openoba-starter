@@ -19,6 +19,7 @@ import { KnowledgeService } from './knowledge.service'
 import { HotwordService } from './hotword.service'
 import { AgentToolRegistry } from './agent-tool-registry'
 import { AgentSecurityGuard } from './agent-security-guard'
+import { AgentToolRegistrar } from './agent-tool-registrar'
 import { ToolRegistryBridge } from './tool-registry-bridge.service'
 import { AgentTaskController } from './agent-task.controller'
 import { KnowledgeController } from './knowledge.controller'
@@ -44,7 +45,7 @@ import { DeliverableModule } from '../deliverable/deliverable.module'
     DeliverableModule,
   ],
   controllers: [AgentTaskController, KnowledgeController, AgentStreamController, AgentChatController],
-  providers: [AgentTaskService, AgentExecutorService, KnowledgeService, HotwordService, AgentToolRegistry, AgentSecurityGuard, ToolRegistryBridge, RunRegistry],
+  providers: [AgentTaskService, AgentExecutorService, KnowledgeService, HotwordService, AgentToolRegistry, AgentSecurityGuard, AgentToolRegistrar, ToolRegistryBridge, RunRegistry],
   exports: [AgentTaskService, AgentExecutorService, KnowledgeService, ToolRegistryBridge],
 })
 export class ErosTaskModule {}
