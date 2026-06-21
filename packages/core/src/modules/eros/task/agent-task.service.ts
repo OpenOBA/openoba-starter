@@ -34,32 +34,11 @@ import type {
   EscalateDto,
 } from './dto/agent-task.dto'
 import { AgentExecutorService } from './agent-executor.service'
-
-// ── 状态机转换表 — P1修复：移除 executing→executing 自循环 ──
-const STATE_TRANSITIONS: Record<AgentTaskStatus, AgentTaskStatus[]> = {
-  drafted: ['proposed'],
-  proposed: ['revised', 'executing', 'cancelled', 'aborted', 'escalated'],
-  revised: ['proposed'],
-  // P1修复：executing 不再允许自循环，需通过 escalated→executing 或 published→executing 重新执行
-  executing: ['delivered', 'aborted', 'escalated', 'cancelled'],
-  delivered: ['published', 'cancelled', 'aborted'],
-  published: ['completed', 'executing', 'aborted'],
-  completed: [],
-  cancelled: [],
-  aborted: [],
-  escalated: ['executing', 'cancelled', 'aborted'],
-}
+import { STATE_TRANSITIONS, validateTransition, parseApprovalComment } from './task-state-machine'
+import type { ParsedApproval } from './task-state-machine'
 
 function uid(): string {
   return crypto.randomUUID().replace(/-/g, '')
-}
-
-/** 强制校验状态转换合法性 */
-function validateTransition(current: AgentTaskStatus, target: AgentTaskStatus): void {
-  const allowed = STATE_TRANSITIONS[current]
-  if (!allowed || !allowed.includes(target)) {
-    throw new BadRequestException(`不允许从 ${current} 转换为 ${target}`)
-  }
 }
 
 function taskNo(): string {
@@ -74,35 +53,6 @@ function taskNo(): string {
 
 function nowMs(): number {
   return Date.now()
-}
-
-// ── 审批回复解析 ──
-interface ParsedApproval {
-  action: 'approved' | 'rejected' | 'partial'
-  comment: string
-  modifications: string[]
-}
-
-function parseApprovalComment(raw: string): ParsedApproval {
-  const lowered = raw.toLowerCase().trim()
-
-  // 全量通过
-  if (/^(通过|ok|okay|approved|approve|可以|没问题|继续|下一步)/.test(lowered)) {
-    return { action: 'approved', comment: raw, modifications: [] }
-  }
-
-  // 拒绝/驳回
-  if (/^(不|不同意|不行|拒绝|reject|驳回|重做|重新)/.test(lowered)) {
-    return { action: 'rejected', comment: raw, modifications: [] }
-  }
-
-  // 暂停/挂起
-  if (/暂停|挂起|等等|等我|稍后/.test(lowered)) {
-    return { action: 'rejected', comment: raw, modifications: [] }
-  }
-
-  // 部分修改（默认解释为有条件通过）
-  return { action: 'approved', comment: raw, modifications: [] }
 }
 
 @Injectable()
