@@ -98,9 +98,6 @@ export interface ILlmPromptBuilder {
     error: string,
     round: number,
   ): string
-
-  /** 眼镜推荐（业务入口，调用 buildRecommendQuery → queryLLM） */
-  recommendGlasses(params: RecommendParams): Promise<RecommendResult>
 }
 
 // ============================================
