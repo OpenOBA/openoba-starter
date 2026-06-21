@@ -4,6 +4,7 @@ import { Repository, DataSource } from 'typeorm'
 import { Inventory } from './entity/inventory.entity'
 import { InventoryTransaction, TransactionType } from './entity/inventory-transaction.entity'
 import { InventoryDocument } from './entity/inventory-document.entity'
+import { InventoryBatchService } from './inventory-batch.service'
 import {
   CreateInventoryDto,
   UpdateInventoryDto,
@@ -16,6 +17,16 @@ import {
   QueryTransactionDto,
 } from './dto/inventory.dto'
 
+/**
+ * 库存 Facade Service
+ *
+ * 职责: 组合各子 Service 提供统一入口
+ *       保留独立事务方法（stockIn/stockOut/lock/unlock/adjust）
+ *       保留外部事务内方法（用于 OrderService 等调用方）
+ *       单据执行/批次分配委托给 InventoryBatchService
+ *
+ * ~320 行（原来是 637 行）
+ */
 @Injectable()
 export class InventoryService {
   private readonly logger = new Logger(InventoryService.name)
@@ -28,9 +39,10 @@ export class InventoryService {
     @InjectRepository(InventoryDocument)
     private documentRepo: Repository<InventoryDocument>,
     private dataSource: DataSource,
+    private batchService: InventoryBatchService,
   ) {}
 
-  // ===== 库存查询 =====
+  // ===== 查询 → 委托子服务（如果存在）或直接实现 =====
 
   async findAll(dto: QueryInventoryDto) {
     const page = dto.page || 1
@@ -93,44 +105,43 @@ export class InventoryService {
   async create(dto: CreateInventoryDto, operatorId?: string) {
     const warehouseCode = dto.warehouseCode || 'WH-MAIN'
 
-    // H08修复：检查+创建在同一事务中，并添加悲观锁防并发
     return this.dataSource.transaction(async (manager) => {
-    const existing = await manager.findOne(Inventory, {
-      where: { skuId: dto.skuId, warehouseCode },
-      lock: { mode: 'pessimistic_write' },
-    })
-    if (existing) throw new BadRequestException('该 SKU 的库存记录已存在')
+      const existing = await manager.findOne(Inventory, {
+        where: { skuId: dto.skuId, warehouseCode },
+        lock: { mode: 'pessimistic_write' },
+      })
+      if (existing) throw new BadRequestException('该 SKU 的库存记录已存在')
 
-    const currentQty = dto.currentQuantity || 0
-    const inv = this.inventoryRepo.create({
-      id: crypto.randomUUID(),
-      skuId: dto.skuId,
-      skuCode: dto.skuCode,
-      structureStandardCode: dto.structureStandardCode ?? undefined,
-      warehouseCode,
-      currentQuantity: currentQty,
-      availableQuantity: currentQty,
-      lockedQuantity: 0,
-      warningQuantity: dto.warningQuantity || 10,
-    })
-
-    await manager.save(Inventory, inv)
-    if (currentQty > 0) {
-      await manager.save(InventoryTransaction, {
+      const currentQty = dto.currentQuantity || 0
+      const inv = this.inventoryRepo.create({
         id: crypto.randomUUID(),
-        skuId: dto.skuId, skuCode: dto.skuCode,
+        skuId: dto.skuId,
+        skuCode: dto.skuCode,
         structureStandardCode: dto.structureStandardCode ?? undefined,
         warehouseCode,
-        transactionType: TransactionType.INITIAL,
-        quantity: currentQty,
-        quantityBefore: 0,
-        quantityAfter: currentQty,
-        referenceType: 'initial',
-        operatorId: operatorId ?? undefined,
-        remark: '期初导入',
+        currentQuantity: currentQty,
+        availableQuantity: currentQty,
+        lockedQuantity: 0,
+        warningQuantity: dto.warningQuantity || 10,
       })
-    }
-    return inv
+
+      await manager.save(Inventory, inv)
+      if (currentQty > 0) {
+        await manager.save(InventoryTransaction, {
+          id: crypto.randomUUID(),
+          skuId: dto.skuId, skuCode: dto.skuCode,
+          structureStandardCode: dto.structureStandardCode ?? undefined,
+          warehouseCode,
+          transactionType: TransactionType.INITIAL,
+          quantity: currentQty,
+          quantityBefore: 0,
+          quantityAfter: currentQty,
+          referenceType: 'initial',
+          operatorId: operatorId ?? undefined,
+          remark: '期初导入',
+        })
+      }
+      return inv
     })
   }
 
@@ -246,7 +257,7 @@ export class InventoryService {
         structureStandardCode: inv.structureStandardCode,
         warehouseCode: 'WH-MAIN',
         transactionType: TransactionType.LOCK,
-        quantity: 0, // 锁定不改变总库存
+        quantity: 0,
         quantityBefore: inv.availableQuantity + dto.quantity,
         quantityAfter: inv.availableQuantity,
         referenceType: 'order',
@@ -261,9 +272,6 @@ export class InventoryService {
 
   // ===== 解锁库存（取消订单） =====
 
-  /**
-   * P0-2修复：已发货订单取消时回滚库存（stockIn，在外部事务内）
-   */
   async rollbackStockInTransaction(manager: any, dto: { skuId: string; orderId: string; quantity: number }, operatorId?: string) {
     const inv = await manager.findOne(Inventory, {
       where: { skuId: dto.skuId, warehouseCode: 'WH-MAIN' },
@@ -294,9 +302,6 @@ export class InventoryService {
     })
   }
 
-  /**
-   * C7-P0修复：在外部事务中解锁库存（由调用方管理事务）
-   */
   async unlockInTransaction(manager: any, dto: { skuId: string; orderId: string; quantity: number }, operatorId?: string) {
     const inv = await manager.findOne(Inventory, {
       where: { skuId: dto.skuId, warehouseCode: 'WH-MAIN' },
@@ -330,10 +335,6 @@ export class InventoryService {
     })
   }
 
-  /**
-   * R7-P0修复：在外部事务中锁定库存（支付时使用）
-   * 失败 → 调用方事务回滚，防止超卖
-   */
   async lockInTransaction(manager: any, dto: { skuId: string; orderId: string; quantity: number }, operatorId?: string) {
     const inv = await manager.findOne(Inventory, {
       where: { skuId: dto.skuId, warehouseCode: 'WH-MAIN' },
@@ -368,10 +369,6 @@ export class InventoryService {
     })
   }
 
-  /**
-   * R7-P0修复：在外部事务中出库扣减（发货时使用）
-   * 失败 → 调用方事务回滚，防止库存不一致
-   */
   async stockOutInTransaction(manager: any, dto: { skuId: string; quantity: number; transactionType: string; referenceType?: string; referenceId?: string; remark?: string }, operatorId?: string) {
     const inv = await manager.findOne(Inventory, {
       where: { skuId: dto.skuId, warehouseCode: 'WH-MAIN' },
@@ -503,146 +500,18 @@ export class InventoryService {
   }
 
   // ═══════════════════════════════════════════
-  // Phase A: 库存统一 — 单据执行引擎 + 同步钩子
+  // Phase A: 库存统一 — 单据执行引擎 → 委托 batchService
   // ═══════════════════════════════════════════
 
-  /**
-   * 执行库存单据（Agent 创建单据 → 确认后执行 → 入账）
-   * 
-   * Agent 调用链路：
-   *   erdl_crud create InventoryDocument → pending
-   *   → 人工确认/自动确认 → confirmed
-   *   → executeDocument() → stock_in/stock_out → executed
-   */
   async executeDocument(docId: string, operatorId?: string): Promise<InventoryDocument> {
-    const doc = await this.documentRepo.findOne({ where: { id: docId } })
-    if (!doc) throw new NotFoundException('单据不存在')
-    if (doc.status !== 'confirmed') throw new BadRequestException('只能执行已确认的单据')
-
-    await this.dataSource.transaction(async (manager) => {
-      for (const item of doc.items) {
-        const sku = await manager.findOne(Inventory, {
-          where: { skuCode: item.skuCode, warehouseCode: item.warehouseCode || 'WH-MAIN' },
-          lock: { mode: 'pessimistic_write' },
-        })
-        if (!sku) throw new NotFoundException(`SKU ${item.skuCode} 无库存记录，请先初始化`)
-
-        const before = sku.currentQuantity
-        const txType = doc.docType === 'stock_in' ? TransactionType.STOCK_IN
-          : doc.docType === 'stock_out' ? TransactionType.STOCK_OUT
-          : TransactionType.ADJUST
-
-        if (doc.docType === 'stock_in' || doc.docType === 'adjustment') {
-          sku.currentQuantity += item.quantity
-          sku.availableQuantity += item.quantity
-        } else if (doc.docType === 'stock_out') {
-          if (sku.availableQuantity < item.quantity) {
-            throw new BadRequestException(`${item.skuCode} 可用库存不足（可用${sku.availableQuantity}，需要${item.quantity}）`)
-          }
-          sku.currentQuantity -= item.quantity
-          sku.availableQuantity -= item.quantity
-        }
-        sku.updatedAt = new Date()
-        await manager.save(Inventory, sku)
-
-        // 写入流水
-        await manager.save(InventoryTransaction, {
-          id: crypto.randomUUID(),
-          skuId: sku.skuId,
-          skuCode: sku.skuCode,
-          warehouseCode: sku.warehouseCode,
-          transactionType: txType,
-          quantity: doc.docType === 'stock_out' ? -item.quantity : item.quantity,
-          quantityBefore: before,
-          quantityAfter: sku.currentQuantity,
-          referenceType: 'document',
-          referenceId: doc.id,
-          operatorId: operatorId ?? undefined,
-          remark: `单据执行: ${doc.docNo} (${doc.docType})`,
-        })
-
-        // H6修复：同步回写product_sku.stock_quantity = currentQuantity（物理库存）
-        await manager.query(
-          'UPDATE product_sku SET stock_quantity = ? WHERE sku_code = ?',
-          [sku.currentQuantity, sku.skuCode],
-        )
-      }
-
-      doc.status = 'executed'
-      doc.executedAt = new Date()
-      doc.confirmedBy = operatorId || 'system'
-      await manager.save(InventoryDocument, doc)
-    })
-
-    this.logger.log(`[Inventory] 单据 ${doc.docNo} 执行完成`)
-    return doc
+    return this.batchService.executeDocument(docId, operatorId)
   }
 
-  /**
-   * 确认单据（pending → confirmed）
-   */
   async confirmDocument(docId: string, operatorId?: string): Promise<InventoryDocument> {
-    // H14修复：状态更新+执行在同一事务中，执行失败则回滚状态
-    return this.dataSource.transaction(async (manager) => {
-      const doc = await manager.findOne(InventoryDocument, { where: { id: docId } })
-      if (!doc) throw new NotFoundException('单据不存在')
-      if (doc.status !== 'pending') throw new BadRequestException('只能确认待处理的单据')
-
-      doc.status = 'confirmed'
-      doc.confirmedBy = operatorId || 'system'
-      await manager.save(InventoryDocument, doc)
-
-      await this.executeDocumentInTx(manager, docId, operatorId)
-      return doc
-    })
+    return this.batchService.confirmDocument(docId, operatorId)
   }
 
-  // 4R05修复：直接使用外部事务manager，消除嵌套事务
-  private async executeDocumentInTx(manager: any, docId: string, operatorId?: string): Promise<void> {
-    const doc = await manager.findOne(InventoryDocument, { where: { id: docId } })
-    if (!doc || doc.status !== 'confirmed') return
-
-    for (const item of doc.items || []) {
-      // Same logic as executeDocument but using external manager
-      const sku = await manager.findOne(Inventory, {
-        where: { skuCode: item.skuCode, warehouseCode: item.warehouseCode || 'WH-MAIN' },
-        lock: { mode: 'pessimistic_write' },
-      })
-      if (!sku) throw new NotFoundException(`SKU ${item.skuCode} 无库存记录`)
-
-      const before = sku.currentQuantity
-      const txType = doc.docType === 'stock_in' ? TransactionType.STOCK_IN : TransactionType.STOCK_OUT
-      const qty = doc.docType === 'stock_out' ? -item.quantity : item.quantity
-      if (doc.docType === 'stock_in') { sku.currentQuantity += item.quantity; sku.availableQuantity += item.quantity }
-      else {
-        if (sku.availableQuantity < item.quantity) throw new BadRequestException(`${item.skuCode} 可用库存不足`)
-        sku.currentQuantity -= item.quantity; sku.availableQuantity -= item.quantity
-      }
-      sku.updatedAt = new Date()
-      await manager.save(Inventory, sku)
-      await manager.save(InventoryTransaction, {
-        id: crypto.randomUUID(), skuId: sku.skuId, skuCode: sku.skuCode, warehouseCode: sku.warehouseCode,
-        transactionType: txType, quantity: qty, quantityBefore: before, quantityAfter: sku.currentQuantity,
-        referenceType: 'document', referenceId: doc.id, operatorId: operatorId ?? undefined,
-        remark: `单据执行: ${doc.docNo}`,
-      })
-      await manager.query('UPDATE product_sku SET stock_quantity = ? WHERE sku_code = ?', [sku.currentQuantity, sku.skuCode])
-    }
-  }
-
-  /**
-   * 获取所有单据
-   */
   async findDocuments(params: { status?: string; docType?: string; page?: number; pageSize?: number }) {
-    const page = params.page || 1
-    const pageSize = params.pageSize || 20
-    const qb = this.documentRepo.createQueryBuilder('d')
-
-    if (params.status) qb.andWhere('d.status = :status', { status: params.status })
-    if (params.docType) qb.andWhere('d.docType = :docType', { docType: params.docType })
-
-    qb.orderBy('d.createdAt', 'DESC').skip((page - 1) * pageSize).take(pageSize)
-    const [items, total] = await qb.getManyAndCount()
-    return { items, total, page, pageSize }
+    return this.batchService.findDocuments(params)
   }
 }

@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { WebsiteController } from './website.controller'
 import { WebsiteService } from './website.service'
 import { WebsiteCatalogService } from './website-catalog.service'
+import { WebsiteHomeAggregatorService } from './home-aggregator.service'
 
 // 直接注册所需实体，避免跨模块循环依赖
 import { ProductSpu } from '../product/entity/product-spu.entity'
@@ -44,7 +45,7 @@ import { DictSurfaceTreatment } from '../product/entity/dict-surface-treatment.e
     ]),
   ],
   controllers: [WebsiteController],
-  providers: [WebsiteService, WebsiteCatalogService],
-  exports: [WebsiteService, WebsiteCatalogService],
+  providers: [WebsiteService, WebsiteHomeAggregatorService, WebsiteCatalogService],
+  exports: [WebsiteService, WebsiteHomeAggregatorService, WebsiteCatalogService],
 })
 export class WebsiteModule {}

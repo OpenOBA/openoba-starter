@@ -5,6 +5,7 @@ import { InventoryService } from './inventory.service'
 import { Inventory } from './entity/inventory.entity'
 import { InventoryTransaction } from './entity/inventory-transaction.entity'
 import { InventoryDocument } from './entity/inventory-document.entity'
+import { InventoryBatchService } from './inventory-batch.service'
 
 function mockQueryBuilder(overrides?: { getManyAndCount?: jest.Mock }) {
   const getManyAndCount = overrides?.getManyAndCount ?? jest.fn().mockResolvedValue([[], 0])
@@ -53,6 +54,7 @@ describe('InventoryService', () => {
         { provide: getRepositoryToken(InventoryTransaction), useValue: mockRepo() },
         { provide: getRepositoryToken(InventoryDocument), useValue: mockRepo() },
         { provide: DataSource, useValue: { manager: { transaction: jest.fn() } } },
+        { provide: InventoryBatchService, useValue: { executeDocument: jest.fn(), confirmDocument: jest.fn(), findDocuments: jest.fn() } },
       ],
     }).compile()
 
