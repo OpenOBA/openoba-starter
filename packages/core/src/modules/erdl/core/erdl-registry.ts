@@ -24,63 +24,21 @@
 
 import { Injectable, Logger } from '@nestjs/common'
 import * as path from 'path'
+import type {
+  EntityRegistration,
+  AgentRegistration,
+  KnowledgeBaseRegistration,
+} from './erdl-types'
+
+export {
+  EntityRegistration,
+  AgentRegistration,
+  KnowledgeBaseRegistration,
+} from './erdl-types'
+
 import { ERDLAST, AliasMap, AliasesRegistry, ERDLActionDef } from '../parser/erdl-parser'
 import { RuleDefinition, RuleConditionGroup } from './rule-definition'
 import { ERDLValidator } from './erdl-validator'
-
-// ============================================
-// 类型定义
-// ============================================
-
-/**
- * Entity 注册信息
- */
-export interface EntityRegistration {
-  /** 命名空间 */
-  namespace: string
-  /** Entity 名称 */
-  name: string
-  /** V1.3: 数据库物理表名 */
-  table?: string
-  /** V1.3: 主键列名 */
-  primaryKey?: string
-  /** Entity 属性定义 */
-  properties: Record<string, unknown>
-  /** Entity 元数据（知识关联、图标、分类等） */
-  metadata?: Record<string, unknown>
-  /** 源文件路径（用于热替换检测） */
-  sourceFile?: string
-  /** 注册时间 */
-  loadedAt: Date
-}
-
-/**
- * Agent 注册信息
- */
-export interface AgentRegistration {
-  /** Agent 名称 */
-  name: string
-  /** 命名空间 */
-  namespace: string
-  /** Agent 定义 */
-  definition: Record<string, unknown>
-  /** 源文件路径 */
-  sourceFile?: string
-}
-
-/**
- * 知识库注册信息
- */
-export interface KnowledgeBaseRegistration {
-  /** 知识库名称 */
-  name: string
-  /** 命名空间 */
-  namespace: string
-  /** 知识库定义 */
-  definition: Record<string, unknown>
-  /** 源文件路径 */
-  sourceFile?: string
-}
 
 // ============================================
 // ERDL Registry 核心类
