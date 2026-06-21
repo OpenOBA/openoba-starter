@@ -43,6 +43,8 @@ import { ERDLRegistry } from './core/erdl-registry'
 import { ERDLRuleEngine } from './core/erdl-rule-engine'
 import { ERDLHotReload } from './core/erdl-hot-reload'
 import { ERDLLLMBridge } from './llm/erdl-llm-bridge'
+import { LlmSseHandler } from './llm/llm-sse-handler'
+import { LlmPromptBuilder } from './llm/llm-prompt-builder'
 import { ERDLSchemaGenerator } from './schema/erdl-schema-generator'
 import { RuleStoreService } from './core/rule-store.service'
 import { SnapshotManagerService } from './core/snapshot-manager.service'
@@ -84,6 +86,9 @@ import { ERDLProposal, ERDLProposalVote } from './core/entity/erdl-proposal.enti
     ERDLHotReload,
     // 智能层
     ERDLLLMBridge,
+    // V2.1 智能层子模块（渐进式拆分）
+    LlmSseHandler,
+    LlmPromptBuilder,
     ERDLSchemaGenerator,
     // V1.3 实体代理引擎
     EntityProxyService,
@@ -102,6 +107,8 @@ import { ERDLProposal, ERDLProposalVote } from './core/entity/erdl-proposal.enti
     ERDLRegistry,
     ERDLRuleEngine,
     ERDLLLMBridge,
+    LlmSseHandler,
+    LlmPromptBuilder,
     ERDLSchemaGenerator,
     EntityProxyService,
     ERDLActionGuard,

@@ -38,6 +38,8 @@ import type {
   ERDLLMTool,
 } from './erdl-llm-provider.interface'
 import type { ILlmSseHandler, ILlmPromptBuilder } from './llm-interfaces'
+import { LlmSseHandler } from './llm-sse-handler'
+import { LlmPromptBuilder } from './llm-prompt-builder'
 import * as https from 'https'
 import * as http from 'http'
 import { IncomingMessage } from 'http'
@@ -70,6 +72,8 @@ export class ERDLLLMBridge implements ILlmSseHandler, ILlmPromptBuilder {
     private readonly registry: ERDLRegistry,
     private readonly httpService: HttpService,
     private readonly actionGuard: ERDLActionGuard,
+    private readonly sseHandler: LlmSseHandler,
+    private readonly promptBuilder: LlmPromptBuilder,
     @Optional() @Inject(forwardRef(() => ModelRegistryService))
     private readonly modelRegistry?: ModelRegistryService,
   ) {}
