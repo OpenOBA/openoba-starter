@@ -1460,34 +1460,7 @@ export class AgentExecutorService implements OnModuleInit {
   // ═══════════════════════════════════════════
 
   private async executeWebFetch(url: string, mode: string, maxChars?: number): Promise<string> {
-    // SSRF 防护：URL 白名单校验
-    try {
-      this.securityGuard.validateFetchUrl(url)
-    } catch (e: any) {
-      return e.message || 'URL 校验失败'
-    }
-
-    try {
-      const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 10000)
-      // H8修复：禁止重定向（302可被利用做SSRF）
-      const res = await fetch(url, { signal: controller.signal, redirect: 'manual' })
-      clearTimeout(timeout)
-      if (!res.ok) return `❌ 网页抓取失败: HTTP ${res.status}`
-      const text = await res.text()
-      // 简单提取文本：去除HTML标签
-      let content = text.replace(/<script[\s\S]*?<\/script>/gi, '')
-        .replace(/<style[\s\S]*?<\/style>/gi, '')
-        .replace(/<[^>]+>/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim()
-      if (maxChars && content.length > maxChars) {
-        content = content.substring(0, maxChars) + '... (截断)'
-      }
-      return `📄 网页内容 (${url}):\n${content.substring(0, 3000)}`
-    } catch (e: unknown) {
-      return `❌ 网页抓取失败: ${(e as Error).message}`
-    }
+    return this.toolImpls.executeWebFetch(url, mode, maxChars);
   }
 
   private executeDataAnalyze(op: string, data: any[], field: string, topN?: number, fField?: string, fVal?: string): string {
@@ -1648,103 +1621,15 @@ export class AgentExecutorService implements OnModuleInit {
 
   
   private executeFileEdit(args: Record<string, any>): string {
-    try {
-      const path = require('path')
-      const { operation, filePath, oldStr, newStr, content } = args
-      const projectRoot = path.resolve(process.cwd(), '..')
-      const resolved = path.resolve(path.isAbsolute(filePath) ? filePath : path.join(projectRoot, filePath))
-      // 安全：路径边界校验，防止越界访问（如 ../../.env 或 /etc/passwd）
-      if (!resolved.startsWith(projectRoot + path.sep) && resolved !== projectRoot) {
-        return `❌ 禁止越界访问：${filePath} 不在项目目录内`
-      }
-      if (operation === 'read') {
-        const fs = require('fs')
-        if (!fs.existsSync(resolved)) {
-          // 文件不存在时，尝试列出父目录帮助定位
-          const parentDir = require('path').dirname(resolved)
-          let hint = `文件不存在: ${filePath}`
-          if (fs.existsSync(parentDir) && fs.statSync(parentDir).isDirectory()) {
-            const parentEntries = fs.readdirSync(parentDir, { withFileTypes: true }).slice(0, 20)
-            const dirList = parentEntries.map((e: any) => (e.isDirectory() ? '📁 ' : '📄 ') + e.name).join(', ')
-            hint += `\n💡 父目录内容: ${dirList}`
-          }
-          return hint
-        }
-        if (fs.statSync(resolved).isDirectory()) {
-          const entries = fs.readdirSync(resolved, { withFileTypes: true }).slice(0, 30)
-          return entries.map((e: any) => (e.isDirectory() ? '??' : '??') + ' ' + e.name).join('\n')
-        }
-        const data = fs.readFileSync(resolved, 'utf-8')
-        const lines = data.split('\n')
-        const maxL = parseInt(args['limit'] || '5000')
-        const startL = parseInt(args['offset'] || '0')
-        const slice = startL > 0 ? lines.slice(startL, startL + maxL) : lines.slice(0, maxL)
-        const isTruncated = lines.length > maxL
-        const truncatedNote = isTruncated ? `\n⚠️ 截断：仅展示前 ${maxL} 行，共 ${lines.length} 行。用 offset=${maxL} 读取后续内容。` : ''
-        return '?? ' + filePath + ' (' + lines.length + ' 行):\n' + slice.join('\n') + truncatedNote
-      }
-      if (operation === 'write') {
-        require('fs').mkdirSync(require('path').dirname(resolved), { recursive: true })
-        require('fs').writeFileSync(resolved, content, 'utf-8')
-        // 🚀 闭环：覆写成功后自动 tsc_check
-        const tscResult = this.executeTscCheck('backend')
-        return `✅ 已写入: ${filePath}\n📋 ${tscResult}`
-      }
-      if (operation === 'replace') {
-        const original = require('fs').readFileSync(resolved, 'utf-8')
-        // 行尾规范化：统一 \r\n → \n，消除 Windows/Linux 差异
-        // 这是 Agent 改代码闭环的第一道防线
-        const normOriginal = original.replace(/\r\n/g, '\n')
-        const normOldStr = String(oldStr || '').replace(/\r\n/g, '\n')
-        const normNewStr = String(newStr || '').replace(/\r\n/g, '\n')
-        if (!normOriginal.includes(normOldStr)) {
-          // 匹配失败时输出诊断信息，帮助 Agent 自我修正
-          const firstLine = normOldStr.split('\n')[0]?.substring(0, 80) || ''
-          const contextHint = firstLine ? ` (首行: "${firstLine}...")` : ''
-          const filePreview = normOriginal.substring(0, 200)
-          return `oldStr 未找到${contextHint}。文件前200字符:\n${filePreview}`
-        }
-        const replaced = normOriginal.replace(normOldStr, normNewStr)
-        require('fs').writeFileSync(resolved, replaced, 'utf-8')
-        // 🚀 闭环：修改成功后自动 tsc_check，结果直接返回给 Agent
-        const tscResult = this.executeTscCheck('backend')
-        return `✅ 已修改: ${filePath}\n📋 ${tscResult}`
-      }
-      return '未知操作: ' + operation
-    } catch (e: unknown) {
-      this.logger.warn('executeFileEdit 失败', (e as Error).message)
-      return '文件操作失败: ' + (e as Error).message
-    }
+    return this.toolImpls.executeFileEdit(args);
   }
 
   private executeTscCheck(project: string): string {
-    try {
-      const cp = require('child_process')
-      const dir = project === 'frontend' ? require('path').resolve(process.cwd(), '..', 'frontend') : process.cwd()
-      cp.execSync('npx tsc --noEmit', { cwd: dir, timeout: TIMEOUT.TSC_CHECK })
-      return '✅ TS编译通过'
-    } catch (e: any) { return '❌ 编译失败: ' + (e.stderr || e.message).substring(0, 300) }
+    return this.toolImpls.executeTscCheck(project);
   }
 
   private executeGitDiff(mode: string, filePath?: string): string {
-    try {
-      const cp = require('child_process')
-      // 安全：mode 白名单校验，防止命令注入
-      const ALLOWED_MODES = new Set(['status', 'diff', 'stat'])
-      if (!ALLOWED_MODES.has(mode)) return '无效的 git 模式: ' + mode
-      const args = mode === 'status' ? ['status', '--short'] : mode === 'diff' ? ['diff'] : ['diff', '--stat']
-      if (filePath) {
-        // 安全：白名单校验 filePath，纵深防御（execFileSync 参数分离已是主防线）
-        if (!/^[a-zA-Z0-9_\-./\\ ]+$/.test(filePath)) return 'filePath 包含非法字符'
-        args.push('--', filePath)
-      }
-      const projectRoot = require('path').resolve(process.cwd(), '..')
-      const out = cp.execFileSync('git', args, { cwd: projectRoot, timeout: TIMEOUT.GIT_CMD, encoding: 'utf-8' }).trim()
-      return out || '无变更'
-    } catch (e: unknown) {
-      this.logger.warn('executeGitDiff 失败', (e as Error).message)
-      return 'Git 操作失败: ' + ((e as any).stderr || (e as Error).message || '')
-    }
+    return this.toolImpls.executeGitDiff(mode, filePath);
   }
 private buildRuleBlock(): string {
     return [

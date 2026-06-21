@@ -17,6 +17,8 @@ import type { EntityProxyService } from '../../erdl/core/entity-proxy.service'
 import type { KnowledgeService } from './knowledge.service'
 import type { InventoryService } from '../../inventory/inventory.service'
 import type { AgentTask } from './agent-task.entity'
+import type { AgentSecurityGuard } from './agent-security-guard'
+import { TIMEOUT } from '../../../common/constants/timeouts'
 
 type DbRow = Record<string, string>
 
@@ -38,6 +40,7 @@ export class AgentToolImplementations {
     private readonly proxy: EntityProxyService,
     private readonly knowledgeService: KnowledgeService,
     private readonly inventoryService: InventoryService,
+      private readonly securityGuard: AgentSecurityGuard,
   ) {}
 
   // ═══════════════════════════════════════════
@@ -259,4 +262,139 @@ export class AgentToolImplementations {
       return `❌ 操作异常: ${(e as Error).message}`
     }
   }
+
+  // ═══════════════════════════════════════════
+  // executeWebFetch — 网页抓取（SSRF 防护）
+  // ═══════════════════════════════════════════
+
+  async executeWebFetch(url: string, mode: string, maxChars?: number): Promise<string> {
+    try {
+      this.securityGuard.validateFetchUrl(url);
+    } catch (e: any) {
+      return e.message || 'URL 校验失败';
+    }
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      const res = await fetch(url, { signal: controller.signal, redirect: 'manual' });
+      clearTimeout(timeout);
+      if (!res.ok) return '❌ 网页抓取失败: HTTP ' + res.status;
+      const text = await res.text();
+      let content = text.replace(/<script[\s\S]*?<\/script>/gi, '')
+        .replace(/<style[\s\S]*?<\/style>/gi, '')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (maxChars && content.length > maxChars) {
+        content = content.substring(0, maxChars) + '... (截断)';
+      }
+      return '📄 网页内容 (' + url + '):\n' + content.substring(0, 3000);
+    } catch (e: unknown) {
+      return '❌ 网页抓取失败: ' + (e as Error).message;
+    }
+  }
+
+  // ═══════════════════════════════════════════
+  // executeFileEdit — 文件编辑（read/write/replace）
+  // ═══════════════════════════════════════════
+
+  executeFileEdit(args: Record<string, any>): string {
+    try {
+      const nodePath = require('path');
+      const { operation, filePath, oldStr, newStr, content } = args;
+      const projectRoot = nodePath.resolve(process.cwd(), '..');
+      const resolved = nodePath.resolve(nodePath.isAbsolute(filePath) ? filePath : nodePath.join(projectRoot, filePath));
+      if (!resolved.startsWith(projectRoot + nodePath.sep) && resolved !== projectRoot) {
+        return '❌ 禁止越界访问：' + filePath + ' 不在项目目录内';
+      }
+      if (operation === 'read') {
+        const nodeFs = require('fs');
+        if (!nodeFs.existsSync(resolved)) {
+          const parentDir = nodePath.dirname(resolved);
+          let hint = '文件不存在: ' + filePath;
+          if (nodeFs.existsSync(parentDir) && nodeFs.statSync(parentDir).isDirectory()) {
+            const parentEntries = nodeFs.readdirSync(parentDir, { withFileTypes: true }).slice(0, 20);
+            const dirList = parentEntries.map((e: any) => (e.isDirectory() ? '📁 ' : '📄 ') + e.name).join(', ');
+            hint += '\n💡 父目录内容: ' + dirList;
+          }
+          return hint;
+        }
+        if (nodeFs.statSync(resolved).isDirectory()) {
+          const entries = nodeFs.readdirSync(resolved, { withFileTypes: true }).slice(0, 30);
+          return entries.map((e: any) => (e.isDirectory() ? '📁' : '📄') + ' ' + e.name).join('\n');
+        }
+        const data = nodeFs.readFileSync(resolved, 'utf-8');
+        const fileLines = data.split('\n');
+        const maxL = parseInt(args['limit'] || '5000');
+        const startL = parseInt(args['offset'] || '0');
+        const slice = startL > 0 ? fileLines.slice(startL, startL + maxL) : fileLines.slice(0, maxL);
+        const isTruncated = fileLines.length > maxL;
+        const truncatedNote = isTruncated ? '\n⚠️ 截断：仅展示前 ' + maxL + ' 行，共 ' + fileLines.length + ' 行。用 offset=' + maxL + ' 读取后续内容。' : '';
+        return '📄 ' + filePath + ' (' + fileLines.length + ' 行):\n' + slice.join('\n') + truncatedNote;
+      }
+      if (operation === 'write') {
+        require('fs').mkdirSync(nodePath.dirname(resolved), { recursive: true });
+        require('fs').writeFileSync(resolved, content, 'utf-8');
+        const tscResult = this.executeTscCheck('backend');
+        return '✅ 已写入: ' + filePath + '\n📋 ' + tscResult;
+      }
+      if (operation === 'replace') {
+        const original = require('fs').readFileSync(resolved, 'utf-8');
+        const normOriginal = original.replace(/\r\n/g, '\n');
+        const normOldStr = String(oldStr || '').replace(/\r\n/g, '\n');
+        const normNewStr = String(newStr || '').replace(/\r\n/g, '\n');
+        if (!normOriginal.includes(normOldStr)) {
+          const firstLine = normOldStr.split('\n')[0]?.substring(0, 80) || '';
+          const contextHint = firstLine ? ' (首行: "' + firstLine + '...")' : '';
+          const filePreview = normOriginal.substring(0, 200);
+          return 'oldStr 未找到' + contextHint + '。文件前200字符:\n' + filePreview;
+        }
+        const replaced = normOriginal.replace(normOldStr, normNewStr);
+        require('fs').writeFileSync(resolved, replaced, 'utf-8');
+        const tscResult = this.executeTscCheck('backend');
+        return '✅ 已修改: ' + filePath + '\n📋 ' + tscResult;
+      }
+      return '未知操作: ' + operation;
+    } catch (e: unknown) {
+      return '文件操作失败: ' + (e as Error).message;
+    }
+  }
+
+  // ═══════════════════════════════════════════
+  // executeTscCheck — TypeScript 编译检查
+  // ═══════════════════════════════════════════
+
+  executeTscCheck(project: string): string {
+    try {
+      const cp = require('child_process');
+      const nodePath = require('path');
+      const dir = project === 'frontend' ? nodePath.resolve(process.cwd(), '..', 'frontend') : process.cwd();
+      cp.execSync('npx tsc --noEmit', { cwd: dir, timeout: TIMEOUT.TSC_CHECK });
+      return '✅ TS编译通过';
+    } catch (e: any) { return '❌ 编译失败: ' + (e.stderr || e.message).substring(0, 300); }
+  }
+
+  // ═══════════════════════════════════════════
+  // executeGitDiff — Git diff/status
+  // ═══════════════════════════════════════════
+
+  executeGitDiff(mode: string, filePath?: string): string {
+    try {
+      const cp = require('child_process');
+      const nodePath = require('path');
+      const ALLOWED_MODES = new Set(['status', 'diff', 'stat']);
+      if (!ALLOWED_MODES.has(mode)) return '无效的 git 模式: ' + mode;
+      const gitArgs = mode === 'status' ? ['status', '--short'] : mode === 'diff' ? ['diff'] : ['diff', '--stat'];
+      if (filePath) {
+        if (!/^[a-zA-Z0-9_\-./\\ ]+$/.test(filePath)) return 'filePath 包含非法字符';
+        gitArgs.push('--', filePath);
+      }
+      const projectRoot = nodePath.resolve(process.cwd(), '..');
+      const out = cp.execFileSync('git', gitArgs, { cwd: projectRoot, timeout: TIMEOUT.GIT_CMD, encoding: 'utf-8' }).trim();
+      return out || '无变更';
+    } catch (e: unknown) {
+      return 'Git 操作失败: ' + ((e as any).stderr || (e as Error).message || '');
+    }
+  }
+
 }
