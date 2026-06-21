@@ -654,15 +654,7 @@ export class ERDLLLMBridge implements ILlmSseHandler, ILlmPromptBuilder {
    * ��Щ��ǲ�Ӧ�������û��ɼ�������С�
    */
   public sanitizeContent(text: string): string {
-    if (!text) return text
-    // �Ƴ� DSML ��ǿ飨<����DSML����...>...</����DSML����> ���Ապϣ�
-    let cleaned = text.replace(/<����DSML����[^>]*>[\s\S]*?<����DSML����\/[^>]*>/g, '')
-    // �Ƴ�δ�պϵ� DSML �����Ƭ
-    cleaned = cleaned.replace(/<����DSML����[^>]*>/g, '')
-    cleaned = cleaned.replace(/<\/����DSML����[^>]*>/g, '')
-    // �Ƴ����������� DeepSeek �ڲ����
-    cleaned = cleaned.replace(/<��[^>]*��>/g, '')
-    return cleaned
+    return this.sseHandler.sanitizeContent(text)
   }
 
   /**

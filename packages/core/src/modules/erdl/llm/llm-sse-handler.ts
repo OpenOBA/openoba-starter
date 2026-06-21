@@ -62,7 +62,14 @@ export class LlmSseHandler implements ILlmSseHandler {
   }
 
   sanitizeContent(text: string): string {
-    // 空实现：原样返回（Step 3 搬迁逻辑）
-    return text
+    if (!text) return text
+    // 移除 DSML 标记块
+    let cleaned = text.replace(/<þþDSMLþþ[^>]*>[\s\S]*?<þþDSMLþþ\/[^>]*>/g, '')
+    // 移除未闭合的 DSML 标记碎片
+    cleaned = cleaned.replace(/<þþDSMLþþ[^>]*>/g, '')
+    cleaned = cleaned.replace(/<\/þþDSMLþþ[^>]*>/g, '')
+    // 移除其他可能的 DeepSeek 内部标记
+    cleaned = cleaned.replace(/<�[^>]*�>/g, '')
+    return cleaned
   }
 }
