@@ -38,7 +38,7 @@ import { AestheticsService } from '../../aesthetics/aesthetics.service'
 import { InventoryService } from '../../inventory/inventory.service'
 import { SoulService } from '../../soul/soul.service'
 import { ModelRegistryService } from '../../system/model-registry.service'
-import { validateFetchUrl } from '../../../common/utils/url-validator'
+import { AgentSecurityGuard } from './agent-security-guard'
 import { TIMEOUT } from '../../../common/constants/timeouts'
 
 // 重新导出 AgentTaskType
@@ -95,6 +95,7 @@ export class AgentExecutorService implements OnModuleInit {
     private readonly aestheticsService: AestheticsService,
     private readonly inventoryService: InventoryService,
     private readonly soulService: SoulService,
+    private readonly securityGuard: AgentSecurityGuard,
     @Optional() private readonly modelRegistry?: ModelRegistryService,
   ) {}
 
@@ -2022,8 +2023,11 @@ export class AgentExecutorService implements OnModuleInit {
 
   private async executeWebFetch(url: string, mode: string, maxChars?: number): Promise<string> {
     // SSRF 防护：URL 白名单校验
-    const validationError = validateFetchUrl(url)
-    if (validationError) return validationError
+    try {
+      this.securityGuard.validateFetchUrl(url)
+    } catch (e: any) {
+      return e.message || 'URL 校验失败'
+    }
 
     try {
       const controller = new AbortController()
