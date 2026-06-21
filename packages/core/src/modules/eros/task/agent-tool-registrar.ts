@@ -20,21 +20,61 @@ import type { DraftPoolService } from '../../draft-pool/draft-pool.service'
 // 工具注册所需的回调（避免循环依赖）
 // ============================================
 
+/** 草稿创建参数 */
+export interface DraftCreateArgs {
+  spuName: string
+  gender: string
+  shapeCode: string
+  seriesCode: string
+  structureStandardCode: string
+  spuDescription?: string
+  skus?: Array<{ colorCode: string; colorName?: string; skinToneEffect?: string; faceShapeEffect?: string; displayName?: string; retailPrice?: number }>
+}
+
+/** 美学校验参数 */
+export interface AestheticsCheckArgs {
+  shapeCode: string
+  colorCode: string
+  seriesCode?: string
+  gender?: string
+  skinToneEffect?: string
+  faceShapeEffect?: string
+}
+
+/** 草稿列表参数 */
+export interface DraftListArgs {
+  status?: string
+  gender?: string
+  source?: string
+  pageSize?: number
+}
+
+/** 文件编辑参数 */
+export interface FileEditArgs {
+  operation: string
+  filePath: string
+  oldStr?: string
+  newStr?: string
+  content?: string
+  limit?: number
+  offset?: number
+}
+
 export interface ToolRegisterCallbacks {
   executeErpQuery: (dataType: string) => Promise<string>
   executeKnowledgeQuery: (keyword: string) => Promise<string>
   executeErdlCrud: (args: { action: string; entity: string; values?: Record<string, unknown>; where?: Record<string, unknown> }) => Promise<string>
-  executeDraftCreate: (args: any) => Promise<string>
-  executeDraftAddSku: (args: { spuId: string; skus: any[] }) => Promise<string>
-  executeAestheticsCheck: (args: any) => Promise<string>
-  executeDraftList: (args: any) => Promise<string>
-  executeCsvExport: (entity: string, format: string, data: any[], filename: string) => Promise<string>
+  executeDraftCreate: (args: DraftCreateArgs) => Promise<string>
+  executeDraftAddSku: (args: { spuId: string; skus: Array<{ colorCode: string; colorName?: string; skinToneEffect?: string; faceShapeEffect?: string; displayName?: string; retailPrice?: number }> }) => Promise<string>
+  executeAestheticsCheck: (args: AestheticsCheckArgs) => Promise<string>
+  executeDraftList: (args: DraftListArgs) => Promise<string>
+  executeCsvExport: (entity: string, format: string, data: Record<string, unknown>[], filename: string) => Promise<string>
   executeWebFetch: (url: string, mode: string, maxChars?: number) => Promise<string>
-  executeDataAnalyze: (op: string, data: any[], field: string, topN?: number, fField?: string, fVal?: string) => string
+  executeDataAnalyze: (op: string, data: Record<string, unknown>[], field: string, topN?: number, fField?: string, fVal?: string) => string
   executeImportAnalyze: (filePath: string) => Promise<string>
   executeImportMap: (columns: string[], entityName: string) => string
-  executeImportExecute: (entityName: string, data: any[]) => Promise<string>
-  executeFileEdit: (args: Record<string, any>) => string
+  executeImportExecute: (entityName: string, data: Record<string, unknown>[]) => Promise<string>
+  executeFileEdit: (args: FileEditArgs) => string
   executeTscCheck: (project: string) => string
   executeGitDiff: (mode: string, filePath?: string) => string
 }
@@ -163,7 +203,7 @@ export class AgentToolRegistrar {
         },
       },
       execute: async (_name, args) => {
-        return callbacks.executeDraftCreate(args as any)
+        return callbacks.executeDraftCreate(args as unknown as DraftCreateArgs)
       },
       agentTypes: ['product_listing'],
     })
@@ -202,7 +242,7 @@ export class AgentToolRegistrar {
           },
         },
       },
-      execute: async (_name, args) => callbacks.executeDraftAddSku(args as { spuId: string; skus: any[] }),
+      execute: async (_name, args) => callbacks.executeDraftAddSku(args as unknown as { spuId: string; skus: Array<{ colorCode: string; colorName?: string; skinToneEffect?: string; faceShapeEffect?: string; displayName?: string; retailPrice?: number }> }),
       agentTypes: ['main', 'product_listing'],
     })
 
@@ -230,7 +270,7 @@ export class AgentToolRegistrar {
         },
       },
       execute: async (_name, args) => {
-        return callbacks.executeAestheticsCheck(args as any)
+        return callbacks.executeAestheticsCheck(args as unknown as AestheticsCheckArgs)
       },
       agentTypes: ['product_listing'],
     })
@@ -256,7 +296,7 @@ export class AgentToolRegistrar {
         },
       },
       execute: async (_name, args) => {
-        return callbacks.executeDraftList(args as any)
+        return callbacks.executeDraftList(args as unknown as DraftListArgs)
       },
       agentTypes: [],
     })
@@ -282,7 +322,7 @@ export class AgentToolRegistrar {
           },
         },
       },
-      execute: async (_name, args) => callbacks.executeCsvExport(String(args['entity'] || ''), String(args['format'] || 'csv'), args['data'] as any[], String(args['filename'] || '')),
+      execute: async (_name, args) => callbacks.executeCsvExport(String(args['entity'] || ''), String(args['format'] || 'csv'), (args['data'] as Record<string, unknown>[]) || [], String(args['filename'] || '')),
     })
 
     // ── draft_update：更新草稿 ──
@@ -308,21 +348,22 @@ export class AgentToolRegistrar {
         },
       },
       execute: async (_name, args) => {
-        const a = args as any
+        const a = args as Record<string, unknown>
+        const draftId = String(a.draftId || '')
         const update: Record<string, unknown> = {}
         if (a.title) update.title = a.title
         if (a.bodyText) update.bodyText = a.bodyText
         if (a.bodyJson) update.bodyJson = a.bodyJson
         if (a.tags) update.tags = a.tags
         try {
-          await draftService.update(a.draftId, update)
-          return `✅ 草稿 ${a.draftId} 已更新`
+          await draftService.update(draftId, update)
+          return `✅ 草稿 ${draftId} 已更新`
         } catch (e: unknown) {
           try {
-            await draftPoolService.updateDraft(a.draftId, update)
-            return `✅ 草稿 ${a.draftId} 已更新(fallback)`
-          } catch (e2: any) {
-            return `❌ 草稿更新失败: ${e2.message}`
+            await draftPoolService.updateDraft(draftId, update)
+            return `✅ 草稿 ${draftId} 已更新(fallback)`
+          } catch (e2: unknown) {
+            return `❌ 草稿更新失败: ${(e2 as Error).message}`
           }
         }
       },
@@ -375,7 +416,7 @@ export class AgentToolRegistrar {
           },
         },
       },
-      execute: async (_name, args) => callbacks.executeDataAnalyze(String(args['operation']), args['data'] as any[], String(args['field'] || ''), args['topCount'] as number, String(args['filterField'] || ''), String(args['filterValue'] || '')),
+      execute: async (_name, args) => callbacks.executeDataAnalyze(String(args['operation']), (args['data'] as Record<string, unknown>[]) || [], String(args['field'] || ''), args['topCount'] as number, String(args['filterField'] || ''), String(args['filterValue'] || '')),
     })
 
     // ── import_analyze：导入文件分析 ──
@@ -440,14 +481,14 @@ export class AgentToolRegistrar {
           },
         },
       },
-      execute: async (_name, args) => callbacks.executeImportExecute(String(args['entity']), args['data'] as any[]),
+      execute: async (_name, args) => callbacks.executeImportExecute(String(args['entity']), (args['data'] as Record<string, unknown>[]) || []),
     })
 
     // H18: 注册开发工具
     const ADMIN_TOOLS = ['main']
-    toolRegistry.register({ definition: { type: 'function', function: { name: 'file_edit', description: '精准编辑项目源代码文件。read=读取(默认5000行，可设limit+offset分页), replace=替换, write=覆写。大文件用 offset 分段读取。目录输入返回文件列表。', parameters: { type: 'object', properties: { operation: { type: 'string', enum: ['read','replace','write'] }, filePath: { type: 'string', description: '文件路径，如 backend/src/modules/soul/soul.service.ts' }, oldStr: { type: 'string', description: 'replace 时：要替换的原文本' }, newStr: { type: 'string' }, content: { type: 'string', description: 'write 时：完整文件内容' } }, required: ['operation','filePath'], additionalProperties: false } } }, execute: async (_n: any, args: any) => callbacks.executeFileEdit(args), agentTypes: ADMIN_TOOLS })
-    toolRegistry.register({ definition: { type: 'function', function: { name: 'tsc_check', description: 'TypeScript 编译检查。修改代码后调用验证。project: backend/frontend/both', parameters: { type: 'object', properties: { project: { type: 'string', description: 'backend | frontend | both' } } } } }, execute: async (_n: any, args: any) => callbacks.executeTscCheck(String(args['project'] || 'backend')), agentTypes: ADMIN_TOOLS })
-    toolRegistry.register({ definition: { type: 'function', function: { name: 'git_diff', description: '查看 Git 工作区变更。mode: status/diff/stat', parameters: { type: 'object', properties: { mode: { type: 'string' }, filePath: { type: 'string' } } } } }, execute: async (_n: any, args: any) => callbacks.executeGitDiff(String(args['mode'] || 'stat'), args['filePath'] as string), agentTypes: ADMIN_TOOLS })
+    toolRegistry.register({ definition: { type: 'function', function: { name: 'file_edit', description: '精准编辑项目源代码文件。read=读取(默认5000行，可设limit+offset分页), replace=替换, write=覆写。大文件用 offset 分段读取。目录输入返回文件列表。', parameters: { type: 'object', properties: { operation: { type: 'string', enum: ['read','replace','write'] }, filePath: { type: 'string', description: '文件路径，如 backend/src/modules/soul/soul.service.ts' }, oldStr: { type: 'string', description: 'replace 时：要替换的原文本' }, newStr: { type: 'string' }, content: { type: 'string', description: 'write 时：完整文件内容' } }, required: ['operation','filePath'], additionalProperties: false } } }, execute: async (_n, args) => callbacks.executeFileEdit(args as unknown as FileEditArgs), agentTypes: ADMIN_TOOLS })
+    toolRegistry.register({ definition: { type: 'function', function: { name: 'tsc_check', description: 'TypeScript 编译检查。修改代码后调用验证。project: backend/frontend/both', parameters: { type: 'object', properties: { project: { type: 'string', description: 'backend | frontend | both' } } } } }, execute: async (_n, args) => callbacks.executeTscCheck(String(args['project'] || 'backend')), agentTypes: ADMIN_TOOLS })
+    toolRegistry.register({ definition: { type: 'function', function: { name: 'git_diff', description: '查看 Git 工作区变更。mode: status/diff/stat', parameters: { type: 'object', properties: { mode: { type: 'string' }, filePath: { type: 'string' } } } } }, execute: async (_n, args) => callbacks.executeGitDiff(String(args['mode'] || 'stat'), args['filePath'] as string), agentTypes: ADMIN_TOOLS })
 
     this.logger.log(`已注册 ${toolRegistry.getDefinitions().length} 个 Agent 工具`)
   }
