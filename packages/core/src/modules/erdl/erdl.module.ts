@@ -56,6 +56,7 @@ import { ERDLRecommendController } from './erdl-recommend.controller'
 import { McpServerController } from './mcp/mcp-server.controller'
 import { EntityProxyService } from './core/entity-proxy.service'
 import { ERDLActionGuard } from './core/erdl-action-guard'
+import { SqlBuilder } from './core/sql-builder'
 import { FileReaderService } from './file-reader.service'
 // 议会模型 Entities
 import { ERDLRuleRecord } from './core/entity/erdl-rule-record.entity'
@@ -94,7 +95,9 @@ import { ERDLProposal, ERDLProposalVote } from './core/entity/erdl-proposal.enti
     EntityProxyService,
     // V1.5 ERDL Action Guard
     ERDLActionGuard,
-    // V1.6 FileReader — Agent 文件读取
+    // V1.6 SqlBuilder — SQL 构建器
+    SqlBuilder,
+    // V1.7 FileReader — Agent 文件读取
     FileReaderService,
     // 议会层（v2）
     RuleStoreService,

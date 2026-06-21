@@ -15,6 +15,7 @@
 import { Injectable, Logger, Inject, Optional, BadRequestException } from '@nestjs/common'
 import { DataSource } from 'typeorm'
 import { ERDLRegistry, EntityRegistration } from './erdl-registry'
+import { SqlBuilder } from './sql-builder'
 
 /** Entity 属性定义（从 ERDL properties 中提取） */
 interface FieldDefinition {
@@ -53,10 +54,17 @@ export class EntityProxyService {
   /** 字段映射缓存：{ namespace.entityName → EntityMapping } */
   private mappings = new Map<string, EntityMapping>()
 
+  /** SQL 构建器 */
+  private readonly sqlBuilder: SqlBuilder
+
   constructor(
     private readonly registry: ERDLRegistry,
     @Optional() @Inject(DataSource) private readonly dataSource?: DataSource,
-  ) {}
+  ) {
+    this.sqlBuilder = new SqlBuilder(
+      (namespace, entity, key) => this.registry.resolveAlias(namespace, entity, key),
+    )
+  }
 
   /**
    * 构建/刷新字段映射（在 .erdl 热加载后调用）
@@ -175,57 +183,35 @@ export class EntityProxyService {
     if (!mapping) return { success: false, rows: [], count: 0, error: `未知实体: ${params.entity}` }
 
     try {
-      // 构建 SELECT 列
-      let columns = '*'
-      if (params.select && params.select.length > 0) {
-        const dbCols: string[] = []
-        for (const s of params.select) {
-          const def = mapping.fields.get(s)
-          if (def) dbCols.push(`\`${def.dbColumn}\``)
-        }
-        if (dbCols.length > 0) columns = dbCols.join(', ')
-      }
+      const { sql, values } = this.sqlBuilder.buildSelect({
+        mapping,
+        namespace: params.namespace,
+        entity: params.entity,
+        select: params.select,
+        where: params.where,
+        limit: params.limit,
+        offset: params.offset,
+      })
 
-      // 构建 WHERE
-      const whereParts: string[] = []
-      const values: unknown[] = []
-      if (params.where) {
-        for (const [key, val] of Object.entries(params.where)) {
-          // 解析别名 → 可能已经是别名或语义字段名
-          const resolved = this.registry.resolveAlias(params.namespace, params.entity, key)
-          const def = mapping.fields.get(resolved)
-          if (def) {
-            whereParts.push(`\`${def.dbColumn}\` = ?`)
-            values.push(val)
-          } else {
-            // P0修复：不存在于映射中的字段拒绝查询，防止任意列名注入
-            throw new BadRequestException(
-              `WHERE key "${key}" 不在 ${params.entity} 的已知字段中（语义名: ${resolved || 'unknown'}）`
-            )
-          }
-        }
-      }
-
-      // P0-1修复：运行时强校验 limit/offset，防止SQL注入（即使ValidationPipe被绕过）
-      const safeLimit = typeof params.limit === 'number' && Number.isFinite(params.limit) && params.limit > 0
-        ? Math.min(Math.floor(params.limit), 1000)
-        : 100
-      const safeOffset = typeof params.offset === 'number' && Number.isFinite(params.offset) && params.offset >= 0
-        ? Math.floor(params.offset)
-        : 0
-
-      const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(' AND ')}` : ''
-      const limitClause = `LIMIT ${safeLimit}`
-      const offsetClause = safeOffset > 0 ? `OFFSET ${safeOffset}` : ''
-
-      const sql = `SELECT ${columns} FROM \`${mapping.table}\` ${whereClause} ${limitClause} ${offsetClause}`
       this.logger.log(`[EntityProxy] QUERY: ${sql}`)
 
       if (!this.dataSource) {
         return { success: true, rows: [], count: 0, sql, preview: true }
       }
 
-      const rows = await this.dataSource.query(columns === '*' ? sql : sql, values)
+      const columns = params.select && params.select.length > 0
+        ? (() => {
+            const dbCols: string[] = []
+            for (const s of params.select!) {
+              const resolved = this.registry.resolveAlias(params.namespace, params.entity, s)
+              const def = mapping.fields.get(resolved)
+              if (def) dbCols.push(def.dbColumn)
+            }
+            return dbCols.length > 0 ? dbCols.join(', ') : '*'
+          })()
+        : '*'
+
+      const rows = await this.dataSource.query(sql, values)
 
       // P1-3修复：敏感字段过滤（阻止通过ERDL Proxy泄露隐私数据）
       if (params.entity === 'Customer') {
@@ -269,52 +255,13 @@ export class EntityProxyService {
     }
 
     try {
-      // 翻译：语义字段名 → 数据库列名
-      const cols: string[] = []
-      const phs: string[] = []
-      const values: unknown[] = []
+      const { sql, values } = this.sqlBuilder.buildInsert({
+        mapping,
+        namespace: params.namespace,
+        entity: params.entity,
+        data: params.data,
+      })
 
-      // 自动生成 UUID 主键（如果未提供）
-      const dataWithId = { ...params.data }
-      const pkField = mapping.fields.get(mapping.primaryKey)
-      if (pkField && !dataWithId[mapping.primaryKey] && !dataWithId[pkField.fieldName]) {
-        const uuid = require('crypto').randomUUID().replace(/-/g, '')
-        dataWithId[pkField.fieldName] = uuid
-      }
-
-      for (const [key, val] of Object.entries(dataWithId)) {
-        const resolved = this.registry.resolveAlias(params.namespace, params.entity, key)
-        const def = mapping.fields.get(resolved)
-        
-        // 字段名校验：不存在的字段 → 返回明确错误
-        if (!def) {
-          const available = Array.from(mapping.fields.keys()).slice(0, 10).join(', ')
-          return { success: false, error: `未知字段: "${key}"。${params.entity} 可用字段: ${available}` }
-        }
-        
-        const dbCol = def.dbColumn || key
-
-        cols.push(`\`${dbCol}\``)
-        phs.push('?')
-
-        // JSON 列自动序列化（含校验：无效JSON自动修复）
-        if (def?.isJSON && val !== null && val !== undefined) {
-          if (typeof val === 'string') {
-            // 验证是否为合法 JSON，不是则安全序列化
-            try { JSON.parse(val) } catch {
-              values.push(JSON.stringify(val))
-              continue
-            }
-            values.push(val)
-          } else {
-            values.push(JSON.stringify(val))
-          }
-        } else {
-          values.push(val)
-        }
-      }
-
-      const sql = `INSERT INTO \`${mapping.table}\` (${cols.join(', ')}) VALUES (${phs.join(', ')})`
       this.logger.log(`[EntityProxy] INSERT: ${sql}`)
 
       if (!this.dataSource) {
@@ -355,45 +302,14 @@ export class EntityProxyService {
     if (!params.where || Object.keys(params.where).length === 0) return { success: false, error: 'update 必须带 where' }
 
     try {
-      const values: unknown[] = []
-      const setParts: string[] = []
+      const { sql, values } = this.sqlBuilder.buildUpdate({
+        mapping,
+        namespace: params.namespace,
+        entity: params.entity,
+        data: params.data,
+        where: params.where,
+      })
 
-      for (const [key, val] of Object.entries(params.data)) {
-        const resolved = this.registry.resolveAlias(params.namespace, params.entity, key)
-        const def = mapping.fields.get(resolved)
-        if (!def) {
-          const available = Array.from(mapping.fields.keys()).slice(0, 10).join(', ')
-          return { success: false, error: `未知字段: "${key}"。${params.entity} 可用字段: ${available}` }
-        }
-        const dbCol = def.dbColumn || key
-        setParts.push(`\`${dbCol}\` = ?`)
-        // JSON 列自动序列化 + 校验
-        if (def.isJSON && typeof val === 'object') {
-          values.push(JSON.stringify(val))
-        } else if (def.isJSON && typeof val === 'string') {
-          try { JSON.parse(val) } catch { values.push(JSON.stringify(val)); continue }
-          values.push(val)
-        } else {
-          values.push(val)
-        }
-      }
-
-      const whereParts: string[] = []
-      for (const [key, val] of Object.entries(params.where)) {
-        const resolved = this.registry.resolveAlias(params.namespace, params.entity, key)
-        const def = mapping.fields.get(resolved)
-        // P0修复(C01)：非映射字段拒绝，与query()方法保持一致
-        if (!def) {
-          throw new BadRequestException(
-            `UPDATE WHERE key "${key}" 不在 ${params.entity} 的已知字段中`
-          )
-        }
-        const dbCol = def.dbColumn
-        whereParts.push(`\`${dbCol}\` = ?`)
-        values.push(val)
-      }
-
-      const sql = `UPDATE \`${mapping.table}\` SET ${setParts.join(', ')} WHERE ${whereParts.join(' AND ')} LIMIT 100`
       this.logger.log(`[EntityProxy] UPDATE: ${sql}`)
 
       if (!this.dataSource) {
@@ -428,24 +344,13 @@ export class EntityProxyService {
     if (!params.where || Object.keys(params.where).length === 0) return { success: false, error: 'delete 必须带 where' }
 
     try {
-      const whereParts: string[] = []
-      const values: unknown[] = []
+      const { sql, values } = this.sqlBuilder.buildDelete({
+        mapping,
+        namespace: params.namespace,
+        entity: params.entity,
+        where: params.where,
+      })
 
-      for (const [key, val] of Object.entries(params.where)) {
-        const resolved = this.registry.resolveAlias(params.namespace, params.entity, key)
-        const def = mapping.fields.get(resolved)
-        // P0修复(C01)：非映射字段拒绝
-        if (!def) {
-          throw new BadRequestException(
-            `DELETE WHERE key "${key}" 不在 ${params.entity} 的已知字段中`
-          )
-        }
-        const dbCol = def.dbColumn
-        whereParts.push(`\`${dbCol}\` = ?`)
-        values.push(val)
-      }
-
-      const sql = `UPDATE \`${mapping.table}\` SET is_deleted = 1, deleted_at = NOW() WHERE ${whereParts.join(' AND ')} AND is_deleted = 0 LIMIT 100`
       this.logger.log(`[EntityProxy] SOFT DELETE: ${sql}`)
 
       if (!this.dataSource) {
@@ -503,7 +408,6 @@ export class EntityProxyService {
       let count = 0
       for (const [, def] of mapping.fields) {
         if (count >= 5) { keyFields.push('...'); break }
-        const aliasHint = def.fieldName !== def.dbColumn ? '' : ''
         keyFields.push(`\`${def.fieldName}\``)
         count++
       }
