@@ -26,6 +26,7 @@ import { AuditLogService } from './audit/audit-log.service'
 import { AuditLogController } from './audit/audit-log.controller'
 import { DeploymentController } from './deployment.controller'
 import { DeploymentService } from './deployment.service'
+import { MigrationRunner } from './migration-runner'
 import { VersionController } from './version.controller'
 import { LlmConfigController } from './llm-config.controller'
 import { EntitySyncService } from './entity-sync.service'
@@ -58,6 +59,7 @@ import { ModelRegistryService } from './model-registry.service'
     AgentManifestService,
     AuditLogService,
     DeploymentService,
+    MigrationRunner,
     EntitySyncService,
     WizardService,
     ModelRegistryService,
@@ -82,6 +84,7 @@ import { ModelRegistryService } from './model-registry.service'
     AgentManifestService,
     AuditLogService,
     DeploymentService,
+    MigrationRunner,
     EntitySyncService,
     ModelRegistryService,
     TypeOrmModule,

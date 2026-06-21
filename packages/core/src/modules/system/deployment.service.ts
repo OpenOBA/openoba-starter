@@ -6,12 +6,12 @@
  */
 
 import { Injectable, Logger } from '@nestjs/common'
-import { execSync, execFileSync, spawn } from 'child_process'
-import { DataSource } from 'typeorm'
-import { TIMEOUT } from '../../common/constants/timeouts'
+import { execFileSync, spawn } from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
+import { TIMEOUT } from '../../common/constants/timeouts'
 import { TRANSITIONS, DeltaStatus } from './delta-state-machine'
+import { MigrationRunner } from './migration-runner'
 
 export interface DeploymentStatus {
   production: { branch: string; version: string; commit: string; running: boolean }
@@ -42,7 +42,7 @@ export class DeploymentService {
   private readonly deltasFile: string
 
   constructor(
-    private readonly dataSource: DataSource,
+    private readonly migrationRunner: MigrationRunner,
   ) {
     this.projectRoot = path.resolve(process.cwd(), '..')
     this.deltasFile = path.join(this.projectRoot, 'state', 'deltas.json')
@@ -351,7 +351,7 @@ export class DeploymentService {
 
   private getEnvStatus(env: 'production' | 'staging'): { branch: string; version: string; commit: string; running: boolean } {
     try {
-      const branch = this.hasGitRepo() ? this.gitExec('rev-parse --abbrev-ref HEAD').trim() : 'current'
+      const branch = this.hasGitRepo() ? this.getCurrentBranch() : 'current'
       const commit = this.hasGitRepo() ? this.gitExec('rev-parse --short HEAD').trim() : 'latest'
       const version = this.getCurrentVersion()
       const currentMode = process.env.DEPLOYMENT_MODE || 'operator'
@@ -370,12 +370,11 @@ export class DeploymentService {
   }
 
   private getCurrentVersion(): string {
-    try {
-      return this.gitExec('describe --tags --abbrev=0').trim()
-    } catch (e: unknown) {
-      this.logger.warn(`获取当前版本tag失败: ${(e as Error).message}`)
-      return '0.0.0'
-    }
+    return this.migrationRunner.getCurrentVersion()
+  }
+
+  private getCurrentBranch(): string {
+    return this.migrationRunner.getCurrentBranch()
   }
 
   private bumpVersion(current: string, deltaType: string): string {
@@ -422,37 +421,7 @@ export class DeploymentService {
   }
 
   private async runMigration(sql: string, env: string) {
-    // 通过 DataSource 直接执行SQL，避免 Shell 命令注入
-    const dbName = env === 'staging'
-      ? (process.env.DB_DATABASE || 'openoba_core') + '_staging'
-      : process.env.DB_DATABASE || 'openoba_core'
-
-    const queryRunner = this.dataSource.createQueryRunner()
-    await queryRunner.connect()
-
-    try {
-      await queryRunner.startTransaction()
-      await queryRunner.query(`USE \`${dbName}\``)
-
-      // 按分号拆分 SQL 语句逐条执行
-      const statements = sql
-        .split(';')
-        .map(s => s.trim())
-        .filter(s => s.length > 0 && !s.startsWith('--'))
-
-      for (const stmt of statements) {
-        await queryRunner.query(stmt)
-      }
-
-      await queryRunner.commitTransaction()
-      this.logger.log(`✅ 数据库迁移完成 (${env})`)
-    } catch (e: any) {
-      await queryRunner.rollbackTransaction()
-      this.logger.error(`数据库迁移失败，已回滚: ${e.message}`)
-      throw e
-    } finally {
-      await queryRunner.release()
-    }
+    return this.migrationRunner.runMigration(sql, env)
   }
 
   private syncDatabaseSnapshot() {
@@ -460,15 +429,7 @@ export class DeploymentService {
   }
 
   private findProcessPid(port: number): number | null {
-    try {
-      // V1.4-b #39: port 已 parseInt 校验，保留 execSync（含 shell 管道）
-      const result = execSync(`netstat -ano | findstr ":${port}"`, { encoding: 'utf-8', timeout: TIMEOUT.MYSQL_PROBE })
-      const match = result.match(/LISTENING\s+(\d+)/)
-      return match ? parseInt(match[1]) : null
-    } catch (e: unknown) {
-      this.logger.warn(`查找端口 ${port} 进程失败: ${(e as Error).message}`)
-      return null
-    }
+    return this.migrationRunner.findProcessPid(port)
   }
 
   private startStaging() {
@@ -507,20 +468,11 @@ export class DeploymentService {
   }
 
   private gitExec(cmd: string): string {
-    // V1.4-b #39: execSync → execFileSync，参数分离防注入
-    const args = cmd.split(/\s+/).filter(Boolean)
-    return execFileSync('git', args, { cwd: this.projectRoot, encoding: 'utf-8', timeout: TIMEOUT.GIT_CMD })
+    return this.migrationRunner.gitExec(cmd)
   }
 
-  /** 检查 Git 仓库是否可用（降级：无 Git 时跳过分支操作） */
   private hasGitRepo(): boolean {
-    try {
-      this.gitExec('rev-parse --git-dir')
-      return true
-    } catch (e: unknown) {
-      this.logger.warn(`Git仓库不可用: ${(e as Error).message}`)
-      return false
-    }
+    return this.migrationRunner.hasGitRepo()
   }
 
   private execCmd(cmd: string, opts: { cwd: string; [key: string]: any }): string {
