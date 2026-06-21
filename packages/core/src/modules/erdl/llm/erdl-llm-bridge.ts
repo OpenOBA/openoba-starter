@@ -18,7 +18,7 @@
 import { Injectable, Logger, Optional, Inject, forwardRef } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
 import { firstValueFrom } from 'rxjs'
-import { ERDLRegistry, EntityRegistration } from '../core/erdl-registry'
+import type { EntityRegistration } from '../core/erdl-registry'
 import { ERDLActionGuard, ParsedAction } from '../core/erdl-action-guard'
 import {
   getDefaultProvider,
@@ -69,7 +69,6 @@ export class ERDLLLMBridge implements ILlmSseHandler, ILlmPromptBuilder {
   private readonly logger = new Logger(ERDLLLMBridge.name)
 
   constructor(
-    private readonly registry: ERDLRegistry,
     private readonly httpService: HttpService,
     private readonly actionGuard: ERDLActionGuard,
     private readonly sseHandler: LlmSseHandler,
