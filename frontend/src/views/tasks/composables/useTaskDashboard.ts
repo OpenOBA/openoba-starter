@@ -165,7 +165,7 @@ export function useTaskDashboard() {
     const msgData = agentIds.length > 0 ? agentIds.map(id => '@' + (agentList.value.find(a => a.id === id)?.displayName || id)) : undefined
 
     messages.value.push({
-      role: 'human', sender: loginUsername.value, content: text, time: t, data: msgData,
+      role: 'human', sender: loginUsername.value as string, content: text, time: t, data: msgData,
     })
     scrollToBottom()
 

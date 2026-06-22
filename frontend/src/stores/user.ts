@@ -1,14 +1,14 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-function safeParseJson(raw: string | null): any {
+function safeParseJson(raw: string | null): Record<string, unknown> | null {
   if (!raw) return null
   try { return JSON.parse(raw) } catch (e) { console.warn('[userStore] JSON解析失败:', e instanceof Error ? e.message : String(e)); return null }
 }
 
 export const useUserStore = defineStore('user', () => {
   const token = ref(localStorage.getItem('access_token') || '')
-  const userInfo = ref<any>(safeParseJson(localStorage.getItem('user_info')))
+  const userInfo = ref<Record<string, unknown> | null>(safeParseJson(localStorage.getItem('user_info')))
 
   function setToken(newToken: string) {
     token.value = newToken
