@@ -266,6 +266,21 @@ export class QueryProductDto {
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Type(() => Number) pageSize?: number
 }
 
+// ============ SKU ? DTO ============
+
+export class QuerySkuDto {
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Type(() => Number) page?: number
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Type(() => Number) pageSize?: number
+  @ApiPropertyOptional() @IsOptional() @IsString() spuId?: string
+  @ApiPropertyOptional() @IsOptional() @IsString() keyword?: string
+  @ApiPropertyOptional() @IsOptional() @IsString() status?: string
+  @ApiPropertyOptional() @IsOptional() @IsString() skuBarcode?: string
+  @ApiPropertyOptional() @IsOptional() @IsString() ean13?: string
+  @ApiPropertyOptional() @IsOptional() @IsString() productTier?: string
+  @ApiPropertyOptional() @IsOptional() @IsString() skinToneEffect?: string
+  @ApiPropertyOptional() @IsOptional() @IsString() faceShapeEffect?: string
+}
+
 // ============ SKU å¾ç DTO ============
 
 // åæ³å¾çç±»åæä¸¾
@@ -300,6 +315,7 @@ export class UpdateSkuImageDto {
 
 export class QuerySkuImageDto {
   @ApiPropertyOptional() @IsOptional() @IsString() imageType?: string
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean
   @ApiPropertyOptional() @IsOptional() @IsString() skuCode?: string // å®ç½ï¿½?SKU ç¼ç æ¥è¯¢
   @ApiPropertyOptional() @IsOptional() @IsString() skuId?: string
 }

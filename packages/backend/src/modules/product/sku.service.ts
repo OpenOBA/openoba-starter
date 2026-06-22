@@ -1,6 +1,13 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common'
 import * as crypto from 'crypto'
 import { InjectRepository } from '@nestjs/typeorm'
+import {
+  QuerySkuDto,
+  CreateSkuDto,
+  UpdateSkuDto,
+  QuerySkuImageDto,
+  CreateSkuImageDto,
+} from './dto/product.dto'
 import { Repository, Like, DataSource } from 'typeorm'
 import { ProductSku } from './entity/product-sku.entity'
 import { ProductSpu } from './entity/product-spu.entity'
@@ -13,6 +20,7 @@ import { SkuEffectRecommend } from './entity/sku-effect-recommend.entity'
 import { generateInternalBarcode, generateTransitionalEAN13 } from './utils/barcode.generator'
 import { NamingEngine, SkuNameInput } from './utils/naming-engine'
 import { StructureStandard } from '../structure/entity/structure-standard.entity'
+import { TechSpecInput, PriceFieldDef, SkuDisplayNameInput } from './interfaces/sku.interface'
 
 @Injectable()
 export class SkuService {
@@ -30,7 +38,7 @@ export class SkuService {
     private dataSource: DataSource,
   ) {}
 
-  async findSkus(query: any) {
+  async findSkus(query: QuerySkuDto) {
     const { page = 1, pageSize = 20, spuId, keyword, status, skuBarcode, ean13, productTier, skinToneEffect, faceShapeEffect } = query
     const qb = this.skuRepo
       .createQueryBuilder('s')
@@ -74,7 +82,7 @@ export class SkuService {
     return { ...item, images }
   }
 
-  async createSku(dto: any) {
+  async createSku(dto: CreateSkuDto) {
     const { skuBarcode, ean13, ...rest } = dto
 
     // V2.0: 获取 SPU 信息
@@ -115,16 +123,17 @@ export class SkuService {
       ...rest,
       skuBarcode: autoSkuBarcode,
       ean13: autoEan13,
-    })
+    } as Partial<ProductSku>)
     return this.skuRepo.save(entity)
   }
 
-  async updateSku(id: string, dto: any) {
+  async updateSku(id: string, dto: UpdateSkuDto) {
     const item = await this.findOneSku(id)
     // SKU 级别继承：如果显式设为 null，从 SPU 继承
     let resolvedTier = dto.productTier
     if (resolvedTier === null || resolvedTier === undefined) {
-      resolvedTier = (item.spu as any)?.productTier || 'color'
+      const spuRecord = item.spu as ProductSpu | undefined
+    resolvedTier = spuRecord?.productTier || 'color'
     }
     dto.productTier = resolvedTier
     // Phase 8B: 尺寸校验
@@ -139,7 +148,13 @@ export class SkuService {
 
     // V2.0: 重新生成展示名
     const merged = { ...item, ...dto }
-    dto.displayName = await this.generateSkuDisplayName(merged)
+    dto.displayName = await this.generateSkuDisplayName({
+      spuId: merged.spuId,
+      spu: merged.spu,
+      colorCode: merged.colorCode,
+      skinToneEffect: merged.skinToneEffect,
+      faceShapeEffect: merged.faceShapeEffect,
+    })
 
     // 如果修改了 sku_code、structure_standard_code 或 product_tier，重新生成条码
     const needRegen =
@@ -167,22 +182,24 @@ export class SkuService {
   }
 
   // ===== Phase 9A: 价格历史记录 =====
-  private async recordPriceChanges(skuId: string, current: ProductSku, dto: any) {
-    const priceFields: { key: string; type: string }[] = [
-      { key: 'costPrice', type: 'cost' },
-      { key: 'retailPrice', type: 'retail' },
+  private async recordPriceChanges(skuId: string, current: ProductSku, dto: UpdateSkuDto) {
+    const priceFields: PriceFieldDef[] = [
+      { key: 'costPrice', type: 'cost' as const },
+      { key: 'retailPrice', type: 'retail' as const },
       { key: 'minPrice', type: 'min' },
     ]
     for (const { key, type } of priceFields) {
-      if (dto[key] !== undefined && dto[key] !== (current as any)[key]) {
-        const oldVal = (current as any)[key] ?? null
-        const newVal = dto[key]
+      const currentRecord = current as unknown as Record<string, unknown>
+    const dtoRecord = dto as unknown as Record<string, unknown>
+    if (dtoRecord[key] !== undefined && dtoRecord[key] !== currentRecord[key]) {
+        const oldVal = currentRecord[key] ?? null
+        const newVal = dtoRecord[key]
         const history = this.priceHistoryRepo.create({
           historyId: `ph-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`,
           skuId,
           priceType: type,
-          oldValue: oldVal,
-          newValue: newVal,
+          oldValue: typeof oldVal === 'number' ? oldVal : null,
+          newValue: typeof newVal === 'number' ? newVal : 0,
         })
         await this.priceHistoryRepo.save(history)
       }
@@ -219,7 +236,7 @@ export class SkuService {
   }
 
   // 图片类型校验
-  validateImageType(type: string) {
+  validateImageType(type?: string): string {
     if (type && !this.VALID_IMAGE_TYPES.includes(type)) {
       throw new BadRequestException(`imageType 必须是: ${this.VALID_IMAGE_TYPES.join(', ')}`)
     }
@@ -227,7 +244,7 @@ export class SkuService {
   }
 
   // Phase 8B: 技术参数尺寸校验
-  validateTechSpecSizes(dto: any) {
+  validateTechSpecSizes(dto: TechSpecInput) {
     const errors: string[] = []
     const warnMsgs: string[] = []
 
@@ -283,7 +300,7 @@ export class SkuService {
   }
 
   // 查询 SKU 图片列表（按 skuId 或 skuCode）
-  async findSkuImages(query: any) {
+  async findSkuImages(query: QuerySkuImageDto) {
     const { skuId, skuCode, imageType, isActive } = query
     const qb = this.skuImageRepo
       .createQueryBuilder('i')
@@ -320,28 +337,30 @@ export class SkuService {
   }
 
   // 创建 SKU 图片
-  async createSkuImage(dto: any) {
+  async createSkuImage(dto: CreateSkuImageDto) {
     // P0: SKU 存在性校验
     await this.ensureSkuExists(dto.skuId)
     // P0: URL 校验
     dto.imageUrl = this.validateImageUrl(dto.imageUrl)
     // P0: imageType 枚举校验
-    dto.imageType = this.validateImageType(dto.imageType)
+    const resolvedImageType = this.validateImageType(dto.imageType)
+    dto.imageType = resolvedImageType
     // 如果设为主图，取消同类型其他主图
     if (dto.isPrimary) {
-      await this.clearPrimaryForType(dto.skuId, dto.imageType)
+      await this.clearPrimaryForType(dto.skuId, resolvedImageType)
     }
     // 防御：删除非数据库列和主键（防止 TypeORM create() 误用空字符串主键）
     delete dto.imageId
-    delete dto.createdAt
-    delete dto.updatedAt
-    delete dto.sku
+    const dtoRecord = dto as unknown as Record<string, unknown>
+    delete dtoRecord.createdAt
+    delete dtoRecord.updatedAt
+    delete dtoRecord.sku
     const entity = this.skuImageRepo.create(dto)
     return this.skuImageRepo.save(entity)
   }
 
   // 批量上传 SKU 图片
-  async batchCreateSkuImages(dto: { skuId: string; images: any[] }) {
+  async batchCreateSkuImages(dto: { skuId: string; images: CreateSkuImageDto[] }) {
     // SKU 存在性校验
     await this.ensureSkuExists(dto.skuId)
     if (!dto.images || dto.images.length === 0) {
@@ -356,7 +375,7 @@ export class SkuService {
       await this.clearPrimaryForType(dto.skuId, imgType)
     }
 
-    const results: any[] = []
+    const results: ProductSkuImage[] = []
     for (const imgDto of dto.images) {
       imgDto.skuId = dto.skuId
       // URL 校验
@@ -364,19 +383,20 @@ export class SkuService {
       // imageType 校验
       imgDto.imageType = this.validateImageType(imgDto.imageType)
       // 防御：删除非数据库列和主键
-      delete (imgDto as any).imageId
-      delete (imgDto as any).createdAt
-      delete (imgDto as any).updatedAt
-      delete (imgDto as any).sku
-      const entity = this.skuImageRepo.create(imgDto)
-      const saved = await this.skuImageRepo.save(entity)
-      results.push(saved)
+      const cleanDto = { ...imgDto }
+      delete (cleanDto as Record<string, unknown>).imageId
+      delete (cleanDto as Record<string, unknown>).createdAt
+      delete (cleanDto as Record<string, unknown>).updatedAt
+      delete (cleanDto as Record<string, unknown>).sku
+      const imgEntity = this.skuImageRepo.create(cleanDto as Partial<ProductSkuImage>)
+      const saved = await this.skuImageRepo.save(imgEntity)
+      if (saved) results.push(saved)
     }
     return { created: results.length, images: results }
   }
 
   // 更新 SKU 图片
-  async updateSkuImage(id: string, dto: any) {
+  async updateSkuImage(id: string, dto: Partial<CreateSkuImageDto>) {
     const image = await this.skuImageRepo.findOne({ where: { imageId: id, isDeleted: false } })
     if (!image) throw new NotFoundException('图片不存在')
 
@@ -450,7 +470,7 @@ export class SkuService {
 
     // First try: exact match on internal_code (case-insensitive)
     const found1 = await repo.findOne({
-      where: { internalCode: internalCode.toLowerCase() as any },
+      where: { internalCode: internalCode.toLowerCase() },
     })
     if (found1) {
       return { externalCode: found1.externalCode, shapeCode: found1.shapeCode }
@@ -488,11 +508,13 @@ export class SkuService {
    * 公式：秒镜 S{对外编号} · {肤色效果} · {脸型效果} · {色彩} · {造型}{系列}系列 · {款式}
    * ⚠️ 字段顺序严格按 V2.0 规范，不可随意打乱
    */
-  async generateSkuDisplayName(skuData: any): Promise<string> {
+  async generateSkuDisplayName(skuData: SkuDisplayNameInput): Promise<string> {
     const spu = skuData.spu || (await this.spuRepo.findOne({ where: { spuId: skuData.spuId } }))
     if (!spu) return '秒镜 ???'
 
-    const { structureStandardCode, seriesCode, gender } = spu
+    const structureStandardCode = (spu as Record<string, unknown>).structureStandardCode as string | undefined
+    const seriesCode = (spu as Record<string, unknown>).seriesCode as string | undefined
+    const gender = (spu as Record<string, unknown>).gender as string | undefined
     const { colorCode, skinToneEffect, faceShapeEffect } = skuData
 
     // 获取色彩名
@@ -502,10 +524,10 @@ export class SkuService {
       if (color) colorName = color.colorName
     }
 
-    const structInfo = await this.getStructureInfo(structureStandardCode)
+    const structInfo = await this.getStructureInfo(structureStandardCode ?? '')
     if (!structInfo) return '秒镜 ???'
 
-    const seriesName = this.getSeriesChineseName(seriesCode)
+    const seriesName = this.getSeriesChineseName(seriesCode ?? '')
     const shapeName = NamingEngine.getShapeName(structInfo.shapeCode)
 
     const input: SkuNameInput = {
