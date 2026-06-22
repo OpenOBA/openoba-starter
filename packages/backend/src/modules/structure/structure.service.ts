@@ -67,10 +67,10 @@ export class StructureService {
     // 附加名称字段到每条记录
     for (const item of items) {
       if (item.shapeCode && shapeNames[item.shapeCode]) {
-        ;(item as any).shape_name = shapeNames[item.shapeCode]
+        ;(item as unknown as { shape_name?: string }).shape_name = shapeNames[item.shapeCode]
       }
       if (item.seriesCode && seriesNames[item.seriesCode]) {
-        ;(item as any).series_name = seriesNames[item.seriesCode]
+        ;(item as unknown as { series_name?: string }).series_name = seriesNames[item.seriesCode]
       }
     }
 
@@ -94,7 +94,7 @@ export class StructureService {
 
     // 检查是否已存在相同编码（同宽高+同造型+同周长 = 重复）
     const existing = await this.structureRepo.findOne({
-      where: { externalCode, isDeleted: false } as any
+      where: { externalCode, isDeleted: false }
     })
     if (existing) {
       throw new BadRequestException(
@@ -118,7 +118,7 @@ export class StructureService {
 
     // 后端兜底：编辑模式下前端不发送物理字段，若收到则直接拒绝
     if (dto.shapeCode != null || dto.width != null || dto.height != null
-      || dto.circumference != null || dto.bridgeWidth != null || (dto as any).baseCurve != null) {
+      || dto.circumference != null || dto.bridgeWidth != null || (dto as Record<string, unknown>).baseCurve != null) {
       throw new BadRequestException('物理属性不支持编辑修改。如需变更物理规格，请废弃当前标准（status=deprecated）后新建。')
     }
 
