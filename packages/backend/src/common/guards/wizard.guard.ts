@@ -33,7 +33,7 @@ export class WizardGuard implements CanActivate {
         database: process.env.DB_DATABASE || 'openoba_starter',
         connectTimeout: 3000,
       })
-      const [rows] = await conn.execute("SELECT COUNT(*) AS cnt FROM sys_user WHERE username = ?", ['admin'])
+      const [rows] = await conn.execute('SELECT COUNT(*) AS cnt FROM sys_user WHERE username = ?', ['admin'])
       const adminExists = ((rows as any[])[0]?.cnt || 0) > 0
       await conn.end()
 

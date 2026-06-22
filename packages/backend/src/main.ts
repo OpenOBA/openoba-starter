@@ -30,7 +30,10 @@ async function bootstrap() {
   if (jwtSecret.length < 16 || jwtSecret === 'temp' || jwtSecret.startsWith('change_me')) {
     weakSecrets.push('JWT_SECRET')
   }
-  if (customerSecret && (customerSecret.length < 16 || customerSecret === 'temp' || customerSecret.startsWith('change_me'))) {
+  if (
+    customerSecret &&
+    (customerSecret.length < 16 || customerSecret === 'temp' || customerSecret.startsWith('change_me'))
+  ) {
     weakSecrets.push('CUSTOMER_JWT_SECRET')
   }
   if (weakSecrets.length > 0) {

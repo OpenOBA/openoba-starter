@@ -14,10 +14,7 @@ export type MaskRule = 'phone' | 'email' | 'idCard' | 'address' | 'name'
 /**
  * 脱敏规则配置
  */
-const MASK_RULES: Record<
-  MaskRule,
-  { pattern: RegExp; mask: (match: string) => string }
-> = {
+const MASK_RULES: Record<MaskRule, { pattern: RegExp; mask: (match: string) => string }> = {
   phone: {
     // 中国大陆手机号：13812345678 → 138****5678
     pattern: /1[3-9]\d{9}/g,
