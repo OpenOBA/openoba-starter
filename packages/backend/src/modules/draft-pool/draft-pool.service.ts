@@ -27,7 +27,7 @@ import {
 function uid(): string {
   return crypto.randomUUID().replace(/-/g, '')
 }
-function notDeleted(): any {
+function notDeleted(): { deletedAt: ReturnType<typeof IsNull> } {
   return { deletedAt: IsNull() }
 }
 
@@ -236,7 +236,7 @@ export class DraftPoolService {
         structureStandardCode: draft.structureStandardCode,
         productTier: 'color',
         mainImage: spuDisplayName, // placeholder; images managed separately
-        status: 'draft' as any,
+        status: 'draft',
       })
       await queryRunner.manager.save(spuRecord)
 
@@ -333,7 +333,7 @@ export class DraftPoolService {
       publishedBy: 'agent',
     })
 
-    const results: Array<any> = []
+    const results: Array<{ draftId: string; spuId: string; spuCode: string; spuName: string; skuIds: string[] }> = []
     let totalSkus = 0
     const errors: Array<string> = []
 
@@ -384,7 +384,7 @@ export class DraftPoolService {
    */
   async getPendingPromotion(): Promise<{ drafts: DraftSpu[]; total: number }> {
     const drafts = await this.draftSpuRepo.find({
-      where: { status: 'reviewed', deletedAt: IsNull() } as any,
+      where: { status: 'reviewed', deletedAt: IsNull() },
       order: { createdAt: 'DESC' },
       take: 50,
     })
@@ -392,11 +392,12 @@ export class DraftPoolService {
   }
 
   /** 保留旧 publishDrafts 兼容性：仅改状态，不创建真正 Product */
-  async publishDrafts(dto: PublishDraftDto): Promise<DraftPublishBatch> {
+  /** @deprecated 保留旧接口兼容，实际委托 promoteDraftsToProducts */
+  async publishDrafts(dto: PublishDraftDto): Promise<unknown> {
     return this.promoteDraftsToProducts({
       draftIds: dto.draftIds,
       packageName: dto.packageName,
-    }) as any
+    })
   }
 
   // ── 内部辅助方法 ──
@@ -405,17 +406,17 @@ export class DraftPoolService {
     if (!code) return null
     // 直接按 external_code 查询（新格式: S4844-RND）
     const found = await this.structRepo.findOne({
-      where: { externalCode: code } as any,
+      where: { externalCode: code },
     })
     if (found) {
-      return { externalCode: (found as any).externalCode, shapeCode: (found as any).shapeCode }
+      return { externalCode: found.externalCode, shapeCode: found.shapeCode }
     }
     // 尝试 internal_code（旧格式兼容）
     const found2 = await this.structRepo.findOne({
-      where: { internalCode: code.toLowerCase() } as any,
+      where: { internalCode: code.toLowerCase() },
     })
     if (found2) {
-      return { externalCode: (found2 as any).externalCode, shapeCode: (found2 as any).shapeCode }
+      return { externalCode: found2.externalCode, shapeCode: found2.shapeCode }
     }
     // 解析 S{宽}{高}-{造型} 格式
     const m = code.match(/^S(\d{2})(\d{2})-(\w+)/)
@@ -431,12 +432,12 @@ export class DraftPoolService {
     const extCode = structInfo?.externalCode || structureStandardCode
     const prefix = `S-${extCode}-`
     const existing = await this.spuRepo.find({
-      where: { spuCode: Like(`${prefix}%`), isDeleted: false } as any,
-      order: { spuCode: 'DESC' as any },
+      where: { spuCode: Like(`${prefix}%`), isDeleted: false },
+      order: { spuCode: 'DESC' as const },
     })
     let next = 1
     if (existing.length > 0) {
-      const parts = (existing[0] as any).spuCode.split('-')
+      const parts = existing[0].spuCode.split('-')
       const last = parseInt(parts[parts.length - 1], 10)
       if (!isNaN(last)) next = last + 1
     }
@@ -477,7 +478,7 @@ export class DraftPoolService {
 
   // ========== Draft Tasks ==========
 
-  async createTask(taskType: string, referenceId?: string, inputContext?: any): Promise<DraftTask> {
+  async createTask(taskType: string, referenceId?: string, inputContext?: Record<string, unknown>): Promise<DraftTask> {
     return this.taskRepo.save({
       id: uid(),
       taskType,
@@ -487,7 +488,7 @@ export class DraftPoolService {
     })
   }
 
-  async updateTaskStatus(taskId: string, status: string, outputResult?: any, errorInfo?: string): Promise<DraftTask> {
+  async updateTaskStatus(taskId: string, status: string, outputResult?: Record<string, unknown>, errorInfo?: string): Promise<DraftTask> {
     const task = await this.taskRepo.findOneBy({ id: taskId })
     if (!task) throw new NotFoundException('任务不存在')
     Object.assign(task, {
@@ -500,7 +501,7 @@ export class DraftPoolService {
   }
 
   async queryTasks(taskType?: string, status?: string): Promise<DraftTask[]> {
-    const where: any = {}
+    const where: Record<string, unknown> = {}
     if (taskType) where.taskType = taskType
     if (status) where.status = status
     return this.taskRepo.find({ where, order: { createdAt: 'DESC' }, take: 50 })
