@@ -23,7 +23,7 @@ export class AestheticRule {
   description: string
 
   @Column({ comment: '配置JSON', type: 'json', nullable: true })
-  config: any
+  config: Record<string, unknown> | null
 
   @Column({ comment: '权重', type: 'decimal', precision: 5, scale: 2, default: 1.0 })
   weight: number

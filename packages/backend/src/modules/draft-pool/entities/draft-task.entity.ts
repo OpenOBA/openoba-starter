@@ -13,10 +13,10 @@ export class DraftTask {
   referenceId: string
 
   @Column({ comment: '输入上下文JSON', name: 'input_context', type: 'json', nullable: true })
-  inputContext: any
+  inputContext: Record<string, unknown> | null
 
   @Column({ comment: '输出结果JSON', name: 'output_result', type: 'json', nullable: true })
-  outputResult: any
+  outputResult: Record<string, unknown> | null
 
   @Column({ comment: '状态', name: 'status', type: 'varchar', length: 20, default: 'pending' })
   status: string // pending | processing | completed | failed

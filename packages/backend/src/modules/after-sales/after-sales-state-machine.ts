@@ -176,7 +176,8 @@ export class AfterSalesStateMachine {
     }
     if (!items || !Array.isArray(items) || items.length === 0) return
 
-    for (const item of items) {
+    for (const element of items) {
+      const item = element as { skuId: string; skuCode?: string; quantity: number }
       if (!item.skuId || !item.quantity) continue
       try {
         const sku = await manager.findOne(Inventory, {

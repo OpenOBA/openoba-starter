@@ -19,7 +19,7 @@ export class AdvisoryReport {
   summary: string
 
   @Column({ comment: '推荐建议JSON', name: 'recommendations', type: 'json', nullable: true })
-  recommendations: any
+  recommendations: Record<string, unknown> | null
 
   @Column({ comment: '状态', name: 'status', type: 'varchar', length: 20, default: 'pending' })
   status: string // pending | generating | completed | failed

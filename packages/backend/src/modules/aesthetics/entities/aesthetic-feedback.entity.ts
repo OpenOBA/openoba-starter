@@ -15,10 +15,10 @@ export class AestheticFeedback {
   action: string
 
   @Column({ comment: 'SKU上下文JSON', name: 'sku_context', type: 'json', nullable: true })
-  skuContext: any
+  skuContext: Record<string, unknown> | null
 
   @Column({ comment: 'SPU上下文JSON', name: 'spu_context', type: 'json', nullable: true })
-  spuContext: any
+  spuContext: Record<string, unknown> | null
 
   @Column({ comment: '操作备注', name: 'operator_note', type: 'text', nullable: true })
   operatorNote: string | null

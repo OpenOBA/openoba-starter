@@ -126,8 +126,8 @@ export class RuleEngineService {
   }
 
   private async executeValidateRule(rule: AestheticRule, ctx: CheckContext): Promise<RuleResult | null> {
-    const config = rule.config || {}
-    const required = config.required || []
+    const config = (rule.config || {}) as Record<string, unknown>
+    const required = (config.required as string[]) || []
     for (const field of required) {
       const value = ctx[field as keyof CheckContext] as string
       if (!value || value.trim() === '') {
@@ -143,7 +143,7 @@ export class RuleEngineService {
   }
 
   private async executeBlockRule(rule: AestheticRule, ctx: CheckContext): Promise<RuleResult | null> {
-    const config = rule.config || {}
+    const config = (rule.config || {}) as Record<string, unknown>
 
     // R001: shape_face incompatible check
     if (config.matrix === 'shape_face' && config.check === 'shape_face') {
@@ -157,7 +157,7 @@ export class RuleEngineService {
 
     // R003: shape-gender conflict
     if (config.check === 'shape_face' && rule.ruleCode === 'R003') {
-      const incompatiblePairs = config.incompatible || []
+      const incompatiblePairs = (config.incompatible as Array<{ shape: string; gender: string }>) || []
       for (const pair of incompatiblePairs) {
         if (ctx.shapeCode === pair.shape && ctx.gender === pair.gender) {
           return {

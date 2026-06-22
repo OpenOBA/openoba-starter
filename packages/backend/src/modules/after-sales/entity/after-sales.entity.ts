@@ -91,7 +91,7 @@ export class AfterSales {
   status: string
 
   @Column({ comment: '商品明细JSON', name: 'items', type: 'json', nullable: true })
-  items: any[]
+  items: Array<Record<string, unknown>> | null
 
   @Column({ comment: '审核人ID', name: 'reviewer_id', length: 36, nullable: true })
   reviewerId: string
