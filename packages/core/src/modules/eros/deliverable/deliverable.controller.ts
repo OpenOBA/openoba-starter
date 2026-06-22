@@ -51,7 +51,7 @@ export class DeliverableController {
     @Param('id') id: string,
     @Body() body: { status: string; approvedBy?: string },
   ) {
-    return this.service.updateStatus(id, body.status as any, body.approvedBy)
+    return this.service.updateStatus(id, undefined, body.approvedBy)
   }
 
   @Delete(':id')

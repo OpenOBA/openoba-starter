@@ -195,12 +195,12 @@ export class SkillLoader implements OnModuleInit {
 
   private parseYamlBlock(
     lines: string[], startIdx: number, baseIndent: number,
-  ): { value: any; endIdx: number } {
-    const result: any = {}
+  ): { value: Record<string, unknown>; endIdx: number } {
+    const result: Record<string, unknown> = {}
     let i = startIdx
     let currentKey = ''
     let inList = false
-    let listItems: any[] = []
+    let listItems: unknown[] = []
     let listKey = ''
 
     while (i < lines.length) {
@@ -293,7 +293,7 @@ export class SkillLoader implements OnModuleInit {
 
   /** 查询已安装 SKILL 列表 */
   async listSkills(category?: string): Promise<SkillRegistry[]> {
-    const where: any = {}
+    const where: Partial<Pick<SkillRegistry, 'category'>> = {}
     if (category) where.category = category
     return this.registryRepo.find({ where, order: { category: 'ASC', skillName: 'ASC' } })
   }

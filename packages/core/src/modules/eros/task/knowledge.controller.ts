@@ -45,7 +45,7 @@ export class KnowledgeController {
     content: string
     contributor?: string
   }) {
-    return this.service.create(body as any)
+    return this.service.create(undefined
   }
 
   @Get()

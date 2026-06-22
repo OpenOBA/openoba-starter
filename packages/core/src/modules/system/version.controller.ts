@@ -57,7 +57,7 @@ export class VersionController {
    *   "minVersion": "1.0.0"
    * }
    */
-  private fetchFromOfficial(current: string): Promise<any> {
+  private fetchFromOfficial(current: string): undefined {
     return new Promise((resolve, reject) => {
       const url = `https://openoba.com/api/v1/update?current=${encodeURIComponent(current)}&product=core`
       const req = httpsRequest(url, {

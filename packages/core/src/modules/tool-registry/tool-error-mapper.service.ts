@@ -31,7 +31,7 @@ export class ToolErrorMapper {
 
     if (error instanceof BadRequestException) {
       const resp = error.getResponse()
-      const message = typeof resp === 'string' ? resp : (resp as any)?.message || error.message
+      const message = typeof resp === 'string' ? resp : undefined || error.message
       return {
         code: 'BAD_REQUEST',
         message: Array.isArray(message) ? message.join('; ') : this.sanitizeMessage(String(message)),

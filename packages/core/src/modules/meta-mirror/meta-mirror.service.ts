@@ -103,7 +103,7 @@ export class MetaMirrorService implements OnModuleInit {
     // DTO 扫描器通过 EntityScanner 间接获取
     const dtoScanner = new (require('./scanners/dto.scanner').DtoScanner)()
     const dtos = dtoScanner.scan(path.join(this.projectRoot, 'backend', 'src'))
-    const auditReport = this.erdlAudit.audit(enhancedRules as any, dtos, entities)
+    const auditReport = this.erdlAudit.audit(enhancedRules as unknown as Array<Record<string, unknown>>, dtos, entities)
     this.erdlAudit.writeReport(auditReport, outputDir)
 
     this.logger.log(`  ✅ 元镜知识图谱已更新 · ${new Date().toISOString()}`)

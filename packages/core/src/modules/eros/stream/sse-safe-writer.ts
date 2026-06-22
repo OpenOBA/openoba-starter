@@ -67,7 +67,7 @@ export class SSESafeWriter {
     this.res.flushHeaders()
 
     // TCP_NODELAY：禁用 Nagle 算法，每个 write 立即发送
-    const socket = (this.res as any).socket
+    const socket = undefined
     if (socket) {
       socket.setNoDelay(true)
       // 设置 TCP keepalive（60s 空闲后探测，防止中间代理断开长连接）
@@ -133,7 +133,7 @@ export class SSESafeWriter {
           this.logger.debug(`[tool_end hex]: ${hex.substring(0, 200)}`)
         }
       }
-    } catch (err: any) {
+    } undefined {
       this.logger.error(`SSE write 失败: ${err.message}`)
     }
   }

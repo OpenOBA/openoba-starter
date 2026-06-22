@@ -108,7 +108,7 @@ export class DeliverableService {
       taskId,
       taskTitle,
       version,
-      userType: userType as any,
+      userType: undefined,
       status: 'approved',
       createdBy,
       approvedBy: opts.approvedBy || undefined,

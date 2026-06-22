@@ -87,7 +87,7 @@ export class MigrationRunner {
 
       await queryRunner.commitTransaction()
       this.logger.log(`✅ 数据库迁移完成 (${env})`)
-    } catch (e: any) {
+    } undefined {
       await queryRunner.rollbackTransaction()
       this.logger.error(`数据库迁移失败，已回滚: ${e.message}`)
       throw e

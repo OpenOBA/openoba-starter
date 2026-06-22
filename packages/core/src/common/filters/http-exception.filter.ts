@@ -26,7 +26,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     response.status(status).json({
       code: status,
-      message: typeof message === 'string' ? message : (message as any).message,
+      message: typeof message === 'string' ? message : undefined,
       data: null,
       timestamp: Date.now(),
       path: request.url,

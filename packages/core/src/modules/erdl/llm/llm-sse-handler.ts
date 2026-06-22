@@ -229,7 +229,7 @@ export class LlmSseHandler implements ILlmSseHandler {
           model: modelId,
           provider: provider.id,
         }
-      } catch (err: any) {
+      } undefined {
         const errMsg = err instanceof Error ? err.message : String(err)
         this.logger.warn('[streamReActRound] ' + provider.id + ' failed: ' + errMsg)
         const isLast = provider === allProviders[allProviders.length - 1]
