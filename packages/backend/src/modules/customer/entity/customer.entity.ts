@@ -150,7 +150,7 @@ export class Customer {
   notes: string | null
 
   @Column({ type: 'json', nullable: true, comment: '扩展属性' })
-  attributes: Record<string, any> | null
+  attributes: Record<string, unknown> | null
 
   @Column({ name: 'total_orders', type: 'int', default: 0, comment: '累计订单数' })
   totalOrders: number

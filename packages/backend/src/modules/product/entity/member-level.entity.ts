@@ -25,7 +25,7 @@ export class MemberLevel {
   upgradeThreshold: number | null
 
   @Column({ type: 'json', nullable: true, comment: '权益描述' })
-  benefits: Record<string, any> | null
+  benefits: Record<string, unknown> | null
 
   @Column({ comment: '是否启用', name: 'is_active', default: true })
   isActive: boolean

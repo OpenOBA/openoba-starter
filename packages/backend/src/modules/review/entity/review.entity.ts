@@ -74,7 +74,7 @@ export class Review {
   helpfulCount: number
 
   @Column({ comment: '元数据JSON', type: 'json', nullable: true })
-  metadata: Record<string, any>
+  metadata: Record<string, unknown>
 
   @Column({ name: 'is_deleted', default: false })
   isDeleted: boolean

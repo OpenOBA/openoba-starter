@@ -48,7 +48,7 @@ export class CustomerLens {
   status: string
 
   @Column({ type: 'json', nullable: true, comment: '扩展属性' })
-  attributes: Record<string, any> | null
+  attributes: Record<string, unknown> | null
 
   @Column({ name: 'is_deleted', default: false })
   isDeleted: boolean

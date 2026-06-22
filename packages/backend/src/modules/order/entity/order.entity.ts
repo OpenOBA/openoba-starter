@@ -164,7 +164,7 @@ export class Order {
 
   // 扩展属性
   @Column({ type: 'json', nullable: true, comment: '扩展属性' })
-  attributes?: Record<string, any>
+  attributes?: Record<string, unknown>
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date

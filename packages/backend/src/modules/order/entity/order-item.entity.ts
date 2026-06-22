@@ -83,7 +83,7 @@ export class OrderItem {
   prescriptionRequired: boolean
 
   @Column({ name: 'sku_attributes', type: 'json', nullable: true, comment: 'SKU属性快照' })
-  skuAttributes?: Record<string, any>
+  skuAttributes?: Record<string, unknown>
 
   // 评价状态（商品维度）
   @Column({ name: 'review_status', length: 32, default: 'unreviewed', comment: 'unreviewed/reviewed/overdue' })

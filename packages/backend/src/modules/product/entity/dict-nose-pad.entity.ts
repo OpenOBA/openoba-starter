@@ -25,7 +25,7 @@ export class DictNosePad {
   sortOrder: number
 
   @Column({ comment: '扩展数据JSON', name: 'extra', type: 'json', nullable: true })
-  extra?: Record<string, any>
+  extra?: Record<string, unknown>
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date

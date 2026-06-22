@@ -31,7 +31,7 @@ export class OrderLog {
 
   // P1-12: Extra data (JSON for flexibility)
   @Column({ name: 'extra_data', type: 'json', nullable: true })
-  extraData?: Record<string, any>
+  extraData?: Record<string, unknown>
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date

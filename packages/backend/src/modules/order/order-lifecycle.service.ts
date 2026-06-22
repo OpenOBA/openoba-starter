@@ -68,7 +68,7 @@ export class OrderLifecycleService {
       await manager.update(Order, id, {
         status: ORDER_STATUS.cancelled,
         internalRemark: undefined as unknown as string,
-      } as Partial<Order>)
+      } as unknown as Record<string, unknown>)
       await manager.insert(OrderLog, {
         orderId: id,
         action: 'cancel',

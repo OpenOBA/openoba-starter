@@ -61,7 +61,7 @@ export class Promotion {
   stackable: boolean
 
   @Column({ comment: '扩展数据JSON', type: 'json', nullable: true })
-  extra: Record<string, any> | null
+  extra: Record<string, unknown> | null
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date

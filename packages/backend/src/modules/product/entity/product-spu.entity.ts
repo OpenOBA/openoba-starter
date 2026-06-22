@@ -62,7 +62,7 @@ export class ProductSpu {
   images?: string[]
 
   @Column({ comment: '扩展属性JSON', type: 'json', nullable: true })
-  attributes?: Record<string, any>
+  attributes?: Record<string, unknown>
 
   @Column({ comment: '兼容等级列表', name: 'compatibility_levels', type: 'json', nullable: true })
   compatibilityLevels?: string[]

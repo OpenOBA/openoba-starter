@@ -19,7 +19,7 @@ export class ProductTierPricing {
   isActive: boolean
 
   @Column({ comment: '扩展数据JSON', name: 'extra', type: 'json', nullable: true })
-  extra?: Record<string, any>
+  extra?: Record<string, unknown>
 
   @Column({ comment: '排序序号', name: 'sort_order', type: 'int', default: 0 })
   sortOrder: number

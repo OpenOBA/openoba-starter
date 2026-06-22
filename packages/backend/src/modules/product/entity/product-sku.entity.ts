@@ -46,7 +46,7 @@ export class ProductSku {
   productTier?: string
 
   @Column({ name: 'sku_attributes', type: 'json', nullable: true })
-  skuAttributes?: Record<string, any>
+  skuAttributes?: Record<string, unknown>
 
   @Column({ name: 'cost_price', type: 'decimal', precision: 10, scale: 2, nullable: true })
   costPrice?: number
@@ -153,7 +153,7 @@ export class ProductSku {
   uvProtection: string
 
   @Column({ name: 'tech_spec_extra', type: 'json', nullable: true, comment: '扩展技术参数预留' })
-  techSpecExtra?: Record<string, any>
+  techSpecExtra?: Record<string, unknown>
 
   @ManyToOne(() => ProductSpu, (spu) => spu.skus)
   @JoinColumn({ name: 'spu_id' })

@@ -26,7 +26,7 @@ export class SubSku {
   model?: string
 
   @Column({ comment: '规格值JSON', name: 'spec_values', type: 'json', nullable: true })
-  specValues?: Record<string, any>
+  specValues?: Record<string, unknown>
 
   @Column({ comment: 'standard ID', name: 'standard_id', length: 36, nullable: true })
   standardId?: string
