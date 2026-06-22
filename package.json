@@ -20,6 +20,9 @@
   },
   "scripts": {
     "build:backend": "npm run build -w packages/core && npm run build -w packages/backend",
+    "lint:core": "npm run lint -w packages/core",
+    "lint:backend": "npm run lint -w packages/backend",
+    "lint:all": "npm run lint -w packages/core && npm run lint -w packages/backend",
     "start:backend": "node packages/backend/dist/main.js",
     "start:frontend": "npm run dev -w frontend",
     "update-core": "scripts/update-core.bat",

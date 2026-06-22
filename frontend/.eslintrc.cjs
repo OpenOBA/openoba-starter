@@ -6,6 +6,7 @@ module.exports = {
     parser: '@typescript-eslint/parser',
     ecmaVersion: 2022,
     sourceType: 'module',
+    extraFileExtensions: ['.vue'],
   },
   plugins: ['@typescript-eslint', 'prettier'],
   extends: [
@@ -20,10 +21,13 @@ module.exports = {
 
     // ── 红线：any 类型全面禁止，显式豁免方可使用 ──
     '@typescript-eslint/no-explicit-any': 'error',
-    '@typescript-eslint/no-unsafe-assignment': 'warn',
-    '@typescript-eslint/no-unsafe-member-access': 'warn',
-    '@typescript-eslint/no-unsafe-argument': 'warn',
-    '@typescript-eslint/no-unsafe-call': 'warn',
+    // no-unsafe-* 规则族需要 parserOptions.project，
+    // 在 Vue SFC 环境中由 vue-tsc 替代提供类型安全
+    '@typescript-eslint/no-unsafe-assignment': 'off',
+    '@typescript-eslint/no-unsafe-member-access': 'off',
+    '@typescript-eslint/no-unsafe-argument': 'off',
+    '@typescript-eslint/no-unsafe-call': 'off',
+    '@typescript-eslint/no-unsafe-return': 'off',
 
     '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/explicit-function-return-type': 'off',

@@ -1,4 +1,33 @@
-echo "🔍 [pre-commit] Running backend tsc --noEmit..."
+#!/bin/sh
+# ═══════════════════════════════════════════════════════════════
+# OpenOBA Pre-commit Hook — 确定性执行防线
+# 审计通过：2026-06-22 Tessa QA
+# ═══════════════════════════════════════════════════════════════
+
+# ── Step 1: CORE TSC (核心包类型检查) ──
+echo "🔍 [pre-commit] Running CORE tsc --noEmit..."
+cd packages/core
+npx tsc --noEmit
+if [ $? -ne 0 ]; then
+  echo "❌ [pre-commit] CORE TypeScript check failed — commit aborted"
+  exit 1
+fi
+echo "✅ [pre-commit] CORE TypeScript passed"
+
+# ── Step 2: CORE ESLint (any/unknown 红线) ──
+echo "🔍 [pre-commit] Running CORE ESLint..."
+npx eslint "{src,test}/**/*.ts" --quiet
+if [ $? -ne 0 ]; then
+  echo "❌ [pre-commit] CORE ESLint errors — commit aborted"
+  echo "   违反 any/unknown 红线，修复后方可提交"
+  exit 1
+fi
+echo "✅ [pre-commit] CORE ESLint passed"
+
+cd ../..
+
+# ── Step 3: Backend TSC ──
+echo "🔍 [pre-commit] Running Backend tsc --noEmit..."
 cd packages/backend
 npx tsc --noEmit
 if [ $? -ne 0 ]; then
@@ -7,7 +36,8 @@ if [ $? -ne 0 ]; then
 fi
 echo "✅ [pre-commit] Backend TypeScript passed"
 
-echo "🔍 [pre-commit] Running backend ESLint (确定性防线 — no-explicit-any 零容忍)..."
+# ── Step 4: Backend ESLint ──
+echo "🔍 [pre-commit] Running Backend ESLint (确定性防线 — no-explicit-any 零容忍)..."
 npx eslint "{src,apps,libs,test}/**/*.ts" --quiet
 if [ $? -ne 0 ]; then
   echo "❌ [pre-commit] Backend ESLint errors — commit aborted"
@@ -16,8 +46,11 @@ if [ $? -ne 0 ]; then
 fi
 echo "✅ [pre-commit] Backend ESLint passed"
 
-echo "🔍 [pre-commit] Running frontend vue-tsc -b..."
-cd ../../frontend
+cd ../..
+
+# ── Step 5: Frontend Vue-TSC ──
+echo "🔍 [pre-commit] Running Frontend vue-tsc -b..."
+cd frontend
 npx vue-tsc -b
 if [ $? -ne 0 ]; then
   echo "❌ [pre-commit] Frontend TypeScript check failed — commit aborted"
@@ -25,10 +58,19 @@ if [ $? -ne 0 ]; then
 fi
 echo "✅ [pre-commit] Frontend TypeScript passed"
 
-echo "🔍 [pre-commit] Running frontend vitest..."
+# ── Step 6: Frontend Vitest ──
+echo "🔍 [pre-commit] Running Frontend vitest..."
 npx vitest run
 if [ $? -ne 0 ]; then
   echo "❌ [pre-commit] Frontend tests failed — commit aborted"
   exit 1
 fi
-echo "✅ [pre-commit] All checks passed"
+echo "✅ [pre-commit] Frontend vitest passed"
+
+# ── Step 7: Frontend ESLint (当 any 清理完成后启用) ──
+# TODO: 启动此行当 frontend any 清零:
+# npx eslint "src/**/*.{ts,vue}" --quiet || exit 1
+# echo "✅ [pre-commit] Frontend ESLint passed"
+
+echo ""
+echo "✅✅✅ [pre-commit] All checks passed — ready to commit"

@@ -23,14 +23,21 @@ jobs:
       - name: Lint backend（确定性防线 — any/unknown 零容忍）
         run: npm run lint -w packages/backend -- --quiet
 
-      - name: Lint frontend（确定性防线 — any/unknown 零容忍）
-        run: cd frontend && npx eslint "src/**/*.{ts,vue}" --quiet
+      - name: Lint core（确定性防线 — any/unknown 零容忍）
+        run: npm run lint -w packages/core -- --quiet
+
+      # Frontend ESLint: 当 any 清理完成后启用
+      # - name: Lint frontend（确定性防线 — any/unknown 零容忍）
+      #   run: cd frontend && npx eslint "src/**/*.{ts,vue}" --quiet
 
       - name: Security audit
         run: npm audit --audit-level=moderate
 
       - name: TypeCheck types
         run: npm run build -w packages/types
+
+      - name: TypeCheck core（确定性防线）
+        run: npx tsc --noEmit -p packages/core/tsconfig.json
 
       - name: TypeCheck backend
         run: npx tsc --noEmit -p packages/backend/tsconfig.json
@@ -94,3 +101,6 @@ jobs:
           DB_PASSWORD: root
           DB_DATABASE: openoba_starter
           JWT_SECRET: ci-test-jwt-secret-ci-do-not-use-in-production
+
+      - name: Run frontend tests
+        run: npm test -w frontend

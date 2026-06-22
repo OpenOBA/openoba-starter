@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 /**
  * Entity-Schema 同步服务 — 检测 entity 文件改动，自动生成 migration SQL
  *
@@ -21,12 +20,12 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 interface EntityColumn {
-  name: string       // @Column({ name: 'xxx' })
-  type: string       // @Column({ type: 'varchar' })
-  length?: string    // @Column({ length: 64 })
+  name: string // @Column({ name: 'xxx' })
+  type: string // @Column({ type: 'varchar' })
+  length?: string // @Column({ length: 64 })
   nullable?: boolean // @Column({ nullable: true })
-  default?: string   // @Column({ default: 'xxx' })
-  comment?: string   // @Column({ comment: 'xxx' })
+  default?: string // @Column({ default: 'xxx' })
+  comment?: string // @Column({ comment: 'xxx' })
   propertyName: string // entity 属性名
 }
 
@@ -44,9 +43,7 @@ export class EntitySyncService implements OnModuleInit {
   private readonly logger = new Logger(EntitySyncService.name)
   private projectRoot: string
 
-  constructor(
-    @Optional() @Inject(DataSource) private readonly dataSource?: DataSource,
-  ) {
+  constructor(@Optional() @Inject(DataSource) private readonly dataSource?: DataSource) {
     this.projectRoot = path.resolve(process.cwd(), '..')
   }
 
@@ -88,14 +85,15 @@ export class EntitySyncService implements OnModuleInit {
     try {
       const rows = await this.dataSource.query(`SHOW COLUMNS FROM \`${tableName}\``)
       dbColumns = rows as DbColumn[]
-    } catch (e: any) {
-      this.logger.warn(`读取表 ${tableName} 列失败: ${e.message}`)
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e.message : String(e)
+      this.logger.warn(`读取表 ${tableName} 列失败: ${err}`)
       return null
     }
 
     // 4. Diff：entity 中有但 DB 中没有的 → ADD COLUMN
-    const dbColumnNames = new Set(dbColumns.map(c => c.Field))
-    const missingColumns = entityColumns.filter(c => !dbColumnNames.has(c.name))
+    const dbColumnNames = new Set(dbColumns.map((c) => c.Field))
+    const missingColumns = entityColumns.filter((c) => !dbColumnNames.has(c.name))
 
     if (missingColumns.length === 0) {
       return null
@@ -149,7 +147,7 @@ export class EntitySyncService implements OnModuleInit {
       }
     }
 
-    const allSql = migrations.map(m => m.sql).join('\n\n')
+    const allSql = migrations.map((m) => m.sql).join('\n\n')
     return { migrations, allSql }
   }
 
@@ -208,7 +206,7 @@ export class EntitySyncService implements OnModuleInit {
 
     // 去重（按 propertyName）
     const seen = new Set<string>()
-    return columns.filter(c => {
+    return columns.filter((c) => {
       if (seen.has(c.propertyName)) return false
       seen.add(c.propertyName)
       return true
@@ -224,13 +222,13 @@ export class EntitySyncService implements OnModuleInit {
 
     // 常见映射修正
     const knownMappings: Record<string, string> = {
-      'product_spu': 'product_spu',
-      'product_sku': 'product_sku',
-      'product_set': 'product_set',
-      'product_category': 'product_category',
-      'customer': 'customer',
-      'order': 'order',
-      'inventory': 'inventory',
+      product_spu: 'product_spu',
+      product_sku: 'product_sku',
+      product_set: 'product_set',
+      product_category: 'product_category',
+      customer: 'customer',
+      order: 'order',
+      inventory: 'inventory',
     }
 
     return knownMappings[tableName] || tableName
