@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import { NestFactory } from '@nestjs/core'
 import { ValidationPipe, Logger } from '@nestjs/common'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
@@ -48,8 +47,10 @@ async function bootstrap() {
 
   // P1-4: 全局未捕获异常处理器 — 防止进程崩溃
   const errorLogger = new Logger('GlobalErrorHandler')
-  process.on('unhandledRejection', (reason: any) => {
-    errorLogger.error(`Unhandled Rejection: ${reason?.message || reason}`, reason?.stack)
+  process.on('unhandledRejection', (reason: unknown) => {
+    const msg = reason instanceof Error ? reason.message : String(reason)
+    const stack = reason instanceof Error ? reason.stack : undefined
+    errorLogger.error(`Unhandled Rejection: ${msg}`, stack)
   })
   process.on('uncaughtException', (error: Error) => {
     errorLogger.error(`Uncaught Exception: ${error.message}`, error.stack)
