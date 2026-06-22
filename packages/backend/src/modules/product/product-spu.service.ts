@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, Like, DataSource } from 'typeorm'
 import { ProductSpu } from './entity/product-spu.entity'
+import { ProductCategory } from './entity/product-category.entity'
 import { StructureStandard } from '../structure/entity/structure-standard.entity'
 import { ProductSku } from './entity/product-sku.entity'
 import { NamingEngine, SpuNameInput } from './utils/naming-engine'
@@ -53,7 +54,7 @@ export class ProductSpuService {
     if (seriesCode) rest.seriesCode = seriesCode
     // 确保 category 关系
     if (rest.categoryId) {
-      rest.category = { categoryId: rest.categoryId } as any
+      rest.category = { categoryId: rest.categoryId } as unknown as ProductCategory
       delete rest.categoryId
     }
     const spu = this.spuRepo.create(rest)
@@ -72,7 +73,7 @@ export class ProductSpuService {
     }
     if (gender) item.gender = gender
     if (categoryId !== undefined) {
-      item.category = categoryId ? ({ categoryId } as any) : null
+      item.category = categoryId ? { categoryId } as unknown as ProductCategory : undefined
     }
     if (seriesCode !== undefined) item.seriesCode = seriesCode
     if (sceneTags !== undefined) item.sceneTags = sceneTags
@@ -102,12 +103,12 @@ export class ProductSpuService {
     // V3.0: SPU编码 = 结构标准对外编码 + 序号（externalCode 已含 S 前缀）
     const prefix = `${info.externalCode}-`
     const existing = await spuEntityRepo.find({
-      where: { spuCode: Like(`${prefix}%`), isDeleted: false } as any,
+      where: { spuCode: Like(`${prefix}%`), isDeleted: false },
       order: { spuCode: 'DESC' },
     })
     let next = 1
     if (existing.length > 0) {
-      const parts = (existing[0] as any).spuCode.split('-')
+      const parts = existing[0].spuCode.split('-')
       const last = parseInt(parts[parts.length - 1], 10)
       if (!isNaN(last)) next = last + 1
     }
@@ -133,10 +134,10 @@ export class ProductSpuService {
   private async getStructureInfo(code: string): Promise<{ externalCode: string; shapeCode: string } | null> {
     if (!code) return null
     const repo = this.dataSource.getRepository(StructureStandard)
-    const found = await repo.findOne({ where: { externalCode: code } as any })
-    if (found) return { externalCode: (found as any).externalCode, shapeCode: (found as any).shapeCode }
-    const found2 = await repo.findOne({ where: { internalCode: code.toLowerCase() } as any })
-    if (found2) return { externalCode: (found2 as any).externalCode, shapeCode: (found2 as any).shapeCode }
+    const found = await repo.findOne({ where: { externalCode: code } })
+    if (found) return { externalCode: found.externalCode, shapeCode: found.shapeCode }
+    const found2 = await repo.findOne({ where: { internalCode: code.toLowerCase() } })
+    if (found2) return { externalCode: found2.externalCode, shapeCode: found2.shapeCode }
     return null
   }
 
