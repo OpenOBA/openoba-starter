@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- TODO: 需要类型化 */
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common'
 import * as crypto from 'crypto'
 import { InjectRepository } from '@nestjs/typeorm'
@@ -62,8 +61,8 @@ export class UserService {
     }
 
     const saved = await this.userRepository.save(user)
-    const result = { ...saved } as any
-    delete result.passwordHash
+    const result: Record<string, unknown> = { ...saved }
+    delete (result as unknown as Record<string, unknown>).passwordHash
 
     // 🚀 自动创建 Sub Agent（ERA-Chat 可见）
     try {
@@ -76,7 +75,7 @@ export class UserService {
         securityClearance: this.mapRoleToClearance(roleCode),
         userId: saved.userId,
       })
-    } catch (e: any) {
+    } catch (_e: unknown) { const e = _e as Error
       // Sub Agent 创建失败不阻塞用户创建
       console.warn(`⚠️ Sub Agent 创建失败: ${e.message}`)
     }
@@ -128,7 +127,7 @@ export class UserService {
         relations: ['roles'],
       })
       const roleMap = new Map(usersWithRoles.map(u => [u.userId, u.roles]))
-      list.forEach(u => { (u as any).roles = roleMap.get(u.userId) || [] })
+      list.forEach(u => { (u as unknown as { roles?: string[] }).roles = (roleMap.get(u.userId) || []) as unknown as string[] })
     }
 
     // 去除 passwordHash
@@ -186,7 +185,7 @@ export class UserService {
     // 🚀 联动 suspend 对应的 Sub Agent
     try {
       await this.agentManifestService.updateStatusByCode(`user-${id}`, 'inactive')
-    } catch (e: any) {
+    } catch (_e: unknown) { const e = _e as Error
       console.warn(`⚠️ Sub Agent 挂起失败: ${e.message}`)
     }
     return { message: '用户已删除' }
@@ -205,7 +204,7 @@ export class UserService {
     try {
       const agentStatus = user.status === 'active' ? 'active' : 'inactive'
       await this.agentManifestService.updateStatusByCode(`user-${id}`, agentStatus)
-    } catch (e: any) {
+    } catch (_e: unknown) { const e = _e as Error
       console.warn(`⚠️ Agent 状态联动失败: ${e.message}`)
     }
     return this.findOne(id)
