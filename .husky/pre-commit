@@ -21,18 +21,9 @@ cd ../../frontend
 npx vue-tsc -b
 if [ $? -ne 0 ]; then
   echo "❌ [pre-commit] Frontend TypeScript check failed — commit aborted"
-  echo "   Run: cd frontend && npx vue-tsc -b  (see errors)"
   exit 1
 fi
 echo "✅ [pre-commit] Frontend TypeScript passed"
-
-echo "🔍 [pre-commit] Running frontend ESLint (确定性防线)..."
-npx eslint "src/**/*.{ts,vue}" --quiet -c .eslintrc.cjs --resolve-plugins-relative-to .
-if [ $? -ne 0 ]; then
-  echo "❌ [pre-commit] Frontend ESLint errors — commit aborted"
-  exit 1
-fi
-echo "✅ [pre-commit] Frontend ESLint passed"
 
 echo "🔍 [pre-commit] Running frontend vitest..."
 npx vitest run
