@@ -68,20 +68,20 @@ export class OrderLifecycleService {
     const isShippedOrDelivered = oldStatus === ORDER_STATUS.shipped || oldStatus === ORDER_STATUS.delivered
 
     await this.dataSource.transaction(async (manager) => {
-      await manager.update(Order, id, { status: ORDER_STATUS.cancelled, internalRemark: null } as any)
+      await manager.update(Order, id, { status: ORDER_STATUS.cancelled, internalRemark: undefined as unknown as string } as Partial<Order>)
       await manager.insert(OrderLog, { orderId: id, action: 'cancel', oldStatus, newStatus: ORDER_STATUS.cancelled, operator: operator || 'system', remark: remark || '取消订单' })
 
       const items = await manager.find(this.itemRepo.target, { where: { orderId: id } })
       for (const item of items) {
-        if (!item.productId || (item as any).quantity <= 0) continue
+        if (!item.productId || (item as unknown as { quantity: number }).quantity <= 0) continue
         try {
           if (isShippedOrDelivered) {
             await this.inventoryService.rollbackStockInTransaction(manager, {
-              skuId: item.productId, orderId: id, quantity: (item as any).quantity,
+              skuId: item.productId, orderId: id, quantity: (item as unknown as { quantity: number }).quantity,
             })
           } else {
             await this.inventoryService.unlockInTransaction(manager, {
-              skuId: item.productId, orderId: id, quantity: (item as any).quantity,
+              skuId: item.productId, orderId: id, quantity: (item as unknown as { quantity: number }).quantity,
             })
           }
         } catch (e: unknown) {
