@@ -1,3 +1,9 @@
+import { Request } from 'express'
+
+export interface AuthenticatedRequest extends Omit<Request, 'user'> {
+  user?: { id: string; roles: string[] }
+  operator?: { id: string; roles: string[] }
+}
 import { Controller, Get, Post, Put, Delete, Body, Param, Query, Req, UseGuards } from '@nestjs/common'
 import { ApiTags, ApiOperation } from '@nestjs/swagger'
 import { InventoryService } from './inventory.service'
@@ -60,7 +66,7 @@ export class InventoryController {
   @Post()
   @ApiOperation({ summary: '创建库存记录' })
   @MCPCapable({ tool: 'inventory.create', description: '创建新SKU库存记录', category: 'inventory' })
-  async create(@Body() dto: CreateInventoryDto, @Req() req: any) {
+  async create(@Body() dto: CreateInventoryDto, @Req() req: AuthenticatedRequest) {
     return this.service.create(dto, req.user?.id)
   }
 
@@ -74,35 +80,35 @@ export class InventoryController {
   @Post('in')
   @ApiOperation({ summary: '入库' })
   @MCPCapable({ tool: 'inventory.stockIn', description: '入库操作', category: 'inventory' })
-  async stockIn(@Body() dto: StockInDto, @Req() req: any) {
+  async stockIn(@Body() dto: StockInDto, @Req() req: AuthenticatedRequest) {
     return this.service.stockIn(dto, req.user?.id)
   }
 
   @Post('out')
   @ApiOperation({ summary: '出库' })
   @MCPCapable({ tool: 'inventory.stockOut', description: '出库操作（发货/消耗）', category: 'inventory' })
-  async stockOut(@Body() dto: StockOutDto, @Req() req: any) {
+  async stockOut(@Body() dto: StockOutDto, @Req() req: AuthenticatedRequest) {
     return this.service.stockOut(dto, req.user?.id)
   }
 
   @Post('lock')
   @ApiOperation({ summary: '锁定库存（下单）' })
   @MCPCapable({ tool: 'inventory.lock', description: '下单时锁定库存', category: 'inventory' })
-  async lock(@Body() dto: LockStockDto, @Req() req: any) {
+  async lock(@Body() dto: LockStockDto, @Req() req: AuthenticatedRequest) {
     return this.service.lock(dto, req.user?.id)
   }
 
   @Post('unlock')
   @ApiOperation({ summary: '解锁库存（取消订单）' })
   @MCPCapable({ tool: 'inventory.unlock', description: '取消订单时释放库存', category: 'inventory' })
-  async unlock(@Body() dto: UnlockStockDto, @Req() req: any) {
+  async unlock(@Body() dto: UnlockStockDto, @Req() req: AuthenticatedRequest) {
     return this.service.unlock(dto, req.user?.id)
   }
 
   @Post('adjust')
   @ApiOperation({ summary: '盘点调整' })
   @MCPCapable({ tool: 'inventory.adjust', description: '盘点/手动调整库存数量', category: 'inventory' })
-  async adjust(@Body() dto: AdjustStockDto, @Req() req: any) {
+  async adjust(@Body() dto: AdjustStockDto, @Req() req: AuthenticatedRequest) {
     return this.service.adjust(dto, req.user?.id)
   }
 
