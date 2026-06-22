@@ -108,8 +108,9 @@ export class ProductSkuService {
     }
 
     return this.findOneSku(saved.skuId)
-    } catch (err: any) {
-      this.logger.error(`createSku failed: ${err?.message}`, err?.stack)
+    } catch (err: unknown) {
+      const e = err as Error
+      this.logger.error(`createSku failed: ${e?.message}`, e?.stack)
       throw err
     }
   }
@@ -127,7 +128,7 @@ export class ProductSkuService {
       rest.skuCode = await this.generateSkuCode(newSpu.spuCode)
       delete rest.skuBarcode  // 旧条码也需废弃
       item.spuId = spuId
-      item.spu = newSpu as any
+      item.spu = newSpu
     }
 
     if (colorCode) {
@@ -144,12 +145,12 @@ export class ProductSkuService {
     if (needRegen) {
       const displayName = await this.generateSkuDisplayName(mergedForName)
       if (displayName && displayName !== '??? · ???系列') {
-        ;(rest as any).skuName = displayName
+        rest.skuName = displayName
       }
     }
 
     // 构建纯列更新对象：只传需要的列，排除 skuId/createdAt/isDeleted 等
-    const updateData: Record<string, any> = { ...rest, productTier: resolvedTier }
+    const updateData: Record<string, unknown> = { ...rest, productTier: resolvedTier }
     if (spuId) updateData.spuId = spuId
     if (colorCode) updateData.colorCode = colorCode
 
@@ -249,7 +250,7 @@ export class ProductSkuService {
     return null
   }
 
-  async getEffectTags(type: 'skin_tone' | 'face_shape'): Promise<any[]> {
+  async getEffectTags(type: 'skin_tone' | 'face_shape'): Promise<DictEffectTag[]> {
     return this.effectTagRepo.find({
       where: { effectType: type, isActive: true },
       order: { sortOrder: 'ASC' },
