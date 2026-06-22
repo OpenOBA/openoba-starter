@@ -190,10 +190,10 @@ export class DictController {
   }
 
   /** 列名转换：前端标准字段 → 数据库实际列名 */
-  private translateColumns(table: string, body: Record<string, any>): Record<string, any> {
+  private translateColumns(table: string, body: Record<string, unknown>): Record<string, unknown> {
     const alias = this.writeColumnAlias[table]
     if (!alias) return body
-    const result: Record<string, any> = {}
+    const result: Record<string, unknown> = {}
     for (const [key, val] of Object.entries(body)) {
       result[alias[key] ?? key] = val
     }
@@ -278,7 +278,7 @@ export class DictController {
     }
     // 查询表的实际列名，过滤掉不存在的列
     const cols = await this.getTableColumns(tableName)
-    const validTranslated: Record<string, any> = {}
+    const validTranslated: Record<string, unknown> = {}
     for (const [key, val] of Object.entries(translated)) {
       if (cols.has(key)) {
         validTranslated[key] = val
