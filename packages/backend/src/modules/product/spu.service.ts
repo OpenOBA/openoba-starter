@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, Like, DataSource } from 'typeorm'
 import { StructureStandard } from '../structure/entity/structure-standard.entity'
 import { ProductSpu } from './entity/product-spu.entity'
+import { ProductCategory } from './entity/product-category.entity'
 import { ProductSku } from './entity/product-sku.entity'
 import { NamingEngine, SpuNameInput } from './utils/naming-engine'
 
@@ -57,7 +58,7 @@ export class SpuService {
     const entity = this.spuRepo.create({
       ...rest,
       gender: gender || 'unisex',
-      category: categoryId ? ({ categoryId } as any) : undefined,
+      category: categoryId ? { categoryId } as unknown as ProductCategory : undefined,
     })
     return this.spuRepo.save(entity)
   }
@@ -81,7 +82,7 @@ export class SpuService {
     Object.assign(item, rest)
     if (gender) item.gender = gender
     if (categoryId !== undefined) {
-      item.category = categoryId ? ({ categoryId } as any) : null
+      item.category = categoryId ? { categoryId } as unknown as ProductCategory : undefined
     }
     return this.spuRepo.save(item)
   }
@@ -129,7 +130,7 @@ export class SpuService {
     const repo = this.dataSource.getRepository(StructureStandard)
 
     const found1 = await repo.findOne({
-      where: { internalCode: internalCode.toLowerCase() as any },
+      where: { internalCode: internalCode.toLowerCase() },
     })
     if (found1) {
       return { externalCode: found1.externalCode, shapeCode: found1.shapeCode }
