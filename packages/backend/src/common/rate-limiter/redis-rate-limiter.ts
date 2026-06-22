@@ -1,15 +1,22 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 // V1.4-b #15: Redis 限流器（多实例部署）
 // 依赖 ioredis，若 REDIS_URL 未配置则回退到 MemoryRateLimiter
 
 import { IRateLimiter } from './rate-limiter.interface'
 import { Logger } from '@nestjs/common'
 
+interface IRedisClient {
+  hgetall(key: string): Promise<Record<string, string>>
+  hset(key: string, ...args: string[]): Promise<number>
+  del(key: string): Promise<number>
+  pexpireat(key: string, timestamp: number): Promise<number>
+  expire(key: string, seconds: number): Promise<number>
+}
+
 export class RedisRateLimiter implements IRateLimiter {
   private readonly logger = new Logger(RedisRateLimiter.name)
-  private redis: any // Redis instance
+  private redis: IRedisClient
 
-  constructor(redisClient: any) {
+  constructor(redisClient: IRedisClient) {
     this.redis = redisClient
   }
 

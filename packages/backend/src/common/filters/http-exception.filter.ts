@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus, Logger } from '@nestjs/common'
 import { Request, Response } from 'express'
 
@@ -26,7 +25,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     response.status(status).json({
       code: status,
-      message: typeof message === 'string' ? message : (message as any).message,
+      message: typeof message === 'string' ? message : (message as { message: string }).message,
       data: null,
       timestamp: Date.now(),
       path: request.url,
