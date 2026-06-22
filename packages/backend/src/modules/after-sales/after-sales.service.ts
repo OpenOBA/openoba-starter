@@ -1,4 +1,5 @@
-﻿import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common'
+﻿import { EntityManager } from 'typeorm'
+import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, DataSource } from 'typeorm'
 import { AfterSales } from './entity/after-sales.entity'
@@ -86,7 +87,7 @@ export class AfterSalesService {
   }
 
   // ===== 列表查询 =====
-  async findAll(page = 1, limit = 20, filters: Record<string, any> = {}) {
+  async findAll(page = 1, limit = 20, filters: Record<string, unknown> = {}) {
     const qb = this.afterSalesRepo
       .createQueryBuilder('as')
       .orderBy('as.createdAt', 'DESC')
@@ -129,7 +130,7 @@ export class AfterSalesService {
       const fromStatus = afterSales.status
       const toStatus = dto.action === 'approve' ? AFTER_SALES_STATUS.approved : AFTER_SALES_STATUS.rejected
 
-      afterSales.status = toStatus as any
+      afterSales.status = toStatus as unknown as AfterSales['status']
       if (operatorId) afterSales.reviewerId = operatorId
       afterSales.reviewNote = dto.reviewNote
       afterSales.reviewedAt = new Date()
@@ -204,7 +205,7 @@ export class AfterSalesService {
           throw new BadRequestException('未知操作：' + dto.action)
       }
 
-      afterSales.status = toStatus as any
+      afterSales.status = toStatus as unknown as AfterSales['status']
       await manager.save(AfterSales, afterSales)
       await this.addLogInTx(manager, afterSales.id, dto.action, fromStatus, toStatus, operatorId, dto.note)
 
@@ -258,7 +259,7 @@ export class AfterSalesService {
   }
 
   private async addLogInTx(
-    manager: any,
+    manager: EntityManager,
     afterSalesId: string,
     action: string,
     fromStatus: string | null,
@@ -280,7 +281,7 @@ export class AfterSalesService {
 
   // ===== 库存回滚（退货批准时） =====
   // 4R06修复：使用外部manager直接操作库存，避免嵌套事务
-  private async rollbackInventoryForReturn(afterSales: AfterSales, manager: any) {
+  private async rollbackInventoryForReturn(afterSales: AfterSales, manager: EntityManager) {
     let items = afterSales.items
     if (typeof items === 'string') {
       try { items = JSON.parse(items) } catch { items = [] }

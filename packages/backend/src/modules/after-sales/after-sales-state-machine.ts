@@ -1,3 +1,4 @@
+import { EntityManager } from 'typeorm'
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
@@ -31,7 +32,7 @@ export class AfterSalesStateMachine {
    * 审核售后单（批准/拒绝）
    */
   async review(
-    manager: any,
+    manager: EntityManager,
     id: string,
     dto: ReviewAfterSalesDto,
     operatorId?: string,
@@ -49,7 +50,7 @@ export class AfterSalesStateMachine {
     const toStatus =
       dto.action === 'approve' ? AFTER_SALES_STATUS.approved : AFTER_SALES_STATUS.rejected
 
-    afterSales.status = toStatus as any
+    afterSales.status = toStatus as unknown as AfterSales['status']
     if (operatorId) afterSales.reviewerId = operatorId
     afterSales.reviewNote = dto.reviewNote
     afterSales.reviewedAt = new Date()
@@ -77,7 +78,7 @@ export class AfterSalesStateMachine {
    * 流程处理（收货/退款/关闭/重新打开）
    */
   async process(
-    manager: any,
+    manager: EntityManager,
     id: string,
     dto: ProcessAfterSalesDto,
     operatorId?: string,
@@ -132,7 +133,7 @@ export class AfterSalesStateMachine {
         throw new BadRequestException(`未知操作：${dto.action}`)
     }
 
-    afterSales.status = toStatus as any
+    afterSales.status = toStatus as unknown as AfterSales['status']
     await manager.save(AfterSales, afterSales)
     await this.addLogInTx(manager, afterSales.id, dto.action, fromStatus, toStatus, operatorId, dto.note)
 
@@ -166,7 +167,7 @@ export class AfterSalesStateMachine {
    * 库存回滚（退货批准时，在外部事务 manager 中操作）
    * 4R06修复：使用外部manager直接操作库存，避免嵌套事务
    */
-  private async rollbackInventoryForReturn(afterSales: AfterSales, manager: any) {
+  private async rollbackInventoryForReturn(afterSales: AfterSales, manager: EntityManager) {
     let items = afterSales.items
     if (typeof items === 'string') {
       try {
@@ -221,7 +222,7 @@ export class AfterSalesStateMachine {
    * 事务内写日志
    */
   async addLogInTx(
-    manager: any,
+    manager: EntityManager,
     afterSalesId: string,
     action: string,
     fromStatus: string | null,
