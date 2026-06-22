@@ -105,20 +105,20 @@ export class EntityProxyService {
     const dbToSemantic = new Map<string, string>()
 
     for (const [fieldName, raw] of Object.entries(entity.properties)) {
-      const prop = typeof raw === 'string' ? { type: raw } : (raw as Record<string, unknown>)
-      const dbColumn = prop.dbColumn || fieldName
+      const prop = typeof raw === 'string' ? { type: raw } : (raw as Record<string, string | boolean | number | string[] | undefined>)
+      const dbColumn = (prop.dbColumn as string) || fieldName
 
       // 安全校验：物理列名必须符合标识符规范
       this.validateSqlIdentifier(dbColumn)
 
       const def: FieldDefinition = {
         fieldName,
-        dbColumn,
-        type: prop.type || 'String',
+        dbColumn: dbColumn as string,
+        type: (prop.type as string) || 'String',
         required: !!prop.required,
         isEnum: !!prop.enum,
-        enumValues: Array.isArray(prop.enum) ? prop.enum : [],
-        maxLength: prop.maxLength,
+        enumValues: Array.isArray(prop.enum) ? (prop.enum as string[]) : [],
+        maxLength: prop.maxLength as number | undefined,
         isJSON: prop.type === 'JSON' || prop.type === 'json',
       }
       fields.set(fieldName, def)

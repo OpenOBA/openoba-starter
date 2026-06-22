@@ -42,7 +42,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '用户登录' })
   async login(@Body() loginDto: LoginDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const ip = req.ip || req.connection?.remoteAddress || 'unknown'
+    const rawReq = req as unknown as Record<string, unknown>
+    const ip = (rawReq.ip as string) || ((rawReq.connection as Record<string, unknown>)?.remoteAddress as string) || 'unknown'
     const key = `${ip}:${loginDto.username}`
 
     // V1.4-b #15: RateLimiter 替代 Map

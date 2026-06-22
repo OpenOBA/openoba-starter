@@ -26,7 +26,7 @@ import { TIMEOUT } from '../../../common/constants/timeouts'
 import * as crypto from 'crypto'
 import * as fs from 'fs'
 import * as path from 'path'
-import { EntityDataBridge } from '../../erdl/core/entity-data-bridge'
+import { EntityDataBridge, IEntityDataRegistry } from '../../erdl/core/entity-data-bridge'
 
 type DbRow = Record<string, string>
 
@@ -696,7 +696,7 @@ export class AgentToolImplementations {
     // 对象数组 → 用 DataBridge 导出
     if (data.length > 0 && typeof data[0] === 'object' && !Array.isArray(data[0])) {
       try {
-        const bridge = new EntityDataBridge('StructureStandard', 'industry.eyewear', this.registry)
+        const bridge = new EntityDataBridge('StructureStandard', 'industry.eyewear', this.registry as unknown as IEntityDataRegistry)
         const content = bridge.export(data as Record<string, unknown>[], format as "csv" | "markdown" | "json")
         const ext = format === 'markdown' ? 'md' : format
         const fp = path.join(dir, `${fname}.${ext}`)
@@ -857,7 +857,7 @@ export class AgentToolImplementations {
 
   async executeImportExecute(entityName: string, data: Record<string, unknown>[]): Promise<string> {
     try {
-      const bridge = new EntityDataBridge(entityName, 'industry.eyewear', this.registry)
+      const bridge = new EntityDataBridge(entityName, 'industry.eyewear', this.registry as unknown as IEntityDataRegistry)
       // Auto-map columns
       const columns = data.length > 0 ? Object.keys(data[0]) : []
       const mapping = bridge.mapColumns(columns)
@@ -872,7 +872,7 @@ export class AgentToolImplementations {
       // Validate
       const validation = bridge.validate(normalized.entities)
       if (validation.errors.length > 0 && validation.valid.length === 0) {
-        return `❌ 数据验证失败 (${validation.errors.length} 条错误):\n` + validation.errors.slice(0, 5).map((e: { row?: number; errors?: string[] }) => `  · 行${e.row}: ${(e.errors || []).join('; ')}`).join('\n')
+        return `❌ 数据验证失败 (${validation.errors.length} 条错误):\n` + validation.errors.slice(0, 5).map((e: string) => `  · ${e}`).join('\n')
       }
       let created = 0
       const failures: string[] = []

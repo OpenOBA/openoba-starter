@@ -10,6 +10,7 @@ import { Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards } fro
 import { ApiTags, ApiOperation } from '@nestjs/swagger'
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard'
 import { KnowledgeService } from './knowledge.service'
+import type { KnowledgeVisibility, KnowledgeType } from './knowledge-entry.entity'
 import { HotwordService, HotwordEntry } from './hotword.service'
 
 export { HotwordEntry }
@@ -44,7 +45,11 @@ export class KnowledgeController {
     content: string
     contributor?: string
   }) {
-    return this.service.create(undefined
+    return this.service.create({
+      ...body,
+      visibility: body.visibility as KnowledgeVisibility | undefined,
+      type: body.type as KnowledgeType | undefined,
+    })
   }
 
   @Get()

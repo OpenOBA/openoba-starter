@@ -76,7 +76,7 @@ export class ErdlAuditScanner {
         const dtoConstraint = dtoMatch ? this.describeDtoConstraint(dtoMatch) : undefined
 
         // 3. 确定审计状态
-        const status = this.determineStatus(rule, field, operator, value, dtoMatch)
+        const status = this.determineStatus(rule, field, operator, value, dtoMatch as unknown as Record<string, unknown> | undefined)
         const erdlDetail = `ERDL: ${field} ${operator} ${value || ''}`
 
         entries.push({
@@ -219,7 +219,7 @@ export class ErdlAuditScanner {
     if (!dtoField) return 'CODE_MISSING'
 
     // ERDL gte 1  vs DTO Min(0) → 一致
-    if (operator === 'gte' && dtoField.min !== undefined) {
+    if (operator === 'gte' && dtoField.min !== undefined && typeof dtoField.min === 'number') {
       const erdlMin = parseFloat(value || '')
       if (!isNaN(erdlMin) && dtoField.min === erdlMin) return 'OK'
       if (!isNaN(erdlMin) && dtoField.min > erdlMin) return 'CODE_STRICTER'

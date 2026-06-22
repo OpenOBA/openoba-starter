@@ -53,7 +53,8 @@ export function cleanInput(text: string): string {
 
 /** 从 Request 提取用户 ID */
 export function getUserId(req: Request): string {
-  return undefined?.id || (req as unknown as { user?: { id?: string; sub?: string } }).user?.sub || 'anonymous'
+  const userInfo = req as unknown as { user?: { id?: string; sub?: string } }
+  return userInfo.user?.id || userInfo.user?.sub || 'anonymous'
 }
 
 /** 分类 LLM/运行时错误，返回用户友好消息 */

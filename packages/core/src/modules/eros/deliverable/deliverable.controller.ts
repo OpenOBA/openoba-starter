@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger'
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard'
 import { Roles } from '../../../common/decorators/roles.decorator'
 import { DeliverableService, CreateDeliverableOptions } from './deliverable.service'
+import type { DeliverableStatus } from './deliverable-manifest.entity'
 
 @ApiTags('ERA · 交付物管理')
 @UseGuards(JwtAuthGuard)
@@ -50,7 +51,7 @@ export class DeliverableController {
     @Param('id') id: string,
     @Body() body: { status: string; approvedBy?: string },
   ) {
-    return this.service.updateStatus(id, undefined, body.approvedBy)
+    return this.service.updateStatus(id, body.status as DeliverableStatus, body.approvedBy)
   }
 
   @Delete(':id')

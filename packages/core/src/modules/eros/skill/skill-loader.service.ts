@@ -189,7 +189,7 @@ export class SkillLoader implements OnModuleInit {
     if (content.charCodeAt(0) === 0xFEFF) content = content.slice(1)
     const lines = content.split('\n')
     const parsed = this.parseYamlBlock(lines, 0, 0)
-    return parsed.value as SkillYaml
+    return parsed.value as unknown as SkillYaml
   }
 
   private parseYamlBlock(

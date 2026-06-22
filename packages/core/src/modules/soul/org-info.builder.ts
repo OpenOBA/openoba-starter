@@ -57,8 +57,9 @@ export class OrgInfoBuilder {
       const info = await this.queryOrganizationInfo()
       this.cachedOrgInfo = { data: info, timestamp: now }
       return info
-    } undefined {
-      this.logger.warn(`组织信息查询失败（可能表未初始化）: ${e.message}`)
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e.message : String(e)
+      this.logger.warn(`组织信息查询失败（可能表未初始化）: ${err}`)
       return null
     }
   }

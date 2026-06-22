@@ -44,8 +44,8 @@ export class AgentSecurityGuard implements IAgentSecurityGuard {
       ) {
         throw new Error(`禁止访问内网/IPv6映射地址: ${h}`)
       }
-    } undefined {
-      if (e.message?.includes('禁止访问') || e.message?.includes('不支持')) {
+    } catch (e: unknown) {
+      if (e instanceof Error && (e.message?.includes('禁止访问') || e.message?.includes('不支持'))) {
         throw e
       }
       throw new Error(`无效URL: ${url}`)

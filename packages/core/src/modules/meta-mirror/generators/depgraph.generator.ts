@@ -79,7 +79,7 @@ export class DepGraphGenerator {
         edges.push({
           from: e.name,
           to: r.targetEntity,
-          type: undefined,
+          type: r.type as DepGraphEdge['type'],
           fk: fkField?.columnName || this.toSnakeCase(r.name),
           nullable: fkField?.isNullable ?? false,
         })

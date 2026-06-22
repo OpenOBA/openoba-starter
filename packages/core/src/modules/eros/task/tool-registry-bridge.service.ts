@@ -32,13 +32,14 @@ export class ToolRegistryBridge {
       // 将我们的 JSONSchemaProperty → OpenAI parameters.properties
       const props = def.inputSchema.properties
       for (const key of Object.keys(props)) {
-        const p = (props as Record<string, unknown>)[key]
+        const p = (props as unknown as Record<string, Record<string, unknown>>)[key]
+        if (!p) continue
         properties[key] = {
           type: p.type,
           description: p.description,
         }
         if (p.enum) {
-          properties[key].enum = p.enum
+          (properties[key] as Record<string, unknown>).enum = p.enum
         }
       }
 

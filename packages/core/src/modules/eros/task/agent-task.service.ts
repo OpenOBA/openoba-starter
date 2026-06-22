@@ -670,7 +670,7 @@ export class AgentTaskService {
 
     try {
       const staleTasks = await this.taskRepo.find({
-        where: { status: 'executing' as AgentTaskStatus, updatedAt: LessThan(staleTime) as unknown as ReturnType<typeof LessThan> },
+        where: { status: 'executing' as AgentTaskStatus, updatedAt: LessThan(staleTime) as ReturnType<typeof LessThan<Date>> },
       })
 
       for (const task of staleTasks) {

@@ -56,7 +56,7 @@ export class VersionController {
    *   "minVersion": "1.0.0"
    * }
    */
-  private fetchFromOfficial(current: string): undefined {
+  private fetchFromOfficial(current: string): Promise<Record<string, unknown> | null> {
     return new Promise((resolve, reject) => {
       const url = `https://openoba.com/api/v1/update?current=${encodeURIComponent(current)}&product=core`
       const req = httpsRequest(url, {
@@ -89,7 +89,7 @@ export class VersionController {
   /**
    * 通道 2：GitHub Releases API（降级）
    */
-  private fetchFromGitHub(current: string): Promise<Record<string, unknown>> {
+  private fetchFromGitHub(current: string): Promise<Record<string, unknown> | null> {
     return new Promise((resolve, reject) => {
       const url = 'https://api.github.com/repos/openoba/core/releases/latest'
       const req = httpsRequest(url, {

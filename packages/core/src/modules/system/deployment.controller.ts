@@ -10,6 +10,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { Roles } from '../../common/decorators/roles.decorator'
 import { ApiOperation } from '@nestjs/swagger'
 import { DeploymentService } from './deployment.service'
+import type { DeltaStatus } from './delta-state-machine'
 import { EntitySyncService } from './entity-sync.service'
 
 const ENGINE_CORE_PATHS = [
@@ -141,7 +142,7 @@ export class DeploymentController {
   @Roles('super_admin', 'admin')
   @ApiOperation({ summary: '变更 Delta 状态（校验状态机转换合法性）' })
   transitionDelta(@Param('id') id: string, @Body() body: { status: string; feedback?: string }) {
-    return this.deployment.transitionDelta(id, body.status as unknown as string, { feedback: body.feedback })
+    return this.deployment.transitionDelta(id, body.status as DeltaStatus, { feedback: body.feedback })
   }
 
   @Post('sync')
@@ -174,8 +175,9 @@ export class DeploymentController {
     try {
       await this.deployment.executeRawMigration(body.sql)
       return { success: true, message: 'Migration 执行成功' }
-    } catch (_e: unknown) { const e = _e as Error {
-      return { success: false, message: e.message || 'Migration 执行失败' }
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e.message : String(e)
+      return { success: false, message: err || 'Migration 执行失败' }
     }
   }
 

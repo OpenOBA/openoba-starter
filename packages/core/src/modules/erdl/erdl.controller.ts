@@ -87,8 +87,7 @@ export class ERDLController {
   @Get('stats')
   getStats() {
     const stats = this.registry.getStats()
-    const files = undefined ? undefined : []
-    return { ...stats, files: files.length }
+    return { ...stats, files: 0 }
   }
 
   /**

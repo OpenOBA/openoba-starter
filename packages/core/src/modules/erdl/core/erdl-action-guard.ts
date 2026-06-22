@@ -95,11 +95,11 @@ export class ERDLActionGuard {
         let args: Record<string, unknown> = {}
         try { args = JSON.parse(tc.function.arguments || '{}') } catch { /* keep empty, JSON 解析失败时使用空对象 */ }
         actions.push({
-          name: tc.function.name,
+          name: tc.function.name || '',
           args,
           source: 'fc',
           rawToolCallId: tc.id,
-          description: this.getActionDescription(tc.function.name, args),
+          description: this.getActionDescription(tc.function.name || '', args),
         })
       }
     }

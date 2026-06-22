@@ -87,8 +87,9 @@ export class EntitySyncService implements OnModuleInit {
     try {
       const rows = await this.dataSource.query(`SHOW COLUMNS FROM \`${tableName}\``)
       dbColumns = rows as DbColumn[]
-    } undefined {
-      this.logger.warn(`读取表 ${tableName} 列失败: ${e.message}`)
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e.message : String(e)
+      this.logger.warn(`读取表 ${tableName} 列失败: ${err}`)
       return null
     }
 

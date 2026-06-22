@@ -65,7 +65,7 @@ export function maskValue(value: string, rule: MaskRule): string {
   let result = value
   // 重置 lastIndex（因为正则使用了 g 标志）
   config.pattern.lastIndex = 0
-  result = result.replace(config.pattern, undefined)
+  result = result.replace(config.pattern, config.mask)
   return result
 }
 

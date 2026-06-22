@@ -86,9 +86,10 @@ export class MigrationRunner {
 
       await queryRunner.commitTransaction()
       this.logger.log(`✅ 数据库迁移完成 (${env})`)
-    } undefined {
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e.message : String(e)
       await queryRunner.rollbackTransaction()
-      this.logger.error(`数据库迁移失败，已回滚: ${e.message}`)
+      this.logger.error(`数据库迁移失败，已回滚: ${err}`)
       throw e
     } finally {
       await queryRunner.release()

@@ -4,11 +4,19 @@
 import { RateLimiter } from './rate-limiter.interface'
 import { Logger } from '@nestjs/common'
 
+interface IRedisClient {
+  hgetall(key: string): Promise<Record<string, string>>
+  hset(key: string, ...args: string[]): Promise<number>
+  del(key: string): Promise<number>
+  pexpireat(key: string, timestamp: number): Promise<number>
+  expire(key: string, seconds: number): Promise<number>
+}
+
 export class RedisRateLimiter implements RateLimiter {
   private readonly logger = new Logger(RedisRateLimiter.name)
-  private redis: Record<string, unknown> // Redis instance (ioredis type not installed)
+  private redis: IRedisClient
 
-  constructor(redisClient: Record<string, unknown>) {
+  constructor(redisClient: IRedisClient) {
     this.redis = redisClient
   }
 

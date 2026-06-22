@@ -13,6 +13,7 @@ import { RuleScanner } from './scanners/rule.scanner'
 import { KnowledgeWriter } from './generators/knowledge-writer.generator'
 import { DepGraphGenerator } from './generators/depgraph.generator'
 import { ErdlAuditScanner } from './scanners/erdl-audit.scanner'
+import type { EnhancedRuleInfo } from './scanners/rule.scanner'
 import { ContextInjector } from './generators/context-injector.generator'
 import { ManifestService } from './manifest'
 import type { ConventionInfo, MirrorRefs, InjectedContext } from './types'
@@ -102,7 +103,7 @@ export class MetaMirrorService implements OnModuleInit {
     // DTO 扫描器通过 EntityScanner 间接获取
     const dtoScanner = new (require('./scanners/dto.scanner').DtoScanner)()
     const dtos = dtoScanner.scan(path.join(this.projectRoot, 'backend', 'src'))
-    const auditReport = this.erdlAudit.audit(enhancedRules as unknown as Array<Record<string, unknown>>, dtos, entities)
+    const auditReport = this.erdlAudit.audit(enhancedRules as unknown as EnhancedRuleInfo[], dtos, entities)
     this.erdlAudit.writeReport(auditReport, outputDir)
 
     this.logger.log(`  ✅ 元镜知识图谱已更新 · ${new Date().toISOString()}`)

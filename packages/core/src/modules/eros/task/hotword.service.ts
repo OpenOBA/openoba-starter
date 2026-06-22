@@ -162,11 +162,11 @@ export class HotwordService implements OnModuleInit {
 
       const wordMap = new Map<string, { count: number; source: string; mappedTo?: string }>()
       for (const log of logs) {
-        const content = undefined
+        const content = log.content as Record<string, unknown>
         if (!content?.word) continue
-        const entry = wordMap.get(content.word) || { count: 0, source: content.source || '', mappedTo: content.mappedTo }
+        const entry = wordMap.get(content.word as string) || { count: 0, source: (content.source as string) || '', mappedTo: content.mappedTo as string | undefined }
         entry.count++
-        wordMap.set(content.word, entry)
+        wordMap.set(content.word as string, entry)
       }
 
       return [...wordMap.entries()]

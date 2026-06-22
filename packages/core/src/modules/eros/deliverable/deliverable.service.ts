@@ -164,7 +164,7 @@ export class DeliverableService {
   async updateStatus(id: string, status: DeliverableStatus, approvedBy?: string) {
     const update: Partial<DeliverableManifest> = { status }
     if (approvedBy) update.approvedBy = approvedBy
-    await this.repo.update(id, update)
+    await this.repo.update(id, update as Record<string, unknown>)
     return this.repo.findOneBy({ id })
   }
 
