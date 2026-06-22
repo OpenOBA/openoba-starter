@@ -33,14 +33,24 @@ export class InventoryController {
 
   @Get()
   @ApiOperation({ summary: '库存列表' })
-  @MCPCapable({ tool: 'inventory.list', description: '查询库存列表（支持分页+筛选）', category: 'inventory', readOnly: true })
+  @MCPCapable({
+    tool: 'inventory.list',
+    description: '查询库存列表（支持分页+筛选）',
+    category: 'inventory',
+    readOnly: true,
+  })
   async findAll(@Query() dto: QueryInventoryDto) {
     return this.service.findAll(dto)
   }
 
   @Get('sku/:sku-id')
   @ApiOperation({ summary: 'SKU 库存详情' })
-  @MCPCapable({ tool: 'inventory.bySku', description: '按SKU查询库存详情（当前/锁定/可用数量）', category: 'inventory', readOnly: true })
+  @MCPCapable({
+    tool: 'inventory.bySku',
+    description: '按SKU查询库存详情（当前/锁定/可用数量）',
+    category: 'inventory',
+    readOnly: true,
+  })
   async findBySku(@Param('sku-id') skuId: string) {
     return this.service.findBySku(skuId)
   }
@@ -56,7 +66,12 @@ export class InventoryController {
 
   @Get('transactions')
   @ApiOperation({ summary: '库存流水列表' })
-  @MCPCapable({ tool: 'inventory.transactions', description: '查询库存流水记录', category: 'inventory', readOnly: true })
+  @MCPCapable({
+    tool: 'inventory.transactions',
+    description: '查询库存流水记录',
+    category: 'inventory',
+    readOnly: true,
+  })
   async findTransactions(@Query() dto: QueryTransactionDto) {
     return this.service.findTransactions(dto)
   }
@@ -114,7 +129,11 @@ export class InventoryController {
 
   @Delete('transactions/clean')
   @ApiOperation({ summary: '清理过期流水' })
-  @MCPCapable({ tool: 'inventory.cleanTransactions', description: '清理旧库存流水（默认90天前）', category: 'inventory' })
+  @MCPCapable({
+    tool: 'inventory.cleanTransactions',
+    description: '清理旧库存流水（默认90天前）',
+    category: 'inventory',
+  })
   async cleanOld(@Query('days') days?: string) {
     return this.service.cleanOldTransactions(days ? parseInt(days) : 90)
   }

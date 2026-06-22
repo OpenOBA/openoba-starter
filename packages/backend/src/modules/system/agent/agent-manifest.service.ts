@@ -143,7 +143,10 @@ export class AgentManifestService {
   }
 
   /** 更新 Agent 行为统计 */
-  async incrementStats(agentCode: string, field: 'totalActions' | 'sensitiveAccesses' | 'externalCalls'): Promise<void> {
+  async incrementStats(
+    agentCode: string,
+    field: 'totalActions' | 'sensitiveAccesses' | 'externalCalls',
+  ): Promise<void> {
     const agent = await this.agentRepo.findOne({ where: { agentCode } })
     if (!agent) return
 

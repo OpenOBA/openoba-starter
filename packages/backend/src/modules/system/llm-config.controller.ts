@@ -6,10 +6,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { RolesGuard } from '../../common/guards/roles.guard'
 import { Roles } from '../../common/decorators/roles.decorator'
 import { ModelRegistryService } from '@openoba/core/dist/modules/system/model-registry.service'
-import {
-  BUILTIN_LLM_PROVIDERS,
-  getAvailableProviders,
-} from '@openoba/core/dist/modules/erdl/llm/erdl-llm-providers'
+import { BUILTIN_LLM_PROVIDERS, getAvailableProviders } from '@openoba/core/dist/modules/erdl/llm/erdl-llm-providers'
 import { validateFetchUrl } from '@openoba/core/dist/common/utils/url-validator'
 import { RateLimiter } from '@openoba/core/dist/common/rate-limiter'
 import { TIMEOUT } from '@openoba/core/dist/common/constants/timeouts'
@@ -127,7 +124,11 @@ export class LlmConfigController {
           try {
             const kd = await this.modelRegistry.getKeyWithDecrypted(body.customProviderCode)
             if (kd) {
-              const models = await (this.modelRegistry as unknown as { registryRepo?: { find: (q: Record<string, unknown>) => Promise<Array<Record<string, unknown>>> } }).registryRepo?.find({
+              const models = await (
+                this.modelRegistry as unknown as {
+                  registryRepo?: { find: (q: Record<string, unknown>) => Promise<Array<Record<string, unknown>>> }
+                }
+              ).registryRepo?.find({
                 where: { providerCode: body.customProviderCode, modelCode: body.modelCode },
               })
               if (models && models.length > 0) {
@@ -135,7 +136,9 @@ export class LlmConfigController {
                 await this.modelRegistry.setDefaultModel(kd.key.id, firstModel.id as string)
               }
             }
-          } catch { /* model linking best-effort */ }
+          } catch {
+            /* model linking best-effort */
+          }
         }
         return { success: true, provider: body.customProviderCode, custom: true }
       } catch (e: unknown) {
@@ -175,7 +178,9 @@ export class LlmConfigController {
             this.logger.log(`Default model sync: ${provider}/${body.modelCode}`)
           }
         }
-      } catch { /* no-op */ }
+      } catch {
+        /* no-op */
+      }
     }
 
     this.logger.log(`LLM config saved: provider=${provider}`)
@@ -211,7 +216,7 @@ export class LlmConfigController {
       })
       return {
         success: result.ok,
-        message: result.ok ? '连接成功' : (result.error || '连接失败'),
+        message: result.ok ? '连接成功' : result.error || '连接失败',
         latencyMs: result.latencyMs,
       }
     } catch {

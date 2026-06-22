@@ -97,7 +97,7 @@ export class SmsService {
       throw new BadRequestException('短信发送失败，请稍后再试')
     }
 
-    this.logger.log(`验证码已发送 → ${phone.substring(0,3)}****${phone.substring(7)} (${purpose})`)
+    this.logger.log(`验证码已发送 → ${phone.substring(0, 3)}****${phone.substring(7)} (${purpose})`)
     return { message: '验证码已发送', expiresAt: record.expiresAt }
   }
 
@@ -143,7 +143,7 @@ export class SmsService {
     record.used = true
     await this.smsRepo.save(record)
 
-    this.logger.log(`验证码验证成功 → ${phone.substring(0,3)}****${phone.substring(7)} (${purpose})`)
+    this.logger.log(`验证码验证成功 → ${phone.substring(0, 3)}****${phone.substring(7)} (${purpose})`)
     return true
   }
 

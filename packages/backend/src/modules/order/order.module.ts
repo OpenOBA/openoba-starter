@@ -25,8 +25,17 @@ import { registerOrderTools } from '../tool-registry/tools/order.tools'
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      Order, OrderItem, OrderAddress, OrderPayment, OrderShipment, OrderLog,
-      CustomerLens, CustomerConsumptionProfile, Customer, MemberLevelLog, MemberLevel,
+      Order,
+      OrderItem,
+      OrderAddress,
+      OrderPayment,
+      OrderShipment,
+      OrderLog,
+      CustomerLens,
+      CustomerConsumptionProfile,
+      Customer,
+      MemberLevelLog,
+      MemberLevel,
     ]),
     InventoryModule,
     CustomerModule,

@@ -11,7 +11,9 @@ export class WizardController {
 
   @Get('status')
   @ApiOperation({ summary: '检测系统初始化状态' })
-  async getStatus() { return this.wizard.checkStatus() }
+  async getStatus() {
+    return this.wizard.checkStatus()
+  }
 
   @Post('test-db')
   @ApiOperation({ summary: '测试数据库连接' })
@@ -23,7 +25,10 @@ export class WizardController {
   /** 步骤2：建库建表 */
   @Post('create-tables')
   @ApiOperation({ summary: '建库建表 — 步骤2' })
-  async createTables(@Req() req: Request, @Body() body: { host: string; port: number; username: string; password: string; database?: string }) {
+  async createTables(
+    @Req() req: Request,
+    @Body() body: { host: string; port: number; username: string; password: string; database?: string },
+  ) {
     this.verifyNotInitialized()
     return this.wizard.createTables(body)
   }
@@ -31,7 +36,10 @@ export class WizardController {
   /** 步骤3：种子数据 */
   @Post('seed-db')
   @ApiOperation({ summary: '导入种子数据 — 步骤3' })
-  async seedDb(@Req() req: Request, @Body() body: { host: string; port: number; username: string; password: string; database?: string }) {
+  async seedDb(
+    @Req() req: Request,
+    @Body() body: { host: string; port: number; username: string; password: string; database?: string },
+  ) {
     this.verifyNotInitialized()
     return this.wizard.seedDb(body)
   }

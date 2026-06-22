@@ -12,12 +12,27 @@ describe('UserService', () => {
     const m = await Test.createTestingModule({
       providers: [
         UserService,
-        { provide: getRepositoryToken(User), useValue: { findOne: jest.fn().mockResolvedValue(null), find: jest.fn().mockResolvedValue([]), save: jest.fn((e:any)=>Promise.resolve(e)), create: jest.fn((d:any)=>d), delete: jest.fn().mockResolvedValue({affected:1}), count: jest.fn().mockResolvedValue(0) } },
-        { provide: getRepositoryToken(Role), useValue: { findOne: jest.fn().mockResolvedValue(null), find: jest.fn().mockResolvedValue([]) } },
+        {
+          provide: getRepositoryToken(User),
+          useValue: {
+            findOne: jest.fn().mockResolvedValue(null),
+            find: jest.fn().mockResolvedValue([]),
+            save: jest.fn((e: any) => Promise.resolve(e)),
+            create: jest.fn((d: any) => d),
+            delete: jest.fn().mockResolvedValue({ affected: 1 }),
+            count: jest.fn().mockResolvedValue(0),
+          },
+        },
+        {
+          provide: getRepositoryToken(Role),
+          useValue: { findOne: jest.fn().mockResolvedValue(null), find: jest.fn().mockResolvedValue([]) },
+        },
         { provide: AgentManifestService, useValue: {} },
       ],
     }).compile()
     service = m.get<UserService>(UserService)
   })
-  it('should be defined', () => { expect(service).toBeDefined() })
+  it('should be defined', () => {
+    expect(service).toBeDefined()
+  })
 })

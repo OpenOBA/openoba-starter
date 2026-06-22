@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
@@ -10,19 +9,13 @@ import { generateCategoryCode } from '../product/utils/category-code.generator'
 export class CategoryService {
   private readonly logger = new Logger(CategoryService.name)
 
-  constructor(
-    @InjectRepository(Category) private repo: Repository<Category>,
-  ) {}
+  constructor(@InjectRepository(Category) private repo: Repository<Category>) {}
 
   // ===== 查询 =====
 
   /** 获取全部分类（按排序） */
   async findAll(): Promise<Category[]> {
-    return this.repo
-      .createQueryBuilder('c')
-      .orderBy('c.sort_order', 'ASC')
-      .addOrderBy('c.createdAt', 'DESC')
-      .getMany()
+    return this.repo.createQueryBuilder('c').orderBy('c.sort_order', 'ASC').addOrderBy('c.createdAt', 'DESC').getMany()
   }
 
   /** 树形结构查询 */
@@ -111,12 +104,12 @@ export class CategoryService {
     const roots: (Category & { children?: Category[] })[] = []
 
     // 初始化
-    items.forEach(item => {
+    items.forEach((item) => {
       map.set(item.categoryId, { ...item, children: [] })
     })
 
     // 构建父子关系
-    items.forEach(item => {
+    items.forEach((item) => {
       const node = map.get(item.categoryId)!
       if (item.parentId && map.has(item.parentId)) {
         const parent = map.get(item.parentId)!

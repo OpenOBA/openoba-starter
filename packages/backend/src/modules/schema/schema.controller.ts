@@ -16,7 +16,13 @@ export class SchemaController {
 
   /** 获取当前行业的完整 Schema */
   @Get()
-  @MCPCapable({ tool: 'schema.get', description: '获取行业完整 Schema 配置', category: 'schema', readOnly: true, industryScoped: true })
+  @MCPCapable({
+    tool: 'schema.get',
+    description: '获取行业完整 Schema 配置',
+    category: 'schema',
+    readOnly: true,
+    industryScoped: true,
+  })
   getSchema(@Query('industry') industry?: string) {
     return this.schemaResolver.getSchema(industry)
   }
@@ -30,28 +36,52 @@ export class SchemaController {
 
   /** 获取 SPU 属性列表（前端动态表单用） */
   @Get('spu-attributes')
-  @MCPCapable({ tool: 'schema.spuAttributes', description: '获取 SPU 属性列表', category: 'schema', readOnly: true, industryScoped: true })
+  @MCPCapable({
+    tool: 'schema.spuAttributes',
+    description: '获取 SPU 属性列表',
+    category: 'schema',
+    readOnly: true,
+    industryScoped: true,
+  })
   getSpuAttributes(@Query('industry') industry?: string) {
     return this.schemaResolver.getSpuAttributes(industry)
   }
 
   /** 获取 SKU 属性列表（前端动态表单用） */
   @Get('sku-attributes')
-  @MCPCapable({ tool: 'schema.skuAttributes', description: '获取 SKU 属性列表', category: 'schema', readOnly: true, industryScoped: true })
+  @MCPCapable({
+    tool: 'schema.skuAttributes',
+    description: '获取 SKU 属性列表',
+    category: 'schema',
+    readOnly: true,
+    industryScoped: true,
+  })
   getSkuAttributes(@Query('industry') industry?: string) {
     return this.schemaResolver.getSkuAttributes(industry)
   }
 
   /** 获取效果词库 */
   @Get('effect-thesaurus')
-  @MCPCapable({ tool: 'schema.effectThesaurus', description: '获取效果词库', category: 'schema', readOnly: true, industryScoped: true })
+  @MCPCapable({
+    tool: 'schema.effectThesaurus',
+    description: '获取效果词库',
+    category: 'schema',
+    readOnly: true,
+    industryScoped: true,
+  })
   getEffectThesaurus(@Query('industry') industry?: string) {
     return this.schemaResolver.getEffectThesaurus(industry)
   }
 
   /** 获取定价规则 */
   @Get('pricing-rules')
-  @MCPCapable({ tool: 'schema.pricingRules', description: '获取定价规则', category: 'schema', readOnly: true, industryScoped: true })
+  @MCPCapable({
+    tool: 'schema.pricingRules',
+    description: '获取定价规则',
+    category: 'schema',
+    readOnly: true,
+    industryScoped: true,
+  })
   getPricingRules(@Query('industry') industry?: string) {
     return this.schemaResolver.getPricingRules(industry)
   }

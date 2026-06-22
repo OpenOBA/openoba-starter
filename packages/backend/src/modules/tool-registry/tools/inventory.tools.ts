@@ -7,10 +7,7 @@ import { ToolRegistry } from '@openoba/core/dist/modules/tool-registry/tool-regi
 import { InventoryService } from '../../inventory/inventory.service'
 import type { ToolResult } from '@openoba/core/dist/modules/tool-registry/types/tool.interface'
 
-export function registerInventoryTools(
-  registry: ToolRegistry,
-  inventoryService: InventoryService,
-): void {
+export function registerInventoryTools(registry: ToolRegistry, inventoryService: InventoryService): void {
   registry.register(
     {
       name: 'inventory.check',
@@ -52,7 +49,11 @@ export function registerInventoryTools(
         properties: {
           skuId: { type: 'string', description: 'SKU ID' },
           quantity: { type: 'number', description: 'Quantity to lock' },
-          referenceType: { type: 'string', description: 'Business reference type', enum: ['order', 'manual', 'transfer'] },
+          referenceType: {
+            type: 'string',
+            description: 'Business reference type',
+            enum: ['order', 'manual', 'transfer'],
+          },
           referenceId: { type: 'string', description: 'Business reference ID' },
         },
         required: ['skuId', 'quantity', 'referenceId'],
@@ -61,7 +62,11 @@ export function registerInventoryTools(
     },
     async (args: Record<string, unknown>): Promise<ToolResult> => {
       const result = await inventoryService.lock(
-        { skuId: args.skuId as string, quantity: args.quantity as number, orderId: (args.referenceId as string) || `agent-${Date.now()}` },
+        {
+          skuId: args.skuId as string,
+          quantity: args.quantity as number,
+          orderId: (args.referenceId as string) || `agent-${Date.now()}`,
+        },
         'agent',
       )
       return { success: true, data: result }
@@ -93,8 +98,11 @@ export function registerInventoryTools(
         data: {
           alertCount: listResult.items.length,
           items: listResult.items.map((item: any) => ({
-            skuId: item.skuId, skuCode: item.skuCode,
-            available: item.availableQuantity, locked: item.lockedQuantity, warning: item.warningQuantity,
+            skuId: item.skuId,
+            skuCode: item.skuCode,
+            available: item.availableQuantity,
+            locked: item.lockedQuantity,
+            warning: item.warningQuantity,
           })),
         },
       }

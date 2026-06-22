@@ -5,15 +5,11 @@
  * @since 2026-05-18
  */
 
-import {
-  Controller, Get, Post, Put, Patch, Delete, Body, Param, Query, UseGuards,
-} from '@nestjs/common'
+import { Controller, Get, Post, Put, Patch, Delete, Body, Param, Query, UseGuards } from '@nestjs/common'
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { DraftService } from './draft.service'
-import {
-  CreateDraftDto, UpdateDraftDto, UpdateDraftStatusDto, PublishDraftDto, QueryDraftDto,
-} from './dto/draft.dto'
+import { CreateDraftDto, UpdateDraftDto, UpdateDraftStatusDto, PublishDraftDto, QueryDraftDto } from './dto/draft.dto'
 
 @ApiTags('通用草稿池')
 @UseGuards(JwtAuthGuard)

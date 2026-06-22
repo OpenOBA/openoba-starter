@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger'
 import { ReviewService } from './review.service'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { CreateReviewDto, ReviewActionDto, ReplyReviewDto, QueryReviewDto } from './dto/review.dto'
-import { Roles } from '../../common/decorators/roles.decorator';
+import { Roles } from '../../common/decorators/roles.decorator'
 
 @ApiTags('用户评价')
 @UseGuards(JwtAuthGuard)

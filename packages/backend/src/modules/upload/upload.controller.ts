@@ -1,4 +1,14 @@
-﻿import { Controller, Post, UseInterceptors, UploadedFile, BadRequestException, Get, Param, Res, UseGuards } from '@nestjs/common'
+﻿import {
+  Controller,
+  Post,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+  Get,
+  Param,
+  Res,
+  UseGuards,
+} from '@nestjs/common'
 import * as crypto from 'crypto'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { diskStorage } from 'multer'
@@ -13,12 +23,29 @@ const KNOWLEDGE_DIR = join(process.cwd(), 'uploads', 'knowledge')
 if (!existsSync(KNOWLEDGE_DIR)) mkdirSync(KNOWLEDGE_DIR, { recursive: true })
 
 const ALLOWED_IMAGE_TYPES = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg']
-const ALLOWED_KB_TYPES = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt', '.md', '.csv', '.json', '.xml']
+const ALLOWED_KB_TYPES = [
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.gif',
+  '.webp',
+  '.pdf',
+  '.doc',
+  '.docx',
+  '.xls',
+  '.xlsx',
+  '.ppt',
+  '.pptx',
+  '.txt',
+  '.md',
+  '.csv',
+  '.json',
+  '.xml',
+]
 
 @UseGuards(JwtAuthGuard)
 @Controller('upload')
 export class UploadController {
-
   // ══════════════════════════════════════
   // 通用单文件上传（知识库附件等）
   // ══════════════════════════════════════
@@ -77,7 +104,10 @@ export class UploadController {
       fileFilter: (req, file, cb) => {
         const ext = extname(file.originalname).toLowerCase()
         if (!ALLOWED_IMAGE_TYPES.includes(ext)) {
-          return cb(new BadRequestException(`不支持的文件类型: ${ext}，仅支持 ${ALLOWED_IMAGE_TYPES.join(', ')}`), false)
+          return cb(
+            new BadRequestException(`不支持的文件类型: ${ext}，仅支持 ${ALLOWED_IMAGE_TYPES.join(', ')}`),
+            false,
+          )
         }
         cb(null, true)
       },

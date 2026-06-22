@@ -77,7 +77,8 @@ export class InventoryQueryService {
 
   async getStats() {
     const total = await this.inventoryRepo.count()
-    const lowStock = await this.inventoryRepo.createQueryBuilder('inv')
+    const lowStock = await this.inventoryRepo
+      .createQueryBuilder('inv')
       .where('inv.availableQuantity < inv.warningQuantity')
       .getCount()
     const zeroStock = await this.inventoryRepo.count({
@@ -94,7 +95,9 @@ export class InventoryQueryService {
     if (params.status) qb.andWhere('d.status = :status', { status: params.status })
     if (params.docType) qb.andWhere('d.docType = :docType', { docType: params.docType })
 
-    qb.orderBy('d.createdAt', 'DESC').skip((page - 1) * pageSize).take(pageSize)
+    qb.orderBy('d.createdAt', 'DESC')
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
     const [items, total] = await qb.getManyAndCount()
     return { items, total, page, pageSize }
   }
@@ -102,7 +105,8 @@ export class InventoryQueryService {
   async cleanOldTransactions(days = 90) {
     const cutoff = new Date()
     cutoff.setDate(cutoff.getDate() - days)
-    const result = await this.transactionRepo.createQueryBuilder()
+    const result = await this.transactionRepo
+      .createQueryBuilder()
       .delete()
       .where('created_at < :cutoff', { cutoff })
       .execute()

@@ -36,13 +36,17 @@ export class CustomerContactService {
   }
 
   async getContacts(customerId: string) {
-    return this.contactRepo.find({ where: { customerId, isDeleted: false }, order: { isPrimary: 'DESC', createdAt: 'DESC' } })
+    return this.contactRepo.find({
+      where: { customerId, isDeleted: false },
+      order: { isPrimary: 'DESC', createdAt: 'DESC' },
+    })
   }
 
   // ===== 地址 =====
   async addAddress(dto: CreateAddressDto) {
     const id = `addr-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 6)}`
-    if (dto.isDefault) await this.addressRepo.update({ customerId: dto.customerId, isDeleted: false }, { isDefault: false })
+    if (dto.isDefault)
+      await this.addressRepo.update({ customerId: dto.customerId, isDeleted: false }, { isDefault: false })
     return this.addressRepo.save(this.addressRepo.create({ ...dto, addressId: id, isDeleted: false }))
   }
 
@@ -63,6 +67,9 @@ export class CustomerContactService {
   }
 
   async getAddresses(customerId: string) {
-    return this.addressRepo.find({ where: { customerId, isDeleted: false }, order: { isDefault: 'DESC', createdAt: 'DESC' } })
+    return this.addressRepo.find({
+      where: { customerId, isDeleted: false },
+      order: { isDefault: 'DESC', createdAt: 'DESC' },
+    })
   }
 }

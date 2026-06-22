@@ -22,16 +22,17 @@ describe('WholesaleTierService', () => {
   beforeEach(async () => {
     repo = mockRepo()
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        WholesaleTierService,
-        { provide: getRepositoryToken(WholesaleTier), useValue: repo },
-      ],
+      providers: [WholesaleTierService, { provide: getRepositoryToken(WholesaleTier), useValue: repo }],
     }).compile()
     service = module.get<WholesaleTierService>(WholesaleTierService)
   })
 
-  it('should be defined', () => { expect(service).toBeDefined() })
-  it('should find all', async () => { expect((await service.findAll())).toEqual([]) })
+  it('should be defined', () => {
+    expect(service).toBeDefined()
+  })
+  it('should find all', async () => {
+    expect(await service.findAll()).toEqual([])
+  })
   it('should create', async () => {
     const r = await service.create({ tierName: 'Gold' } as any)
     expect(r).toBeDefined()

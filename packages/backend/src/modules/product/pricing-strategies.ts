@@ -133,7 +133,10 @@ export class PricingStrategies {
   }
 
   // ===== 策略 4: C 端会员价 (MemberDiscount) =====
-  async calcMemberDiscount(ctx: PriceContext, basePrice: number): Promise<{ memberPrice: number | null; memberLevel: MemberLevel | null }> {
+  async calcMemberDiscount(
+    ctx: PriceContext,
+    basePrice: number,
+  ): Promise<{ memberPrice: number | null; memberLevel: MemberLevel | null }> {
     if (!ctx.customerId) return { memberPrice: null, memberLevel: null }
 
     const customer = await this.customerRepo.findOne({
@@ -141,7 +144,8 @@ export class PricingStrategies {
       select: ['customerId', 'customerLevel', 'customerType'],
     })
     if (!customer?.customerLevel) return { memberPrice: null, memberLevel: null }
-    if (customer.customerType && customer.customerType !== CUSTOMER_TYPES[0]) return { memberPrice: null, memberLevel: null }
+    if (customer.customerType && customer.customerType !== CUSTOMER_TYPES[0])
+      return { memberPrice: null, memberLevel: null }
 
     const memberLevel = await this.memberLevelRepo.findOne({
       where: { levelCode: customer.customerLevel, isActive: true },
@@ -149,7 +153,10 @@ export class PricingStrategies {
     if (!memberLevel) return { memberPrice: null, memberLevel: null }
 
     const memberRulePrice = await this.findMemberPricingForSku(
-      ctx.sku.skuId, memberLevel.levelCode, ctx.retailPrice, ctx.quantity,
+      ctx.sku.skuId,
+      memberLevel.levelCode,
+      ctx.retailPrice,
+      ctx.quantity,
     )
     if (memberRulePrice) {
       return { memberPrice: memberRulePrice.price, memberLevel }
@@ -158,7 +165,10 @@ export class PricingStrategies {
   }
 
   // ===== 策略 5: C 端促销价 (SceneCoupon / Promotion) =====
-  async findPromotionPrice(ctx: PriceContext, now: Date): Promise<{ promoPrice: number | null; bestPromo: Promotion | null }> {
+  async findPromotionPrice(
+    ctx: PriceContext,
+    now: Date,
+  ): Promise<{ promoPrice: number | null; bestPromo: Promotion | null }> {
     const activePromos = await this.findActivePromotions(ctx.sku.skuId, ctx.sku.spuId, now)
     const eligiblePromos = activePromos.filter(
       (p) => !p.minAmount || ctx.retailPrice * ctx.quantity >= Number(p.minAmount),
@@ -205,7 +215,11 @@ export class PricingStrategies {
 
     if (couponPrice > 0 && couponPrice < bestBasePrice) {
       if (bestPromo?.stackable || discountReason === 'member') {
-        return { finalPrice: couponPrice, discountReason: discountReason === 'none' ? 'coupon' : `${discountReason}+coupon`, discountRefId: coupon.promotionId }
+        return {
+          finalPrice: couponPrice,
+          discountReason: discountReason === 'none' ? 'coupon' : `${discountReason}+coupon`,
+          discountRefId: coupon.promotionId,
+        }
       }
       if (couponPrice < bestBasePrice) {
         return { finalPrice: couponPrice, discountReason: 'coupon', discountRefId: coupon.promotionId }
@@ -215,7 +229,12 @@ export class PricingStrategies {
   }
 
   // ===== 策略 7: 最低价保护 (FloorCheck) =====
-  applyFloorCheck(finalPrice: number, minPrice: number, costPrice: number, warnings: string[]): { finalPrice: number; warnings: string[] } {
+  applyFloorCheck(
+    finalPrice: number,
+    minPrice: number,
+    costPrice: number,
+    warnings: string[],
+  ): { finalPrice: number; warnings: string[] } {
     let price = finalPrice
     if (minPrice > 0 && price < minPrice) {
       warnings.push(`B 端价格 ¥${price.toFixed(2)} 低于最低售价 ¥${minPrice.toFixed(2)}`)
@@ -253,12 +272,14 @@ export class PricingStrategies {
 
     return promos.filter((p) => {
       if (p.scope === 'all') {
-        if (customPriceMap.has(p.promotionId)) p.extra = { ...(p.extra || {}), customPrice: customPriceMap.get(p.promotionId) }
+        if (customPriceMap.has(p.promotionId))
+          p.extra = { ...(p.extra || {}), customPrice: customPriceMap.get(p.promotionId) }
         return true
       }
       if (p.scope === 'sku' && p.scopeIds) {
         if (p.scopeIds.includes(skuId)) {
-          if (customPriceMap.has(p.promotionId)) p.extra = { ...(p.extra || {}), customPrice: customPriceMap.get(p.promotionId) }
+          if (customPriceMap.has(p.promotionId))
+            p.extra = { ...(p.extra || {}), customPrice: customPriceMap.get(p.promotionId) }
           return true
         }
         return false
@@ -269,7 +290,10 @@ export class PricingStrategies {
   }
 
   private async findMemberPricingForSku(
-    skuId: string, levelCode: string, retailPrice: number, quantity: number,
+    skuId: string,
+    levelCode: string,
+    retailPrice: number,
+    quantity: number,
   ): Promise<{ price: number; reason: string; ruleId: string } | null> {
     const now = new Date()
     const rules = await this.memberPricingRuleRepo
@@ -288,22 +312,34 @@ export class PricingStrategies {
 
     switch (rule.ruleType) {
       case 'fixed_price':
-        if (rule.fixedPrice !== null && rule.fixedPrice > 0) return { price: Number(rule.fixedPrice), reason: 'member', ruleId: rule.ruleId }
+        if (rule.fixedPrice !== null && rule.fixedPrice > 0)
+          return { price: Number(rule.fixedPrice), reason: 'member', ruleId: rule.ruleId }
         break
       case 'discount':
-        if (rule.discountRate !== null && rule.discountRate > 0) return { price: retailPrice * Number(rule.discountRate), reason: 'member', ruleId: rule.ruleId }
+        if (rule.discountRate !== null && rule.discountRate > 0)
+          return { price: retailPrice * Number(rule.discountRate), reason: 'member', ruleId: rule.ruleId }
         break
       case 'extra_discount':
         if (rule.extraDiscount !== null && rule.extraDiscount > 0) {
           const defaultLevel = await this.memberLevelRepo.findOne({ where: { levelCode, isActive: true } })
-          if (defaultLevel) return { price: retailPrice * Number(defaultLevel.discountRate) * Number(rule.extraDiscount), reason: 'member', ruleId: rule.ruleId }
+          if (defaultLevel)
+            return {
+              price: retailPrice * Number(defaultLevel.discountRate) * Number(rule.extraDiscount),
+              reason: 'member',
+              ruleId: rule.ruleId,
+            }
         }
         break
     }
     return null
   }
 
-  private async findBestCoupon(codes: string[], retailPrice: number, quantity: number, now: Date): Promise<Promotion | null> {
+  private async findBestCoupon(
+    codes: string[],
+    retailPrice: number,
+    quantity: number,
+    now: Date,
+  ): Promise<Promotion | null> {
     if (!codes.length) return null
     const coupons = await this.promoRepo
       .createQueryBuilder('p')
@@ -322,8 +358,14 @@ export class PricingStrategies {
     if (!meetsThreshold.length) return null
 
     return meetsThreshold.sort((a, b) => {
-      const priceA = a.discountType === 'fixed_amount' ? retailPrice - Number(a.discountValue) : retailPrice * (Number(a.discountValue) / 100)
-      const priceB = b.discountType === 'fixed_amount' ? retailPrice - Number(b.discountValue) : retailPrice * (Number(b.discountValue) / 100)
+      const priceA =
+        a.discountType === 'fixed_amount'
+          ? retailPrice - Number(a.discountValue)
+          : retailPrice * (Number(a.discountValue) / 100)
+      const priceB =
+        b.discountType === 'fixed_amount'
+          ? retailPrice - Number(b.discountValue)
+          : retailPrice * (Number(b.discountValue) / 100)
       return priceA - priceB
     })[0]
   }

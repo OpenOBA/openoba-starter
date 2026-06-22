@@ -127,9 +127,7 @@ export class RoleService {
   }
 
   private async assignPermissions(roleId: string, permissionIds: string[]) {
-    const entities = permissionIds.map((pid) =>
-      this.rpRepo.create({ roleId, permissionId: pid }),
-    )
+    const entities = permissionIds.map((pid) => this.rpRepo.create({ roleId, permissionId: pid }))
     await this.rpRepo.save(entities)
   }
 }

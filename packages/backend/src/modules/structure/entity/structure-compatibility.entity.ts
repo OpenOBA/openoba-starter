@@ -1,4 +1,13 @@
-import { Entity, PrimaryColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm'
+import {
+  Entity,
+  PrimaryColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Index,
+} from 'typeorm'
 import { StructureStandard } from './structure-standard.entity'
 
 @Entity('structure_compatibility')
@@ -21,10 +30,10 @@ export class StructureCompatibility {
   @Column({ name: 'compatibility_level', length: 16, comment: 'color/style/texture/smart' })
   compatibilityLevel: string
 
-  @Column({ comment: '备注',  type: 'varchar', length: 512, nullable: true })
+  @Column({ comment: '备注', type: 'varchar', length: 512, nullable: true })
   notes: string | null
 
-  @Column({ comment: '是否启用',  name: 'is_active', default: true })
+  @Column({ comment: '是否启用', name: 'is_active', default: true })
   isActive: boolean
 
   @CreateDateColumn({ name: 'created_at' })

@@ -19,7 +19,11 @@ import { Draft, DraftStatus } from './entities/draft.entity'
 import { ProductSpu } from '../product/entity/product-spu.entity'
 import { ProductSku } from '../product/entity/product-sku.entity'
 import type {
-  CreateDraftDto, UpdateDraftDto, UpdateDraftStatusDto, PublishDraftDto, QueryDraftDto,
+  CreateDraftDto,
+  UpdateDraftDto,
+  UpdateDraftStatusDto,
+  PublishDraftDto,
+  QueryDraftDto,
 } from './dto/draft.dto'
 
 function uid(): string {
@@ -143,7 +147,7 @@ export class DraftService {
       if (draft.draftType === 'spu' && draft.bodyJson) {
         // ── SPU 草稿 → 创建 product_spu + product_sku ──
         const bj = draft.bodyJson as Record<string, unknown>
-        const shapeSuffix = (bj.shapeCode as string || 'GEN').substring(0, 3)
+        const shapeSuffix = ((bj.shapeCode as string) || 'GEN').substring(0, 3)
         const spuCode = `S-${shapeSuffix}-${Date.now().toString(36).toUpperCase()}`
         const spuName = (bj.spuName as string) || draft.title || draft.draftNo
 
@@ -218,7 +222,6 @@ export class DraftService {
       draft.status = 'published'
       draft.publishedAt = new Date()
       return this.draftRepo.save(draft)
-
     } catch (error: unknown) {
       this.logger.error(`发布失败: ${draft.draftNo} - ${(error as Error).message}`)
       throw error
@@ -228,8 +231,11 @@ export class DraftService {
   // ── 批量操作 ──
 
   async getStats(): Promise<{
-    total: number; editing: number; ready: number; published: number;
-    byType: Record<string, number>;
+    total: number
+    editing: number
+    ready: number
+    published: number
+    byType: Record<string, number>
   }> {
     const [total, editing, ready, published] = await Promise.all([
       this.draftRepo.count({ where: { deletedAt: IsNull() } }),

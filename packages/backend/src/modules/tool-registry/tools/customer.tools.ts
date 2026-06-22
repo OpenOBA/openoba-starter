@@ -6,10 +6,7 @@ import { ToolRegistry } from '@openoba/core/dist/modules/tool-registry/tool-regi
 import { CustomerService } from '../../customer/customer.service'
 import type { ToolResult } from '@openoba/core/dist/modules/tool-registry/types/tool.interface'
 
-export function registerCustomerTools(
-  registry: ToolRegistry,
-  customerService: CustomerService,
-): void {
+export function registerCustomerTools(registry: ToolRegistry, customerService: CustomerService): void {
   registry.register(
     {
       name: 'customer.profile',

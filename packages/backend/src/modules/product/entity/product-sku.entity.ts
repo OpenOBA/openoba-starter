@@ -1,5 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm'
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm'
 import { ProductSpu } from './product-spu.entity'
 import { DictSkuColor } from './dict-spu-color.entity'
 import { SKU_STATUS } from '../product.constants'
@@ -92,7 +100,12 @@ export class ProductSku {
 
   // ⚠️ 2026-04-24：镜框高度已废弃。业务评估结论：镜框高度在行业和用户场景中价值低，
   // 不应作为产品技术参数。保留字段仅用于数据库向后兼容，前端已隐藏。
-  @Column({ name: 'frame_height', type: 'int', nullable: true, comment: '【已废弃】镜框高度(mm)，2026-04-24 起不再使用' })
+  @Column({
+    name: 'frame_height',
+    type: 'int',
+    nullable: true,
+    comment: '【已废弃】镜框高度(mm)，2026-04-24 起不再使用',
+  })
   frameHeight?: number
 
   @Column({ name: 'total_width', type: 'int', nullable: true, comment: '总宽度(mm)' })

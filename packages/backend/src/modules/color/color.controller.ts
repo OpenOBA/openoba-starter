@@ -17,7 +17,7 @@ import {
 } from './dto/color.dto'
 import { PageResponse } from '../../common/dto/response.dto'
 import { MCPCapable } from '../../common/decorators/mcp-capable.decorator'
-import { Roles } from '../../common/decorators/roles.decorator';
+import { Roles } from '../../common/decorators/roles.decorator'
 
 @ApiTags('色彩标准库')
 @UseGuards(JwtAuthGuard)
@@ -30,7 +30,13 @@ export class ColorController {
 
   @Get('mappings')
   @ApiOperation({ summary: '材质-色彩映射列表（分页）' })
-  @MCPCapable({ tool: 'color.mappings', description: '查询材质-色彩映射列表', category: 'product', readOnly: true, industryScoped: true })
+  @MCPCapable({
+    tool: 'color.mappings',
+    description: '查询材质-色彩映射列表',
+    category: 'product',
+    readOnly: true,
+    industryScoped: true,
+  })
   async findAllMappings(@Query() query: QueryColorMaterialMappingDto) {
     const result = await this.colorService.findAllMappings(query)
     return new PageResponse(result.items, result.total, result.page, result.pageSize)
@@ -38,28 +44,49 @@ export class ColorController {
 
   @Get('mappings/:id')
   @ApiOperation({ summary: '材质-色彩映射详情' })
-  @MCPCapable({ tool: 'color.mapping', description: '查询材质-色彩映射详情', category: 'product', readOnly: true, industryScoped: true })
+  @MCPCapable({
+    tool: 'color.mapping',
+    description: '查询材质-色彩映射详情',
+    category: 'product',
+    readOnly: true,
+    industryScoped: true,
+  })
   async findOneMapping(@Param('id') id: string) {
     return this.colorService.findOneMapping(id)
   }
 
   @Post('mappings')
   @ApiOperation({ summary: '创建材质-色彩映射' })
-  @MCPCapable({ tool: 'color.createMapping', description: '创建材质-色彩映射', category: 'product', industryScoped: true })
+  @MCPCapable({
+    tool: 'color.createMapping',
+    description: '创建材质-色彩映射',
+    category: 'product',
+    industryScoped: true,
+  })
   async createMapping(@Body() dto: CreateColorMaterialMappingDto) {
     return this.colorService.createMapping(dto)
   }
 
   @Put('mappings/:id')
   @ApiOperation({ summary: '更新材质-色彩映射' })
-  @MCPCapable({ tool: 'color.updateMapping', description: '更新材质-色彩映射', category: 'product', industryScoped: true })
+  @MCPCapable({
+    tool: 'color.updateMapping',
+    description: '更新材质-色彩映射',
+    category: 'product',
+    industryScoped: true,
+  })
   async updateMapping(@Param('id') id: string, @Body() dto: UpdateColorMaterialMappingDto) {
     return this.colorService.updateMapping(id, dto)
   }
 
   @Delete('mappings/:id')
   @ApiOperation({ summary: '删除材质-色彩映射' })
-  @MCPCapable({ tool: 'color.removeMapping', description: '删除材质-色彩映射', category: 'product', industryScoped: true })
+  @MCPCapable({
+    tool: 'color.removeMapping',
+    description: '删除材质-色彩映射',
+    category: 'product',
+    industryScoped: true,
+  })
   async removeMapping(@Param('id') id: string) {
     return this.colorService.removeMapping(id)
   }
@@ -81,7 +108,13 @@ export class ColorController {
 
   @Get('palettes')
   @ApiOperation({ summary: '季节色盘列表（分页）' })
-  @MCPCapable({ tool: 'color.palettes', description: '查询季节色盘列表', category: 'product', readOnly: true, industryScoped: true })
+  @MCPCapable({
+    tool: 'color.palettes',
+    description: '查询季节色盘列表',
+    category: 'product',
+    readOnly: true,
+    industryScoped: true,
+  })
   async findAllPalettes(@Query() query: QueryColorSeasonalPaletteDto) {
     const result = await this.colorService.findAllPalettes(query)
     return new PageResponse(result.items, result.total, result.page, result.pageSize)
@@ -89,7 +122,13 @@ export class ColorController {
 
   @Get('palettes/:id')
   @ApiOperation({ summary: '季节色盘详情（含颜色项）' })
-  @MCPCapable({ tool: 'color.palette', description: '查询季节色盘详情', category: 'product', readOnly: true, industryScoped: true })
+  @MCPCapable({
+    tool: 'color.palette',
+    description: '查询季节色盘详情',
+    category: 'product',
+    readOnly: true,
+    industryScoped: true,
+  })
   async findOnePalette(@Param('id') id: string) {
     return this.colorService.findOnePalette(id)
   }
@@ -118,14 +157,24 @@ export class ColorController {
   // Palette Items
   @Post('palette-items')
   @ApiOperation({ summary: '添加色盘颜色项' })
-  @MCPCapable({ tool: 'color.addPaletteItem', description: '添加色盘颜色项', category: 'product', industryScoped: true })
+  @MCPCapable({
+    tool: 'color.addPaletteItem',
+    description: '添加色盘颜色项',
+    category: 'product',
+    industryScoped: true,
+  })
   async addPaletteItem(@Body() dto: CreatePaletteItemDto) {
     return this.colorService.addPaletteItem(dto)
   }
 
   @Delete('palette-items/:id')
   @ApiOperation({ summary: '删除色盘颜色项' })
-  @MCPCapable({ tool: 'color.removePaletteItem', description: '删除色盘颜色项', category: 'product', industryScoped: true })
+  @MCPCapable({
+    tool: 'color.removePaletteItem',
+    description: '删除色盘颜色项',
+    category: 'product',
+    industryScoped: true,
+  })
   async removePaletteItem(@Param('id') id: string) {
     return this.colorService.removePaletteItem(id)
   }
@@ -134,7 +183,13 @@ export class ColorController {
 
   @Get('projects')
   @ApiOperation({ summary: '色彩设计项目列表（分页）' })
-  @MCPCapable({ tool: 'color.projects', description: '查询色彩设计项目列表', category: 'product', readOnly: true, industryScoped: true })
+  @MCPCapable({
+    tool: 'color.projects',
+    description: '查询色彩设计项目列表',
+    category: 'product',
+    readOnly: true,
+    industryScoped: true,
+  })
   async findAllProjects(@Query() query: QueryColorDesignProjectDto) {
     const result = await this.colorService.findAllProjects(query)
     return new PageResponse(result.items, result.total, result.page, result.pageSize)
@@ -142,28 +197,49 @@ export class ColorController {
 
   @Get('projects/:id')
   @ApiOperation({ summary: '色彩设计项目详情（含颜色列表）' })
-  @MCPCapable({ tool: 'color.project', description: '查询色彩设计项目详情', category: 'product', readOnly: true, industryScoped: true })
+  @MCPCapable({
+    tool: 'color.project',
+    description: '查询色彩设计项目详情',
+    category: 'product',
+    readOnly: true,
+    industryScoped: true,
+  })
   async findOneProject(@Param('id') id: string) {
     return this.colorService.findOneProject(id)
   }
 
   @Post('projects')
   @ApiOperation({ summary: '创建色彩设计项目' })
-  @MCPCapable({ tool: 'color.createProject', description: '创建色彩设计项目', category: 'product', industryScoped: true })
+  @MCPCapable({
+    tool: 'color.createProject',
+    description: '创建色彩设计项目',
+    category: 'product',
+    industryScoped: true,
+  })
   async createProject(@Body() dto: CreateColorDesignProjectDto) {
     return this.colorService.createProject(dto)
   }
 
   @Put('projects/:id')
   @ApiOperation({ summary: '更新色彩设计项目' })
-  @MCPCapable({ tool: 'color.updateProject', description: '更新色彩设计项目', category: 'product', industryScoped: true })
+  @MCPCapable({
+    tool: 'color.updateProject',
+    description: '更新色彩设计项目',
+    category: 'product',
+    industryScoped: true,
+  })
   async updateProject(@Param('id') id: string, @Body() dto: UpdateColorDesignProjectDto) {
     return this.colorService.updateProject(id, dto)
   }
 
   @Delete('projects/:id')
   @ApiOperation({ summary: '删除色彩设计项目' })
-  @MCPCapable({ tool: 'color.removeProject', description: '删除色彩设计项目', category: 'product', industryScoped: true })
+  @MCPCapable({
+    tool: 'color.removeProject',
+    description: '删除色彩设计项目',
+    category: 'product',
+    industryScoped: true,
+  })
   async removeProject(@Param('id') id: string) {
     return this.colorService.removeProject(id)
   }
@@ -171,21 +247,37 @@ export class ColorController {
   // Project Colors
   @Post('project-colors')
   @ApiOperation({ summary: '添加项目颜色项' })
-  @MCPCapable({ tool: 'color.addProjectColor', description: '添加项目颜色项', category: 'product', industryScoped: true })
+  @MCPCapable({
+    tool: 'color.addProjectColor',
+    description: '添加项目颜色项',
+    category: 'product',
+    industryScoped: true,
+  })
   async addProjectColor(@Body() dto: CreateProjectColorDto) {
     return this.colorService.addProjectColor(dto)
   }
 
   @Delete('project-colors/:id')
   @ApiOperation({ summary: '删除项目颜色项' })
-  @MCPCapable({ tool: 'color.removeProjectColor', description: '删除项目颜色项', category: 'product', industryScoped: true })
+  @MCPCapable({
+    tool: 'color.removeProjectColor',
+    description: '删除项目颜色项',
+    category: 'product',
+    industryScoped: true,
+  })
   async removeProjectColor(@Param('id') id: string) {
     return this.colorService.removeProjectColor(id)
   }
 
   @Get('projects/:id/colors')
   @ApiOperation({ summary: '查询项目颜色列表' })
-  @MCPCapable({ tool: 'color.projectColors', description: '查询项目颜色列表', category: 'product', readOnly: true, industryScoped: true })
+  @MCPCapable({
+    tool: 'color.projectColors',
+    description: '查询项目颜色列表',
+    category: 'product',
+    readOnly: true,
+    industryScoped: true,
+  })
   async getProjectColors(@Param('id') id: string) {
     return this.colorService.getProjectColors(id)
   }

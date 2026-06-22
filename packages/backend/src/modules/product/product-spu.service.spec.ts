@@ -31,7 +31,13 @@ describe('ProductSpuService', () => {
         { provide: getRepositoryToken(ProductSpu), useValue: spuRepo },
         { provide: getRepositoryToken(StructureStandard), useValue: mockRepo() },
         { provide: getRepositoryToken(ProductSku), useValue: mockRepo() },
-        { provide: NamingEngine, useValue: { generateName: jest.fn().mockReturnValue('Auto Name'), generateDisplayName: jest.fn().mockReturnValue('Display') } },
+        {
+          provide: NamingEngine,
+          useValue: {
+            generateName: jest.fn().mockReturnValue('Auto Name'),
+            generateDisplayName: jest.fn().mockReturnValue('Display'),
+          },
+        },
         { provide: DataSource, useValue: { query: jest.fn() } },
       ],
     }).compile()
@@ -39,7 +45,9 @@ describe('ProductSpuService', () => {
     service = module.get<ProductSpuService>(ProductSpuService)
   })
 
-  it('should be defined', () => { expect(service).toBeDefined() })
+  it('should be defined', () => {
+    expect(service).toBeDefined()
+  })
 
   it('should throw on missing spu', async () => {
     await expect(service.findOneSpu('bad')).rejects.toThrow()

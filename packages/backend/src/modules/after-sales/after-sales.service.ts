@@ -5,7 +5,12 @@ import { Repository, DataSource } from 'typeorm'
 import { AfterSales } from './entity/after-sales.entity'
 import { AfterSalesLog } from './entity/after-sales-log.entity'
 import { Order } from '../order/entity/order.entity'
-import { CreateAfterSalesDto, ReviewAfterSalesDto, ProcessAfterSalesDto, UpdateAfterSalesDto } from './dto/after-sales.dto'
+import {
+  CreateAfterSalesDto,
+  ReviewAfterSalesDto,
+  ProcessAfterSalesDto,
+  UpdateAfterSalesDto,
+} from './dto/after-sales.dto'
 import { InventoryService } from '../inventory/inventory.service'
 import { TransactionType } from '../inventory/entity/inventory-transaction.entity'
 import { Inventory } from '../inventory/entity/inventory.entity'
@@ -40,7 +45,12 @@ export class AfterSalesService {
   async create(dto: CreateAfterSalesDto) {
     // 验证订单存在且状态允许售后（事务外读取，轻量校验）
     const order = await this.getOrder(dto.orderId)
-    const validOrderStatuses: string[] = [ORDER_STATUS.paid, ORDER_STATUS.shipped, ORDER_STATUS.delivered, ORDER_STATUS.completed]
+    const validOrderStatuses: string[] = [
+      ORDER_STATUS.paid,
+      ORDER_STATUS.shipped,
+      ORDER_STATUS.delivered,
+      ORDER_STATUS.completed,
+    ]
     if (!validOrderStatuses.includes(order.status)) {
       throw new BadRequestException('订单状态不可申请售后（当前状态：' + order.status + '）')
     }
@@ -49,7 +59,7 @@ export class AfterSalesService {
     const orderFull = await this.orderRepo.findOne({ where: { orderId: dto.orderId }, select: ['actualAmount'] })
     if (orderFull && dto.refundAmount > Number(orderFull.actualAmount)) {
       throw new BadRequestException(
-        `退款金额 ¥${dto.refundAmount.toFixed(2)} 超过订单实付 ¥${Number(orderFull.actualAmount).toFixed(2)}`
+        `退款金额 ¥${dto.refundAmount.toFixed(2)} 超过订单实付 ¥${Number(orderFull.actualAmount).toFixed(2)}`,
       )
     }
 
@@ -97,8 +107,10 @@ export class AfterSalesService {
     if (filters.orderId) qb.andWhere('as.orderId = :orderId', { orderId: filters.orderId })
     if (filters.customerId) qb.andWhere('as.customerId = :customerId', { customerId: filters.customerId })
     if (filters.status) qb.andWhere('as.status = :status', { status: filters.status })
-    if (filters.afterSalesType) qb.andWhere('as.afterSalesType = :afterSalesType', { afterSalesType: filters.afterSalesType })
-    if (filters.afterSalesNo) qb.andWhere('as.afterSalesNo LIKE :afterSalesNo', { afterSalesNo: `%${filters.afterSalesNo}%` })
+    if (filters.afterSalesType)
+      qb.andWhere('as.afterSalesType = :afterSalesType', { afterSalesType: filters.afterSalesType })
+    if (filters.afterSalesNo)
+      qb.andWhere('as.afterSalesNo LIKE :afterSalesNo', { afterSalesNo: `%${filters.afterSalesNo}%` })
 
     const [items, total] = await qb.getManyAndCount()
     return { items, total, page, limit, totalPages: Math.ceil(total / limit) }
@@ -214,13 +226,30 @@ export class AfterSalesService {
         // refunded状态已生效，再自动转为completed
         afterSales.status = AFTER_SALES_STATUS.completed
         await manager.save(AfterSales, afterSales)
-        await this.addLogInTx(manager, afterSales.id, 'auto_complete', toStatus, 'completed', 'system', '退款完成后自动关闭')
+        await this.addLogInTx(
+          manager,
+          afterSales.id,
+          'auto_complete',
+          toStatus,
+          'completed',
+          'system',
+          '退款完成后自动关闭',
+        )
       } else if (
-        toStatus === AFTER_SALES_STATUS.received && afterSales.afterSalesType === AFTER_SALES_TYPE.refund_only
+        toStatus === AFTER_SALES_STATUS.received &&
+        afterSales.afterSalesType === AFTER_SALES_TYPE.refund_only
       ) {
         afterSales.status = AFTER_SALES_STATUS.completed
         await manager.save(AfterSales, afterSales)
-        await this.addLogInTx(manager, afterSales.id, 'auto_complete', toStatus, 'completed', 'system', '仅退款收货后自动关闭')
+        await this.addLogInTx(
+          manager,
+          afterSales.id,
+          'auto_complete',
+          toStatus,
+          'completed',
+          'system',
+          '仅退款收货后自动关闭',
+        )
       }
 
       // P1-2修复：回写订单售后状态
@@ -284,7 +313,11 @@ export class AfterSalesService {
   private async rollbackInventoryForReturn(afterSales: AfterSales, manager: EntityManager) {
     let items = afterSales.items
     if (typeof items === 'string') {
-      try { items = JSON.parse(items) } catch { items = [] }
+      try {
+        items = JSON.parse(items)
+      } catch {
+        items = []
+      }
     }
     if (!items || !Array.isArray(items) || items.length === 0) return
 
@@ -297,8 +330,15 @@ export class AfterSalesService {
           lock: { mode: 'pessimistic_write' },
         })
         if (!sku) {
-          await this.addLogInTx(manager, afterSales.id, 'inventory_rollback_fail', null, null, 'system',
-            `库存回滚失败：SKU ${item.skuId} 不存在`)
+          await this.addLogInTx(
+            manager,
+            afterSales.id,
+            'inventory_rollback_fail',
+            null,
+            null,
+            'system',
+            `库存回滚失败：SKU ${item.skuId} 不存在`,
+          )
           continue
         }
         sku.currentQuantity += item.quantity
@@ -306,17 +346,28 @@ export class AfterSalesService {
         sku.updatedAt = new Date()
         await manager.save(Inventory, sku)
         await manager.save(InventoryTransaction, {
-          id: crypto.randomUUID(), skuId: sku.skuId, skuCode: sku.skuCode,
+          id: crypto.randomUUID(),
+          skuId: sku.skuId,
+          skuCode: sku.skuCode,
           warehouseCode: sku.warehouseCode,
           transactionType: TransactionType.RETURN_IN,
-          quantity: item.quantity, quantityBefore: sku.currentQuantity - item.quantity,
+          quantity: item.quantity,
+          quantityBefore: sku.currentQuantity - item.quantity,
           quantityAfter: sku.currentQuantity,
-          referenceType: 'after_sales', referenceId: afterSales.id,
+          referenceType: 'after_sales',
+          referenceId: afterSales.id,
           remark: `售后 ${afterSales.afterSalesNo} 退货入库：${item.skuCode || item.skuId} × ${item.quantity}`,
         })
       } catch (err) {
-        await this.addLogInTx(manager, afterSales.id, 'inventory_rollback_fail', null, null, 'system',
-          `库存回滚失败：${item.skuCode || item.skuId} × ${item.quantity}，请人工处理`)
+        await this.addLogInTx(
+          manager,
+          afterSales.id,
+          'inventory_rollback_fail',
+          null,
+          null,
+          'system',
+          `库存回滚失败：${item.skuCode || item.skuId} × ${item.quantity}，请人工处理`,
+        )
       }
     }
   }

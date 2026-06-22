@@ -25,10 +25,7 @@ describe('CategoryService', () => {
   beforeEach(async () => {
     repo = mockRepo()
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        CategoryService,
-        { provide: getRepositoryToken(Category), useValue: repo },
-      ],
+      providers: [CategoryService, { provide: getRepositoryToken(Category), useValue: repo }],
     }).compile()
 
     service = module.get<CategoryService>(CategoryService)

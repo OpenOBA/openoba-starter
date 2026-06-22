@@ -29,7 +29,7 @@ export class AuthService {
       username: user.username,
       realName: user.realName,
       status: user.status,
-      roles: (user.roles || []).map(r => r.roleCode),
+      roles: (user.roles || []).map((r) => r.roleCode),
     }
   }
 

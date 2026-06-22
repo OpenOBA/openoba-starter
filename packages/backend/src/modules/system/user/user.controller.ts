@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger'
 import { UserService } from './user.service'
 import { CreateUserDto, UpdateUserDto, ChangePasswordDto, ResetPasswordDto, UserQueryDto } from './dto/user.dto'
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard'
-import { Roles } from '../../../common/decorators/roles.decorator';
+import { Roles } from '../../../common/decorators/roles.decorator'
 
 interface JwtRequest extends Request {
   user: { userId: string; username: string }

@@ -13,7 +13,12 @@ import { MemberPricingRule } from './entity/member-pricing-rule.entity'
 describe('PricingService', () => {
   let service: PricingService
   beforeEach(async () => {
-    const mr = { findOne: jest.fn().mockResolvedValue(null), find: jest.fn().mockResolvedValue([]), save: jest.fn((e:any)=>Promise.resolve(e)), create: jest.fn((d:any)=>d) }
+    const mr = {
+      findOne: jest.fn().mockResolvedValue(null),
+      find: jest.fn().mockResolvedValue([]),
+      save: jest.fn((e: any) => Promise.resolve(e)),
+      create: jest.fn((d: any) => d),
+    }
     const m = await Test.createTestingModule({
       providers: [
         PricingService,
@@ -28,5 +33,7 @@ describe('PricingService', () => {
     }).compile()
     service = m.get<PricingService>(PricingService)
   })
-  it('should be defined', () => { expect(service).toBeDefined() })
+  it('should be defined', () => {
+    expect(service).toBeDefined()
+  })
 })

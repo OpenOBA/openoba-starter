@@ -25,9 +25,18 @@ import { registerCustomerTools } from '../tool-registry/tools/customer.tools'
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      Customer, CustomerContact, CustomerAddress, CustomerTierPricing,
-      VisionPrescription, CustomerLens, CustomerConsumptionProfile,
-      MemberLevelLog, PointsTransaction, Order, OrderItem, MemberLevel,
+      Customer,
+      CustomerContact,
+      CustomerAddress,
+      CustomerTierPricing,
+      VisionPrescription,
+      CustomerLens,
+      CustomerConsumptionProfile,
+      MemberLevelLog,
+      PointsTransaction,
+      Order,
+      OrderItem,
+      MemberLevel,
     ]),
   ],
   controllers: [CustomerController],

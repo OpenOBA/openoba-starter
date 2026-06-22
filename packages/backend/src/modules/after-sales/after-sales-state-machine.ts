@@ -7,10 +7,7 @@ import { AfterSalesLog } from './entity/after-sales-log.entity'
 import { Order } from '../order/entity/order.entity'
 import { Inventory } from '../inventory/entity/inventory.entity'
 import { InventoryTransaction, TransactionType } from '../inventory/entity/inventory-transaction.entity'
-import {
-  ReviewAfterSalesDto,
-  ProcessAfterSalesDto,
-} from './dto/after-sales.dto'
+import { ReviewAfterSalesDto, ProcessAfterSalesDto } from './dto/after-sales.dto'
 import { AFTER_SALES_STATUS, AFTER_SALES_TYPE } from './after-sales.constants'
 
 /**
@@ -31,12 +28,7 @@ export class AfterSalesStateMachine {
   /**
    * 审核售后单（批准/拒绝）
    */
-  async review(
-    manager: EntityManager,
-    id: string,
-    dto: ReviewAfterSalesDto,
-    operatorId?: string,
-  ): Promise<AfterSales> {
+  async review(manager: EntityManager, id: string, dto: ReviewAfterSalesDto, operatorId?: string): Promise<AfterSales> {
     const afterSales = await manager.findOne(AfterSales, {
       where: { id },
       lock: { mode: 'pessimistic_write' },
@@ -47,8 +39,7 @@ export class AfterSalesStateMachine {
     }
 
     const fromStatus = afterSales.status
-    const toStatus =
-      dto.action === 'approve' ? AFTER_SALES_STATUS.approved : AFTER_SALES_STATUS.rejected
+    const toStatus = dto.action === 'approve' ? AFTER_SALES_STATUS.approved : AFTER_SALES_STATUS.rejected
 
     afterSales.status = toStatus as unknown as AfterSales['status']
     if (operatorId) afterSales.reviewerId = operatorId
@@ -142,18 +133,25 @@ export class AfterSalesStateMachine {
       afterSales.status = AFTER_SALES_STATUS.completed
       await manager.save(AfterSales, afterSales)
       await this.addLogInTx(
-        manager, afterSales.id, 'auto_complete', toStatus, 'completed',
-        'system', '退款完成后自动关闭',
+        manager,
+        afterSales.id,
+        'auto_complete',
+        toStatus,
+        'completed',
+        'system',
+        '退款完成后自动关闭',
       )
-    } else if (
-      toStatus === AFTER_SALES_STATUS.received &&
-      afterSales.afterSalesType === AFTER_SALES_TYPE.refund_only
-    ) {
+    } else if (toStatus === AFTER_SALES_STATUS.received && afterSales.afterSalesType === AFTER_SALES_TYPE.refund_only) {
       afterSales.status = AFTER_SALES_STATUS.completed
       await manager.save(AfterSales, afterSales)
       await this.addLogInTx(
-        manager, afterSales.id, 'auto_complete', toStatus, 'completed',
-        'system', '仅退款收货后自动关闭',
+        manager,
+        afterSales.id,
+        'auto_complete',
+        toStatus,
+        'completed',
+        'system',
+        '仅退款收货后自动关闭',
       )
     }
 
@@ -187,8 +185,13 @@ export class AfterSalesStateMachine {
         })
         if (!sku) {
           await this.addLogInTx(
-            manager, afterSales.id, 'inventory_rollback_fail', null, null,
-            'system', `库存回滚失败：SKU ${item.skuId} 不存在`,
+            manager,
+            afterSales.id,
+            'inventory_rollback_fail',
+            null,
+            null,
+            'system',
+            `库存回滚失败：SKU ${item.skuId} 不存在`,
           )
           continue
         }
@@ -211,8 +214,13 @@ export class AfterSalesStateMachine {
         })
       } catch (err) {
         await this.addLogInTx(
-          manager, afterSales.id, 'inventory_rollback_fail', null, null,
-          'system', `库存回滚失败：${item.skuCode || item.skuId} × ${item.quantity}，请人工处理`,
+          manager,
+          afterSales.id,
+          'inventory_rollback_fail',
+          null,
+          null,
+          'system',
+          `库存回滚失败：${item.skuCode || item.skuId} × ${item.quantity}，请人工处理`,
         )
       }
     }

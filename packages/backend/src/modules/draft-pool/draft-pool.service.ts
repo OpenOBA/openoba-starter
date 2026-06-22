@@ -212,7 +212,7 @@ export class DraftPoolService {
     }
 
     const draftSkus = await this.draftSkuRepo.findBy({ draftId, deletedAt: IsNull() })
-    const approvedSkus = draftSkus.filter(s => s.skuStatus === 'approved' || s.skuStatus === 'draft')
+    const approvedSkus = draftSkus.filter((s) => s.skuStatus === 'approved' || s.skuStatus === 'draft')
 
     const queryRunner = this.dataSource.createQueryRunner()
     await queryRunner.connect()
@@ -281,18 +281,26 @@ export class DraftPoolService {
         skuIds.push(skuId)
 
         // 回写 draft_sku.published_sku_id
-        await queryRunner.manager.update(DraftSku, { draftSkuId: ds.draftSkuId }, {
-          skuStatus: 'promoted',
-          publishedSkuId: skuId,
-        })
+        await queryRunner.manager.update(
+          DraftSku,
+          { draftSkuId: ds.draftSkuId },
+          {
+            skuStatus: 'promoted',
+            publishedSkuId: skuId,
+          },
+        )
       }
 
       // 4. 回写 draft_spu
-      await queryRunner.manager.update(DraftSpu, { draftId }, {
-        status: 'promoted',
-        publishedSpuId: spuId,
-        publishedAt: new Date(),
-      })
+      await queryRunner.manager.update(
+        DraftSpu,
+        { draftId },
+        {
+          status: 'promoted',
+          publishedSpuId: spuId,
+          publishedAt: new Date(),
+        },
+      )
 
       await queryRunner.commitTransaction()
 
@@ -346,9 +354,12 @@ export class DraftPoolService {
 
         // 更新任务进度
         if (dto.taskId) {
-          await this.taskRepo.update({ id: dto.taskId }, {
-            progress: Math.round(((i + 1) / dto.draftIds.length) * 100),
-          })
+          await this.taskRepo.update(
+            { id: dto.taskId },
+            {
+              progress: Math.round(((i + 1) / dto.draftIds.length) * 100),
+            },
+          )
         }
       } catch (e: unknown) {
         errors.push(`${draftId}: ${(e as Error).message}`)
@@ -366,15 +377,23 @@ export class DraftPoolService {
     // 完成 DraftTask
     if (dto.taskId) {
       const taskStatus = errors.length === 0 ? 'completed' : 'completed'
-      await this.taskRepo.update({ id: dto.taskId }, {
-        status: taskStatus,
-        outputResult: { results: results.map(r => ({ spuId: r.spuId, spuCode: r.spuCode, spuName: r.spuName })), errors: errors.length > 0 ? errors : undefined },
-        errorInfo: errors.length > 0 ? errors.join('; ') : undefined,
-        completedAt: new Date(),
-      })
+      await this.taskRepo.update(
+        { id: dto.taskId },
+        {
+          status: taskStatus,
+          outputResult: {
+            results: results.map((r) => ({ spuId: r.spuId, spuCode: r.spuCode, spuName: r.spuName })),
+            errors: errors.length > 0 ? errors : undefined,
+          },
+          errorInfo: errors.length > 0 ? errors.join('; ') : undefined,
+          completedAt: new Date(),
+        },
+      )
     }
 
-    this.logger.log(`📦 批量入库完成: ${results.length}/${dto.draftIds.length} 个 SPU, ${totalSkus} 个 SKU${errors.length > 0 ? `, ${errors.length} 个失败` : ''}`)
+    this.logger.log(
+      `📦 批量入库完成: ${results.length}/${dto.draftIds.length} 个 SPU, ${totalSkus} 个 SKU${errors.length > 0 ? `, ${errors.length} 个失败` : ''}`,
+    )
 
     return { results, pkgId: pkg.id, totalSpus: results.length, totalSkus, taskId: dto.taskId }
   }
@@ -427,7 +446,10 @@ export class DraftPoolService {
     return { externalCode: code, shapeCode: '' }
   }
 
-  private async generateSpuCode(structureStandardCode: string, structInfo: { externalCode: string; shapeCode: string } | null): Promise<string> {
+  private async generateSpuCode(
+    structureStandardCode: string,
+    structInfo: { externalCode: string; shapeCode: string } | null,
+  ): Promise<string> {
     // SPU编码 = S{结构标准编码}-{4位序号}，如 S-S4844-RND-0001
     const extCode = structInfo?.externalCode || structureStandardCode
     const prefix = `S-${extCode}-`
@@ -444,7 +466,10 @@ export class DraftPoolService {
     return `${prefix}${String(next).padStart(4, '0')}`
   }
 
-  private async generateSpuDisplayName(draft: DraftSpu, structInfo: { externalCode: string; shapeCode: string } | null): Promise<string> {
+  private async generateSpuDisplayName(
+    draft: DraftSpu,
+    structInfo: { externalCode: string; shapeCode: string } | null,
+  ): Promise<string> {
     if (!structInfo) return draft.spuName
     const seriesName = this.getSeriesChineseName(draft.seriesCode)
     const shapeName = NamingEngine.getShapeName(structInfo.shapeCode)
@@ -488,7 +513,12 @@ export class DraftPoolService {
     })
   }
 
-  async updateTaskStatus(taskId: string, status: string, outputResult?: Record<string, unknown>, errorInfo?: string): Promise<DraftTask> {
+  async updateTaskStatus(
+    taskId: string,
+    status: string,
+    outputResult?: Record<string, unknown>,
+    errorInfo?: string,
+  ): Promise<DraftTask> {
     const task = await this.taskRepo.findOneBy({ id: taskId })
     if (!task) throw new NotFoundException('任务不存在')
     Object.assign(task, {

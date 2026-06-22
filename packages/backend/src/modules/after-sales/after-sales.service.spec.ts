@@ -69,8 +69,13 @@ describe('AfterSalesService', () => {
       orderRepo.findOne.mockResolvedValue({ orderId: 'o1', orderNo: 'OBA-001', status: 'completed' })
       afterSalesRepo.create.mockImplementation((d: any) => d)
       const result = await service.create({
-        orderId: 'o1', afterSalesType: 'return', reasonType: 'quality', reasonDetail: 'bad',
-        refundAmount: 99.00, refundMethod: 'original', evidenceUrls: [],
+        orderId: 'o1',
+        afterSalesType: 'return',
+        reasonType: 'quality',
+        reasonDetail: 'bad',
+        refundAmount: 99.0,
+        refundMethod: 'original',
+        evidenceUrls: [],
       } as any)
       expect(result.afterSalesNo).toBeDefined()
     })

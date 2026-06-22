@@ -10,7 +10,13 @@ import { ColorService } from './color.service'
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ColorMaterialMapping, ColorSeasonalPalette, ColorPaletteItem, ColorDesignProject, ColorProjectColor]),
+    TypeOrmModule.forFeature([
+      ColorMaterialMapping,
+      ColorSeasonalPalette,
+      ColorPaletteItem,
+      ColorDesignProject,
+      ColorProjectColor,
+    ]),
   ],
   controllers: [ColorController],
   providers: [ColorService],

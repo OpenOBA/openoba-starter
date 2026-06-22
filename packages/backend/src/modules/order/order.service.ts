@@ -56,10 +56,10 @@ export class OrderService {
 
   // ===== 状态机常量（供 CRUD Service 和 Controller 外部引用） =====
   static readonly VALID_TRANSITIONS: Record<string, string[]> = {
-    [ORDER_STATUS.pending]:   [ORDER_STATUS.confirmed, ORDER_STATUS.cancelled],
+    [ORDER_STATUS.pending]: [ORDER_STATUS.confirmed, ORDER_STATUS.cancelled],
     [ORDER_STATUS.confirmed]: [ORDER_STATUS.paid, ORDER_STATUS.cancelled],
-    [ORDER_STATUS.paid]:      [ORDER_STATUS.shipped, ORDER_STATUS.cancelled],
-    [ORDER_STATUS.shipped]:   [ORDER_STATUS.delivered, ORDER_STATUS.cancelled],
+    [ORDER_STATUS.paid]: [ORDER_STATUS.shipped, ORDER_STATUS.cancelled],
+    [ORDER_STATUS.shipped]: [ORDER_STATUS.delivered, ORDER_STATUS.cancelled],
     [ORDER_STATUS.delivered]: [ORDER_STATUS.completed],
     [ORDER_STATUS.completed]: [],
     [ORDER_STATUS.cancelled]: [],
@@ -73,7 +73,8 @@ export class OrderService {
     @InjectRepository(OrderShipment) private shipRepo: Repository<OrderShipment>,
     @InjectRepository(OrderLog) private logRepo: Repository<OrderLog>,
     @InjectRepository(CustomerLens) private customerLensRepo: Repository<CustomerLens>,
-    @InjectRepository(CustomerConsumptionProfile) private customerConsumptionProfileRepo: Repository<CustomerConsumptionProfile>,
+    @InjectRepository(CustomerConsumptionProfile)
+    private customerConsumptionProfileRepo: Repository<CustomerConsumptionProfile>,
     @InjectRepository(Customer) private customerRepo: Repository<Customer>,
     @InjectRepository(MemberLevelLog) private memberLevelLogRepo: Repository<MemberLevelLog>,
     @InjectRepository(MemberLevel) private memberLevelRepo: Repository<MemberLevel>,

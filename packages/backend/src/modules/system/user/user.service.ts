@@ -66,7 +66,7 @@ export class UserService {
 
     // 🚀 自动创建 Sub Agent（ERA-Chat 可见）
     try {
-      const roleNames = (saved.roles || []).map(r => r.roleName).join('、') || '未分配'
+      const roleNames = (saved.roles || []).map((r) => r.roleName).join('、') || '未分配'
       const roleCode = (saved.roles || [])[0]?.roleCode || ''
       await this.agentManifestService.register({
         agentCode: `user-${saved.userId}`,
@@ -75,7 +75,8 @@ export class UserService {
         securityClearance: this.mapRoleToClearance(roleCode),
         userId: saved.userId,
       })
-    } catch (_e: unknown) { const e = _e as Error
+    } catch (_e: unknown) {
+      const e = _e as Error
       // Sub Agent 创建失败不阻塞用户创建
       console.warn(`⚠️ Sub Agent 创建失败: ${e.message}`)
     }
@@ -102,12 +103,12 @@ export class UserService {
   async findAll(page = 1, pageSize = 20, keyword?: string, status?: string) {
     // 分两步查询，避免 TypeORM ManyToMany + leftJoinAndSelect + orderBy bug
     // Bug: createOrderByCombinedWithSelectExpression cannot resolve join alias
-    const query = this.userRepository
-      .createQueryBuilder('u')
-      .where('u.is_deleted = :deleted', { deleted: false })
+    const query = this.userRepository.createQueryBuilder('u').where('u.is_deleted = :deleted', { deleted: false })
 
     if (keyword) {
-      query.andWhere('(u.username LIKE :kw OR u.real_name LIKE :kw OR u.email LIKE :kw OR u.phone LIKE :kw)', { kw: `%${keyword}%` })
+      query.andWhere('(u.username LIKE :kw OR u.real_name LIKE :kw OR u.email LIKE :kw OR u.phone LIKE :kw)', {
+        kw: `%${keyword}%`,
+      })
     }
     if (status) {
       query.andWhere('u.status = :status', { status })
@@ -120,14 +121,16 @@ export class UserService {
       .getManyAndCount()
 
     // 单独加载每个用户的角色
-    const userIds = list.map(u => u.userId)
+    const userIds = list.map((u) => u.userId)
     if (userIds.length > 0) {
       const usersWithRoles = await this.userRepository.find({
-        where: userIds.map(id => ({ userId: id, isDeleted: false })),
+        where: userIds.map((id) => ({ userId: id, isDeleted: false })),
         relations: ['roles'],
       })
-      const roleMap = new Map(usersWithRoles.map(u => [u.userId, u.roles]))
-      list.forEach(u => { (u as unknown as { roles?: string[] }).roles = (roleMap.get(u.userId) || []) as unknown as string[] })
+      const roleMap = new Map(usersWithRoles.map((u) => [u.userId, u.roles]))
+      list.forEach((u) => {
+        ;(u as unknown as { roles?: string[] }).roles = (roleMap.get(u.userId) || []) as unknown as string[]
+      })
     }
 
     // 去除 passwordHash
@@ -185,7 +188,8 @@ export class UserService {
     // 🚀 联动 suspend 对应的 Sub Agent
     try {
       await this.agentManifestService.updateStatusByCode(`user-${id}`, 'inactive')
-    } catch (_e: unknown) { const e = _e as Error
+    } catch (_e: unknown) {
+      const e = _e as Error
       console.warn(`⚠️ Sub Agent 挂起失败: ${e.message}`)
     }
     return { message: '用户已删除' }
@@ -204,7 +208,8 @@ export class UserService {
     try {
       const agentStatus = user.status === 'active' ? 'active' : 'inactive'
       await this.agentManifestService.updateStatusByCode(`user-${id}`, agentStatus)
-    } catch (_e: unknown) { const e = _e as Error
+    } catch (_e: unknown) {
+      const e = _e as Error
       console.warn(`⚠️ Agent 状态联动失败: ${e.message}`)
     }
     return this.findOne(id)

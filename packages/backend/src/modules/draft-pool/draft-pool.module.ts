@@ -16,7 +16,20 @@ import { ProductSku } from '../product/entity/product-sku.entity'
 import { StructureStandard } from '../structure/entity/structure-standard.entity'
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Draft, DraftSpu, DraftSku, DraftBatch, DraftPublishBatch, AdvisoryReport, DraftTask, ProductSpu, ProductSku, StructureStandard])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Draft,
+      DraftSpu,
+      DraftSku,
+      DraftBatch,
+      DraftPublishBatch,
+      AdvisoryReport,
+      DraftTask,
+      ProductSpu,
+      ProductSku,
+      StructureStandard,
+    ]),
+  ],
   controllers: [DraftPoolController, DraftController],
   providers: [DraftPoolService, DraftService],
   exports: [DraftPoolService, DraftService],

@@ -1,4 +1,13 @@
-import { Entity, PrimaryColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm'
+import {
+  Entity,
+  PrimaryColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Index,
+} from 'typeorm'
 import { Customer } from './customer.entity'
 
 @Entity('vision_prescription')
@@ -8,7 +17,7 @@ export class VisionPrescription {
   @PrimaryColumn('varchar', { name: 'prescription_id', length: 36 })
   prescriptionId: string
 
-  @Column('varchar', {comment: 'customer ID',  name: 'customer_id', length: 36 })
+  @Column('varchar', { comment: 'customer ID', name: 'customer_id', length: 36 })
   customerId: string
 
   @ManyToOne(() => Customer, { onDelete: 'CASCADE' })
@@ -49,7 +58,12 @@ export class VisionPrescription {
   pdValue: number | null
 
   // 处方来源
-  @Column('varchar', { name: 'source_type', length: 32, nullable: true, comment: 'manual_upload / ocr / api_optometry' })
+  @Column('varchar', {
+    name: 'source_type',
+    length: 32,
+    nullable: true,
+    comment: 'manual_upload / ocr / api_optometry',
+  })
   sourceType: string | null
 
   // 日期

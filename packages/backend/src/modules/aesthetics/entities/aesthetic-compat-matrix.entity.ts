@@ -17,13 +17,13 @@ export class AestheticCompatMatrix {
   @Index()
   dimB: string
 
-  @Column({ comment: '兼容性',  length: 16 })
+  @Column({ comment: '兼容性', length: 16 })
   compatibility: string
 
-  @Column({ comment: '原因',  type: 'text', nullable: true })
+  @Column({ comment: '原因', type: 'text', nullable: true })
   reason: string
 
-  @Column({ comment: '权重',  type: 'decimal', precision: 5, scale: 2, default: 1.0 })
+  @Column({ comment: '权重', type: 'decimal', precision: 5, scale: 2, default: 1.0 })
   weight: number
 
   @CreateDateColumn({ name: 'created_at' })

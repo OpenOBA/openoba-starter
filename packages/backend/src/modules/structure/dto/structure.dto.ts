@@ -1,4 +1,15 @@
-import { IsString, IsOptional, IsNumber, IsEnum, IsBoolean, Min, Max, IsArray, ValidateNested, ArrayMinSize } from 'class-validator'
+import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsEnum,
+  IsBoolean,
+  Min,
+  Max,
+  IsArray,
+  ValidateNested,
+  ArrayMinSize,
+} from 'class-validator'
 import { Type } from 'class-transformer'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { STRUCT_STATUS } from '../../../common/system-status'

@@ -56,7 +56,9 @@ describe('DraftService', () => {
     it('should create a draft', async () => {
       draftRepo.create.mockImplementation((d: any) => ({ ...d, draftNo: 'D-001', draftId: 'd1' }))
       const result = await service.create({
-        title: 'New Draft', type: 'spu', source: 'manual',
+        title: 'New Draft',
+        type: 'spu',
+        source: 'manual',
       } as any)
       expect(result).toBeDefined()
       expect(draftRepo.save).toHaveBeenCalled()

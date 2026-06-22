@@ -21,7 +21,10 @@ export class ProductSpuService {
 
   async findSpus(query: any) {
     const { page = 1, pageSize = 20, keyword, categoryId, status, seriesCode, gender, sceneTag, productTier } = query
-    const qb = this.spuRepo.createQueryBuilder('s').leftJoinAndSelect('s.category', 'cat').where('s.isDeleted = :del', { del: false })
+    const qb = this.spuRepo
+      .createQueryBuilder('s')
+      .leftJoinAndSelect('s.category', 'cat')
+      .where('s.isDeleted = :del', { del: false })
     if (keyword) qb.andWhere('(s.spu_name LIKE :kw OR s.spu_code LIKE :kw)', { kw: `%${keyword}%` })
     if (categoryId) qb.andWhere('cat.categoryId = :cid', { cid: categoryId })
     if (status) qb.andWhere('s.status = :st', { st: status })
@@ -30,7 +33,10 @@ export class ProductSpuService {
     if (sceneTag) qb.andWhere('JSON_CONTAINS(s.scene_tags, :st)', { st: JSON.stringify(sceneTag) })
     if (productTier) qb.andWhere('s.product_tier = :tier', { tier: productTier })
     qb.orderBy('s.createdAt', 'DESC')
-    const [items, total] = await qb.skip((page - 1) * pageSize).take(pageSize).getManyAndCount()
+    const [items, total] = await qb
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .getManyAndCount()
     return { items, total }
   }
 
@@ -74,7 +80,7 @@ export class ProductSpuService {
     }
     if (gender) item.gender = gender
     if (categoryId !== undefined) {
-      item.category = categoryId ? { categoryId } as unknown as ProductCategory : undefined
+      item.category = categoryId ? ({ categoryId } as unknown as ProductCategory) : undefined
     }
     if (seriesCode !== undefined) item.seriesCode = seriesCode
     if (sceneTags !== undefined) item.sceneTags = sceneTags

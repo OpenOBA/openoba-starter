@@ -7,7 +7,7 @@ export class PointsTransaction {
   @PrimaryColumn('varchar', { name: 'txn_id', length: 36 })
   txnId: string
 
-  @Column('varchar', {comment: 'customer ID',  name: 'customer_id', length: 36 })
+  @Column('varchar', { comment: 'customer ID', name: 'customer_id', length: 36 })
   customerId: string
 
   @Column('int', { comment: '正数=获得，负数=消耗' })

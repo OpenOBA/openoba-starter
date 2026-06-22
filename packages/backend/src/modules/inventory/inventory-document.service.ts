@@ -92,7 +92,9 @@ export class InventoryDocumentService {
         sku.availableQuantity += item.quantity
       } else if (doc.docType === 'stock_out') {
         if (sku.availableQuantity < item.quantity) {
-          throw new BadRequestException(`${item.skuCode} 可用库存不足（可用${sku.availableQuantity}，需要${item.quantity}）`)
+          throw new BadRequestException(
+            `${item.skuCode} 可用库存不足（可用${sku.availableQuantity}，需要${item.quantity}）`,
+          )
         }
         sku.currentQuantity -= item.quantity
         sku.availableQuantity -= item.quantity

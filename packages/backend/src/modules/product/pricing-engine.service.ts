@@ -126,13 +126,20 @@ export class PricingEngineService {
           const erdlPrice = typeof erdlResult.result === 'number' ? erdlResult.result : retailPrice
           this.logger.log(`[Pricing] ERDL rule matched: ${erdlResult.ruleName} → ¥${erdlPrice.toFixed(2)}`)
           return this.buildResult(
-            retailPrice, erdlPrice, costPrice,
-            `erdl:${erdlResult.ruleName}`, null, warnings,
-            sku.structureStandardCode, sku.productTier || null,
+            retailPrice,
+            erdlPrice,
+            costPrice,
+            `erdl:${erdlResult.ruleName}`,
+            null,
+            warnings,
+            sku.structureStandardCode,
+            sku.productTier || null,
           )
         }
       } catch (error) {
-        this.logger.warn(`[Pricing] ERDL rule evaluation failed, falling back to hardcoded logic: ${(error as Error).message}`)
+        this.logger.warn(
+          `[Pricing] ERDL rule evaluation failed, falling back to hardcoded logic: ${(error as Error).message}`,
+        )
       }
     }
 
@@ -154,7 +161,10 @@ export class PricingEngineService {
     warnings: string[],
   ): Promise<PriceResult> {
     const ctx: PriceContext = {
-      sku, retailPrice, costPrice, minPrice,
+      sku,
+      retailPrice,
+      costPrice,
+      minPrice,
       customerId: req.customerId,
       customerType: req.customerType,
       quantity: req.quantity,
@@ -178,9 +188,14 @@ export class PricingEngineService {
     const floorCheck = this.strategies.applyFloorCheck(result.finalPrice, minPrice, costPrice, warnings)
 
     return this.buildResult(
-      retailPrice, floorCheck.finalPrice, costPrice,
-      result.discountReason, result.discountRefId, warnings,
-      sku.structureStandardCode, sku.productTier || null,
+      retailPrice,
+      floorCheck.finalPrice,
+      costPrice,
+      result.discountReason,
+      result.discountRefId,
+      warnings,
+      sku.structureStandardCode,
+      sku.productTier || null,
     )
   }
 
@@ -197,7 +212,10 @@ export class PricingEngineService {
     warnings: string[],
   ): Promise<PriceResult> {
     const ctx: PriceContext = {
-      sku, retailPrice, costPrice, minPrice,
+      sku,
+      retailPrice,
+      costPrice,
+      minPrice,
       customerId: req.customerId,
       customerType: req.customerType,
       quantity: req.quantity,
@@ -239,7 +257,12 @@ export class PricingEngineService {
 
     // ===== Step 3: 优惠券 =====
     const couponResult = await this.strategies.applyCoupon(
-      bestBasePrice, bestPromo, discountReason, discountRefId, ctx, now,
+      bestBasePrice,
+      bestPromo,
+      discountReason,
+      discountRefId,
+      ctx,
+      now,
     )
     bestBasePrice = couponResult.finalPrice
     discountReason = couponResult.discountReason
@@ -257,9 +280,14 @@ export class PricingEngineService {
     const floorCheck = this.strategies.applyFloorCheck(finalPrice, minPrice, costPrice, warnings)
 
     return this.buildResult(
-      retailPrice, floorCheck.finalPrice, costPrice,
-      discountReason, discountRefId, warnings,
-      sku.structureStandardCode, sku.productTier || null,
+      retailPrice,
+      floorCheck.finalPrice,
+      costPrice,
+      discountReason,
+      discountRefId,
+      warnings,
+      sku.structureStandardCode,
+      sku.productTier || null,
     )
   }
 

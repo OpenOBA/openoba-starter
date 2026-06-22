@@ -4,7 +4,13 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, Like } from 'typeorm'
 import { SubSku } from './entity/sub-sku.entity'
 import { SubSkuCategory } from './entity/sub-sku-category.entity'
-import { CreateSubSkuDto, UpdateSubSkuDto, CreateSubSkuCategoryDto, UpdateSubSkuCategoryDto, QuerySubSkuDto } from './dto/sub-sku.dto'
+import {
+  CreateSubSkuDto,
+  UpdateSubSkuDto,
+  CreateSubSkuCategoryDto,
+  UpdateSubSkuCategoryDto,
+  QuerySubSkuDto,
+} from './dto/sub-sku.dto'
 import { v4 as uuidv4 } from 'uuid'
 
 @Injectable()
@@ -59,7 +65,8 @@ export class SubSkuService {
     if (query.categoryId) where.categoryId = query.categoryId
     if (query.isActive !== undefined) where.isActive = query.isActive
 
-    const qb = this.subSkuRepo.createQueryBuilder('sku')
+    const qb = this.subSkuRepo
+      .createQueryBuilder('sku')
       .leftJoinAndSelect('sku.category', 'category')
       .orderBy('sku.sort_order', 'ASC')
 
@@ -149,11 +156,11 @@ export class SubSkuService {
     const map = new Map<string, any>()
     const roots: any[] = []
 
-    categories.forEach(c => {
+    categories.forEach((c) => {
       map.set(c.id, { ...c, children: [] })
     })
 
-    categories.forEach(c => {
+    categories.forEach((c) => {
       const node = map.get(c.id)!
       if (c.parentId && map.has(c.parentId)) {
         map.get(c.parentId)!.children.push(node)

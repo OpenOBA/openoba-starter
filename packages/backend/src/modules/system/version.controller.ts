@@ -40,7 +40,14 @@ export class VersionController {
     }
 
     // 完全离线：静默降级，不触发更新提示
-    return { hasUpdate: false, currentVersion: cur, latestVersion: cur, downloadUrl: null, channel: 'offline', deployMode }
+    return {
+      hasUpdate: false,
+      currentVersion: cur,
+      latestVersion: cur,
+      downloadUrl: null,
+      channel: 'offline',
+      deployMode,
+    }
   }
 
   /**
@@ -61,29 +68,38 @@ export class VersionController {
   private fetchFromOfficial(current: string): Promise<any> {
     return new Promise((resolve, reject) => {
       const url = `https://openoba.com/api/v1/update?current=${encodeURIComponent(current)}&product=core`
-      const req = httpsRequest(url, {
-        timeout: TIMEOUT.VERSION_CHECK,
-        headers: { 'Accept': 'application/json', 'User-Agent': 'OpenOBA-Core' },
-      }, (res) => {
-        let data = ''
-        res.on('data', (c: Buffer) => (data += c.toString()))
-        res.on('end', () => {
-          try {
-            const j = JSON.parse(data)
-            resolve({
-              hasUpdate: j.hasUpdate ?? false,
-              currentVersion: current,
-              latestVersion: j.latestVersion ?? null,
-              changelog: j.changelog ?? null,
-              downloadUrl: j.downloadUrl ?? null,
-              publishedAt: j.publishedAt ?? null,
-              channel: 'official',
-            })
-          } catch { resolve(null) }
-        })
-      })
+      const req = httpsRequest(
+        url,
+        {
+          timeout: TIMEOUT.VERSION_CHECK,
+          headers: { Accept: 'application/json', 'User-Agent': 'OpenOBA-Core' },
+        },
+        (res) => {
+          let data = ''
+          res.on('data', (c: Buffer) => (data += c.toString()))
+          res.on('end', () => {
+            try {
+              const j = JSON.parse(data)
+              resolve({
+                hasUpdate: j.hasUpdate ?? false,
+                currentVersion: current,
+                latestVersion: j.latestVersion ?? null,
+                changelog: j.changelog ?? null,
+                downloadUrl: j.downloadUrl ?? null,
+                publishedAt: j.publishedAt ?? null,
+                channel: 'official',
+              })
+            } catch {
+              resolve(null)
+            }
+          })
+        },
+      )
       req.on('error', reject)
-      req.on('timeout', () => { req.destroy(); reject(new Error('timeout')) })
+      req.on('timeout', () => {
+        req.destroy()
+        reject(new Error('timeout'))
+      })
       req.end()
     })
   }
@@ -94,30 +110,39 @@ export class VersionController {
   private fetchFromGitHub(current: string): Promise<any> {
     return new Promise((resolve, reject) => {
       const url = 'https://api.github.com/repos/openoba/core/releases/latest'
-      const req = httpsRequest(url, {
-        timeout: TIMEOUT.VERSION_CHECK,
-        headers: { 'Accept': 'application/vnd.github+json', 'User-Agent': 'OpenOBA-Core' },
-      }, (res) => {
-        let data = ''
-        res.on('data', (c: Buffer) => (data += c.toString()))
-        res.on('end', () => {
-          try {
-            const release = JSON.parse(data)
-            const latest = (release.tag_name || '').replace(/^v/, '')
-            resolve({
-              hasUpdate: this.isNewerVersion(latest, current.replace(/^v/, '')),
-              currentVersion: current,
-              latestVersion: latest || null,
-              changelog: release.body || null,
-              downloadUrl: release.html_url || null,
-              publishedAt: release.published_at || null,
-              channel: 'github',
-            })
-          } catch { resolve(null) }
-        })
-      })
+      const req = httpsRequest(
+        url,
+        {
+          timeout: TIMEOUT.VERSION_CHECK,
+          headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'OpenOBA-Core' },
+        },
+        (res) => {
+          let data = ''
+          res.on('data', (c: Buffer) => (data += c.toString()))
+          res.on('end', () => {
+            try {
+              const release = JSON.parse(data)
+              const latest = (release.tag_name || '').replace(/^v/, '')
+              resolve({
+                hasUpdate: this.isNewerVersion(latest, current.replace(/^v/, '')),
+                currentVersion: current,
+                latestVersion: latest || null,
+                changelog: release.body || null,
+                downloadUrl: release.html_url || null,
+                publishedAt: release.published_at || null,
+                channel: 'github',
+              })
+            } catch {
+              resolve(null)
+            }
+          })
+        },
+      )
       req.on('error', reject)
-      req.on('timeout', () => { req.destroy(); reject(new Error('timeout')) })
+      req.on('timeout', () => {
+        req.destroy()
+        reject(new Error('timeout'))
+      })
       req.end()
     })
   }

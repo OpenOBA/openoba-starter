@@ -54,16 +54,16 @@ export type DeltaStatus =
  * 2. pending_staging → code_review → on_staging
  */
 export const TRANSITIONS: Record<DeltaStatus, DeltaStatus[]> = {
-  pending_staging:   ['deploying_staging', 'discarded'],
+  pending_staging: ['deploying_staging', 'discarded'],
   deploying_staging: ['on_staging', 'failed'],
-  on_staging:        ['verifying', 'failed', 'discarded'],
-  verifying:         ['verified', 'failed'],
-  verified:          ['promoting', 'discarded'],  // 用户也可能放弃已验证的变更
-  failed:            ['pending_staging', 'discarded'],  // 反馈后可重新申请测试，或放弃
-  promoting:         ['promoted', 'failed'],
-  promoted:          ['rolled_back'],  // 仅支持回滚
-  rolled_back:       [],               // 终态
-  discarded:         [],               // 终态
+  on_staging: ['verifying', 'failed', 'discarded'],
+  verifying: ['verified', 'failed'],
+  verified: ['promoting', 'discarded'], // 用户也可能放弃已验证的变更
+  failed: ['pending_staging', 'discarded'], // 反馈后可重新申请测试，或放弃
+  promoting: ['promoted', 'failed'],
+  promoted: ['rolled_back'], // 仅支持回滚
+  rolled_back: [], // 终态
+  discarded: [], // 终态
 }
 
 /**
@@ -74,12 +74,12 @@ export const TRANSITIONS: Record<DeltaStatus, DeltaStatus[]> = {
  * 在对应状态的数组中添加 { action, label, confirmText }
  */
 export interface DeltaAction {
-  action: string       // API 调用名: 'apply_staging' | 'test_passed' | 'test_failed' | 'apply_promote' | 'discard' | 'rollback'
-  label: string        // 按钮文案
+  action: string // API 调用名: 'apply_staging' | 'test_passed' | 'test_failed' | 'apply_promote' | 'discard' | 'rollback'
+  label: string // 按钮文案
   type: 'primary' | 'success' | 'warning' | 'danger' | 'default'
   confirmText?: string // 点击后需要二次确认的文案（空 = 无需确认）
   inputRequired?: boolean // 是否需要用户输入文字（如反馈问题）
-  inputLabel?: string     // 输入框的 placeholder
+  inputLabel?: string // 输入框的 placeholder
 }
 
 export function getAvailableActions(status: DeltaStatus): DeltaAction[] {
@@ -87,21 +87,47 @@ export function getAvailableActions(status: DeltaStatus): DeltaAction[] {
     case 'pending_staging':
       return [
         { action: 'apply_staging', label: '📤 申请测试', type: 'primary' },
-        { action: 'discard', label: '🗑 放弃变更', type: 'default', confirmText: '确认放弃此变更？所有未提交的代码修改将被丢弃。' },
+        {
+          action: 'discard',
+          label: '🗑 放弃变更',
+          type: 'default',
+          confirmText: '确认放弃此变更？所有未提交的代码修改将被丢弃。',
+        },
       ]
     case 'on_staging':
       return [
-        { action: 'test_passed', label: '✅ 测试通过，申请上线', type: 'success', confirmText: '确认测试通过？将进入上线审批流程。' },
-        { action: 'test_failed', label: '❌ 测试未通过', type: 'danger', inputRequired: true, inputLabel: '请描述测试发现的问题...' },
+        {
+          action: 'test_passed',
+          label: '✅ 测试通过，申请上线',
+          type: 'success',
+          confirmText: '确认测试通过？将进入上线审批流程。',
+        },
+        {
+          action: 'test_failed',
+          label: '❌ 测试未通过',
+          type: 'danger',
+          inputRequired: true,
+          inputLabel: '请描述测试发现的问题...',
+        },
       ]
     case 'verified':
       return [
-        { action: 'apply_promote', label: '🚀 确认发布到生产', type: 'danger', confirmText: '即将发布到生产环境。当前在线用户可能短暂受到影响。确认发布？' },
+        {
+          action: 'apply_promote',
+          label: '🚀 确认发布到生产',
+          type: 'danger',
+          confirmText: '即将发布到生产环境。当前在线用户可能短暂受到影响。确认发布？',
+        },
         { action: 'discard', label: '取消发布', type: 'default' },
       ]
     case 'promoted':
       return [
-        { action: 'rollback', label: '⏪ 回滚此版本', type: 'warning', confirmText: '确认回滚到上一版本？生产环境将重启。数据库 nullable 字段不受影响。' },
+        {
+          action: 'rollback',
+          label: '⏪ 回滚此版本',
+          type: 'warning',
+          confirmText: '确认回滚到上一版本？生产环境将重启。数据库 nullable 字段不受影响。',
+        },
       ]
     case 'failed':
       return [
@@ -118,16 +144,16 @@ export function getAvailableActions(status: DeltaStatus): DeltaAction[] {
  */
 export function getStatusInfo(status: DeltaStatus): { label: string; color: string; icon: string } {
   const map: Record<DeltaStatus, { label: string; color: string; icon: string }> = {
-    pending_staging:   { label: '待申请测试', color: '#909399', icon: '⏳' },
+    pending_staging: { label: '待申请测试', color: '#909399', icon: '⏳' },
     deploying_staging: { label: '部署中...', color: '#e6a23c', icon: '🔄' },
-    on_staging:        { label: '测试中', color: '#409eff', icon: '🧪' },
-    verifying:         { label: '验收中...', color: '#e6a23c', icon: '🔍' },
-    verified:          { label: '待上线审批', color: '#67c23a', icon: '✅' },
-    failed:            { label: '测试未通过', color: '#f56c6c', icon: '❌' },
-    promoting:         { label: '发布中...', color: '#e6a23c', icon: '🚀' },
-    promoted:          { label: '已上线', color: '#67c23a', icon: '🎉' },
-    rolled_back:       { label: '已回滚', color: '#f56c6c', icon: '⏪' },
-    discarded:         { label: '已放弃', color: '#c0c4cc', icon: '🗑' },
+    on_staging: { label: '测试中', color: '#409eff', icon: '🧪' },
+    verifying: { label: '验收中...', color: '#e6a23c', icon: '🔍' },
+    verified: { label: '待上线审批', color: '#67c23a', icon: '✅' },
+    failed: { label: '测试未通过', color: '#f56c6c', icon: '❌' },
+    promoting: { label: '发布中...', color: '#e6a23c', icon: '🚀' },
+    promoted: { label: '已上线', color: '#67c23a', icon: '🎉' },
+    rolled_back: { label: '已回滚', color: '#f56c6c', icon: '⏪' },
+    discarded: { label: '已放弃', color: '#c0c4cc', icon: '🗑' },
   }
   return map[status]
 }

@@ -1,4 +1,13 @@
-import { Entity, PrimaryColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm'
+import {
+  Entity,
+  PrimaryColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Index,
+} from 'typeorm'
 import { Customer } from './customer.entity'
 
 @Entity('customer_address')
@@ -8,7 +17,7 @@ export class CustomerAddress {
   @PrimaryColumn('varchar', { name: 'address_id', length: 36 })
   addressId: string
 
-  @Column('varchar', {comment: 'customer ID',  name: 'customer_id', length: 36 })
+  @Column('varchar', { comment: 'customer ID', name: 'customer_id', length: 36 })
   customerId: string
 
   @ManyToOne(() => Customer, (c) => c.addresses)

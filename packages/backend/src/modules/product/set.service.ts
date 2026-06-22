@@ -6,13 +6,14 @@ import { ProductSet } from './entity/product-set.entity'
 
 @Injectable()
 export class SetService {
-  constructor(
-    @InjectRepository(ProductSet) private setRepo: Repository<ProductSet>,
-  ) {}
+  constructor(@InjectRepository(ProductSet) private setRepo: Repository<ProductSet>) {}
 
   async findSets(query: any) {
     const { page = 1, pageSize = 20, keyword, status, categoryId } = query
-    const qb = this.setRepo.createQueryBuilder('s').leftJoinAndSelect('s.category', 'cat').where('s.isDeleted = :del', { del: false })
+    const qb = this.setRepo
+      .createQueryBuilder('s')
+      .leftJoinAndSelect('s.category', 'cat')
+      .where('s.isDeleted = :del', { del: false })
     if (keyword) qb.andWhere('(s.set_name LIKE :kw OR s.set_code LIKE :kw)', { kw: `%${keyword}%` })
     if (status) qb.andWhere('s.status = :st', { st: status })
     if (categoryId) qb.andWhere('s.category_id = :cid', { cid: categoryId })

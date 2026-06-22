@@ -29,19 +29,24 @@ export class AuditLogController {
     @Query('endTime') endTime?: string,
   ) {
     return this.auditService.findAll({
-      page, pageSize, actorType, actorId, category,
-      dataDomain, sensitivity, exportTarget, result,
-      startTime, endTime,
+      page,
+      pageSize,
+      actorType,
+      actorId,
+      category,
+      dataDomain,
+      sensitivity,
+      exportTarget,
+      result,
+      startTime,
+      endTime,
     })
   }
 
   @Get('agent-summary')
   @Roles('admin', 'super_admin')
   @ApiOperation({ summary: 'Agent 行为摘要（近 N 天按类别聚合）' })
-  async getAgentSummary(
-    @Query('agentId') agentId: string,
-    @Query('days') days?: number,
-  ) {
+  async getAgentSummary(@Query('agentId') agentId: string, @Query('days') days?: number) {
     return this.auditService.getAgentSummary(agentId, days)
   }
 }

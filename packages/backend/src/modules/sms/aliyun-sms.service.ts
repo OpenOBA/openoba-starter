@@ -30,9 +30,11 @@ export class AliyunSmsService {
     this.accessKeySecret = process.env.ALIYUN_SMS_ACCESS_KEY_SECRET || ''
     this.signName = process.env.ALIYUN_SMS_SIGN_NAME || ''
     this.templateCode = process.env.ALIYUN_SMS_TEMPLATE_CODE_LOGIN || ''
-    
+
     if (!this.accessKeyId || !this.accessKeySecret) {
-      this.logger.warn('⚠️ 阿里云短信服务未配置（ALIYUN_SMS_ACCESS_KEY_ID / ALIYUN_SMS_ACCESS_KEY_SECRET 为空），短信功能不可用')
+      this.logger.warn(
+        '⚠️ 阿里云短信服务未配置（ALIYUN_SMS_ACCESS_KEY_ID / ALIYUN_SMS_ACCESS_KEY_SECRET 为空），短信功能不可用',
+      )
     }
     if (!this.signName) {
       this.logger.warn('⚠️ ALIYUN_SMS_SIGN_NAME 未设置')
@@ -91,7 +93,9 @@ export class AliyunSmsService {
 
     // 签名
     const sortedKeys = Object.keys(params).sort()
-    const canonicalQueryString = sortedKeys.map((k) => `${this.percentEncode(k)}=${this.percentEncode(params[k])}`).join('&')
+    const canonicalQueryString = sortedKeys
+      .map((k) => `${this.percentEncode(k)}=${this.percentEncode(params[k])}`)
+      .join('&')
 
     const stringToSign = `POST&%2F&${this.percentEncode(canonicalQueryString)}`
     const signature = crypto

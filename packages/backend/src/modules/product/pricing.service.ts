@@ -239,7 +239,8 @@ export class PricingService {
   // ====== 会员定价规则 CRUD ======
 
   async findAllMemberPricingRules(query: QueryMemberPricingRuleDto) {
-    const qb = this.memberPricingRuleRepo.createQueryBuilder('r')
+    const qb = this.memberPricingRuleRepo
+      .createQueryBuilder('r')
       .leftJoinAndSelect('r.memberLevel', 'ml')
       .orderBy('r.levelCode', 'ASC')
       .addOrderBy('r.priority', 'DESC')

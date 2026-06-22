@@ -51,7 +51,8 @@ export class CustomerService {
     @InjectRepository(CustomerTierPricing) private pricingRepo: Repository<CustomerTierPricing>,
     @InjectRepository(VisionPrescription) private prescriptionRepo: Repository<VisionPrescription>,
     @InjectRepository(CustomerLens) private customerLensRepo: Repository<CustomerLens>,
-    @InjectRepository(CustomerConsumptionProfile) private consumptionProfileRepo: Repository<CustomerConsumptionProfile>,
+    @InjectRepository(CustomerConsumptionProfile)
+    private consumptionProfileRepo: Repository<CustomerConsumptionProfile>,
     @InjectRepository(MemberLevelLog) private memberLevelLogRepo: Repository<MemberLevelLog>,
     @InjectRepository(PointsTransaction) private pointsTxnRepo: Repository<PointsTransaction>,
     @InjectRepository(Order) private orderRepo: Repository<Order>,
@@ -79,7 +80,10 @@ export class CustomerService {
     return this.crudService.create(dto)
   }
 
-  async update(id: string, dto: UpdateCustomerDto & { wechatId?: string; referralSource?: string; preferredStyle?: string }) {
+  async update(
+    id: string,
+    dto: UpdateCustomerDto & { wechatId?: string; referralSource?: string; preferredStyle?: string },
+  ) {
     return this.crudService.update(id, dto)
   }
 
@@ -253,7 +257,11 @@ export class CustomerService {
   }
 
   async getMemberAnalytics(query: {
-    page?: number; pageSize?: number; level?: string; keyword?: string; sortBy?: string;
+    page?: number
+    pageSize?: number
+    level?: string
+    keyword?: string
+    sortBy?: string
   }) {
     return this.memberService.getMemberAnalytics(query)
   }

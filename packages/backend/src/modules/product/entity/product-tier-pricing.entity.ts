@@ -6,22 +6,22 @@ export class ProductTierPricing {
   @PrimaryColumn('varchar', { name: 'tier_id', length: 36 })
   tierId: string
 
-  @Column('varchar', {comment: 'tier 名称',  name: 'tier_name', length: 32 })
+  @Column('varchar', { comment: 'tier 名称', name: 'tier_name', length: 32 })
   tierName: string
 
-  @Column('varchar', {comment: 'tier 编码',  name: 'tier_code', length: 16, unique: true })
+  @Column('varchar', { comment: 'tier 编码', name: 'tier_code', length: 16, unique: true })
   tierCode: string
 
-  @Column('varchar', {comment: '定位',  name: 'positioning', length: 256, nullable: true })
+  @Column('varchar', { comment: '定位', name: 'positioning', length: 256, nullable: true })
   positioning?: string
 
-  @Column({ comment: '是否启用',  name: 'is_active', default: true })
+  @Column({ comment: '是否启用', name: 'is_active', default: true })
   isActive: boolean
 
-  @Column({ comment: '扩展数据JSON',  name: 'extra', type: 'json', nullable: true })
+  @Column({ comment: '扩展数据JSON', name: 'extra', type: 'json', nullable: true })
   extra?: Record<string, any>
 
-  @Column({ comment: '排序序号',  name: 'sort_order', type: 'int', default: 0 })
+  @Column({ comment: '排序序号', name: 'sort_order', type: 'int', default: 0 })
   sortOrder: number
 
   @CreateDateColumn({ name: 'created_at' })

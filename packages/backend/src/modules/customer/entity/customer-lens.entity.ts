@@ -1,5 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
-import { Entity, PrimaryColumn, Column, ManyToOne, OneToMany, JoinColumn, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm'
+import {
+  Entity,
+  PrimaryColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Index,
+} from 'typeorm'
 import { Customer } from './customer.entity'
 import { VisionPrescription } from './vision-prescription.entity'
 import { CustomerConsumptionProfile } from './customer-consumption-profile.entity'
@@ -11,7 +21,7 @@ export class CustomerLens {
   @PrimaryColumn('varchar', { name: 'customer_lens_id', length: 36 })
   customerLensId: string
 
-  @Column('varchar', {comment: 'customer ID',  name: 'customer_id', length: 36 })
+  @Column('varchar', { comment: 'customer ID', name: 'customer_id', length: 36 })
   customerId: string
 
   @ManyToOne(() => Customer, { onDelete: 'CASCADE' })

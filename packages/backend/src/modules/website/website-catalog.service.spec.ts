@@ -26,7 +26,11 @@ function mockRepo() {
     getRawMany: jest.fn().mockResolvedValue([]),
     where: jest.fn().mockReturnThis(),
   }
-  return { createQueryBuilder: jest.fn().mockReturnValue(qb), find: jest.fn().mockResolvedValue([]), findOne: jest.fn().mockResolvedValue(null) }
+  return {
+    createQueryBuilder: jest.fn().mockReturnValue(qb),
+    find: jest.fn().mockResolvedValue([]),
+    findOne: jest.fn().mockResolvedValue(null),
+  }
 }
 
 describe('WebsiteCatalogService', () => {
@@ -50,7 +54,9 @@ describe('WebsiteCatalogService', () => {
     service = module.get<WebsiteCatalogService>(WebsiteCatalogService)
   })
 
-  it('should be defined', () => { expect(service).toBeDefined() })
+  it('should be defined', () => {
+    expect(service).toBeDefined()
+  })
 
   describe('getCatalog', () => {
     it('should return paginated catalog', async () => {

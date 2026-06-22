@@ -17,7 +17,8 @@ export class CustomerLensService {
   constructor(
     @InjectRepository(VisionPrescription) private prescriptionRepo: Repository<VisionPrescription>,
     @InjectRepository(CustomerLens) private customerLensRepo: Repository<CustomerLens>,
-    @InjectRepository(CustomerConsumptionProfile) private consumptionProfileRepo: Repository<CustomerConsumptionProfile>,
+    @InjectRepository(CustomerConsumptionProfile)
+    private consumptionProfileRepo: Repository<CustomerConsumptionProfile>,
     private dataSource: DataSource,
   ) {}
 
@@ -26,10 +27,13 @@ export class CustomerLensService {
     const id = `rx-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 6)}`
     return this.prescriptionRepo.save(
       this.prescriptionRepo.create({
-        ...dto, prescriptionId: id, customerId,
+        ...dto,
+        prescriptionId: id,
+        customerId,
         prescriptionDate: dto.prescriptionDate ? new Date(dto.prescriptionDate) : null,
         expireDate: dto.expireDate ? new Date(dto.expireDate) : null,
-        isDeleted: false, ocrVerified: false,
+        isDeleted: false,
+        ocrVerified: false,
       }),
     )
   }
@@ -50,9 +54,12 @@ export class CustomerLensService {
     const id = `cl-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 6)}`
     return this.customerLensRepo.save(
       this.customerLensRepo.create({
-        ...dto, customerLensId: id, customerId,
+        ...dto,
+        customerLensId: id,
+        customerId,
         purchaseDate: dto.purchaseDate ? new Date(dto.purchaseDate) : null,
-        status: CUSTOMER_STATUS[0], isDeleted: false,
+        status: CUSTOMER_STATUS[0],
+        isDeleted: false,
       }),
     )
   }
@@ -88,10 +95,23 @@ export class CustomerLensService {
         return {
           customerLensId: l.customerLensId,
           structureStandardCode: l.structureStandardCode,
-          structureStandard: std ? { externalCode: std.external_code, shapeCode: std.shape_code, width: std.width, height: std.height, surfaceType: std.surface_type, refractiveIndex: std.refractive_index } : null,
-          status: l.status, prescriptionId: l.prescriptionId,
+          structureStandard: std
+            ? {
+                externalCode: std.external_code,
+                shapeCode: std.shape_code,
+                width: std.width,
+                height: std.height,
+                surfaceType: std.surface_type,
+                refractiveIndex: std.refractive_index,
+              }
+            : null,
+          status: l.status,
+          prescriptionId: l.prescriptionId,
           prescriptionLabel: l.prescription?.label || null,
-          purchaseDate: l.purchaseDate, orderId: l.orderId, frameCount: 0, createdAt: l.createdAt,
+          purchaseDate: l.purchaseDate,
+          orderId: l.orderId,
+          frameCount: 0,
+          createdAt: l.createdAt,
         }
       }),
     }
@@ -109,19 +129,27 @@ export class CustomerLensService {
     const id = `cp-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 6)}`
     return this.consumptionProfileRepo.save(
       this.consumptionProfileRepo.create({
-        ...dto, consumptionProfileId: id, customerLensId,
+        ...dto,
+        consumptionProfileId: id,
+        customerLensId,
         purchaseDate: dto.purchaseDate ? new Date(dto.purchaseDate) : null,
-        useStatus: dto.useStatus || CUSTOMER_STATUS[0], isDeleted: false,
+        useStatus: dto.useStatus || CUSTOMER_STATUS[0],
+        isDeleted: false,
       }),
     )
   }
 
   async getConsumptionProfiles(customerLensId: string) {
-    return this.consumptionProfileRepo.find({ where: { customerLensId, isDeleted: false }, order: { createdAt: 'DESC' } })
+    return this.consumptionProfileRepo.find({
+      where: { customerLensId, isDeleted: false },
+      order: { createdAt: 'DESC' },
+    })
   }
 
   async removeConsumptionProfile(id: string) {
-    const existing = await this.consumptionProfileRepo.findOne({ where: { consumptionProfileId: id, isDeleted: false } })
+    const existing = await this.consumptionProfileRepo.findOne({
+      where: { consumptionProfileId: id, isDeleted: false },
+    })
     if (!existing) throw new NotFoundException(`消费档案 ${id} 不存在`)
     existing.isDeleted = true
     return this.consumptionProfileRepo.save(existing)

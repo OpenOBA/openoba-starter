@@ -14,13 +14,13 @@ export class AestheticFeedback {
   @Index()
   action: string
 
-  @Column({ comment: 'SKU上下文JSON',  name: 'sku_context', type: 'json', nullable: true })
+  @Column({ comment: 'SKU上下文JSON', name: 'sku_context', type: 'json', nullable: true })
   skuContext: any
 
-  @Column({ comment: 'SPU上下文JSON',  name: 'spu_context', type: 'json', nullable: true })
+  @Column({ comment: 'SPU上下文JSON', name: 'spu_context', type: 'json', nullable: true })
   spuContext: any
 
-  @Column({ comment: '操作备注',  name: 'operator_note', type: 'text', nullable: true })
+  @Column({ comment: '操作备注', name: 'operator_note', type: 'text', nullable: true })
   operatorNote: string | null
 
   @CreateDateColumn({ name: 'created_at' })

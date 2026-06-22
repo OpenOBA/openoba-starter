@@ -16,5 +16,7 @@ describe('RuleEngineService', () => {
     }).compile()
     service = m.get<RuleEngineService>(RuleEngineService)
   })
-  it('should be defined', () => { expect(service).toBeDefined() })
+  it('should be defined', () => {
+    expect(service).toBeDefined()
+  })
 })

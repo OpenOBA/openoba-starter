@@ -1,5 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
-import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards, Get, Request, Logger, Req, UnauthorizedException, OnModuleDestroy } from '@nestjs/common'
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+  Get,
+  Request,
+  Logger,
+  Req,
+  UnauthorizedException,
+  OnModuleDestroy,
+} from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { IsString, IsNotEmpty, MinLength, MaxLength } from 'class-validator'
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger'
@@ -29,12 +42,15 @@ export class AuthController implements OnModuleDestroy {
 
   constructor(private authService: AuthService) {
     // P1修复：定期清理过期登录尝试记录（每10分钟），防止内存泄漏
-    this.cleanupTimer = setInterval(() => {
-      const now = Date.now()
-      for (const [key, attempt] of this.loginAttempts) {
-        if (attempt.lockUntil < now) this.loginAttempts.delete(key)
-      }
-    }, 10 * 60 * 1000)
+    this.cleanupTimer = setInterval(
+      () => {
+        const now = Date.now()
+        for (const [key, attempt] of this.loginAttempts) {
+          if (attempt.lockUntil < now) this.loginAttempts.delete(key)
+        }
+      },
+      10 * 60 * 1000,
+    )
   }
 
   onModuleDestroy() {
@@ -83,7 +99,7 @@ export class AuthController implements OnModuleDestroy {
     // Pro 版由 License 文件解锁（待实现 License 验证）
     const maxChatUsers = 2
     const activeUserCount = await this.authService.countActiveUsers()
-    if (activeUserCount > maxChatUsers && !await this.authService.isUserActive(user.userId)) {
+    if (activeUserCount > maxChatUsers && !(await this.authService.isUserActive(user.userId))) {
       throw new UnauthorizedException(`基础版仅支持 ${maxChatUsers} 个用户使用 Agent 功能。请联系我们升级到 Pro 版。`)
     }
 

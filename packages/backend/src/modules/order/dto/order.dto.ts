@@ -76,9 +76,9 @@ export class UpdateOrderDto {
 }
 
 export class UpdateOrderStatusDto {
-  @ApiProperty({ enum: ['pending','paid','processing','shipped','completed','cancelled','returned'] })
+  @ApiProperty({ enum: ['pending', 'paid', 'processing', 'shipped', 'completed', 'cancelled', 'returned'] })
   @IsString()
-  @IsIn(['pending','paid','processing','shipped','completed','cancelled','returned'])
+  @IsIn(['pending', 'paid', 'processing', 'shipped', 'completed', 'cancelled', 'returned'])
   status: string
   @ApiPropertyOptional() @IsOptional() @IsString() remark?: string
   @ApiPropertyOptional() @IsOptional() @IsString() operator?: string

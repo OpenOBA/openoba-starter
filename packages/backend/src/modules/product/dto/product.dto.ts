@@ -1,4 +1,17 @@
-import { IsString, IsOptional, IsNotEmpty, IsNumber, IsBoolean, IsEnum, IsArray, IsInt, Min, Max, IsIn, ValidateNested } from 'class-validator'
+import {
+  IsString,
+  IsOptional,
+  IsNotEmpty,
+  IsNumber,
+  IsBoolean,
+  IsEnum,
+  IsArray,
+  IsInt,
+  Min,
+  Max,
+  IsIn,
+  ValidateNested,
+} from 'class-validator'
 import { Transform } from 'class-transformer'
 import { Type } from 'class-transformer'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
@@ -163,7 +176,10 @@ export class UpdateSkuDto {
   @ApiPropertyOptional() @IsOptional() @IsString() lensStandardCode?: string
   @ApiPropertyOptional() @IsOptional() @IsString() skuCode?: string
   @ApiPropertyOptional() @IsOptional() @IsString() skuName?: string
-  @ApiPropertyOptional({ description: '更新色彩时传入，非空则触发展示名重新生成' }) @IsOptional() @IsString() colorCode?: string
+  @ApiPropertyOptional({ description: '更新色彩时传入，非空则触发展示名重新生成' })
+  @IsOptional()
+  @IsString()
+  colorCode?: string
   @ApiPropertyOptional() @IsOptional() @IsString() structureStandardCode?: string
   @ApiPropertyOptional() @IsOptional() @IsString() productTier?: string
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Type(() => Number) warningQuantity?: number

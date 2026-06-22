@@ -15,11 +15,11 @@ import { generateInternalBarcode, generateTransitionalEAN13 } from './utils/barc
 import { NamingEngine, SkuNameInput } from './utils/naming-engine'
 
 // Helper types for where clauses with snake_case columns not matching TypeORM's camelCase entity
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+
 interface SkuWhere extends FindOptionsWhere<ProductSku> {
   skuBarcode?: string
 }
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+
 interface StructWhere extends FindOptionsWhere<StructureStandard> {
   internalCode?: string
   externalCode?: string
@@ -57,13 +57,17 @@ export class ProductSkuService {
       .leftJoinAndSelect('s.color', 'c')
       .where('s.isDeleted = :del', { del: false })
     if (spuId) qb.andWhere('s.spu_id = :sid', { sid: spuId })
-    if (keyword) qb.andWhere('(s.sku_name LIKE :kw OR s.sku_code LIKE :kw OR s.sku_barcode LIKE :kw)', { kw: `%${keyword}%` })
+    if (keyword)
+      qb.andWhere('(s.sku_name LIKE :kw OR s.sku_code LIKE :kw OR s.sku_barcode LIKE :kw)', { kw: `%${keyword}%` })
     if (status) qb.andWhere('s.status = :st', { st: status })
     if (skuBarcode) qb.andWhere('s.sku_barcode = :sb', { sb: skuBarcode })
     if (ean13) qb.andWhere('s.ean13 = :e', { e: ean13 })
     if (productTier) qb.andWhere('s.product_tier = :tier', { tier: productTier })
     qb.orderBy('s.createdAt', 'DESC')
-    const [items, total] = await qb.skip((page - 1) * pageSize).take(pageSize).getManyAndCount()
+    const [items, total] = await qb
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .getManyAndCount()
     return { items, total }
   }
 
@@ -75,40 +79,40 @@ export class ProductSkuService {
 
   async createSku(dto: any) {
     try {
-    const { spuId, colorCode, ...rest } = dto
-    if (!spuId) throw new BadRequestException('spuId 不能为空')
-    // V3.0: colorCode 为必填字段
-    if (!colorCode) throw new BadRequestException('SKU 色彩为必填项（V3.0）')
-    const spu = await this.spuRepo.findOne({ where: { spuId, isDeleted: false } })
-    if (!spu) throw new BadRequestException('SPU 不存在')
+      const { spuId, colorCode, ...rest } = dto
+      if (!spuId) throw new BadRequestException('spuId 不能为空')
+      // V3.0: colorCode 为必填字段
+      if (!colorCode) throw new BadRequestException('SKU 色彩为必填项（V3.0）')
+      const spu = await this.spuRepo.findOne({ where: { spuId, isDeleted: false } })
+      if (!spu) throw new BadRequestException('SPU 不存在')
 
-    rest.spuId = spuId
-    rest.skuCode = await this.generateSkuCode(spu.spuCode)
-    rest.skuBarcode = generateInternalBarcode(rest.skuCode, '')
+      rest.spuId = spuId
+      rest.skuCode = await this.generateSkuCode(spu.spuCode)
+      rest.skuBarcode = generateInternalBarcode(rest.skuCode, '')
 
-    if (!rest.productTier) {
-      const typedSpu = spu as Partial<ProductSpu> & { productTier?: string }
-      rest.productTier = typedSpu.productTier || 'color'
-    }
+      if (!rest.productTier) {
+        const typedSpu = spu as Partial<ProductSpu> & { productTier?: string }
+        rest.productTier = typedSpu.productTier || 'color'
+      }
 
-    const rec = await this.getEffectRecommendation(colorCode)
-    if (rec) {
-      if (!rest.skinToneEffect) rest.skinToneEffect = rec.skinToneEffect
-      if (!rest.faceShapeEffect) rest.faceShapeEffect = rec.faceShapeEffect
-    }
+      const rec = await this.getEffectRecommendation(colorCode)
+      if (rec) {
+        if (!rest.skinToneEffect) rest.skinToneEffect = rec.skinToneEffect
+        if (!rest.faceShapeEffect) rest.faceShapeEffect = rec.faceShapeEffect
+      }
 
-    if (colorCode) rest.colorCode = colorCode
+      if (colorCode) rest.colorCode = colorCode
 
-    const sku = this.skuRepo.create(rest)
-    const saved = (await this.skuRepo.save(sku)) as unknown as ProductSku
+      const sku = this.skuRepo.create(rest)
+      const saved = (await this.skuRepo.save(sku)) as unknown as ProductSku
 
-    // V3.0: 自动生成展示名
-    const displayName = await this.generateSkuDisplayName({ ...rest, spu })
-    if (displayName && displayName !== '??? · ???系列') {
-      await this.skuRepo.update(saved.skuId, { skuName: displayName })
-    }
+      // V3.0: 自动生成展示名
+      const displayName = await this.generateSkuDisplayName({ ...rest, spu })
+      if (displayName && displayName !== '??? · ???系列') {
+        await this.skuRepo.update(saved.skuId, { skuName: displayName })
+      }
 
-    return this.findOneSku(saved.skuId)
+      return this.findOneSku(saved.skuId)
     } catch (err: unknown) {
       const e = err as Error
       this.logger.error(`createSku failed: ${e?.message}`, e?.stack)
@@ -127,13 +131,13 @@ export class ProductSkuService {
       const newSpu = await this.spuRepo.findOne({ where: { spuId, isDeleted: false } })
       if (!newSpu) throw new BadRequestException('切换的 SPU 不存在')
       rest.skuCode = await this.generateSkuCode(newSpu.spuCode)
-      delete rest.skuBarcode  // 旧条码也需废弃
+      delete rest.skuBarcode // 旧条码也需废弃
       item.spuId = spuId
       item.spu = newSpu
     }
 
     if (colorCode) {
-      (item as Partial<ProductSku> & { colorCode?: string }).colorCode = colorCode
+      ;(item as Partial<ProductSku> & { colorCode?: string }).colorCode = colorCode
       dto.colorCode = colorCode
     }
 
@@ -213,7 +217,11 @@ export class ProductSkuService {
   async generateSkuDisplayName(skuData: any): Promise<string> {
     const spu = skuData.spu || (await this.spuRepo.findOne({ where: { spuId: skuData.spuId } }))
     if (!spu) return '??? · ???系列'
-    const typedSpu = spu as Partial<ProductSpu> & { structureStandardCode?: string; seriesCode?: string; gender?: string }
+    const typedSpu = spu as Partial<ProductSpu> & {
+      structureStandardCode?: string
+      seriesCode?: string
+      gender?: string
+    }
     const { structureStandardCode, seriesCode, gender } = typedSpu
     const { colorCode, skinToneEffect, faceShapeEffect } = skuData
 
@@ -242,7 +250,9 @@ export class ProductSkuService {
     return NamingEngine.generateSkuName(input)
   }
 
-  async getEffectRecommendation(colorCode: string): Promise<{ skinToneEffect: string; faceShapeEffect: string } | null> {
+  async getEffectRecommendation(
+    colorCode: string,
+  ): Promise<{ skinToneEffect: string; faceShapeEffect: string } | null> {
     const rec = await this.effectRecRepo.findOne({
       where: { colorCode, isPrimary: true },
       order: { sortOrder: 'ASC' },

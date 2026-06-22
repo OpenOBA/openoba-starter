@@ -1,8 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import { Controller, Get, Post, Put, Body, Param, Query, UseGuards } from '@nestjs/common'
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger'
 import { AfterSalesService } from './after-sales.service'
-import { CreateAfterSalesDto, ReviewAfterSalesDto, ProcessAfterSalesDto, UpdateAfterSalesDto } from './dto/after-sales.dto'
+import {
+  CreateAfterSalesDto,
+  ReviewAfterSalesDto,
+  ProcessAfterSalesDto,
+  UpdateAfterSalesDto,
+} from './dto/after-sales.dto'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { Roles } from '../../common/decorators/roles.decorator'
 import { MCPCapable } from '../../common/decorators/mcp-capable.decorator'
@@ -24,7 +28,12 @@ export class AfterSalesController {
 
   @Get()
   @ApiOperation({ summary: '售后列表（分页+筛选）' })
-  @MCPCapable({ tool: 'aftersales.list', description: '查询售后申请列表（支持分页+多条件筛选）', category: 'aftersales', readOnly: true })
+  @MCPCapable({
+    tool: 'aftersales.list',
+    description: '查询售后申请列表（支持分页+多条件筛选）',
+    category: 'aftersales',
+    readOnly: true,
+  })
   findAll(
     @Query('page') page = 1,
     @Query('pageSize') pageSize = 20,
@@ -80,7 +89,11 @@ export class AfterSalesController {
 
   @Post(':id/process')
   @ApiOperation({ summary: '流程处理（收货/退款/关闭/重新打开）' })
-  @MCPCapable({ tool: 'aftersales.process', description: '售后流程处理（收货/退款/关闭/重开）', category: 'aftersales' })
+  @MCPCapable({
+    tool: 'aftersales.process',
+    description: '售后流程处理（收货/退款/关闭/重开）',
+    category: 'aftersales',
+  })
   process(@Param('id') id: string, @Body() dto: ProcessAfterSalesDto) {
     return this.afterSalesService.process(id, dto)
   }

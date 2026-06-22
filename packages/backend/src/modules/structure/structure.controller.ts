@@ -29,7 +29,7 @@ import { MCPCapable } from '../../common/decorators/mcp-capable.decorator'
 import { diskStorage } from 'multer'
 import { extname, join } from 'path'
 import { existsSync, mkdirSync } from 'fs'
-import { Roles } from '../../common/decorators/roles.decorator';
+import { Roles } from '../../common/decorators/roles.decorator'
 
 // 文件上传配置 — 2D/3D/CAD 全覆盖
 const UPLOAD_DIR = join(process.cwd(), 'uploads', 'structure')
@@ -113,7 +113,13 @@ export class StructureController {
 
   @Get(':id')
   @ApiOperation({ summary: '结构标准详情' })
-  @MCPCapable({ tool: 'structure.detail', description: '查询结构标准详情', category: 'product', readOnly: true, industryScoped: true })
+  @MCPCapable({
+    tool: 'structure.detail',
+    description: '查询结构标准详情',
+    category: 'product',
+    readOnly: true,
+    industryScoped: true,
+  })
   async findOne(@Param('id') id: string) {
     return this.structureService.findOne(id)
   }
@@ -164,7 +170,11 @@ export class StructureController {
       type: 'object',
       required: ['file'],
       properties: {
-        file: { type: 'string', format: 'binary', description: '文件（JPG/PNG/GIF/WEBP/SVG/PDF/DWG/DXF/STL/STP/STEP/OBJ/FBX/IGES/3MF）' },
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: '文件（JPG/PNG/GIF/WEBP/SVG/PDF/DWG/DXF/STL/STP/STEP/OBJ/FBX/IGES/3MF）',
+        },
         description: { type: 'string', description: '附件说明' },
         isPublic: { type: 'boolean', description: '是否公开', default: false },
         sortOrder: { type: 'number', description: '排序', default: 0 },

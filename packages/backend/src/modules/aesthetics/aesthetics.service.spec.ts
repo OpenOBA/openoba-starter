@@ -7,7 +7,11 @@ import { AestheticCompatMatrix } from './entities/aesthetic-compat-matrix.entity
 import { AestheticFeedback } from './entities/aesthetic-feedback.entity'
 
 function mockRepo() {
-  return { find: jest.fn().mockResolvedValue([]), save: jest.fn((e: unknown) => Promise.resolve(e)), findOne: jest.fn().mockResolvedValue(null) }
+  return {
+    find: jest.fn().mockResolvedValue([]),
+    save: jest.fn((e: unknown) => Promise.resolve(e)),
+    findOne: jest.fn().mockResolvedValue(null),
+  }
 }
 
 describe('AestheticsService', () => {

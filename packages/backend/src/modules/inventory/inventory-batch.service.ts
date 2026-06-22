@@ -88,7 +88,9 @@ export class InventoryBatchService {
     if (params.status) qb.andWhere('d.status = :status', { status: params.status })
     if (params.docType) qb.andWhere('d.docType = :docType', { docType: params.docType })
 
-    qb.orderBy('d.createdAt', 'DESC').skip((page - 1) * pageSize).take(pageSize)
+    qb.orderBy('d.createdAt', 'DESC')
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
     const [items, total] = await qb.getManyAndCount()
     return { items, total, page, pageSize }
   }
@@ -100,12 +102,18 @@ export class InventoryBatchService {
   /**
    * FIFO 分配 — 按入库时间最早的批次优先扣减
    */
-  async allocateFIFO(skuCode: string, quantity: number, warehouseCode = 'WH-MAIN'): Promise<{ skuCode: string; quantity: number; batches: { batchId: string; quantity: number }[] }> {
+  async allocateFIFO(
+    skuCode: string,
+    quantity: number,
+    warehouseCode = 'WH-MAIN',
+  ): Promise<{ skuCode: string; quantity: number; batches: { batchId: string; quantity: number }[] }> {
     const transactions = await this.transactionRepo
       .createQueryBuilder('t')
       .where('t.skuCode = :skuCode', { skuCode })
       .andWhere('t.warehouseCode = :wc', { wc: warehouseCode })
-      .andWhere('t.transactionType IN (:...types)', { types: [TransactionType.STOCK_IN, TransactionType.INITIAL, TransactionType.RETURN_IN] })
+      .andWhere('t.transactionType IN (:...types)', {
+        types: [TransactionType.STOCK_IN, TransactionType.INITIAL, TransactionType.RETURN_IN],
+      })
       .andWhere('t.quantity > 0')
       .orderBy('t.createdAt', 'ASC') // FIFO: 最早入库优先
       .getMany()
@@ -116,12 +124,18 @@ export class InventoryBatchService {
   /**
    * LIFO 分配 — 按入库时间最晚的批次优先扣减
    */
-  async allocateLIFO(skuCode: string, quantity: number, warehouseCode = 'WH-MAIN'): Promise<{ skuCode: string; quantity: number; batches: { batchId: string; quantity: number }[] }> {
+  async allocateLIFO(
+    skuCode: string,
+    quantity: number,
+    warehouseCode = 'WH-MAIN',
+  ): Promise<{ skuCode: string; quantity: number; batches: { batchId: string; quantity: number }[] }> {
     const transactions = await this.transactionRepo
       .createQueryBuilder('t')
       .where('t.skuCode = :skuCode', { skuCode })
       .andWhere('t.warehouseCode = :wc', { wc: warehouseCode })
-      .andWhere('t.transactionType IN (:...types)', { types: [TransactionType.STOCK_IN, TransactionType.INITIAL, TransactionType.RETURN_IN] })
+      .andWhere('t.transactionType IN (:...types)', {
+        types: [TransactionType.STOCK_IN, TransactionType.INITIAL, TransactionType.RETURN_IN],
+      })
       .andWhere('t.quantity > 0')
       .orderBy('t.createdAt', 'DESC') // LIFO: 最晚入库优先
       .getMany()
@@ -222,7 +236,9 @@ export class InventoryBatchService {
       sku.availableQuantity += item.quantity
     } else if (doc.docType === 'stock_out') {
       if (sku.availableQuantity < item.quantity) {
-        throw new BadRequestException(`${item.skuCode} 可用库存不足（可用${sku.availableQuantity}，需要${item.quantity}）`)
+        throw new BadRequestException(
+          `${item.skuCode} 可用库存不足（可用${sku.availableQuantity}，需要${item.quantity}）`,
+        )
       }
       sku.currentQuantity -= item.quantity
       sku.availableQuantity -= item.quantity

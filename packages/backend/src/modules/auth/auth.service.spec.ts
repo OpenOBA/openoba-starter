@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- Jest mock 生态刚需 */
 import { Test, TestingModule } from '@nestjs/testing'
 import { getRepositoryToken } from '@nestjs/typeorm'
 import { JwtService } from '@nestjs/jwt'
@@ -37,8 +36,12 @@ describe('AuthService', () => {
     it('should return user on valid credentials', async () => {
       const hash = await bcrypt.hash('password', 10)
       userRepo.findOne.mockResolvedValue({
-        userId: 'u1', username: 'admin', realName: 'Admin', status: 'active',
-        passwordHash: hash, roles: [{ roleCode: 'admin' }],
+        userId: 'u1',
+        username: 'admin',
+        realName: 'Admin',
+        status: 'active',
+        passwordHash: hash,
+        roles: [{ roleCode: 'admin' }],
       })
 
       const result = await service.validateUser('admin', 'password')
@@ -50,7 +53,9 @@ describe('AuthService', () => {
     it('should return null on wrong password', async () => {
       const hash = await bcrypt.hash('password', 10)
       userRepo.findOne.mockResolvedValue({
-        userId: 'u1', passwordHash: hash, roles: [],
+        userId: 'u1',
+        passwordHash: hash,
+        roles: [],
       })
 
       const result = await service.validateUser('admin', 'wrong')
@@ -67,7 +72,10 @@ describe('AuthService', () => {
   describe('login', () => {
     it('should return access token', async () => {
       const result = await service.login({
-        userId: 'u1', username: 'admin', realName: 'Admin', roles: ['admin'],
+        userId: 'u1',
+        username: 'admin',
+        realName: 'Admin',
+        roles: ['admin'],
       })
       expect(result.accessToken).toBe('jwt-token')
       expect(result.user.username).toBe('admin')
@@ -86,7 +94,9 @@ describe('AuthService', () => {
   describe('getProfile', () => {
     it('should return user profile', async () => {
       userRepo.findOne.mockResolvedValue({
-        userId: 'u1', username: 'admin', realName: 'Admin',
+        userId: 'u1',
+        username: 'admin',
+        realName: 'Admin',
         roles: [{ roleCode: 'admin', roleName: '管理员' }],
       })
       const result = await service.getProfile('u1')

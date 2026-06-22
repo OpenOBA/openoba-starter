@@ -226,7 +226,13 @@ export class RuleEngineService {
     return recs
   }
 
-  private checkMatrix(matrixType: string, dimA: string, dimB: string, rule: AestheticRule, targetCompat: string): RuleResult | null {
+  private checkMatrix(
+    matrixType: string,
+    dimA: string,
+    dimB: string,
+    rule: AestheticRule,
+    targetCompat: string,
+  ): RuleResult | null {
     if (!dimA || !dimB) return null
 
     const dimAMap = this.matricesCache.get(matrixType)

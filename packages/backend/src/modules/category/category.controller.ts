@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger'
 import { CategoryService } from './category.service'
 import { CreateCategoryDto, UpdateCategoryDto, BatchSortDto } from './category.dto'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
-import { Roles } from '../../common/decorators/roles.decorator';
+import { Roles } from '../../common/decorators/roles.decorator'
 
 @ApiTags('分类管理')
 @ApiBearerAuth()

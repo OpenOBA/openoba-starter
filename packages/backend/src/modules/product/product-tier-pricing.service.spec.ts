@@ -21,15 +21,14 @@ describe('ProductTierPricingService', () => {
   beforeEach(async () => {
     repo = mockRepo()
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ProductTierPricingService,
-        { provide: getRepositoryToken(ProductTierPricing), useValue: repo },
-      ],
+      providers: [ProductTierPricingService, { provide: getRepositoryToken(ProductTierPricing), useValue: repo }],
     }).compile()
     service = module.get<ProductTierPricingService>(ProductTierPricingService)
   })
 
-  it('should be defined', () => { expect(service).toBeDefined() })
+  it('should be defined', () => {
+    expect(service).toBeDefined()
+  })
 
   it('should find all', async () => {
     const result = await service.findAll()

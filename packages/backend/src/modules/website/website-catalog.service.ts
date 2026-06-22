@@ -10,7 +10,14 @@ import { DictFrameType } from '../product/entity/dict-frame-type.entity'
 import { DictNosePad } from '../product/entity/dict-nose-pad.entity'
 import { DictHinge } from '../product/entity/dict-hinge.entity'
 import { DictSurfaceTreatment } from '../product/entity/dict-surface-treatment.entity'
-import { SpuDetailDto, SkuDetailDto, SearchResultDto, PaginatedResponse, SpuCardDto, WebsiteImageDto } from './website.dto'
+import {
+  SpuDetailDto,
+  SkuDetailDto,
+  SearchResultDto,
+  PaginatedResponse,
+  SpuCardDto,
+  WebsiteImageDto,
+} from './website.dto'
 import { PRODUCT_STATUS, SKU_STATUS } from '../product/product.constants'
 
 // ============================================================
@@ -140,7 +147,7 @@ export class WebsiteCatalogService {
       const sales = salesMap[sku.skuId] || 0
       totalSales += sales
       const inv = invMap[sku.skuId]
-      const availableQty = (inv as Record<string, unknown> | undefined)?.availableQuantity as number ?? 0
+      const availableQty = ((inv as Record<string, unknown> | undefined)?.availableQuantity as number) ?? 0
       const stockStatus = helpers.getStockStatus(availableQty)
       if (stockStatus === 'in_stock') hasStock = true
       if (stockStatus === 'low_stock') hasLowStock = true
@@ -179,8 +186,8 @@ export class WebsiteCatalogService {
       spuId: spu.spuId,
       spuCode: spu.spuCode,
       spuName: spu.spuName,
-      categoryName: (spu.category as Record<string, unknown> | undefined)?.categoryName as string || '',
-      categoryId: (spu.category as Record<string, unknown> | undefined)?.categoryId as string || '',
+      categoryName: ((spu.category as Record<string, unknown> | undefined)?.categoryName as string) || '',
+      categoryId: ((spu.category as Record<string, unknown> | undefined)?.categoryId as string) || '',
       gender: spu.gender,
       sceneTags: spu.sceneTags || [],
       description: spu.description || '',
@@ -216,7 +223,10 @@ export class WebsiteCatalogService {
       .createQueryBuilder('s')
       .leftJoin('s.category', 'cat')
       .where('s.isDeleted = :del', { del: false })
-      .andWhere('(s.spu_name LIKE :kw OR s.description LIKE :kw OR s.spu_code LIKE :kw OR cat.category_name LIKE :kw)', { kw })
+      .andWhere(
+        '(s.spu_name LIKE :kw OR s.description LIKE :kw OR s.spu_code LIKE :kw OR cat.category_name LIKE :kw)',
+        { kw },
+      )
       .orderBy('s.updatedAt', 'DESC')
       .limit(50)
       .getMany()
@@ -230,7 +240,10 @@ export class WebsiteCatalogService {
       .limit(5)
       .getRawMany()
 
-    const suggestions = [...colorSuggestions.map((c: Record<string, unknown>) => c.color_name as string), keyword.trim()].slice(0, 8)
+    const suggestions = [
+      ...colorSuggestions.map((c: Record<string, unknown>) => c.color_name as string),
+      keyword.trim(),
+    ].slice(0, 8)
 
     return {
       products: cards.slice(0, pageSize),
@@ -239,18 +252,28 @@ export class WebsiteCatalogService {
     }
   }
 
-  private buildTechSpec(sku: any, matMap: Map<string, unknown>, typeMap: Map<string, unknown>, noseMap: Map<string, unknown>, hingeMap: Map<string, unknown>, surfMap: Map<string, unknown>) {
+  private buildTechSpec(
+    sku: any,
+    matMap: Map<string, unknown>,
+    typeMap: Map<string, unknown>,
+    noseMap: Map<string, unknown>,
+    hingeMap: Map<string, unknown>,
+    surfMap: Map<string, unknown>,
+  ) {
     const sizeLabelFormatted =
-      sku.lensWidth && sku.bridgeWidth && sku.templeLength ? `${sku.lensWidth}□${sku.bridgeWidth}-${sku.templeLength}` : ''
+      sku.lensWidth && sku.bridgeWidth && sku.templeLength
+        ? `${sku.lensWidth}□${sku.bridgeWidth}-${sku.templeLength}`
+        : ''
 
-    const mat = sku.frameMaterial ? matMap.get(sku.frameMaterial) as Record<string, unknown> | undefined : null
-    const ft = sku.frameType ? typeMap.get(sku.frameType) as Record<string, unknown> | undefined : null
-    const np = sku.nosePadType ? noseMap.get(sku.nosePadType) as Record<string, unknown> | undefined : null
-    const hg = sku.hingeType ? hingeMap.get(sku.hingeType) as Record<string, unknown> | undefined : null
-    const st = sku.surfaceTreatment ? surfMap.get(sku.surfaceTreatment) as Record<string, unknown> | undefined : null
+    const mat = sku.frameMaterial ? (matMap.get(sku.frameMaterial) as Record<string, unknown> | undefined) : null
+    const ft = sku.frameType ? (typeMap.get(sku.frameType) as Record<string, unknown> | undefined) : null
+    const np = sku.nosePadType ? (noseMap.get(sku.nosePadType) as Record<string, unknown> | undefined) : null
+    const hg = sku.hingeType ? (hingeMap.get(sku.hingeType) as Record<string, unknown> | undefined) : null
+    const st = sku.surfaceTreatment ? (surfMap.get(sku.surfaceTreatment) as Record<string, unknown> | undefined) : null
 
     const weight = sku.weightG as number | undefined
-    const weightLabel = weight == null ? '' : weight < 15 ? '超轻' : weight < 25 ? '轻盈' : weight < 35 ? '标准' : '偏重'
+    const weightLabel =
+      weight == null ? '' : weight < 15 ? '超轻' : weight < 25 ? '轻盈' : weight < 35 ? '标准' : '偏重'
 
     const faceShapeMap: Record<string, string> = {
       round: '圆脸',
@@ -260,7 +283,9 @@ export class WebsiteCatalogService {
       heart: '心形脸',
       oblong: '长脸',
     }
-    const faceShapes = Array.isArray(sku.suitableFaceShapes) ? sku.suitableFaceShapes.map((s: string) => faceShapeMap[s] || s) : []
+    const faceShapes = Array.isArray(sku.suitableFaceShapes)
+      ? sku.suitableFaceShapes.map((s: string) => faceShapeMap[s] || s)
+      : []
 
     const displayParams = {
       sizeLabel: sizeLabelFormatted,

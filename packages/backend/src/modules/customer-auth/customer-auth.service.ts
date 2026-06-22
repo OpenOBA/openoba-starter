@@ -1,4 +1,11 @@
-import { Injectable, BadRequestException, NotFoundException, UnauthorizedException, Logger, Inject } from '@nestjs/common'
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  UnauthorizedException,
+  Logger,
+  Inject,
+} from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { InjectRepository, InjectDataSource } from '@nestjs/typeorm'
 import { Repository, DataSource } from 'typeorm'
@@ -304,9 +311,7 @@ export class CustomerAuthService {
     // P0修复(C03)：Token 不通过 API 明文返回，生产环境通过短信发送
     const isDev = process.env.APP_ENV === 'development'
     return {
-      message: isDev
-        ? '重置 Token 已生成（开发模式：Token 直接返回）'
-        : '密码重置链接已发送至您的手机，请查收短信',
+      message: isDev ? '重置 Token 已生成（开发模式：Token 直接返回）' : '密码重置链接已发送至您的手机，请查收短信',
       ...(isDev ? { token } : {}),
     }
   }
@@ -485,9 +490,7 @@ export class CustomerAuthService {
     // H07修复：生产环境PIN通过短信发送，API不返回明文
     const isDev = process.env.APP_ENV === 'development'
     return {
-      message: isDev
-        ? '密码已重置'
-        : '密码已重置，新密码已通过短信发送',
+      message: isDev ? '密码已重置' : '密码已重置，新密码已通过短信发送',
       ...(isDev ? { newPin: pin } : {}),
     }
   }

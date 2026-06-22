@@ -23,7 +23,15 @@ export function registerOrderTools(registry: ToolRegistry, orderService: OrderSe
           items: {
             type: 'array',
             description: 'Order items',
-            items: { type: 'object', description: 'Order item', properties: { skuId: { type: 'string', description: 'SKU ID' }, quantity: { type: 'number', description: 'Quantity' } }, required: ['skuId', 'quantity'] },
+            items: {
+              type: 'object',
+              description: 'Order item',
+              properties: {
+                skuId: { type: 'string', description: 'SKU ID' },
+                quantity: { type: 'number', description: 'Quantity' },
+              },
+              required: ['skuId', 'quantity'],
+            },
           },
           remark: { type: 'string', description: 'Order remark' },
         },
@@ -37,7 +45,12 @@ export function registerOrderTools(registry: ToolRegistry, orderService: OrderSe
         customerName: `Customer-${(args.customerId as string).substring(0, 8)}`,
         customerType: (args.customerType as string) || 'retail',
         items: (args.items as any[])?.map((item: any) => ({
-          productType: 'frame', productName: `SKU-${item.skuId}`, skuId: item.skuId, quantity: item.quantity, unitPrice: 0, structureStandardCode: '',
+          productType: 'frame',
+          productName: `SKU-${item.skuId}`,
+          skuId: item.skuId,
+          quantity: item.quantity,
+          unitPrice: 0,
+          structureStandardCode: '',
         })),
         remark: args.remark as string | undefined,
       }
@@ -55,7 +68,11 @@ export function registerOrderTools(registry: ToolRegistry, orderService: OrderSe
         type: 'object',
         properties: {
           customerId: { type: 'string', description: 'Customer ID' },
-          status: { type: 'string', description: 'Order status', enum: ['pending', 'paid', 'shipped', 'completed', 'cancelled'] },
+          status: {
+            type: 'string',
+            description: 'Order status',
+            enum: ['pending', 'paid', 'shipped', 'completed', 'cancelled'],
+          },
           startDate: { type: 'string', description: 'Start date YYYY-MM-DD' },
           endDate: { type: 'string', description: 'End date YYYY-MM-DD' },
           page: { type: 'number', description: 'Page number, default 1' },
@@ -80,7 +97,11 @@ export function registerOrderTools(registry: ToolRegistry, orderService: OrderSe
         type: 'object',
         properties: {
           orderId: { type: 'string', description: 'Order ID' },
-          paymentMethod: { type: 'string', description: 'Payment method', enum: ['wechat', 'alipay', 'bank_transfer', 'cash', 'other'] },
+          paymentMethod: {
+            type: 'string',
+            description: 'Payment method',
+            enum: ['wechat', 'alipay', 'bank_transfer', 'cash', 'other'],
+          },
           amount: { type: 'number', description: 'Payment amount (CNY)' },
           transactionId: { type: 'string', description: 'Transaction ID' },
         },
@@ -90,8 +111,10 @@ export function registerOrderTools(registry: ToolRegistry, orderService: OrderSe
     },
     async (args: Record<string, unknown>): Promise<ToolResult> => {
       const result = await orderService.createPayment({
-        orderId: args.orderId as string, paymentMethod: args.paymentMethod as string,
-        amount: args.amount as number, transactionId: args.transactionId as string | undefined,
+        orderId: args.orderId as string,
+        paymentMethod: args.paymentMethod as string,
+        amount: args.amount as number,
+        transactionId: args.transactionId as string | undefined,
       })
       return { success: true, data: result }
     },

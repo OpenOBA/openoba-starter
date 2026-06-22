@@ -14,22 +14,22 @@ export class ProductCategory {
   @PrimaryGeneratedColumn('uuid', { name: 'category_id' })
   categoryId: string
 
-  @Column({ comment: 'category 编码',  name: 'category_code', unique: true, length: 64 })
+  @Column({ comment: 'category 编码', name: 'category_code', unique: true, length: 64 })
   categoryCode: string
 
-  @Column({ comment: 'category 名称',  name: 'category_name', length: 128 })
+  @Column({ comment: 'category 名称', name: 'category_name', length: 128 })
   categoryName: string
 
-  @Column({ comment: '父级ID',  name: 'parent_id', length: 36, nullable: true })
+  @Column({ comment: '父级ID', name: 'parent_id', length: 36, nullable: true })
   parentId?: string
 
-  @Column({ comment: '等级',  default: 1 })
+  @Column({ comment: '等级', default: 1 })
   level: number
 
-  @Column({ comment: '排序序号',  name: 'sort_order', default: 0 })
+  @Column({ comment: '排序序号', name: 'sort_order', default: 0 })
   sortOrder: number
 
-  @Column({ comment: '是否启用',  name: 'is_active', default: true })
+  @Column({ comment: '是否启用', name: 'is_active', default: true })
   isActive: boolean
 
   @Column({ length: 64, nullable: true, comment: '图标' })

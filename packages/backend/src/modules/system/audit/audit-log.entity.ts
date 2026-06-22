@@ -1,10 +1,4 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  Index,
-} from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 'typeorm'
 
 /**
  * 全量行为审计日志
@@ -26,15 +20,15 @@ export class AuditLog {
   logId: string
 
   /** 操作者类型：human / agent / system */
-  @Column({ comment: 'actor 类型',  name: 'actor_type', length: 32 })
+  @Column({ comment: 'actor 类型', name: 'actor_type', length: 32 })
   actorType: string
 
   /** 操作者 ID（用户 ID 或 Agent ID） */
-  @Column({ comment: 'actor ID',  name: 'actor_id', length: 64 })
+  @Column({ comment: 'actor ID', name: 'actor_id', length: 64 })
   actorId: string
 
   /** 操作者名称 */
-  @Column({ comment: 'actor 名称',  name: 'actor_name', length: 128, nullable: true })
+  @Column({ comment: 'actor 名称', name: 'actor_name', length: 128, nullable: true })
   actorName: string
 
   /** 操作时间（精确到毫秒） */
@@ -43,15 +37,15 @@ export class AuditLog {
   actionTime: Date
 
   /** 操作类别：api_call / data_access / data_export / llm_call / external_api / file_access */
-  @Column({ comment: '分类',  length: 32 })
+  @Column({ comment: '分类', length: 32 })
   category: string
 
   /** 具体操作：GET /orders、calculatePrice、read customer 等 */
-  @Column({ comment: '操作',  length: 256 })
+  @Column({ comment: '操作', length: 256 })
   action: string
 
   /** 目标资源（API 路径、数据表、文件路径等） */
-  @Column({ comment: '资源',  length: 512, nullable: true })
+  @Column({ comment: '资源', length: 512, nullable: true })
   resource: string
 
   /** 操作详情（JSON） */
@@ -83,7 +77,7 @@ export class AuditLog {
   result: string
 
   /** 错误信息（如果失败） */
-  @Column({ comment: '错误信息',  name: 'error_message', type: 'text', nullable: true })
+  @Column({ comment: '错误信息', name: 'error_message', type: 'text', nullable: true })
   errorMessage: string
 
   @CreateDateColumn({ name: 'created_at' })

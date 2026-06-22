@@ -32,8 +32,14 @@ describe('CustomerAuthService', () => {
     process.env.CUSTOMER_JWT_SECRET = 'test-secret-key-for-jest'
     customerRepo = mockRepo()
     loginLogRepo = mockRepo()
-    jwtService = { sign: jest.fn().mockReturnValue('mock-token'), verify: jest.fn().mockReturnValue({ customerId: 'c1' }) }
-    smsService = { verifyCode: jest.fn().mockResolvedValue(true), sendCode: jest.fn().mockResolvedValue({ message: 'sent' }) }
+    jwtService = {
+      sign: jest.fn().mockReturnValue('mock-token'),
+      verify: jest.fn().mockReturnValue({ customerId: 'c1' }),
+    }
+    smsService = {
+      verifyCode: jest.fn().mockResolvedValue(true),
+      sendCode: jest.fn().mockResolvedValue({ message: 'sent' }),
+    }
     rateLimiter = {
       attempt: jest.fn().mockResolvedValue({ remaining: 4, lockedUntil: 0 }),
       reset: jest.fn().mockResolvedValue(undefined),
@@ -64,7 +70,9 @@ describe('CustomerAuthService', () => {
       customerRepo.save.mockImplementation((e: any) => Promise.resolve({ ...e, customerId: 'new-c1' }))
 
       const result = await service.register({
-        phone: '13800000000', password: 'Test123456', contactName: 'Tester',
+        phone: '13800000000',
+        password: 'Test123456',
+        contactName: 'Tester',
       } as any)
       expect(result).toBeDefined()
     })
@@ -72,15 +80,18 @@ describe('CustomerAuthService', () => {
     it('should throw if phone already exists', async () => {
       customerRepo.findOne.mockResolvedValue({ customerId: 'existing', phone: '13800000000' })
       // register 方法内部 catch 后返回 result 而非 throw，改为验证不返回 token
-      await expect(service.register({ phone: '13800000000', password: 'Test123456', contactName: 'T' } as any))
-        .resolves.toBeDefined()
+      await expect(
+        service.register({ phone: '13800000000', password: 'Test123456', contactName: 'T' } as any),
+      ).resolves.toBeDefined()
     })
   })
 
   describe('smsLogin', () => {
     it('should login with SMS code', async () => {
       customerRepo.findOne.mockResolvedValue({
-        customerId: 'c1', phone: '13800000000', accountStatus: 'active',
+        customerId: 'c1',
+        phone: '13800000000',
+        accountStatus: 'active',
       })
       const result = await service.smsLogin({ phone: '13800000000', code: '123456' } as any)
       expect(result).toBeDefined()
@@ -103,7 +114,7 @@ describe('CustomerAuthService', () => {
 
   describe('getLoginLogs', () => {
     it.skip('SKIP: 内部查询链创建新 queryBuilder，mock 链路复杂', async () => {
-      (loginLogRepo.find as jest.Mock).mockResolvedValue([{ id: 'l1', phone: '138' }])
+      ;(loginLogRepo.find as jest.Mock).mockResolvedValue([{ id: 'l1', phone: '138' }])
       const result = await service.getLoginLogs({} as any)
       expect(result).toHaveLength(1)
     })

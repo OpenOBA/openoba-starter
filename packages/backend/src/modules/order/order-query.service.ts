@@ -28,9 +28,7 @@ export class OrderQueryService {
   async findOrders(query: QueryOrderDto) {
     const { page = 1, pageSize = 20, keyword, customerId, status, paymentStatus, orderType, startDate, endDate } = query
     const qb = this.orderRepo.createQueryBuilder('o').where('1=1')
-    const safeKeyword = keyword
-      ? keyword.toString().slice(0, 50).replace(/[%_]/g, '\\$&')
-      : ''
+    const safeKeyword = keyword ? keyword.toString().slice(0, 50).replace(/[%_]/g, '\\$&') : ''
     if (safeKeyword) {
       qb.andWhere('(o.order_no LIKE :kw OR o.customer_name LIKE :kw)', { kw: '%' + safeKeyword + '%' })
     }
@@ -41,15 +39,19 @@ export class OrderQueryService {
     if (startDate) qb.andWhere('o.created_at >= :sd', { sd: startDate })
     if (endDate) qb.andWhere('o.created_at <= :ed', { ed: endDate })
     qb.orderBy('o.created_at', 'DESC')
-    const [orders, total] = await qb.skip((page - 1) * pageSize).take(pageSize).getManyAndCount()
+    const [orders, total] = await qb
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .getManyAndCount()
 
     const orderIds = orders.map((o) => o.orderId)
-    const [items, addresses] = orderIds.length > 0
-      ? await Promise.all([
-          this.itemRepo.find({ where: orderIds.map((id) => ({ orderId: id })), order: { createdAt: 'ASC' } }),
-          this.addrRepo.find({ where: orderIds.map((id) => ({ orderId: id })) }),
-        ])
-      : [[], []]
+    const [items, addresses] =
+      orderIds.length > 0
+        ? await Promise.all([
+            this.itemRepo.find({ where: orderIds.map((id) => ({ orderId: id })), order: { createdAt: 'ASC' } }),
+            this.addrRepo.find({ where: orderIds.map((id) => ({ orderId: id })) }),
+          ])
+        : [[], []]
 
     const result = orders.map((o) => ({
       ...o,
@@ -102,7 +104,9 @@ export class OrderQueryService {
     const todaySales = await this.orderRepo
       .createQueryBuilder('o')
       .select('SUM(o.actualAmount)', 'total')
-      .where('o.status IN (:...statuses)', { statuses: [ORDER_STATUS.paid, ORDER_STATUS.shipped, ORDER_STATUS.completed] })
+      .where('o.status IN (:...statuses)', {
+        statuses: [ORDER_STATUS.paid, ORDER_STATUS.shipped, ORDER_STATUS.completed],
+      })
       .andWhere('o.created_at >= :today', { today })
       .getRawOne()
     return { total, pending, paid, shipping, completed, cancelled, todaySales: Number(todaySales?.total || 0) }

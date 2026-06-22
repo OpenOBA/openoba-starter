@@ -55,7 +55,10 @@ describe('InventoryService', () => {
         { provide: getRepositoryToken(InventoryTransaction), useValue: mockRepo() },
         { provide: getRepositoryToken(InventoryDocument), useValue: mockRepo() },
         { provide: DataSource, useValue: { manager: { transaction: jest.fn() } } },
-        { provide: InventoryBatchService, useValue: { executeDocument: jest.fn(), confirmDocument: jest.fn(), findDocuments: jest.fn() } },
+        {
+          provide: InventoryBatchService,
+          useValue: { executeDocument: jest.fn(), confirmDocument: jest.fn(), findDocuments: jest.fn() },
+        },
       ],
     }).compile()
 
@@ -69,9 +72,7 @@ describe('InventoryService', () => {
 
   describe('findAll', () => {
     it('should return paginated inventory', async () => {
-      const mockData = [
-        { inventoryId: '1', skuId: 'sku-1', availableQuantity: 10, currentQuantity: 20 },
-      ]
+      const mockData = [{ inventoryId: '1', skuId: 'sku-1', availableQuantity: 10, currentQuantity: 20 }]
       const qb = invRepo.createQueryBuilder()
       ;(qb.getManyAndCount as jest.Mock).mockResolvedValue([mockData, 1])
 

@@ -90,13 +90,29 @@ describe('OrderService', () => {
         { provide: getRepositoryToken(MemberLevelLog), useValue: mockRepo() },
         { provide: getRepositoryToken(PointsTransaction), useValue: mockRepo() },
         { provide: getRepositoryToken(MemberLevel), useValue: mockRepo() },
-        { provide: InventoryService, useValue: { findBySku: jest.fn(), lock: jest.fn(), stockOut: jest.fn(), unlock: jest.fn() } },
+        {
+          provide: InventoryService,
+          useValue: { findBySku: jest.fn(), lock: jest.fn(), stockOut: jest.fn(), unlock: jest.fn() },
+        },
         { provide: PricingEngineService, useValue: { calculatePrice: jest.fn() } },
         { provide: CustomerService, useValue: { findById: jest.fn(), updateMemberAssetsAfterPayment: jest.fn() } },
         { provide: DataSource, useValue: { manager: { transaction: jest.fn() } } },
-        { provide: OrderCrudService, useValue: mockSubService({ createOrder: jest.fn(), updateOrder: jest.fn(), updateOrderStatus: jest.fn() }) },
+        {
+          provide: OrderCrudService,
+          useValue: mockSubService({ createOrder: jest.fn(), updateOrder: jest.fn(), updateOrderStatus: jest.fn() }),
+        },
         { provide: OrderQueryService, useValue: queryService },
-        { provide: OrderLifecycleService, useValue: mockSubService({ cancelOrder: jest.fn(), createPayment: jest.fn(), createShipment: jest.fn(), autoPopulateCustomerLens: jest.fn(), findPaymentByNo: jest.fn(), findShipmentByOrderId: jest.fn() }) },
+        {
+          provide: OrderLifecycleService,
+          useValue: mockSubService({
+            cancelOrder: jest.fn(),
+            createPayment: jest.fn(),
+            createShipment: jest.fn(),
+            autoPopulateCustomerLens: jest.fn(),
+            findPaymentByNo: jest.fn(),
+            findShipmentByOrderId: jest.fn(),
+          }),
+        },
       ],
     }).compile()
 

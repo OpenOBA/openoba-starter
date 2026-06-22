@@ -2,17 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Customer, CUSTOMER_TYPES } from './entity/customer.entity'
-import {
-  CreateCustomerDto,
-  UpdateCustomerDto,
-  QueryCustomerDto,
-} from './dto/customer.dto'
+import { CreateCustomerDto, UpdateCustomerDto, QueryCustomerDto } from './dto/customer.dto'
 
 @Injectable()
 export class CustomerCrudService {
-  constructor(
-    @InjectRepository(Customer) private customerRepo: Repository<Customer>,
-  ) {}
+  constructor(@InjectRepository(Customer) private customerRepo: Repository<Customer>) {}
 
   escapeLikePattern(keyword: string): string {
     return keyword.replace(/[%_]/g, '\\$&')
@@ -37,12 +31,18 @@ export class CustomerCrudService {
     const { keyword, customerType, customerLevel, status, page = 1, pageSize = 20 } = query
     const qb = this.customerRepo.createQueryBuilder('c').where('c.is_deleted = :deleted', { deleted: false })
     if (keyword) {
-      qb.andWhere('(c.contact_name LIKE :kw OR c.phone LIKE :kw OR c.company_name LIKE :kw OR c.email LIKE :kw)', { kw: `%${this.escapeLikePattern(keyword)}%` })
+      qb.andWhere('(c.contact_name LIKE :kw OR c.phone LIKE :kw OR c.company_name LIKE :kw OR c.email LIKE :kw)', {
+        kw: `%${this.escapeLikePattern(keyword)}%`,
+      })
     }
     if (customerType) qb.andWhere('c.customer_type = :type', { type: customerType })
     if (customerLevel) qb.andWhere('c.customer_level = :level', { level: customerLevel })
     if (status) qb.andWhere('c.status = :status', { status })
-    const [items, total] = await qb.orderBy('c.created_at', 'DESC').skip((page - 1) * pageSize).take(pageSize).getManyAndCount()
+    const [items, total] = await qb
+      .orderBy('c.created_at', 'DESC')
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .getManyAndCount()
     return { items, total, page, pageSize }
   }
 
@@ -67,16 +67,27 @@ export class CustomerCrudService {
     const wechat = dto.wechatId || dto.wechat || null
     return this.customerRepo.save(
       this.customerRepo.create({
-        ...dto, customerId: id, customerCode, customerType: type, wechat,
-        isDeleted: false, totalOrders: 0, totalAmount: 0,
-        subscriptionStatus: 'none', wholesaleTier: dto.wholesaleTier || null,
+        ...dto,
+        customerId: id,
+        customerCode,
+        customerType: type,
+        wechat,
+        isDeleted: false,
+        totalOrders: 0,
+        totalAmount: 0,
+        subscriptionStatus: 'none',
+        wholesaleTier: dto.wholesaleTier || null,
         memberDiscountRate: dto.memberDiscountRate || 1.0,
-        pointsBalance: dto.pointsBalance || 0, partnerServices: dto.partnerServices || null,
+        pointsBalance: dto.pointsBalance || 0,
+        partnerServices: dto.partnerServices || null,
       }),
     )
   }
 
-  async update(id: string, dto: UpdateCustomerDto & { wechatId?: string; referralSource?: string; preferredStyle?: string }) {
+  async update(
+    id: string,
+    dto: UpdateCustomerDto & { wechatId?: string; referralSource?: string; preferredStyle?: string },
+  ) {
     const existing = await this.customerRepo.findOne({ where: { customerId: id, isDeleted: false } })
     if (!existing) throw new NotFoundException(`客户 ${id} 不存在`)
     Object.assign(existing, dto)

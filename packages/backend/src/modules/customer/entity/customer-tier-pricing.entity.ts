@@ -1,4 +1,13 @@
-import { Entity, PrimaryColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm'
+import {
+  Entity,
+  PrimaryColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Index,
+} from 'typeorm'
 import { Customer } from './customer.entity'
 
 export const PRICING_TIERS = ['A', 'B', 'C'] as const
@@ -46,7 +55,7 @@ export class CustomerTierPricing {
   @Column({ name: 'effective_to', type: 'date', nullable: true, comment: '生效结束日期' })
   effectiveTo: Date | null
 
-  @Column({ comment: '是否Active',  name: 'is_active', default: true })
+  @Column({ comment: '是否Active', name: 'is_active', default: true })
   isActive: boolean
 
   @Column({ name: 'is_deleted', default: false })

@@ -2,7 +2,7 @@ import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nes
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger'
 import { MenuService, CreateMenuDto, UpdateMenuDto } from './menu.service'
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard'
-import { Roles } from '../../../common/decorators/roles.decorator';
+import { Roles } from '../../../common/decorators/roles.decorator'
 
 @ApiTags('系统管理 - 菜单')
 @ApiBearerAuth()

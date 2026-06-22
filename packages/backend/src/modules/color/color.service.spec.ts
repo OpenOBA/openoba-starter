@@ -73,8 +73,13 @@ describe('ColorService', () => {
     it('should create a mapping', async () => {
       mappingRepo.findOne.mockResolvedValue(null)
       const result = await service.createMapping({
-        colorCode: '#FF0000', colorName: 'Red', rValue: 255, gValue: 0, bValue: 0,
-        colorType: 'solid', materialType: 'acetate',
+        colorCode: '#FF0000',
+        colorName: 'Red',
+        rValue: 255,
+        gValue: 0,
+        bValue: 0,
+        colorType: 'solid',
+        materialType: 'acetate',
       } as any)
       expect(result).toBeDefined()
       expect(mappingRepo.save).toHaveBeenCalled()
@@ -97,7 +102,9 @@ describe('ColorService', () => {
   describe('createPalette', () => {
     it('should create palette', async () => {
       const result = await service.createPalette({
-        paletteName: 'Spring 2026', season: 'spring', year: 2026,
+        paletteName: 'Spring 2026',
+        season: 'spring',
+        year: 2026,
       } as any)
       expect(result).toBeDefined()
     })

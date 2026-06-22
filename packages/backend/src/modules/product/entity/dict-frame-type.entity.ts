@@ -6,22 +6,22 @@ export class DictFrameType {
   @PrimaryColumn({ name: 'type_code', length: 20 })
   typeCode: string
 
-  @Column({ comment: 'type 名称',  name: 'type_name', length: 50 })
+  @Column({ comment: 'type 名称', name: 'type_name', length: 50 })
   typeName: string
 
-  @Column({ comment: '类型英文名',  name: 'type_en', length: 50, nullable: true })
+  @Column({ comment: '类型英文名', name: 'type_en', length: 50, nullable: true })
   typeEn?: string
 
-  @Column({ comment: '描述',  name: 'description', type: 'text', nullable: true })
+  @Column({ comment: '描述', name: 'description', type: 'text', nullable: true })
   description?: string
 
-  @Column({ comment: '是否启用',  name: 'is_active', type: 'tinyint', default: 1 })
+  @Column({ comment: '是否启用', name: 'is_active', type: 'tinyint', default: 1 })
   isActive: number
 
-  @Column({ comment: '排序序号',  name: 'sort_order', type: 'int', default: 0 })
+  @Column({ comment: '排序序号', name: 'sort_order', type: 'int', default: 0 })
   sortOrder: number
 
-  @Column({ comment: '扩展数据JSON',  name: 'extra', type: 'json', nullable: true })
+  @Column({ comment: '扩展数据JSON', name: 'extra', type: 'json', nullable: true })
   extra?: Record<string, any>
 
   @CreateDateColumn({ name: 'created_at' })

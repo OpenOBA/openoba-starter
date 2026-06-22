@@ -206,7 +206,8 @@ export class DictController {
   private readonly columnAlias: Record<string, string> = {
     // 标准列名 (code, name) 的表不需要映射，直接 SELECT *
     // 非标列名的表：把实际列名 AS 为标准列名
-    dict_frame_type: 'type_code AS code, type_name AS name, type_en, description, is_active, sort_order, extra, created_at, updated_at',
+    dict_frame_type:
+      'type_code AS code, type_name AS name, type_en, description, is_active, sort_order, extra, created_at, updated_at',
     dict_frame_material:
       'material_code AS code, material_name AS name, material_en AS material_en, material_category, description, is_active, sort_order, extra, created_at, updated_at',
     dict_product_tier:
@@ -217,8 +218,10 @@ export class DictController {
       'pad_code AS code, pad_name AS name, pad_en, is_adjustable, description, is_active, sort_order, extra, created_at, updated_at',
     dict_surface_treatment:
       'treatment_code AS code, treatment_name AS name, treatment_en, description, is_active, sort_order, extra, created_at, updated_at',
-    structure_shape: 'shape_code AS code, shape_name AS name, shape_name_en AS name_en, icon, description, sort_order, is_active',
-    structure_series: 'series_code AS code, series_name AS name, series_name_en AS name_en, description, sort_order, is_active',
+    structure_shape:
+      'shape_code AS code, shape_name AS name, shape_name_en AS name_en, icon, description, sort_order, is_active',
+    structure_series:
+      'series_code AS code, series_name AS name, series_name_en AS name_en, description, sort_order, is_active',
     structure_material:
       'material_code AS code, material_name AS name, material_name_en AS name_en, category, description, sort_order, is_active',
     dict_effect_tag:
@@ -305,7 +308,8 @@ export class DictController {
     const columns = Object.keys(validTranslated)
     const values = Object.values(validTranslated)
     const placeholders = values.map(() => '?').join(', ')
-    const setClause = updateFields.length > 0 ? updateFields.map((c) => `${c} = VALUES(${c})`).join(', ') : 'sort_order = sort_order'
+    const setClause =
+      updateFields.length > 0 ? updateFields.map((c) => `${c} = VALUES(${c})`).join(', ') : 'sort_order = sort_order'
     const sql = `INSERT INTO ${tableName} (${columns.join(', ')}) VALUES (${placeholders}) ON DUPLICATE KEY UPDATE ${setClause}`
     await this.dataSource.query(sql, values)
     return { message: '新增成功' }
@@ -368,7 +372,9 @@ export class DictController {
       throw new BadRequestException(`未找到主键字段，无法更新`)
     }
     // 过滤掉主键字段和时间字段，避免唯一键冲突和 datetime 格式问题
-    const updateFields = Object.keys(translated).filter((c) => c !== foundField && c !== 'created_at' && c !== 'updated_at')
+    const updateFields = Object.keys(translated).filter(
+      (c) => c !== foundField && c !== 'created_at' && c !== 'updated_at',
+    )
     if (updateFields.length === 0) {
       return { message: '无需更新' }
     }

@@ -8,9 +8,9 @@ export class RolePermission {
   @PrimaryGeneratedColumn('increment', { name: 'id' })
   id: number
 
-  @Column({ comment: '角色ID',  name: 'role_id', length: 36 })
+  @Column({ comment: '角色ID', name: 'role_id', length: 36 })
   roleId: string
 
-  @Column({ comment: '权限ID',  name: 'permission_id', length: 36 })
+  @Column({ comment: '权限ID', name: 'permission_id', length: 36 })
   permissionId: string
 }

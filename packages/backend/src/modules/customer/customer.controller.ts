@@ -18,7 +18,7 @@ import {
 } from './dto/customer.dto'
 import { PageResponse } from '../../common/dto/response.dto'
 import { MCPCapable } from '../../common/decorators/mcp-capable.decorator'
-import { Roles } from '../../common/decorators/roles.decorator';
+import { Roles } from '../../common/decorators/roles.decorator'
 
 @ApiTags('客户管理')
 @UseGuards(JwtAuthGuard)
@@ -29,7 +29,12 @@ export class CustomerController {
 
   @Get()
   @ApiOperation({ summary: '客户列表（分页）' })
-  @MCPCapable({ tool: 'customer.list', description: '查询客户列表（支持分页+筛选）', category: 'customer', readOnly: true })
+  @MCPCapable({
+    tool: 'customer.list',
+    description: '查询客户列表（支持分页+筛选）',
+    category: 'customer',
+    readOnly: true,
+  })
   async findAll(@Query() query: QueryCustomerDto) {
     const r = await this.customerService.findAll(query)
     return new PageResponse(r.items, r.total, r.page, r.pageSize)
@@ -47,7 +52,9 @@ export class CustomerController {
 
   @Get('member-analytics')
   @ApiOperation({ summary: '会员分析列表 — 含活跃度/消费力' })
-  async getMemberAnalytics(@Query() query: { page?: string; pageSize?: string; level?: string; keyword?: string; sortBy?: string }) {
+  async getMemberAnalytics(
+    @Query() query: { page?: string; pageSize?: string; level?: string; keyword?: string; sortBy?: string },
+  ) {
     return this.customerService.getMemberAnalytics({
       page: query.page ? +query.page : 1,
       pageSize: query.pageSize ? +query.pageSize : 20,
@@ -88,21 +95,37 @@ export class CustomerController {
 
   @Get(':id/contacts')
   @ApiOperation({ summary: '联系人列表' })
-  @MCPCapable({ tool: 'customer.contacts', description: '查询客户联系人列表', category: 'customer', readOnly: true, industryScoped: true })
+  @MCPCapable({
+    tool: 'customer.contacts',
+    description: '查询客户联系人列表',
+    category: 'customer',
+    readOnly: true,
+    industryScoped: true,
+  })
   async getContacts(@Param('id') id: string) {
     return this.customerService.getContacts(id)
   }
 
   @Post('contacts')
   @ApiOperation({ summary: '添加联系人' })
-  @MCPCapable({ tool: 'customer.addContact', description: '为客户添加联系人', category: 'customer', industryScoped: true })
+  @MCPCapable({
+    tool: 'customer.addContact',
+    description: '为客户添加联系人',
+    category: 'customer',
+    industryScoped: true,
+  })
   async addContact(@Body() dto: CreateContactDto) {
     return this.customerService.addContact(dto)
   }
 
   @Put('contacts/:id')
   @ApiOperation({ summary: '更新联系人' })
-  @MCPCapable({ tool: 'customer.updateContact', description: '更新联系人信息', category: 'customer', industryScoped: true })
+  @MCPCapable({
+    tool: 'customer.updateContact',
+    description: '更新联系人信息',
+    category: 'customer',
+    industryScoped: true,
+  })
   async updateContact(@Param('id') id: string, @Body() dto: UpdateContactDto) {
     return this.customerService.updateContact(id, dto)
   }
@@ -159,14 +182,24 @@ export class CustomerController {
 
   @Post('pricings')
   @ApiOperation({ summary: '添加阶梯定价' })
-  @MCPCapable({ tool: 'customer.addPricing', description: '添加阶梯定价方案', category: 'customer', industryScoped: true })
+  @MCPCapable({
+    tool: 'customer.addPricing',
+    description: '添加阶梯定价方案',
+    category: 'customer',
+    industryScoped: true,
+  })
   async addTierPricing(@Body() dto: CreateTierPricingDto) {
     return this.customerService.addTierPricing(dto)
   }
 
   @Put('pricings/:id')
   @ApiOperation({ summary: '更新阶梯定价' })
-  @MCPCapable({ tool: 'customer.updatePricing', description: '更新阶梯定价方案', category: 'customer', industryScoped: true })
+  @MCPCapable({
+    tool: 'customer.updatePricing',
+    description: '更新阶梯定价方案',
+    category: 'customer',
+    industryScoped: true,
+  })
   async updateTierPricing(@Param('id') id: string, @Body() dto: UpdateTierPricingDto) {
     return this.customerService.updateTierPricing(id, dto)
   }
@@ -199,7 +232,12 @@ export class CustomerController {
 
   @Post('prescriptions')
   @ApiOperation({ summary: '添加处方' })
-  @MCPCapable({ tool: 'customer.addPrescription', description: '添加客户验光处方', category: 'customer', industryScoped: true })
+  @MCPCapable({
+    tool: 'customer.addPrescription',
+    description: '添加客户验光处方',
+    category: 'customer',
+    industryScoped: true,
+  })
   async createPrescription(@Body() dto: CreatePrescriptionDto) {
     const { customerId, ...rest } = dto
     return this.customerService.createPrescription(customerId, rest)
@@ -207,7 +245,12 @@ export class CustomerController {
 
   @Delete('prescriptions/:id')
   @ApiOperation({ summary: '删除处方' })
-  @MCPCapable({ tool: 'customer.removePrescription', description: '删除客户验光处方', category: 'customer', industryScoped: true })
+  @MCPCapable({
+    tool: 'customer.removePrescription',
+    description: '删除客户验光处方',
+    category: 'customer',
+    industryScoped: true,
+  })
   async removePrescription(@Param('id') id: string) {
     await this.customerService.removePrescription(id)
     return { message: '删除成功' }
@@ -216,7 +259,13 @@ export class CustomerController {
   // --- 客户镜片 ---
   @Get(':id/lenses')
   @ApiOperation({ summary: '客户镜片列表' })
-  @MCPCapable({ tool: 'customer.lenses', description: '查询客户镜片标准记录', category: 'customer', readOnly: true, industryScoped: true })
+  @MCPCapable({
+    tool: 'customer.lenses',
+    description: '查询客户镜片标准记录',
+    category: 'customer',
+    readOnly: true,
+    industryScoped: true,
+  })
   async getCustomerLenses(@Param('id') id: string) {
     return this.customerService.getCustomerLenses(id)
   }
@@ -236,7 +285,12 @@ export class CustomerController {
 
   @Post('lenses')
   @ApiOperation({ summary: '添加客户镜片' })
-  @MCPCapable({ tool: 'customer.addLens', description: '添加客户镜片标准记录', category: 'customer', industryScoped: true })
+  @MCPCapable({
+    tool: 'customer.addLens',
+    description: '添加客户镜片标准记录',
+    category: 'customer',
+    industryScoped: true,
+  })
   async createCustomerLens(@Body() dto: CreateCustomerLensDto) {
     const { customerId, ...rest } = dto
     return this.customerService.createCustomerLens(customerId, rest)
@@ -244,7 +298,12 @@ export class CustomerController {
 
   @Delete('lenses/:id')
   @ApiOperation({ summary: '删除客户镜片' })
-  @MCPCapable({ tool: 'customer.removeLens', description: '删除客户镜片记录', category: 'customer', industryScoped: true })
+  @MCPCapable({
+    tool: 'customer.removeLens',
+    description: '删除客户镜片记录',
+    category: 'customer',
+    industryScoped: true,
+  })
   async removeCustomerLens(@Param('id') id: string) {
     await this.customerService.removeCustomerLens(id)
     return { message: '删除成功' }
@@ -266,7 +325,12 @@ export class CustomerController {
 
   @Post('consumption-profiles')
   @ApiOperation({ summary: '添加客户消费档案' })
-  @MCPCapable({ tool: 'customer.addConsumptionProfile', description: '添加消费档案记录', category: 'customer', industryScoped: true })
+  @MCPCapable({
+    tool: 'customer.addConsumptionProfile',
+    description: '添加消费档案记录',
+    category: 'customer',
+    industryScoped: true,
+  })
   async createConsumptionProfile(@Body() dto: CreateConsumptionProfileDto) {
     const { customerLensId, ...rest } = dto
     return this.customerService.createConsumptionProfile(customerLensId, rest)
@@ -274,7 +338,12 @@ export class CustomerController {
 
   @Delete('consumption-profiles/:id')
   @ApiOperation({ summary: '删除客户消费档案' })
-  @MCPCapable({ tool: 'customer.removeConsumptionProfile', description: '删除客户消费档案', category: 'customer', industryScoped: true })
+  @MCPCapable({
+    tool: 'customer.removeConsumptionProfile',
+    description: '删除客户消费档案',
+    category: 'customer',
+    industryScoped: true,
+  })
   async removeConsumptionProfile(@Param('id') id: string) {
     await this.customerService.removeConsumptionProfile(id)
     return { message: '删除成功' }
@@ -286,14 +355,24 @@ export class CustomerController {
 
   @Get(':id/member-level-logs')
   @ApiOperation({ summary: '会员等级变更日志' })
-  @MCPCapable({ tool: 'customer.memberLevelLogs', description: '查询客户会员等级变更日志', category: 'customer', readOnly: true })
+  @MCPCapable({
+    tool: 'customer.memberLevelLogs',
+    description: '查询客户会员等级变更日志',
+    category: 'customer',
+    readOnly: true,
+  })
   async getMemberLevelLogs(@Param('id') id: string) {
     return this.customerService.getMemberLevelLogs(id)
   }
 
   @Get(':id/points-transactions')
   @ApiOperation({ summary: '积分流水' })
-  @MCPCapable({ tool: 'customer.pointsTransactions', description: '查询客户积分流水', category: 'customer', readOnly: true })
+  @MCPCapable({
+    tool: 'customer.pointsTransactions',
+    description: '查询客户积分流水',
+    category: 'customer',
+    readOnly: true,
+  })
   async getPointsTransactions(@Param('id') id: string) {
     return this.customerService.getPointsTransactions(id)
   }

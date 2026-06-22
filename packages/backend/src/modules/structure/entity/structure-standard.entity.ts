@@ -47,11 +47,11 @@ export class StructureStandard {
   @Column({ type: 'text', nullable: true, comment: '描述说明' })
   description: string | null
 
-  @Column({ comment: '状态',  length: 16, default: 'active' }) // @see STRUCT_STATUS
+  @Column({ comment: '状态', length: 16, default: 'active' }) // @see STRUCT_STATUS
   status: string
 
   // P0-7: material FK
-  @Column({ comment: '材质编码',  name: 'material_code', length: 16, nullable: true })
+  @Column({ comment: '材质编码', name: 'material_code', length: 16, nullable: true })
   materialCode?: string
 
   @Column({ name: 'is_deleted', default: false })

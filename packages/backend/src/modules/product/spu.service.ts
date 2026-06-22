@@ -20,7 +20,10 @@ export class SpuService {
 
   async findSpus(query: any) {
     const { page = 1, pageSize = 20, keyword, categoryId, status, seriesCode, gender, sceneTag, productTier } = query
-    const qb = this.spuRepo.createQueryBuilder('s').leftJoinAndSelect('s.category', 'cat').where('s.isDeleted = :del', { del: false })
+    const qb = this.spuRepo
+      .createQueryBuilder('s')
+      .leftJoinAndSelect('s.category', 'cat')
+      .where('s.isDeleted = :del', { del: false })
     if (keyword) qb.andWhere('(s.spu_name LIKE :kw OR s.spu_code LIKE :kw)', { kw: `%${keyword}%` })
     if (categoryId) qb.andWhere('cat.categoryId = :cid', { cid: categoryId })
     if (status) qb.andWhere('s.status = :st', { st: status })
@@ -59,7 +62,7 @@ export class SpuService {
     const entity = this.spuRepo.create({
       ...rest,
       gender: gender || 'unisex',
-      category: categoryId ? { categoryId } as unknown as ProductCategory : undefined,
+      category: categoryId ? ({ categoryId } as unknown as ProductCategory) : undefined,
     })
     return this.spuRepo.save(entity)
   }
@@ -83,7 +86,7 @@ export class SpuService {
     Object.assign(item, rest)
     if (gender) item.gender = gender
     if (categoryId !== undefined) {
-      item.category = categoryId ? { categoryId } as unknown as ProductCategory : undefined
+      item.category = categoryId ? ({ categoryId } as unknown as ProductCategory) : undefined
     }
     return this.spuRepo.save(item)
   }

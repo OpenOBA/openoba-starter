@@ -8,11 +8,7 @@ import { OrderItem } from './entity/order-item.entity'
 import { OrderAddress } from './entity/order-address.entity'
 import { OrderLog } from './entity/order-log.entity'
 import { PricingEngineService, PriceResult } from '../product/pricing-engine.service'
-import {
-  CreateOrderDto,
-  UpdateOrderDto,
-  UpdateOrderStatusDto,
-} from './dto/order.dto'
+import { CreateOrderDto, UpdateOrderDto, UpdateOrderStatusDto } from './dto/order.dto'
 import {
   ORDER_STATUS,
   ORDER_TYPES,
@@ -33,10 +29,10 @@ export class OrderCrudService {
   private readonly logger = new Logger(OrderCrudService.name)
 
   private static readonly VALID_TRANSITIONS: Record<string, string[]> = {
-    [ORDER_STATUS.pending]:   [ORDER_STATUS.confirmed, ORDER_STATUS.cancelled],
+    [ORDER_STATUS.pending]: [ORDER_STATUS.confirmed, ORDER_STATUS.cancelled],
     [ORDER_STATUS.confirmed]: [ORDER_STATUS.paid, ORDER_STATUS.cancelled],
-    [ORDER_STATUS.paid]:      [ORDER_STATUS.shipped, ORDER_STATUS.cancelled],
-    [ORDER_STATUS.shipped]:   [ORDER_STATUS.delivered, ORDER_STATUS.cancelled],
+    [ORDER_STATUS.paid]: [ORDER_STATUS.shipped, ORDER_STATUS.cancelled],
+    [ORDER_STATUS.shipped]: [ORDER_STATUS.delivered, ORDER_STATUS.cancelled],
     [ORDER_STATUS.delivered]: [ORDER_STATUS.completed],
     [ORDER_STATUS.completed]: [],
     [ORDER_STATUS.cancelled]: [],
@@ -75,7 +71,10 @@ export class OrderCrudService {
             quantity: qty,
           })
         } catch (e) {
-          this.logger.error(`Price engine failed for SKU ${skuId}:`, e instanceof Error ? (e as Error).message : String(e))
+          this.logger.error(
+            `Price engine failed for SKU ${skuId}:`,
+            e instanceof Error ? (e as Error).message : String(e),
+          )
           throw new BadRequestException(`SKU ${skuId} 价格计算失败，请稍后重试`)
         }
       } else {
@@ -266,7 +265,21 @@ export class OrderCrudService {
     )
   }
 
-  private async addLog(orderId: string, action: string, oldStatus: string | null, newStatus: string | null, operator: string, remark?: string) {
-    await this.logRepo.insert({ orderId, action, oldStatus: oldStatus || undefined, newStatus: newStatus || undefined, operator, remark })
+  private async addLog(
+    orderId: string,
+    action: string,
+    oldStatus: string | null,
+    newStatus: string | null,
+    operator: string,
+    remark?: string,
+  ) {
+    await this.logRepo.insert({
+      orderId,
+      action,
+      oldStatus: oldStatus || undefined,
+      newStatus: newStatus || undefined,
+      operator,
+      remark,
+    })
   }
 }

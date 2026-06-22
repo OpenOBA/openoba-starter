@@ -1,4 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm'
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  Index,
+} from 'typeorm'
 import { ProductSku } from './product-sku.entity'
 
 @Entity('product_sku_image')
@@ -10,7 +19,7 @@ export class ProductSkuImage {
   @PrimaryGeneratedColumn('uuid', { name: 'image_id' })
   imageId: string
 
-  @Column({ comment: '关联SKU ID',  name: 'sku_id', length: 36 })
+  @Column({ comment: '关联SKU ID', name: 'sku_id', length: 36 })
   skuId: string
 
   // 图片 URL（必填）
@@ -50,7 +59,7 @@ export class ProductSkuImage {
   fileSize?: number
 
   // 审计
-  @Column({ comment: '创建人',  name: 'created_by', length: 36, nullable: true })
+  @Column({ comment: '创建人', name: 'created_by', length: 36, nullable: true })
   createdBy?: string
 
   @CreateDateColumn({ name: 'created_at' })

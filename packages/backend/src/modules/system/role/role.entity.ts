@@ -7,16 +7,16 @@ export class Role {
   @PrimaryGeneratedColumn('uuid', { name: 'role_id' })
   roleId: string
 
-  @Column({ comment: 'role 编码',  name: 'role_code', unique: true, length: 64 })
+  @Column({ comment: 'role 编码', name: 'role_code', unique: true, length: 64 })
   roleCode: string
 
-  @Column({ comment: 'role 名称',  name: 'role_name', length: 128 })
+  @Column({ comment: 'role 名称', name: 'role_name', length: 128 })
   roleName: string
 
-  @Column({ comment: '描述',  length: 512, nullable: true })
+  @Column({ comment: '描述', length: 512, nullable: true })
   description?: string
 
-  @Column({ comment: '状态',  length: 32, default: 'active' }) // @see ROLE_STATUS
+  @Column({ comment: '状态', length: 32, default: 'active' }) // @see ROLE_STATUS
   status: string
 
   @CreateDateColumn({ name: 'created_at' })

@@ -26,7 +26,13 @@ export class Customer {
   @Column('varchar', { name: 'customer_type', length: 32, nullable: true, comment: 'retail/business/partner' })
   customerType?: string
 
-  @Column('varchar', { name: 'customer_level', length: 32, nullable: true, default: 'normal', comment: 'normal/vip/svip/gold' })
+  @Column('varchar', {
+    name: 'customer_level',
+    length: 32,
+    nullable: true,
+    default: 'normal',
+    comment: 'normal/vip/svip/gold',
+  })
   customerLevel?: string
 
   @Column('varchar', { name: 'company_name', length: 256, nullable: true, comment: '企业名称' })
@@ -91,10 +97,15 @@ export class Customer {
   pointsUsed: number
 
   // 合作伙伴字段（仅 partner 类型使用）
-  @Column({ type: 'json', name: 'partner_services', nullable: true, comment: '["optometry","lens_supply","processing","after_sale"]' })
+  @Column({
+    type: 'json',
+    name: 'partner_services',
+    nullable: true,
+    comment: '["optometry","lens_supply","processing","after_sale"]',
+  })
   partnerServices: string[] | null
 
-  @Column('varchar', {comment: '状态',  length: 32, default: CUSTOMER_STATUS[0] })
+  @Column('varchar', { comment: '状态', length: 32, default: CUSTOMER_STATUS[0] })
   status: string
 
   @Column('varchar', { name: 'referral_source', length: 32, nullable: true, comment: '来源渠道' })
@@ -103,7 +114,12 @@ export class Customer {
   @Column('varchar', { name: 'preferred_style', length: 64, nullable: true, comment: '偏好风格' })
   preferredStyle: string | null
 
-  @Column('varchar', { name: 'wechat_id', length: 128, nullable: true, comment: '微信号（前端字段别名，映射到 wechat）' })
+  @Column('varchar', {
+    name: 'wechat_id',
+    length: 128,
+    nullable: true,
+    comment: '微信号（前端字段别名，映射到 wechat）',
+  })
   wechatId: string | null
 
   // ===== 官网账户字段（2026-04-15 新增） =====

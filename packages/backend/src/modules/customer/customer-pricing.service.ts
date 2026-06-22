@@ -9,18 +9,22 @@ import { CreateTierPricingDto, UpdateTierPricingDto } from './dto/customer.dto'
  */
 @Injectable()
 export class CustomerPricingService {
-  constructor(
-    @InjectRepository(CustomerTierPricing) private pricingRepo: Repository<CustomerTierPricing>,
-  ) {}
+  constructor(@InjectRepository(CustomerTierPricing) private pricingRepo: Repository<CustomerTierPricing>) {}
 
   async addTierPricing(dto: CreateTierPricingDto) {
     const id = `price-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 6)}`
     return this.pricingRepo.save(
       this.pricingRepo.create({
-        ...dto, pricingId: id, isDeleted: false, isActive: dto.isActive !== false,
-        tier: dto.tier || 'A', minQuantity: dto.minQuantity ?? 1,
-        discountRate: dto.discountRate ?? null, fixedPrice: dto.fixedPrice ?? null,
-        pricingMode: dto.pricingMode || 'discount', agreementNo: dto.agreementNo || null,
+        ...dto,
+        pricingId: id,
+        isDeleted: false,
+        isActive: dto.isActive !== false,
+        tier: dto.tier || 'A',
+        minQuantity: dto.minQuantity ?? 1,
+        discountRate: dto.discountRate ?? null,
+        fixedPrice: dto.fixedPrice ?? null,
+        pricingMode: dto.pricingMode || 'discount',
+        agreementNo: dto.agreementNo || null,
         agreementStart: dto.agreementStart ? new Date(dto.agreementStart) : null,
         agreementEnd: dto.agreementEnd ? new Date(dto.agreementEnd) : null,
         salesRep: dto.salesRep || null,
@@ -54,6 +58,9 @@ export class CustomerPricingService {
   }
 
   async getTierPricings(customerId: string) {
-    return this.pricingRepo.find({ where: { customerId, isDeleted: false }, order: { tier: 'ASC', minQuantity: 'ASC' } })
+    return this.pricingRepo.find({
+      where: { customerId, isDeleted: false },
+      order: { tier: 'ASC', minQuantity: 'ASC' },
+    })
   }
 }

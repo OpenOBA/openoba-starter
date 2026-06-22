@@ -17,7 +17,9 @@ export class ExternalBarcodeMappingService {
     const { page = 1, pageSize = 20, keyword, structureStandardCode, status } = query
     const qb = this.repo.createQueryBuilder('m').where('1=1')
     if (keyword)
-      qb.andWhere('(m.external_barcode LIKE :kw OR m.external_brand LIKE :kw OR m.external_product LIKE :kw)', { kw: `%${keyword}%` })
+      qb.andWhere('(m.external_barcode LIKE :kw OR m.external_brand LIKE :kw OR m.external_product LIKE :kw)', {
+        kw: `%${keyword}%`,
+      })
     if (structureStandardCode) qb.andWhere('m.structure_standard_code = :ssc', { ssc: structureStandardCode })
     if (status) qb.andWhere('m.status = :st', { st: status })
     qb.orderBy('m.createdAt', 'DESC')

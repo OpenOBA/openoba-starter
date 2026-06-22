@@ -16,7 +16,13 @@ import { StructureStandard } from '../structure/entity/structure-standard.entity
 describe('DraftPoolService', () => {
   let service: DraftPoolService
   beforeEach(async () => {
-    const mr = { findOne: jest.fn().mockResolvedValue(null), find: jest.fn().mockResolvedValue([]), save: jest.fn((e:any)=>Promise.resolve(e)), create: jest.fn((d:any)=>d), delete: jest.fn().mockResolvedValue({affected:1}) }
+    const mr = {
+      findOne: jest.fn().mockResolvedValue(null),
+      find: jest.fn().mockResolvedValue([]),
+      save: jest.fn((e: any) => Promise.resolve(e)),
+      create: jest.fn((d: any) => d),
+      delete: jest.fn().mockResolvedValue({ affected: 1 }),
+    }
     const m = await Test.createTestingModule({
       providers: [
         DraftPoolService,
@@ -34,5 +40,7 @@ describe('DraftPoolService', () => {
     }).compile()
     service = m.get<DraftPoolService>(DraftPoolService)
   })
-  it('should be defined', () => { expect(service).toBeDefined() })
+  it('should be defined', () => {
+    expect(service).toBeDefined()
+  })
 })

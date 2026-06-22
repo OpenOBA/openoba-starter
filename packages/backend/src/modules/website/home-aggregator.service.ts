@@ -156,8 +156,9 @@ export class WebsiteHomeAggregatorService {
       return {
         skuId: sku.skuId,
         skuCode: sku.skuCode,
-        spuName: ((sku as unknown as { spu?: { spuName?: string } }).spu?.spuName) || '',
-        categoryName: ((sku as unknown as { spu?: { category?: { categoryName?: string } } }).spu?.category?.categoryName) || '',
+        spuName: (sku as unknown as { spu?: { spuName?: string } }).spu?.spuName || '',
+        categoryName:
+          (sku as unknown as { spu?: { category?: { categoryName?: string } } }).spu?.category?.categoryName || '',
         colorName: sku.color?.colorName || '',
         colorHex: sku.color?.hexValue || '',
         price: Number(sku.retailPrice),
@@ -352,7 +353,7 @@ export class WebsiteHomeAggregatorService {
         spuId: spu.spuId,
         spuCode: spu.spuCode,
         spuName: spu.spuName,
-        categoryName: ((spu as unknown as { category?: { categoryName?: string } }).category?.categoryName) || '',
+        categoryName: (spu as unknown as { category?: { categoryName?: string } }).category?.categoryName || '',
         gender: spu.gender,
         sceneTags: spu.sceneTags || [],
         description: spu.description || '',

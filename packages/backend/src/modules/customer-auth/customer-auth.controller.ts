@@ -137,7 +137,10 @@ export class CustomerAuthController {
   @ApiOperation({ summary: '更新个人资料' })
   @ApiBearerAuth()
   @UseGuards(CustomerJwtGuard)
-  async updateProfile(@Req() req: CustomerRequest, @Body() data: { nickname?: string; email?: string; avatarUrl?: string }) {
+  async updateProfile(
+    @Req() req: CustomerRequest,
+    @Body() data: { nickname?: string; email?: string; avatarUrl?: string },
+  ) {
     return this.authService.updateProfile(req.customerId, data)
   }
 }

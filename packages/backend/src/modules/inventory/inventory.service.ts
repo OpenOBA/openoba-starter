@@ -130,7 +130,8 @@ export class InventoryService {
       if (currentQty > 0) {
         await manager.save(InventoryTransaction, {
           id: crypto.randomUUID(),
-          skuId: dto.skuId, skuCode: dto.skuCode,
+          skuId: dto.skuId,
+          skuCode: dto.skuCode,
           structureStandardCode: dto.structureStandardCode ?? undefined,
           warehouseCode,
           transactionType: TransactionType.INITIAL,
@@ -273,7 +274,11 @@ export class InventoryService {
 
   // ===== 解锁库存（取消订单） =====
 
-  async rollbackStockInTransaction(manager: EntityManager, dto: { skuId: string; orderId: string; quantity: number }, operatorId?: string) {
+  async rollbackStockInTransaction(
+    manager: EntityManager,
+    dto: { skuId: string; orderId: string; quantity: number },
+    operatorId?: string,
+  ) {
     const inv = await manager.findOne(Inventory, {
       where: { skuId: dto.skuId, warehouseCode: 'WH-MAIN' },
       lock: { mode: 'pessimistic_write' },
@@ -303,7 +308,11 @@ export class InventoryService {
     })
   }
 
-  async unlockInTransaction(manager: EntityManager, dto: { skuId: string; orderId: string; quantity: number }, operatorId?: string) {
+  async unlockInTransaction(
+    manager: EntityManager,
+    dto: { skuId: string; orderId: string; quantity: number },
+    operatorId?: string,
+  ) {
     const inv = await manager.findOne(Inventory, {
       where: { skuId: dto.skuId, warehouseCode: 'WH-MAIN' },
       lock: { mode: 'pessimistic_write' },
@@ -336,7 +345,11 @@ export class InventoryService {
     })
   }
 
-  async lockInTransaction(manager: EntityManager, dto: { skuId: string; orderId: string; quantity: number }, operatorId?: string) {
+  async lockInTransaction(
+    manager: EntityManager,
+    dto: { skuId: string; orderId: string; quantity: number },
+    operatorId?: string,
+  ) {
     const inv = await manager.findOne(Inventory, {
       where: { skuId: dto.skuId, warehouseCode: 'WH-MAIN' },
       lock: { mode: 'pessimistic_write' },
@@ -370,7 +383,18 @@ export class InventoryService {
     })
   }
 
-  async stockOutInTransaction(manager: EntityManager, dto: { skuId: string; quantity: number; transactionType: string; referenceType?: string; referenceId?: string; remark?: string }, operatorId?: string) {
+  async stockOutInTransaction(
+    manager: EntityManager,
+    dto: {
+      skuId: string
+      quantity: number
+      transactionType: string
+      referenceType?: string
+      referenceId?: string
+      remark?: string
+    },
+    operatorId?: string,
+  ) {
     const inv = await manager.findOne(Inventory, {
       where: { skuId: dto.skuId, warehouseCode: 'WH-MAIN' },
       lock: { mode: 'pessimistic_write' },
@@ -483,7 +507,10 @@ export class InventoryService {
 
   async getStats() {
     const total = await this.inventoryRepo.count()
-    const lowStock = await this.inventoryRepo.createQueryBuilder('inv').where('inv.availableQuantity < inv.warningQuantity').getCount()
+    const lowStock = await this.inventoryRepo
+      .createQueryBuilder('inv')
+      .where('inv.availableQuantity < inv.warningQuantity')
+      .getCount()
     const zeroStock = await this.inventoryRepo.count({
       where: { availableQuantity: 0 },
     })
@@ -496,7 +523,11 @@ export class InventoryService {
   async cleanOldTransactions(days = 90) {
     const cutoff = new Date()
     cutoff.setDate(cutoff.getDate() - days)
-    const result = await this.transactionRepo.createQueryBuilder().delete().where('created_at < :cutoff', { cutoff }).execute()
+    const result = await this.transactionRepo
+      .createQueryBuilder()
+      .delete()
+      .where('created_at < :cutoff', { cutoff })
+      .execute()
     return { deleted: result.affected || 0 }
   }
 

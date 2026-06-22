@@ -1,13 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common'
 import * as crypto from 'crypto'
 import { InjectRepository } from '@nestjs/typeorm'
-import {
-  QuerySkuDto,
-  CreateSkuDto,
-  UpdateSkuDto,
-  QuerySkuImageDto,
-  CreateSkuImageDto,
-} from './dto/product.dto'
+import { QuerySkuDto, CreateSkuDto, UpdateSkuDto, QuerySkuImageDto, CreateSkuImageDto } from './dto/product.dto'
 import { Repository, Like, DataSource } from 'typeorm'
 import { ProductSku } from './entity/product-sku.entity'
 import { ProductSpu } from './entity/product-spu.entity'
@@ -39,14 +33,26 @@ export class SkuService {
   ) {}
 
   async findSkus(query: QuerySkuDto) {
-    const { page = 1, pageSize = 20, spuId, keyword, status, skuBarcode, ean13, productTier, skinToneEffect, faceShapeEffect } = query
+    const {
+      page = 1,
+      pageSize = 20,
+      spuId,
+      keyword,
+      status,
+      skuBarcode,
+      ean13,
+      productTier,
+      skinToneEffect,
+      faceShapeEffect,
+    } = query
     const qb = this.skuRepo
       .createQueryBuilder('s')
       .leftJoinAndSelect('s.spu', 'spu')
       .leftJoinAndSelect('s.color', 'c')
       .where('s.isDeleted = :del', { del: false })
     if (spuId) qb.andWhere('s.spu_id = :sid', { sid: spuId })
-    if (keyword) qb.andWhere('(s.sku_name LIKE :kw OR s.sku_code LIKE :kw OR s.sku_barcode LIKE :kw)', { kw: `%${keyword}%` })
+    if (keyword)
+      qb.andWhere('(s.sku_name LIKE :kw OR s.sku_code LIKE :kw OR s.sku_barcode LIKE :kw)', { kw: `%${keyword}%` })
     if (status) qb.andWhere('s.status = :st', { st: status })
     if (skuBarcode) qb.andWhere('s.sku_barcode = :sb', { sb: skuBarcode })
     if (ean13) qb.andWhere('s.ean13 = :e', { e: ean13 })
@@ -116,7 +122,8 @@ export class SkuService {
     rest.displayName = await this.generateSkuDisplayName({ ...rest, spu })
 
     // 自动生成内部条码（如未提供）
-    const autoSkuBarcode = skuBarcode || generateInternalBarcode(rest.skuCode, rest.structureStandardCode, 1, rest.productTier)
+    const autoSkuBarcode =
+      skuBarcode || generateInternalBarcode(rest.skuCode, rest.structureStandardCode, 1, rest.productTier)
     // 自动生成 EAN-13 过渡码（如未提供）
     const autoEan13 = ean13 || generateTransitionalEAN13(rest.skuCode)
     const entity = this.skuRepo.create({
@@ -133,7 +140,7 @@ export class SkuService {
     let resolvedTier = dto.productTier
     if (resolvedTier === null || resolvedTier === undefined) {
       const spuRecord = item.spu as ProductSpu | undefined
-    resolvedTier = spuRecord?.productTier || 'color'
+      resolvedTier = spuRecord?.productTier || 'color'
     }
     dto.productTier = resolvedTier
     // Phase 8B: 尺寸校验
@@ -190,8 +197,8 @@ export class SkuService {
     ]
     for (const { key, type } of priceFields) {
       const currentRecord = current as unknown as Record<string, unknown>
-    const dtoRecord = dto as unknown as Record<string, unknown>
-    if (dtoRecord[key] !== undefined && dtoRecord[key] !== currentRecord[key]) {
+      const dtoRecord = dto as unknown as Record<string, unknown>
+      if (dtoRecord[key] !== undefined && dtoRecord[key] !== currentRecord[key]) {
         const oldVal = currentRecord[key] ?? null
         const newVal = dtoRecord[key]
         const history = this.priceHistoryRepo.create({
@@ -268,7 +275,9 @@ export class SkuService {
       const expected = dto.lensWidth * 2 + dto.bridgeWidth
       const diff = Math.abs(dto.totalWidth - expected)
       if (diff > 8) {
-        warnMsgs.push(`尺寸校验: 总宽度 ${dto.totalWidth}mm 与预期 ${expected}mm 偏差 ${diff}mm（允许 ±8mm），请确认数据准确性`)
+        warnMsgs.push(
+          `尺寸校验: 总宽度 ${dto.totalWidth}mm 与预期 ${expected}mm 偏差 ${diff}mm（允许 ±8mm），请确认数据准确性`,
+        )
       }
     }
 
@@ -290,7 +299,9 @@ export class SkuService {
 
   // 设为主图：先将同 SKU 同类型的其他图片取消 primary
   private async clearPrimaryForType(skuId: string, imageType: string, excludeId?: string) {
-    const primaryImages = await this.skuImageRepo.find({ where: { skuId, imageType, isPrimary: true, isDeleted: false } })
+    const primaryImages = await this.skuImageRepo.find({
+      where: { skuId, imageType, isPrimary: true, isDeleted: false },
+    })
     for (const img of primaryImages) {
       if (img.imageId !== excludeId) {
         img.isPrimary = false
@@ -302,9 +313,7 @@ export class SkuService {
   // 查询 SKU 图片列表（按 skuId 或 skuCode）
   async findSkuImages(query: QuerySkuImageDto) {
     const { skuId, skuCode, imageType, isActive } = query
-    const qb = this.skuImageRepo
-      .createQueryBuilder('i')
-      .where('i.isDeleted = :del', { del: false })
+    const qb = this.skuImageRepo.createQueryBuilder('i').where('i.isDeleted = :del', { del: false })
     // isActive 可选过滤：明确传了才过滤，默认返回全部（管理后台需看到禁用图片）
     if (isActive !== undefined && isActive !== null) {
       qb.andWhere('i.isActive = :active', { active: isActive })
@@ -370,7 +379,7 @@ export class SkuService {
       throw new BadRequestException('单次最多上传 20 张图片')
     }
     // 批量设主图：先汇总需设 primary 的类型，统一清一次旧数据，避免批次内多张 primary 冲突
-    const primaryTypes = new Set(dto.images.filter(i => i.isPrimary).map(i => this.validateImageType(i.imageType)))
+    const primaryTypes = new Set(dto.images.filter((i) => i.isPrimary).map((i) => this.validateImageType(i.imageType)))
     for (const imgType of primaryTypes) {
       await this.clearPrimaryForType(dto.skuId, imgType)
     }

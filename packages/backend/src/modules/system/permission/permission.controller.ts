@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger'
 import { PermissionService } from './permission.service'
 import { Permission } from './permission.entity'
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard'
-import { Roles } from '../../../common/decorators/roles.decorator';
+import { Roles } from '../../../common/decorators/roles.decorator'
 
 @ApiTags('系统管理 - 权限')
 @ApiBearerAuth()

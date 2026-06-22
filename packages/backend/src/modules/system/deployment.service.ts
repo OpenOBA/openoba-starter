@@ -49,7 +49,7 @@ export class DeploymentService {
     const production = this.getEnvStatus('production')
     const staging = this.getEnvStatus('staging')
     const deltas = this.loadDeltas()
-    const pending = deltas.filter(d => d.status !== 'promoted' && d.status !== 'rolled_back')
+    const pending = deltas.filter((d) => d.status !== 'promoted' && d.status !== 'rolled_back')
 
     return {
       production,
@@ -63,7 +63,7 @@ export class DeploymentService {
   /** 切换到 developer 模式并部署到 staging */
   async deployToStaging(deltaId: string): Promise<{ success: boolean; message: string; stagingUrl: string }> {
     const deltas = this.loadDeltas()
-    const delta = deltas.find(d => d.id === deltaId)
+    const delta = deltas.find((d) => d.id === deltaId)
     if (!delta) return { success: false, message: `变更 ${deltaId} 不存在`, stagingUrl: '' }
 
     try {
@@ -94,7 +94,9 @@ export class DeploymentService {
         const stagingPid = this.findProcessPid(3001)
         if (stagingPid) {
           this.logger.log(`停止旧 staging 进程 PID=${stagingPid}`)
-          try { process.kill(stagingPid) } catch (e: unknown) {
+          try {
+            process.kill(stagingPid)
+          } catch (e: unknown) {
             this.logger.warn(`停止 staging 进程失败 PID=${stagingPid}: ${(e as Error).message}`)
           }
           await this.sleep(1000)
@@ -117,7 +119,8 @@ export class DeploymentService {
         message: `已部署到 staging 环境 (端口 3001)`,
         stagingUrl: `http://localhost:3001`,
       }
-    } catch (_e: unknown) { const e = _e as Error
+    } catch (_e: unknown) {
+      const e = _e as Error
       this.logger.error(`部署到 staging 失败: ${e.message}`)
       return { success: false, message: `部署失败: ${e.message}`, stagingUrl: '' }
     }
@@ -126,7 +129,7 @@ export class DeploymentService {
   /** 发布到生产环境 */
   async promoteToProduction(deltaId: string): Promise<{ success: boolean; message: string }> {
     const deltas = this.loadDeltas()
-    const delta = deltas.find(d => d.id === deltaId)
+    const delta = deltas.find((d) => d.id === deltaId)
     if (!delta) return { success: false, message: `变更 ${deltaId} 不存在` }
     if (delta.status !== 'verified') return { success: false, message: '变更必须先通过 staging 验收' }
 
@@ -159,7 +162,9 @@ export class DeploymentService {
       const prodPid = this.findProcessPid(3000)
       if (prodPid) {
         this.logger.log(`重启生产服务 PID=${prodPid}`)
-        try { process.kill(prodPid) } catch (e: unknown) {
+        try {
+          process.kill(prodPid)
+        } catch (e: unknown) {
           this.logger.warn(`停止生产进程失败 PID=${prodPid}: ${(e as Error).message}`)
         }
         await this.sleep(2000)
@@ -176,7 +181,8 @@ export class DeploymentService {
       await this.syncStagingToProduction()
 
       return { success: true, message: `已发布到生产环境 ${newVersion}` }
-    } catch (_e: unknown) { const e = _e as Error
+    } catch (_e: unknown) {
+      const e = _e as Error
       this.logger.error(`发布失败: ${e.message}`)
       return { success: false, message: `发布失败: ${e.message}` }
     }
@@ -209,7 +215,14 @@ export class DeploymentService {
 
       // 4. 重启生产服务
       const prodPid = this.findProcessPid(3000)
-      if (prodPid) { try { process.kill(prodPid) } catch (e: unknown) { this.logger.warn(`回滚停止生产进程失败 PID=${prodPid}: ${(e as Error).message}`) }; await this.sleep(2000) }
+      if (prodPid) {
+        try {
+          process.kill(prodPid)
+        } catch (e: unknown) {
+          this.logger.warn(`回滚停止生产进程失败 PID=${prodPid}: ${(e as Error).message}`)
+        }
+        await this.sleep(2000)
+      }
       this.startProduction()
 
       // 5. staging 同步
@@ -225,7 +238,8 @@ export class DeploymentService {
       this.saveDeltas(deltas)
 
       return { success: true, message: `已回滚到 ${targetVersion}（生产环境已重启，staging 已同步）` }
-    } catch (_e: unknown) { const e = _e as Error
+    } catch (_e: unknown) {
+      const e = _e as Error
       this.logger.error(`回滚失败: ${e.message}`)
       return { success: false, message: `回滚失败: ${e.message}` }
     }
@@ -244,7 +258,8 @@ export class DeploymentService {
       // 数据库同步（需要 mysqldump，开发环境跳过）
       try {
         this.syncDatabaseSnapshot()
-      } catch (_e: unknown) { const e = _e as Error
+      } catch (_e: unknown) {
+        const e = _e as Error
         this.logger.warn('数据库同步跳过: ' + e.message)
       }
 
@@ -252,15 +267,20 @@ export class DeploymentService {
       this.setLastSyncTime()
 
       return { success: true, message: 'Staging 已与 Production 同步' }
-    } catch (_e: unknown) { const e = _e as Error
+    } catch (_e: unknown) {
+      const e = _e as Error
       return { success: false, message: '同步失败: ' + e.message }
     }
   }
 
   /** 变更 Delta 状态（校验转换合法性） */
-  transitionDelta(deltaId: string, newStatus: DeltaStatus, extra?: { feedback?: string }): { success: boolean; message: string } {
+  transitionDelta(
+    deltaId: string,
+    newStatus: DeltaStatus,
+    extra?: { feedback?: string },
+  ): { success: boolean; message: string } {
     const deltas = this.loadDeltas()
-    const delta = deltas.find(d => d.id === deltaId)
+    const delta = deltas.find((d) => d.id === deltaId)
     if (!delta) return { success: false, message: `变更 ${deltaId} 不存在` }
 
     const allowed = TRANSITIONS[delta.status] || []
@@ -288,16 +308,11 @@ export class DeploymentService {
   /** 获取单个 Delta 详情 */
   getDelta(deltaId: string): DeltaRecord | null {
     const deltas = this.loadDeltas()
-    return deltas.find(d => d.id === deltaId) || null
+    return deltas.find((d) => d.id === deltaId) || null
   }
 
   /** 创建变更记录（Agent 发起时调用） */
-  createDelta(args: {
-    type: string
-    summary: string
-    files: string[]
-    migrationSql?: string
-  }): DeltaRecord {
+  createDelta(args: { type: string; summary: string; files: string[]; migrationSql?: string }): DeltaRecord {
     const deltas = this.loadDeltas()
     const id = `DELTA-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${String(deltas.length + 1).padStart(3, '0')}`
     const branch = `feat/${id.toLowerCase()}`
@@ -325,7 +340,7 @@ export class DeploymentService {
   /** 验证 staging 环境（Agent 验收） */
   async verifyStaging(deltaId: string): Promise<{ success: boolean; message: string }> {
     const deltas = this.loadDeltas()
-    const delta = deltas.find(d => d.id === deltaId)
+    const delta = deltas.find((d) => d.id === deltaId)
     if (!delta) return { success: false, message: '变更不存在' }
     if (delta.status !== 'on_staging') return { success: false, message: '变更尚未部署到 staging' }
 
@@ -333,7 +348,8 @@ export class DeploymentService {
     try {
       this.execCmd('npx tsc --noEmit', { cwd: path.join(this.projectRoot, 'backend') })
       this.logger.log('✅ Backend tsc 通过')
-    } catch (_e: unknown) { const e = _e as Error & { stderr?: string }
+    } catch (_e: unknown) {
+      const e = _e as Error & { stderr?: string }
       return { success: false, message: `编译失败: ${e.stderr || e.message}` }
     }
 
@@ -345,7 +361,12 @@ export class DeploymentService {
 
   // ══════════ 私有方法 ══════════
 
-  private getEnvStatus(env: 'production' | 'staging'): { branch: string; version: string; commit: string; running: boolean } {
+  private getEnvStatus(env: 'production' | 'staging'): {
+    branch: string
+    version: string
+    commit: string
+    running: boolean
+  } {
     try {
       const branch = this.hasGitRepo() ? this.gitExec('rev-parse --abbrev-ref HEAD').trim() : 'current'
       const commit = this.hasGitRepo() ? this.gitExec('rev-parse --short HEAD').trim() : 'latest'
@@ -377,10 +398,14 @@ export class DeploymentService {
   private bumpVersion(current: string, deltaType: string): string {
     const parts = current.replace('v', '').split('.').map(Number)
     switch (deltaType) {
-      case 'feat': return `v${parts[0]}.${parts[1] + 1}.0`
-      case 'fix': return `v${parts[0]}.${parts[1]}.${parts[2] + 1}`
-      case 'refactor': return `v${parts[0]}.${parts[1] + 1}.0`
-      default: return `v${parts[0]}.${parts[1]}.${parts[2] + 1}`
+      case 'feat':
+        return `v${parts[0]}.${parts[1] + 1}.0`
+      case 'fix':
+        return `v${parts[0]}.${parts[1]}.${parts[2] + 1}`
+      case 'refactor':
+        return `v${parts[0]}.${parts[1] + 1}.0`
+      default:
+        return `v${parts[0]}.${parts[1]}.${parts[2] + 1}`
     }
   }
 
@@ -400,7 +425,7 @@ export class DeploymentService {
 
   private generateRollbackSql(fromVersion: string, _toVersion: string): string | null {
     const deltas = this.loadDeltas()
-    const rollbackDeltas = deltas.filter(d => d.status === 'promoted' && this.isDeltaAfterVersion(d, fromVersion))
+    const rollbackDeltas = deltas.filter((d) => d.status === 'promoted' && this.isDeltaAfterVersion(d, fromVersion))
     if (rollbackDeltas.length === 0) return null
 
     let sql = '-- ERA 回滚 SQL\n-- 从 v2 回到 v1\n\n'
@@ -408,10 +433,10 @@ export class DeploymentService {
       if (d.migrationSql) {
         sql += `-- 回滚 ${d.id}: ${d.summary}\n`
         // 简单反转：ADD → DROP, ALTER → 反向
-        sql += d.migrationSql
-          .replace(/ADD COLUMN/g, '-- ROLLBACK: DROP COLUMN')
-          .replace(/CREATE TABLE/g, '-- ROLLBACK: DROP TABLE')
-          + '\n\n'
+        sql +=
+          d.migrationSql
+            .replace(/ADD COLUMN/g, '-- ROLLBACK: DROP COLUMN')
+            .replace(/CREATE TABLE/g, '-- ROLLBACK: DROP TABLE') + '\n\n'
       }
     }
     return sql
@@ -423,7 +448,8 @@ export class DeploymentService {
     const dbPort = process.env.DB_PORT || '3306'
     const dbUser = process.env.DB_USERNAME || 'root'
     const dbPass = process.env.DB_PASSWORD || ''
-    const dbName = env === 'staging' ? (process.env.DB_DATABASE || 'era') + '_staging' : process.env.DB_DATABASE || 'era'
+    const dbName =
+      env === 'staging' ? (process.env.DB_DATABASE || 'era') + '_staging' : process.env.DB_DATABASE || 'era'
 
     // 将 SQL 写入临时文件，通过 mysql 命令行执行
     const tmpFile = path.join(this.projectRoot, 'state', `migration_${Date.now()}.sql`)
@@ -431,13 +457,14 @@ export class DeploymentService {
     fs.writeFileSync(tmpFile, sql, 'utf-8')
 
     try {
-      this.execCmd(
-        `mysql -h ${dbHost} -P ${dbPort} -u ${dbUser} -p${dbPass} ${dbName} < ${tmpFile}`,
-        { cwd: this.projectRoot },
-      )
+      this.execCmd(`mysql -h ${dbHost} -P ${dbPort} -u ${dbUser} -p${dbPass} ${dbName} < ${tmpFile}`, {
+        cwd: this.projectRoot,
+      })
       this.logger.log(`✅ 数据库迁移完成 (${env})`)
     } finally {
-      try { fs.unlinkSync(tmpFile) } catch (e: unknown) {
+      try {
+        fs.unlinkSync(tmpFile)
+      } catch (e: unknown) {
         this.logger.warn(`清理临时SQL文件失败: ${(e as Error).message}`)
       }
     }
@@ -569,7 +596,7 @@ export class DeploymentService {
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise((resolve) => setTimeout(resolve, ms))
   }
 
   /** 执行原始 Migration SQL（由 migrate endpoint 调用，已做安全校验） */
@@ -586,7 +613,7 @@ export class DeploymentService {
     const conn = await mysql.createConnection(dbConfig)
     try {
       // 按分号分割多条 SQL
-      const statements = sql.split(';').filter(s => s.trim())
+      const statements = sql.split(';').filter((s) => s.trim())
       for (const stmt of statements) {
         if (!stmt.trim()) continue
         await conn.execute(stmt)

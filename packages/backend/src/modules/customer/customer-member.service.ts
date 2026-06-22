@@ -21,7 +21,8 @@ export class CustomerMemberService {
   constructor(
     @InjectRepository(Customer) private customerRepo: Repository<Customer>,
     @InjectRepository(CustomerLens) private customerLensRepo: Repository<CustomerLens>,
-    @InjectRepository(CustomerConsumptionProfile) private consumptionProfileRepo: Repository<CustomerConsumptionProfile>,
+    @InjectRepository(CustomerConsumptionProfile)
+    private consumptionProfileRepo: Repository<CustomerConsumptionProfile>,
     @InjectRepository(MemberLevelLog) private memberLevelLogRepo: Repository<MemberLevelLog>,
     @InjectRepository(PointsTransaction) private pointsTxnRepo: Repository<PointsTransaction>,
     @InjectRepository(Order) private orderRepo: Repository<Order>,
@@ -45,7 +46,24 @@ export class CustomerMemberService {
   async getAccountInfo(customerId: string) {
     const customer = await this.customerRepo.findOne({
       where: { customerId, isDeleted: false },
-      select: ['customerId', 'customerCode', 'contactName', 'nickname', 'accountStatus', 'registeredAt', 'lastLoginAt', 'customerLevel', 'totalAmount', 'totalOrders', 'pointsBalance', 'pointsEarned', 'pointsUsed', 'memberSince', 'memberValidUntil', 'lastActiveAt'],
+      select: [
+        'customerId',
+        'customerCode',
+        'contactName',
+        'nickname',
+        'accountStatus',
+        'registeredAt',
+        'lastLoginAt',
+        'customerLevel',
+        'totalAmount',
+        'totalOrders',
+        'pointsBalance',
+        'pointsEarned',
+        'pointsUsed',
+        'memberSince',
+        'memberValidUntil',
+        'lastActiveAt',
+      ],
     })
     if (!customer) throw new NotFoundException(`客户 ${customerId} 不存在`)
     return customer
@@ -53,7 +71,8 @@ export class CustomerMemberService {
 
   async scanMemberDowngrades(): Promise<{ count: number; details: any[] }> {
     const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
-    const customers = await this.customerRepo.createQueryBuilder('c')
+    const customers = await this.customerRepo
+      .createQueryBuilder('c')
       .where('c.customer_type = :type', { type: 'retail' })
       .andWhere('c.customer_level != :normal', { normal: 'normal' })
       .andWhere('c.last_active_at < :threshold', { threshold: ninetyDaysAgo })
@@ -73,12 +92,23 @@ export class CustomerMemberService {
         await manager.update(Customer, customer.customerId, { customerLevel: newLevel })
         const logId = `ml-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`
         await manager.save(MemberLevelLog, {
-          logId, customerId: customer.customerId, oldLevel, newLevel,
-          triggerType: 'downgrade', triggerReason: '90天无消费自动降级', orderId: null,
+          logId,
+          customerId: customer.customerId,
+          oldLevel,
+          newLevel,
+          triggerType: 'downgrade',
+          triggerReason: '90天无消费自动降级',
+          orderId: null,
         })
       })
 
-      details.push({ customerId: customer.customerId, contactName: customer.contactName, oldLevel, newLevel, lastActiveAt: customer.lastActiveAt })
+      details.push({
+        customerId: customer.customerId,
+        contactName: customer.contactName,
+        oldLevel,
+        newLevel,
+        lastActiveAt: customer.lastActiveAt,
+      })
     }
     return { count: details.length, details }
   }
@@ -106,13 +136,19 @@ export class CustomerMemberService {
           const lensStatus = allFrameOnly ? LENS_STATUS.pending : 'active'
 
           customerLensId = `cl-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`
-          await manager.save(CustomerLens, this.customerLensRepo.create({
-            customerLensId, customerId: order.customerId,
-            structureStandardCode: structCode,
-            prescriptionId: order.prescriptionId || null,
-            orderId, purchaseDate: new Date(), status: lensStatus,
-            attributes: { autoPopulated: true, source: 'order_shipment' },
-          }))
+          await manager.save(
+            CustomerLens,
+            this.customerLensRepo.create({
+              customerLensId,
+              customerId: order.customerId,
+              structureStandardCode: structCode,
+              prescriptionId: order.prescriptionId || null,
+              orderId,
+              purchaseDate: new Date(),
+              status: lensStatus,
+              attributes: { autoPopulated: true, source: 'order_shipment' },
+            }),
+          )
         } else {
           customerLensId = existing.customerLensId
           await manager.update(CustomerLens, customerLensId, { orderId, purchaseDate: new Date() })
@@ -121,9 +157,13 @@ export class CustomerMemberService {
         for (const si of items.filter((i) => i.structureStandardCode === structCode)) {
           const profileId = `cp-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`
           await manager.save(CustomerConsumptionProfile, {
-            profileId, customerLensId,
-            productSkuCode: si.skuCode || null, productName: si.productName || null,
-            purchaseDate: new Date(), orderId, useStatus: 'active',
+            profileId,
+            customerLensId,
+            productSkuCode: si.skuCode || null,
+            productName: si.productName || null,
+            purchaseDate: new Date(),
+            orderId,
+            useStatus: 'active',
             attributes: { autoPopulated: true, source: 'order_shipment' },
           })
         }
@@ -160,17 +200,26 @@ export class CustomerMemberService {
         await manager.increment(Customer, { customerId: order.customerId }, 'pointsBalance', pointsEarned)
         await manager.increment(Customer, { customerId: order.customerId }, 'pointsEarned', pointsEarned)
 
-        const afterCustomer = await manager.findOne(Customer, { where: { customerId: order.customerId }, select: ['pointsBalance'] })
+        const afterCustomer = await manager.findOne(Customer, {
+          where: { customerId: order.customerId },
+          select: ['pointsBalance'],
+        })
         const txnId = `pt-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`
         await manager.save(PointsTransaction, {
-          txnId, customerId: order.customerId, points: pointsEarned,
+          txnId,
+          customerId: order.customerId,
+          points: pointsEarned,
           balanceAfter: afterCustomer?.pointsBalance ?? pointsEarned,
-          type: 'order_earn', refId: orderId,
+          type: 'order_earn',
+          refId: orderId,
           description: `订单 ${order.orderNo || orderId} 消费产生积分（${multiplier}x 倍率）`,
         })
       }
 
-      const updated = await manager.findOne(Customer, { where: { customerId: order.customerId }, select: ['totalAmount'] })
+      const updated = await manager.findOne(Customer, {
+        where: { customerId: order.customerId },
+        select: ['totalAmount'],
+      })
       const newTotalAmount = Number(updated?.totalAmount || 0)
 
       const memberLevels = await this.memberLevelRepo.find({ where: { isActive: true }, order: { sortOrder: 'ASC' } })
@@ -185,68 +234,125 @@ export class CustomerMemberService {
 
         const logId = `ml-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`
         await manager.save(MemberLevelLog, {
-          logId, customerId: order.customerId, oldLevel: currentLevel, newLevel: highestLevel,
-          triggerType: 'upgrade', triggerReason: `累计消费 ¥${newTotalAmount.toFixed(2)} 达到升级门槛`, orderId,
+          logId,
+          customerId: order.customerId,
+          oldLevel: currentLevel,
+          newLevel: highestLevel,
+          triggerType: 'upgrade',
+          triggerReason: `累计消费 ¥${newTotalAmount.toFixed(2)} 达到升级门槛`,
+          orderId,
         })
       }
     })
   }
 
   async getMemberDashboard() {
-    const summary = await this.customerRepo.createQueryBuilder('c')
-      .select([
-        'COUNT(*) AS total',
-        'SUM(CASE WHEN c.totalAmount > 0 THEN 1 ELSE 0 END) AS hasSpent',
-        'SUM(CASE WHEN c.memberSince IS NOT NULL THEN 1 ELSE 0 END) AS memberCount',
-        'SUM(CASE WHEN c.lastActiveAt > DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) AS active30d',
-        'SUM(CASE WHEN c.lastActiveAt > DATE_SUB(NOW(), INTERVAL 90 DAY) THEN 1 ELSE 0 END) AS active90d',
-        'AVG(c.totalAmount) AS avgSpent',
-        'SUM(c.totalAmount) AS totalRevenue',
-        'AVG(c.totalOrders) AS avgOrders',
-      ])
-      .where('c.isDeleted = 0 AND c.customerType = :type', { type: 'retail' })
-      .getRawOne() || {}
+    const summary =
+      (await this.customerRepo
+        .createQueryBuilder('c')
+        .select([
+          'COUNT(*) AS total',
+          'SUM(CASE WHEN c.totalAmount > 0 THEN 1 ELSE 0 END) AS hasSpent',
+          'SUM(CASE WHEN c.memberSince IS NOT NULL THEN 1 ELSE 0 END) AS memberCount',
+          'SUM(CASE WHEN c.lastActiveAt > DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) AS active30d',
+          'SUM(CASE WHEN c.lastActiveAt > DATE_SUB(NOW(), INTERVAL 90 DAY) THEN 1 ELSE 0 END) AS active90d',
+          'AVG(c.totalAmount) AS avgSpent',
+          'SUM(c.totalAmount) AS totalRevenue',
+          'AVG(c.totalOrders) AS avgOrders',
+        ])
+        .where('c.isDeleted = 0 AND c.customerType = :type', { type: 'retail' })
+        .getRawOne()) || {}
 
     const s: any = summary
-    const levelDist = await this.customerRepo.createQueryBuilder('c')
-      .select('c.customerLevel AS level, COUNT(*) AS cnt, SUM(c.totalAmount) AS totalSpent')
-      .where('c.isDeleted = 0 AND c.customerType = :type', { type: 'retail' })
-      .groupBy('c.customerLevel')
-      .getRawMany() || []
+    const levelDist =
+      (await this.customerRepo
+        .createQueryBuilder('c')
+        .select('c.customerLevel AS level, COUNT(*) AS cnt, SUM(c.totalAmount) AS totalSpent')
+        .where('c.isDeleted = 0 AND c.customerType = :type', { type: 'retail' })
+        .groupBy('c.customerLevel')
+        .getRawMany()) || []
 
     return {
       summary: {
-        total: Number(s.total || 0), hasSpent: Number(s.hasSpent || 0),
-        memberCount: Number(s.memberCount || 0), active30d: Number(s.active30d || 0),
-        active90d: Number(s.active90d || 0), avgSpent: parseFloat(s.avgSpent || '0'),
-        totalRevenue: parseFloat(s.totalRevenue || '0'), avgOrders: parseFloat(s.avgOrders || '0'),
+        total: Number(s.total || 0),
+        hasSpent: Number(s.hasSpent || 0),
+        memberCount: Number(s.memberCount || 0),
+        active30d: Number(s.active30d || 0),
+        active90d: Number(s.active90d || 0),
+        avgSpent: parseFloat(s.avgSpent || '0'),
+        totalRevenue: parseFloat(s.totalRevenue || '0'),
+        avgOrders: parseFloat(s.avgOrders || '0'),
       },
       levelDistribution: (levelDist || []).map((l: any) => ({
-        level: l.level, count: Number(l.cnt || 0), totalSpent: parseFloat(l.totalSpent || '0'),
+        level: l.level,
+        count: Number(l.cnt || 0),
+        totalSpent: parseFloat(l.totalSpent || '0'),
       })),
     }
   }
 
-  async getMemberAnalytics(query: { page?: number; pageSize?: number; level?: string; keyword?: string; sortBy?: string }) {
+  async getMemberAnalytics(query: {
+    page?: number
+    pageSize?: number
+    level?: string
+    keyword?: string
+    sortBy?: string
+  }) {
     const { page = 1, pageSize = 20, level, keyword, sortBy = 'totalAmount' } = query
-    const qb = this.customerRepo.createQueryBuilder('c')
-      .select(['c.customerId', 'c.customerCode', 'c.contactName', 'c.phone', 'c.customerLevel', 'c.totalAmount', 'c.totalOrders', 'c.lastActiveAt', 'c.memberSince', 'c.createdAt', 'c.pointsBalance', 'c.preferredStyle', 'c.referralSource', 'c.subscriptionStatus', 'c.memberDiscountRate'])
+    const qb = this.customerRepo
+      .createQueryBuilder('c')
+      .select([
+        'c.customerId',
+        'c.customerCode',
+        'c.contactName',
+        'c.phone',
+        'c.customerLevel',
+        'c.totalAmount',
+        'c.totalOrders',
+        'c.lastActiveAt',
+        'c.memberSince',
+        'c.createdAt',
+        'c.pointsBalance',
+        'c.preferredStyle',
+        'c.referralSource',
+        'c.subscriptionStatus',
+        'c.memberDiscountRate',
+      ])
       .where('c.isDeleted = 0 AND c.customerType = :type', { type: 'retail' })
 
     if (level) qb.andWhere('c.customerLevel = :level', { level })
-    if (keyword) qb.andWhere('(c.contactName LIKE :kw OR c.phone LIKE :kw OR c.customerCode LIKE :kw)', { kw: `%${this.escapeLikePattern(keyword)}%` })
+    if (keyword)
+      qb.andWhere('(c.contactName LIKE :kw OR c.phone LIKE :kw OR c.customerCode LIKE :kw)', {
+        kw: `%${this.escapeLikePattern(keyword)}%`,
+      })
 
-    const sortMap: Record<string, string> = { totalAmount: 'c.totalAmount', lastActiveAt: 'c.lastActiveAt', totalOrders: 'c.totalOrders', createdAt: 'c.createdAt', memberSince: 'c.memberSince' }
+    const sortMap: Record<string, string> = {
+      totalAmount: 'c.totalAmount',
+      lastActiveAt: 'c.lastActiveAt',
+      totalOrders: 'c.totalOrders',
+      createdAt: 'c.createdAt',
+      memberSince: 'c.memberSince',
+    }
     qb.orderBy(sortMap[sortBy] || 'c.totalAmount', 'DESC')
 
-    const [items, total] = await qb.skip((page - 1) * pageSize).take(pageSize).getManyAndCount()
+    const [items, total] = await qb
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .getManyAndCount()
 
     const enriched = items.map((c: any) => {
-      const daysSinceLastActive = c.lastActiveAt ? Math.floor((Date.now() - new Date(c.lastActiveAt).getTime()) / (1000 * 60 * 60 * 24)) : 999
+      const daysSinceLastActive = c.lastActiveAt
+        ? Math.floor((Date.now() - new Date(c.lastActiveAt).getTime()) / (1000 * 60 * 60 * 24))
+        : 999
       let activityStatus = 'inactive'
       if (daysSinceLastActive <= 30) activityStatus = 'active'
       else if (daysSinceLastActive <= 90) activityStatus = 'dormant'
-      return { ...c, daysSinceLastActive, activityStatus, churnRisk: daysSinceLastActive > 90 ? 'high' : daysSinceLastActive > 60 ? 'medium' : 'low' }
+      return {
+        ...c,
+        daysSinceLastActive,
+        activityStatus,
+        churnRisk: daysSinceLastActive > 90 ? 'high' : daysSinceLastActive > 60 ? 'medium' : 'low',
+      }
     })
 
     return { items: enriched, total, page: +page, pageSize: +pageSize }

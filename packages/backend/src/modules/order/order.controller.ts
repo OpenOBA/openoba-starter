@@ -3,7 +3,15 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger'
 import { OrderService } from './order.service'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { Roles } from '../../common/decorators/roles.decorator'
-import { CreateOrderDto, UpdateOrderDto, UpdateOrderStatusDto, CancelOrderDto, CreatePaymentDto, CreateShipmentDto, QueryOrderDto } from './dto/order.dto'
+import {
+  CreateOrderDto,
+  UpdateOrderDto,
+  UpdateOrderStatusDto,
+  CancelOrderDto,
+  CreatePaymentDto,
+  CreateShipmentDto,
+  QueryOrderDto,
+} from './dto/order.dto'
 import { MCPCapable } from '../../common/decorators/mcp-capable.decorator'
 
 @ApiTags('订单管理')

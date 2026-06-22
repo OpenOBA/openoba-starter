@@ -46,14 +46,15 @@ export class DeploymentController {
     }
     return {
       mode,
-      ...descriptions[mode] || descriptions.operator,
+      ...(descriptions[mode] || descriptions.operator),
       engineCoreProtected: mode !== 'maintainer',
       engineCorePaths: ENGINE_CORE_PATHS,
-      restrictions: mode === 'operator'
-        ? ['文件写入: 禁止', '引擎代码: 禁止', 'ERA系统表: 禁止']
-        : mode === 'developer'
-          ? ['文件写入: 允许（除引擎核心）', '引擎代码: 禁止', 'ERA系统表: 禁止']
-          : ['全部开放 · 厂商支持: 已终止'],
+      restrictions:
+        mode === 'operator'
+          ? ['文件写入: 禁止', '引擎代码: 禁止', 'ERA系统表: 禁止']
+          : mode === 'developer'
+            ? ['文件写入: 允许（除引擎核心）', '引擎代码: 禁止', 'ERA系统表: 禁止']
+            : ['全部开放 · 厂商支持: 已终止'],
     }
   }
 
@@ -70,7 +71,8 @@ export class DeploymentController {
 
     if (mode === 'maintainer' && currentMode !== 'maintainer' && !confirmed) {
       return {
-        warning: '⚠️ 切换到维护模式后，Agent 将获得完全开放权限，可以修改引擎核心代码。秒镜科技对维护模式下的操作不承担技术支持义务。',
+        warning:
+          '⚠️ 切换到维护模式后，Agent 将获得完全开放权限，可以修改引擎核心代码。秒镜科技对维护模式下的操作不承担技术支持义务。',
         requireConfirm: true,
         confirmAction: { method: 'PUT', path: '/api/deployment/mode', body: { mode: 'maintainer', confirmed: true } },
       }
@@ -197,7 +199,8 @@ export class DeploymentController {
     try {
       await this.deployment.executeRawMigration(body.sql)
       return { success: true, message: 'Migration 执行成功' }
-    } catch (_e: unknown) { const e = _e as Error
+    } catch (_e: unknown) {
+      const e = _e as Error
       return { success: false, message: e.message || 'Migration 执行失败' }
     }
   }

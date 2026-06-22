@@ -8,9 +8,23 @@ describe('ExternalBarcodeMappingService', () => {
   let service: ExternalBarcodeMappingService
   beforeEach(async () => {
     const m = await Test.createTestingModule({
-      providers: [ExternalBarcodeMappingService, { provide: getRepositoryToken(ExternalBarcodeMapping), useValue: { find: jest.fn().mockResolvedValue([]), findOne: jest.fn().mockResolvedValue(null), save: jest.fn((e:any)=>Promise.resolve(e)), create: jest.fn((d:any)=>d), delete: jest.fn().mockResolvedValue({affected:1}) } }],
+      providers: [
+        ExternalBarcodeMappingService,
+        {
+          provide: getRepositoryToken(ExternalBarcodeMapping),
+          useValue: {
+            find: jest.fn().mockResolvedValue([]),
+            findOne: jest.fn().mockResolvedValue(null),
+            save: jest.fn((e: any) => Promise.resolve(e)),
+            create: jest.fn((d: any) => d),
+            delete: jest.fn().mockResolvedValue({ affected: 1 }),
+          },
+        },
+      ],
     }).compile()
     service = m.get<ExternalBarcodeMappingService>(ExternalBarcodeMappingService)
   })
-  it('should be defined', () => { expect(service).toBeDefined() })
+  it('should be defined', () => {
+    expect(service).toBeDefined()
+  })
 })

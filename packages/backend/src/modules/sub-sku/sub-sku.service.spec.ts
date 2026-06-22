@@ -9,12 +9,31 @@ describe('SubSkuService', () => {
   let service: SubSkuService
   beforeEach(async () => {
     const m = await Test.createTestingModule({
-      providers: [SubSkuService,
-        { provide: getRepositoryToken(SubSku), useValue: { findOne: jest.fn().mockResolvedValue(null), find: jest.fn().mockResolvedValue([]), save: jest.fn((e:any)=>Promise.resolve(e)), create: jest.fn((d:any)=>d), delete: jest.fn().mockResolvedValue({affected:1}) } },
-        { provide: getRepositoryToken(SubSkuCategory), useValue: { findOne: jest.fn().mockResolvedValue(null), find: jest.fn().mockResolvedValue([]), delete: jest.fn().mockResolvedValue({affected:1}) } },
+      providers: [
+        SubSkuService,
+        {
+          provide: getRepositoryToken(SubSku),
+          useValue: {
+            findOne: jest.fn().mockResolvedValue(null),
+            find: jest.fn().mockResolvedValue([]),
+            save: jest.fn((e: any) => Promise.resolve(e)),
+            create: jest.fn((d: any) => d),
+            delete: jest.fn().mockResolvedValue({ affected: 1 }),
+          },
+        },
+        {
+          provide: getRepositoryToken(SubSkuCategory),
+          useValue: {
+            findOne: jest.fn().mockResolvedValue(null),
+            find: jest.fn().mockResolvedValue([]),
+            delete: jest.fn().mockResolvedValue({ affected: 1 }),
+          },
+        },
       ],
     }).compile()
     service = m.get<SubSkuService>(SubSkuService)
   })
-  it('should be defined', () => { expect(service).toBeDefined() })
+  it('should be defined', () => {
+    expect(service).toBeDefined()
+  })
 })

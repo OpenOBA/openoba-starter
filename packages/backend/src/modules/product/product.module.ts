@@ -90,6 +90,16 @@ import { ERDLModule } from '@openoba/core/dist/modules/erdl/erdl.module'
     PricingService,
     PricingEngineService,
   ],
-  exports: [ProductService, ColorService, SpuService, SkuService, SetService, ProductSpuService, ProductSkuService, PricingService, PricingEngineService],
+  exports: [
+    ProductService,
+    ColorService,
+    SpuService,
+    SkuService,
+    SetService,
+    ProductSpuService,
+    ProductSkuService,
+    PricingService,
+    PricingEngineService,
+  ],
 })
 export class ProductModule {}

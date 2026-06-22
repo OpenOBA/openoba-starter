@@ -1,7 +1,13 @@
 import { Entity, PrimaryColumn, Column, CreateDateColumn, Index } from 'typeorm'
 
 export const LOGIN_METHODS = ['sms_code', 'password', 'admin_create'] as const
-export const LOGIN_RESULTS = ['success', 'failed_wrong_code', 'failed_expired', 'failed_no_account', 'failed_suspended'] as const
+export const LOGIN_RESULTS = [
+  'success',
+  'failed_wrong_code',
+  'failed_expired',
+  'failed_no_account',
+  'failed_suspended',
+] as const
 
 @Entity('customer_login_log')
 @Index('idx_customer', ['customerId'])

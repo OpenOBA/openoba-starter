@@ -46,7 +46,9 @@ describe('ReviewService', () => {
     service = module.get<ReviewService>(ReviewService)
   })
 
-  it('should be defined', () => { expect(service).toBeDefined() })
+  it('should be defined', () => {
+    expect(service).toBeDefined()
+  })
 
   describe('findReviews', () => {
     it('should return paginated results', async () => {

@@ -19,7 +19,7 @@ import {
   ReorderSkuImagesDto,
 } from './dto/product.dto'
 import { MCPCapable } from '../../common/decorators/mcp-capable.decorator'
-import { Roles } from '../../common/decorators/roles.decorator';
+import { Roles } from '../../common/decorators/roles.decorator'
 
 @ApiTags('商品管理')
 @UseGuards(JwtAuthGuard)
@@ -31,14 +31,26 @@ export class ProductController {
   // ===== 颜色字典 =====
   @ApiOperation({ summary: '颜色列表' })
   @Get('colors')
-  @MCPCapable({ tool: 'product.colors', description: '查询颜色字典列表', category: 'product', readOnly: true, industryScoped: true })
+  @MCPCapable({
+    tool: 'product.colors',
+    description: '查询颜色字典列表',
+    category: 'product',
+    readOnly: true,
+    industryScoped: true,
+  })
   async colors(@Query() q: Record<string, string | number>) {
     return this.productService.findColors(q)
   }
 
   @ApiOperation({ summary: '颜色详情' })
   @Get('colors/:id')
-  @MCPCapable({ tool: 'product.color', description: '查询颜色详情', category: 'product', readOnly: true, industryScoped: true })
+  @MCPCapable({
+    tool: 'product.color',
+    description: '查询颜色详情',
+    category: 'product',
+    readOnly: true,
+    industryScoped: true,
+  })
   async color(@Param('id') id: string) {
     return this.productService.findOneColor(id)
   }
@@ -80,7 +92,13 @@ export class ProductController {
 
   @ApiOperation({ summary: 'SPU 详情' })
   @Get('spus/:id')
-  @MCPCapable({ tool: 'product.spu', description: '查询SPU详情（含关联SKU）', category: 'product', readOnly: true, industryScoped: true })
+  @MCPCapable({
+    tool: 'product.spu',
+    description: '查询SPU详情（含关联SKU）',
+    category: 'product',
+    readOnly: true,
+    industryScoped: true,
+  })
   async spu(@Param('id') id: string) {
     return this.productService.findOneSpu(id)
   }
@@ -122,7 +140,13 @@ export class ProductController {
 
   @ApiOperation({ summary: 'SKU 详情' })
   @Get('skus/:id')
-  @MCPCapable({ tool: 'product.sku', description: '查询SKU详情（含条码/库存）', category: 'product', readOnly: true, industryScoped: true })
+  @MCPCapable({
+    tool: 'product.sku',
+    description: '查询SKU详情（含条码/库存）',
+    category: 'product',
+    readOnly: true,
+    industryScoped: true,
+  })
   async sku(@Param('id') id: string) {
     return this.productService.findOneSku(id)
   }
@@ -158,14 +182,26 @@ export class ProductController {
   // ===== 套装 =====
   @ApiOperation({ summary: '套装列表' })
   @Get('sets')
-  @MCPCapable({ tool: 'product.sets', description: '查询套装列表', category: 'product', readOnly: true, industryScoped: true })
+  @MCPCapable({
+    tool: 'product.sets',
+    description: '查询套装列表',
+    category: 'product',
+    readOnly: true,
+    industryScoped: true,
+  })
   async sets(@Query() q: Record<string, string | number>) {
     return this.productService.findSets(q)
   }
 
   @ApiOperation({ summary: '套装详情' })
   @Get('sets/:id')
-  @MCPCapable({ tool: 'product.set', description: '查询套装详情（含内件）', category: 'product', readOnly: true, industryScoped: true })
+  @MCPCapable({
+    tool: 'product.set',
+    description: '查询套装详情（含内件）',
+    category: 'product',
+    readOnly: true,
+    industryScoped: true,
+  })
   async set(@Param('id') id: string) {
     return this.productService.findOneSet(id)
   }
@@ -194,42 +230,74 @@ export class ProductController {
   // ===== SKU 图片管理 =====
   @ApiOperation({ summary: 'SKU 图片列表' })
   @Get('sku-images')
-  @MCPCapable({ tool: 'product.skuImages', description: '查询SKU图片列表', category: 'product', readOnly: true, industryScoped: true })
+  @MCPCapable({
+    tool: 'product.skuImages',
+    description: '查询SKU图片列表',
+    category: 'product',
+    readOnly: true,
+    industryScoped: true,
+  })
   async skuImages(@Query() q: QuerySkuImageDto) {
     return this.productService.findSkuImages(q)
   }
 
   @ApiOperation({ summary: '单张图片详情' })
   @Get('sku-images/:id')
-  @MCPCapable({ tool: 'product.skuImage', description: '查询单张SKU图片详情', category: 'product', readOnly: true, industryScoped: true })
+  @MCPCapable({
+    tool: 'product.skuImage',
+    description: '查询单张SKU图片详情',
+    category: 'product',
+    readOnly: true,
+    industryScoped: true,
+  })
   async skuImage(@Param('id') id: string) {
     return this.productService.findOneSkuImage(id)
   }
 
   @ApiOperation({ summary: 'SKU 图片分组（官网 API）' })
   @Get('sku-images-grouped/:sku-id')
-  @MCPCapable({ tool: 'product.skuImagesGrouped', description: 'SKU图片按类型分组（官网用）', category: 'product', readOnly: true })
+  @MCPCapable({
+    tool: 'product.skuImagesGrouped',
+    description: 'SKU图片按类型分组（官网用）',
+    category: 'product',
+    readOnly: true,
+  })
   async skuImagesGrouped(@Param('sku-id') skuId: string) {
     return this.productService.getSkuImagesGrouped(skuId)
   }
 
   @ApiOperation({ summary: '创建 SKU 图片' })
   @Post('sku-images')
-  @MCPCapable({ tool: 'product.createSkuImage', description: '创建SKU图片记录', category: 'product', industryScoped: true })
+  @MCPCapable({
+    tool: 'product.createSkuImage',
+    description: '创建SKU图片记录',
+    category: 'product',
+    industryScoped: true,
+  })
   async createSkuImage(@Body() dto: CreateSkuImageDto) {
     return this.productService.createSkuImage(dto)
   }
 
   @ApiOperation({ summary: '批量上传 SKU 图片' })
   @Post('sku-images/batch')
-  @MCPCapable({ tool: 'product.batchCreateSkuImages', description: '批量上传SKU图片', category: 'product', industryScoped: true })
+  @MCPCapable({
+    tool: 'product.batchCreateSkuImages',
+    description: '批量上传SKU图片',
+    category: 'product',
+    industryScoped: true,
+  })
   async batchCreateSkuImages(@Body() dto: BatchCreateSkuImageDto) {
     return this.productService.batchCreateSkuImages(dto)
   }
 
   @ApiOperation({ summary: '更新 SKU 图片' })
   @Put('sku-images/:id')
-  @MCPCapable({ tool: 'product.updateSkuImage', description: '更新SKU图片信息', category: 'product', industryScoped: true })
+  @MCPCapable({
+    tool: 'product.updateSkuImage',
+    description: '更新SKU图片信息',
+    category: 'product',
+    industryScoped: true,
+  })
   async updateSkuImage(@Param('id') id: string, @Body() dto: UpdateSkuImageDto) {
     return this.productService.updateSkuImage(id, dto)
   }
@@ -243,7 +311,12 @@ export class ProductController {
 
   @ApiOperation({ summary: '批量重排 SKU 图片' })
   @Post('sku-images/reorder')
-  @MCPCapable({ tool: 'product.reorderSkuImages', description: '批量重排SKU图片顺序', category: 'product', industryScoped: true })
+  @MCPCapable({
+    tool: 'product.reorderSkuImages',
+    description: '批量重排SKU图片顺序',
+    category: 'product',
+    industryScoped: true,
+  })
   async reorderSkuImages(@Body() dto: ReorderSkuImagesDto) {
     return this.productService.reorderSkuImages(dto.skuId, dto.imageType, dto.orderedIds)
   }

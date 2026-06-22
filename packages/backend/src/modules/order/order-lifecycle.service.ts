@@ -10,10 +10,7 @@ import { OrderShipment } from './entity/order-shipment.entity'
 import { OrderLog } from './entity/order-log.entity'
 import { CustomerLens } from '../customer/entity/customer-lens.entity'
 import { InventoryService } from '../inventory/inventory.service'
-import {
-  CreatePaymentDto,
-  CreateShipmentDto,
-} from './dto/order.dto'
+import { CreatePaymentDto, CreateShipmentDto } from './dto/order.dto'
 import {
   ORDER_STATUS,
   PAYMENT_STATUS,
@@ -68,8 +65,18 @@ export class OrderLifecycleService {
     const isShippedOrDelivered = oldStatus === ORDER_STATUS.shipped || oldStatus === ORDER_STATUS.delivered
 
     await this.dataSource.transaction(async (manager) => {
-      await manager.update(Order, id, { status: ORDER_STATUS.cancelled, internalRemark: undefined as unknown as string } as Partial<Order>)
-      await manager.insert(OrderLog, { orderId: id, action: 'cancel', oldStatus, newStatus: ORDER_STATUS.cancelled, operator: operator || 'system', remark: remark || '取消订单' })
+      await manager.update(Order, id, {
+        status: ORDER_STATUS.cancelled,
+        internalRemark: undefined as unknown as string,
+      } as Partial<Order>)
+      await manager.insert(OrderLog, {
+        orderId: id,
+        action: 'cancel',
+        oldStatus,
+        newStatus: ORDER_STATUS.cancelled,
+        operator: operator || 'system',
+        remark: remark || '取消订单',
+      })
 
       const items = await manager.find(this.itemRepo.target, { where: { orderId: id } })
       for (const item of items) {
@@ -77,11 +84,15 @@ export class OrderLifecycleService {
         try {
           if (isShippedOrDelivered) {
             await this.inventoryService.rollbackStockInTransaction(manager, {
-              skuId: item.productId, orderId: id, quantity: (item as unknown as { quantity: number }).quantity,
+              skuId: item.productId,
+              orderId: id,
+              quantity: (item as unknown as { quantity: number }).quantity,
             })
           } else {
             await this.inventoryService.unlockInTransaction(manager, {
-              skuId: item.productId, orderId: id, quantity: (item as unknown as { quantity: number }).quantity,
+              skuId: item.productId,
+              orderId: id,
+              quantity: (item as unknown as { quantity: number }).quantity,
             })
           }
         } catch (e: unknown) {
@@ -133,7 +144,14 @@ export class OrderLifecycleService {
       if (paymentStatus === PAYMENT_STATUS.paid) updateData.status = ORDER_STATUS.paid
       await manager.update(Order, dto.orderId, updateData)
 
-      await manager.insert(OrderLog, { orderId: dto.orderId, action: 'pay', oldStatus: order.status, newStatus: ORDER_STATUS.paid, operator: 'system', remark: '支付完成' })
+      await manager.insert(OrderLog, {
+        orderId: dto.orderId,
+        action: 'pay',
+        oldStatus: order.status,
+        newStatus: ORDER_STATUS.paid,
+        operator: 'system',
+        remark: '支付完成',
+      })
 
       // R7-P0修复：库存锁定纳入主事务
       if (paymentStatus === PAYMENT_STATUS.paid) {
@@ -141,7 +159,9 @@ export class OrderLifecycleService {
         for (const item of items) {
           if (!item.productId || item.quantity <= 0) continue
           await this.inventoryService.lockInTransaction(manager, {
-            skuId: item.productId, orderId: dto.orderId, quantity: item.quantity,
+            skuId: item.productId,
+            orderId: dto.orderId,
+            quantity: item.quantity,
           })
         }
       }
@@ -168,19 +188,33 @@ export class OrderLifecycleService {
 
       const oldStatus = order.status
       await manager.insert(OrderShipment, { ...dto, status: SHIPMENT_STATUS.shipped, shippedAt: new Date() })
-      await manager.update(Order, dto.orderId, { status: ORDER_STATUS.shipped, logisticsStatusCode: LOGISTICS_STATUS.shipped })
-      await manager.insert(OrderLog, { orderId: dto.orderId, action: 'ship', oldStatus, newStatus: ORDER_STATUS.shipped, operator: dto.shipper || 'system', remark: `发货：${dto.carrier} ${dto.trackingNo}` })
+      await manager.update(Order, dto.orderId, {
+        status: ORDER_STATUS.shipped,
+        logisticsStatusCode: LOGISTICS_STATUS.shipped,
+      })
+      await manager.insert(OrderLog, {
+        orderId: dto.orderId,
+        action: 'ship',
+        oldStatus,
+        newStatus: ORDER_STATUS.shipped,
+        operator: dto.shipper || 'system',
+        remark: `发货：${dto.carrier} ${dto.trackingNo}`,
+      })
 
       const items = await manager.find(OrderItem, { where: { orderId: dto.orderId } })
       for (const item of items) {
         if (!item.productId || item.quantity <= 0) continue
         await this.inventoryService.unlockInTransaction(manager, {
-          skuId: item.productId, orderId: dto.orderId, quantity: item.quantity,
+          skuId: item.productId,
+          orderId: dto.orderId,
+          quantity: item.quantity,
         })
         await this.inventoryService.stockOutInTransaction(manager, {
-          skuId: item.productId, quantity: item.quantity,
+          skuId: item.productId,
+          quantity: item.quantity,
           transactionType: TransactionType.SALE_OUT,
-          referenceType: 'order', referenceId: dto.orderId,
+          referenceType: 'order',
+          referenceId: dto.orderId,
           remark: `订单 ${dto.orderId} 发货出库`,
         })
       }

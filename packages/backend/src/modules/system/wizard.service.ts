@@ -20,20 +20,26 @@ export class WizardService {
 
   /** 测试数据库连接 */
   async testDbConnection(body: {
-    host: string; port: number; username: string; password: string
+    host: string
+    port: number
+    username: string
+    password: string
   }): Promise<{ success: boolean; message: string; serverVersion?: string }> {
     const { host, port, username, password } = body
     try {
       const conn = await mysql.createConnection({
-        host: host || 'localhost', port: port || 3306,
-        user: username || 'root', password: password || '',
+        host: host || 'localhost',
+        port: port || 3306,
+        user: username || 'root',
+        password: password || '',
         connectTimeout: 5000,
       })
       const [rows] = await conn.execute('SELECT VERSION() AS version')
-      const version = ((rows as Array<Record<string, unknown>>)[0])?.version as string || 'unknown'
+      const version = ((rows as Array<Record<string, unknown>>)[0]?.version as string) || 'unknown'
       await conn.end()
       return { success: true, message: `连接成功！MySQL ${version}`, serverVersion: version }
-    } catch (_e: unknown) { const e = _e as Error & { sqlMessage?: string }
+    } catch (_e: unknown) {
+      const e = _e as Error & { sqlMessage?: string }
       let msg = e.message || '连接失败'
       if (/Access denied/i.test(msg)) msg = '用户名或密码错误'
       else if (/ECONNREFUSED|ETIMEDOUT/i.test(msg)) msg = `无法连接 ${host}:${port}，MySQL 是否启动？`
@@ -43,14 +49,20 @@ export class WizardService {
 
   /** 步骤2：建库 + 建表 */
   async createTables(body: {
-    host: string; port: number; username: string; password: string; database?: string
+    host: string
+    port: number
+    username: string
+    password: string
+    database?: string
   }): Promise<{ success: boolean; message: string; tableCount?: number }> {
     const { host, port, username, password, database } = body
     const dbName = database || 'openoba_starter'
 
     const conn = await mysql.createConnection({
-      host: host || 'localhost', port: port || 3306,
-      user: username || 'root', password: password || '',
+      host: host || 'localhost',
+      port: port || 3306,
+      user: username || 'root',
+      password: password || '',
       multipleStatements: false,
     })
 
@@ -66,20 +78,33 @@ export class WizardService {
 
       let sql = fs.readFileSync(sqlPath, 'utf-8')
       // 移除 USE/DROP DATABASE 行
-      sql = sql.split('\n').filter(l => !l.trim().startsWith('USE ') && !l.trim().startsWith('CREATE DATABASE ') && !l.trim().startsWith('DROP DATABASE ')).join('\n')
-      
+      sql = sql
+        .split('\n')
+        .filter(
+          (l) =>
+            !l.trim().startsWith('USE ') &&
+            !l.trim().startsWith('CREATE DATABASE ') &&
+            !l.trim().startsWith('DROP DATABASE '),
+        )
+        .join('\n')
+
       // 按 CREATE TABLE 分块
       const createBlocks: string[] = sql.match(/CREATE TABLE[\s\S]*?;\n/g) || []
       const dropBlocks: string[] = sql.match(/DROP TABLE[\s\S]*?;\n/g) || []
       const blocks = createBlocks.concat(dropBlocks)
 
-      let executed = 0, skipped = 0
+      let executed = 0,
+        skipped = 0
       for (const block of blocks) {
         try {
           await conn.query(block)
           executed++
-        } catch (_e: unknown) { const e = _e as Error & { sqlMessage?: string }
-          if (/already exists|Duplicate/i.test(e.sqlMessage || e.message || '')) { skipped++; continue }
+        } catch (_e: unknown) {
+          const e = _e as Error & { sqlMessage?: string }
+          if (/already exists|Duplicate/i.test(e.sqlMessage || e.message || '')) {
+            skipped++
+            continue
+          }
           this.logger.warn(`SQL skip: ${(e.sqlMessage || e.message).substring(0, 100)}`)
           skipped++
         }
@@ -87,13 +112,15 @@ export class WizardService {
 
       // 3. 验证
       const [rows] = await conn.execute(
-        "SELECT COUNT(*) AS cnt FROM information_schema.tables WHERE table_schema = ?", [dbName]
+        'SELECT COUNT(*) AS cnt FROM information_schema.tables WHERE table_schema = ?',
+        [dbName],
       )
       const tableCount = Number((rows as Array<Record<string, unknown>>)[0]?.cnt) || 0
       this.logger.log(`Tables: ${tableCount}`)
 
       return { success: true, message: `建表完成：${tableCount} 张表`, tableCount }
-    } catch (_e: unknown) { const e = _e as Error & { sqlMessage?: string }
+    } catch (_e: unknown) {
+      const e = _e as Error & { sqlMessage?: string }
       return { success: false, message: `建表失败：${e.message}` }
     } finally {
       await conn.end()
@@ -102,14 +129,20 @@ export class WizardService {
 
   /** 步骤3：灌入种子数据 */
   async seedDb(body: {
-    host: string; port: number; username: string; password: string; database?: string
+    host: string
+    port: number
+    username: string
+    password: string
+    database?: string
   }): Promise<{ success: boolean; message: string }> {
     const { host, port, username, password, database } = body
     const dbName = database || 'openoba_starter'
 
     const conn = await mysql.createConnection({
-      host: host || 'localhost', port: port || 3306,
-      user: username || 'root', password: password || '',
+      host: host || 'localhost',
+      port: port || 3306,
+      user: username || 'root',
+      password: password || '',
       multipleStatements: false,
     })
 
@@ -120,22 +153,31 @@ export class WizardService {
       if (!fs.existsSync(seedPath)) return { success: false, message: `种子脚本不存在：${seedPath}` }
 
       const seedSql = fs.readFileSync(seedPath, 'utf-8')
-      const stmts = seedSql.split(';').map(s => s.trim()).filter(s => s.length > 0 && !s.startsWith('--'))
+      const stmts = seedSql
+        .split(';')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0 && !s.startsWith('--'))
 
-      let ok = 0, skip = 0
+      let ok = 0,
+        skip = 0
       for (const stmt of stmts) {
         try {
           await conn.query(stmt)
           ok++
-        } catch (_e: unknown) { const e = _e as Error & { sqlMessage?: string }
-          if (/Duplicate|already exists/i.test(e.sqlMessage || e.message || '')) { skip++; continue }
+        } catch (_e: unknown) {
+          const e = _e as Error & { sqlMessage?: string }
+          if (/Duplicate|already exists/i.test(e.sqlMessage || e.message || '')) {
+            skip++
+            continue
+          }
           this.logger.warn(`Seed skip: ${(e.sqlMessage || e.message).substring(0, 80)}`)
         }
       }
 
       this.logger.log(`Seed: ${ok} ok, ${skip} skipped`)
       return { success: true, message: `种子数据导入完成` }
-    } catch (_e: unknown) { const e = _e as Error & { sqlMessage?: string }
+    } catch (_e: unknown) {
+      const e = _e as Error & { sqlMessage?: string }
       return { success: false, message: `种子导入失败：${e.message}` }
     } finally {
       await conn.end()
@@ -145,19 +187,24 @@ export class WizardService {
   /** 检测系统状态 */
   async checkStatus(): Promise<{ initialized: boolean; checks: Record<string, unknown>; nextStep: string }> {
     const dbConfigured = !!(process.env.DB_HOST && process.env.DB_DATABASE)
-    let connected = false, tablesExist = false, adminExists = false
+    let connected = false,
+      tablesExist = false,
+      adminExists = false
     if (dbConfigured) {
       try {
         const conn = await mysql.createConnection({
-          host: process.env.DB_HOST, port: parseInt(process.env.DB_PORT || '3306'),
-          user: process.env.DB_USERNAME, password: process.env.DB_PASSWORD,
-          database: process.env.DB_DATABASE, connectTimeout: 3000,
+          host: process.env.DB_HOST,
+          port: parseInt(process.env.DB_PORT || '3306'),
+          user: process.env.DB_USERNAME,
+          password: process.env.DB_PASSWORD,
+          database: process.env.DB_DATABASE,
+          connectTimeout: 3000,
         })
         connected = true
         const dbName = process.env.DB_DATABASE || 'openoba_starter'
         const [rows] = await conn.execute(
-          "SELECT COUNT(*) AS cnt FROM information_schema.tables WHERE table_schema = ?",
-          [dbName]
+          'SELECT COUNT(*) AS cnt FROM information_schema.tables WHERE table_schema = ?',
+          [dbName],
         )
         tablesExist = Number((rows as Array<Record<string, unknown>>)[0]?.cnt) >= 10
         if (tablesExist) {
@@ -165,7 +212,9 @@ export class WizardService {
           adminExists = Number((ur as Array<Record<string, unknown>>)[0]?.cnt) > 0
         }
         await conn.end()
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
     const initialized = connected && tablesExist && adminExists
     return {

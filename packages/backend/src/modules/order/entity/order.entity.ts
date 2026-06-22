@@ -16,24 +16,24 @@ export class Order {
   @PrimaryGeneratedColumn('uuid', { name: 'order_id' })
   orderId: string
 
-  @Column({ comment: '订单号',  name: 'order_no', unique: true, length: 64 })
+  @Column({ comment: '订单号', name: 'order_no', unique: true, length: 64 })
   orderNo: string
 
-  @Column({ comment: 'customer ID',  name: 'customer_id', length: 36 })
+  @Column({ comment: 'customer ID', name: 'customer_id', length: 36 })
   customerId: string
 
-  @Column({ comment: '客户姓名',  name: 'customer_name', length: 128 })
+  @Column({ comment: '客户姓名', name: 'customer_name', length: 128 })
   customerName: string
 
-  @Column({ comment: '客户电话',  name: 'customer_phone', length: 32, nullable: true })
+  @Column({ comment: '客户电话', name: 'customer_phone', length: 32, nullable: true })
   customerPhone?: string
 
   /** @see ORDER_TYPES.retail — dict_customer_type */
-  @Column({ comment: 'customer 类型',  name: 'customer_type', length: 16, default: 'retail' })
+  @Column({ comment: 'customer 类型', name: 'customer_type', length: 16, default: 'retail' })
   customerType: string
 
   /** @see ORDER_TYPES.retail — dict_order_type */
-  @Column({ comment: 'order 类型',  name: 'order_type', length: 16, default: 'retail' })
+  @Column({ comment: 'order 类型', name: 'order_type', length: 16, default: 'retail' })
   orderType: string
 
   // 消费场景标识（V3.0 电商化）
@@ -47,7 +47,12 @@ export class Order {
   isWholesale: boolean
 
   // 关联结构标准（复购场景锚点）— 结构锚点原则：每笔订单必须携带结构标准
-  @Column({ name: 'structure_standard_code', length: 64, nullable: true, comment: '关联结构标准编码（复购场景锚点，引用external_code）' })
+  @Column({
+    name: 'structure_standard_code',
+    length: 64,
+    nullable: true,
+    comment: '关联结构标准编码（复购场景锚点，引用external_code）',
+  })
   structureStandardCode?: string
 
   // 批发阶梯档位
@@ -55,13 +60,13 @@ export class Order {
   wholesaleTier?: string
 
   /** @see ORDER_STATUS.pending — dict_order_status */
-  @Column({ comment: '状态',  length: 32, default: 'pending' })
+  @Column({ comment: '状态', length: 32, default: 'pending' })
   status: string
 
-  @Column({ comment: '支付方式',  name: 'payment_method', length: 32, nullable: true })
+  @Column({ comment: '支付方式', name: 'payment_method', length: 32, nullable: true })
   paymentMethod?: string
 
-  @Column({ comment: '支付状态',  name: 'payment_status', length: 32, default: 'unpaid' })
+  @Column({ comment: '支付状态', name: 'payment_status', length: 32, default: 'unpaid' })
   paymentStatus: string
 
   // 状态码（P1: FK nullable for SET NULL）
@@ -78,20 +83,27 @@ export class Order {
   @Column({ name: 'review_status_code', length: 64, nullable: true, default: 'pending', comment: '评价状态码' })
   reviewStatusCode?: string
 
-  @Column({ comment: '总金额',  name: 'total_amount', type: 'decimal', precision: 12, scale: 2 })
+  @Column({ comment: '总金额', name: 'total_amount', type: 'decimal', precision: 12, scale: 2 })
   totalAmount: number
 
-  @Column({ comment: '优惠金额',  name: 'discount_amount', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({ comment: '优惠金额', name: 'discount_amount', type: 'decimal', precision: 12, scale: 2, default: 0 })
   discountAmount: number
 
-  @Column({ comment: '运费',  name: 'shipping_fee', type: 'decimal', precision: 10, scale: 2, default: 0 })
+  @Column({ comment: '运费', name: 'shipping_fee', type: 'decimal', precision: 10, scale: 2, default: 0 })
   shippingFee: number
 
-  @Column({ comment: '实付金额',  name: 'actual_amount', type: 'decimal', precision: 12, scale: 2 })
+  @Column({ comment: '实付金额', name: 'actual_amount', type: 'decimal', precision: 12, scale: 2 })
   actualAmount: number
 
   // ===== Phase 9A: 利润核算 =====
-  @Column({ name: 'total_retail_price', type: 'decimal', precision: 12, scale: 2, default: 0, comment: '总零售价（按统一零售价计算）' })
+  @Column({
+    name: 'total_retail_price',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+    comment: '总零售价（按统一零售价计算）',
+  })
   totalRetailPrice: number
 
   @Column({ name: 'total_discount', type: 'decimal', precision: 12, scale: 2, default: 0, comment: '总优惠金额' })
@@ -107,13 +119,27 @@ export class Order {
   grossMarginPct: number
 
   // 退款区分
-  @Column({ name: 'cancel_refund_amount', type: 'decimal', precision: 12, scale: 2, default: 0, comment: '取消退款金额' })
+  @Column({
+    name: 'cancel_refund_amount',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+    comment: '取消退款金额',
+  })
   cancelRefundAmount: number
 
-  @Column({ name: 'after_sale_refund_amount', type: 'decimal', precision: 12, scale: 2, default: 0, comment: '售后退款金额' })
+  @Column({
+    name: 'after_sale_refund_amount',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+    comment: '售后退款金额',
+  })
   afterSaleRefundAmount: number
 
-  @Column({ comment: '关联处方ID',  name: 'prescription_id', length: 36, nullable: true })
+  @Column({ comment: '关联处方ID', name: 'prescription_id', length: 36, nullable: true })
   prescriptionId?: string
 
   // 备注区分
@@ -126,7 +152,7 @@ export class Order {
   @Column({ length: 32, default: 'manual' })
   source: string
 
-  @Column({ comment: '创建人',  name: 'created_by', length: 36, nullable: true })
+  @Column({ comment: '创建人', name: 'created_by', length: 36, nullable: true })
   createdBy?: string
 
   // 收货与评价
