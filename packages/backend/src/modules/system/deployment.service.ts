@@ -117,7 +117,7 @@ export class DeploymentService {
         message: `已部署到 staging 环境 (端口 3001)`,
         stagingUrl: `http://localhost:3001`,
       }
-    } catch (e: any) {
+    } catch (_e: unknown) { const e = _e as Error
       this.logger.error(`部署到 staging 失败: ${e.message}`)
       return { success: false, message: `部署失败: ${e.message}`, stagingUrl: '' }
     }
@@ -176,7 +176,7 @@ export class DeploymentService {
       await this.syncStagingToProduction()
 
       return { success: true, message: `已发布到生产环境 ${newVersion}` }
-    } catch (e: any) {
+    } catch (_e: unknown) { const e = _e as Error
       this.logger.error(`发布失败: ${e.message}`)
       return { success: false, message: `发布失败: ${e.message}` }
     }
@@ -225,7 +225,7 @@ export class DeploymentService {
       this.saveDeltas(deltas)
 
       return { success: true, message: `已回滚到 ${targetVersion}（生产环境已重启，staging 已同步）` }
-    } catch (e: any) {
+    } catch (_e: unknown) { const e = _e as Error
       this.logger.error(`回滚失败: ${e.message}`)
       return { success: false, message: `回滚失败: ${e.message}` }
     }
@@ -244,7 +244,7 @@ export class DeploymentService {
       // 数据库同步（需要 mysqldump，开发环境跳过）
       try {
         this.syncDatabaseSnapshot()
-      } catch (e: any) {
+      } catch (_e: unknown) { const e = _e as Error
         this.logger.warn('数据库同步跳过: ' + e.message)
       }
 
@@ -252,7 +252,7 @@ export class DeploymentService {
       this.setLastSyncTime()
 
       return { success: true, message: 'Staging 已与 Production 同步' }
-    } catch (e: any) {
+    } catch (_e: unknown) { const e = _e as Error
       return { success: false, message: '同步失败: ' + e.message }
     }
   }
@@ -333,7 +333,7 @@ export class DeploymentService {
     try {
       this.execCmd('npx tsc --noEmit', { cwd: path.join(this.projectRoot, 'backend') })
       this.logger.log('✅ Backend tsc 通过')
-    } catch (e: any) {
+    } catch (_e: unknown) { const e = _e as Error & { stderr?: string }
       return { success: false, message: `编译失败: ${e.stderr || e.message}` }
     }
 
@@ -526,7 +526,7 @@ export class DeploymentService {
     }
   }
 
-  private execCmd(cmd: string, opts: { cwd: string; [key: string]: any }): string {
+  private execCmd(cmd: string, opts: { cwd: string; [key: string]: unknown }): string {
     // V1.4-b #39: execSync → execFileSync，参数分离防注入
     const parts = cmd.split(/\s+/).filter(Boolean)
     const program = parts[0]
