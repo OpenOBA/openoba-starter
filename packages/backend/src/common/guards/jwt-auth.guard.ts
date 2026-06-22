@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
 import { Reflector } from '@nestjs/core'
+import type { Request } from 'express'
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator'
 
 @Injectable()
@@ -46,7 +46,7 @@ export class JwtAuthGuard implements CanActivate {
     }
   }
 
-  private extractToken(request: any): string | null {
+  private extractToken(request: Request): string | null {
     const authHeader = request.headers?.authorization
     if (authHeader && authHeader.startsWith('Bearer ')) {
       return authHeader.substring(7)
