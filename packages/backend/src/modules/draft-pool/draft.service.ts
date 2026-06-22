@@ -11,6 +11,7 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, IsNull, DataSource } from 'typeorm'
+import type { DraftType, PublishRecord } from './entities/draft.entity'
 import * as crypto from 'crypto'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -50,7 +51,7 @@ export class DraftService {
     draft.draftNo = genDraftNo()
     draft.status = 'editing'
     if (dto.title) draft.title = dto.title
-    if (dto.draftType) draft.draftType = dto.draftType as any
+    if (dto.draftType) draft.draftType = dto.draftType as unknown as DraftType
     if (dto.bodyText) draft.bodyText = dto.bodyText
     if (dto.bodyJson) draft.bodyJson = dto.bodyJson
     if (dto.attachments) draft.attachments = dto.attachments
@@ -141,9 +142,10 @@ export class DraftService {
     try {
       if (draft.draftType === 'spu' && draft.bodyJson) {
         // ── SPU 草稿 → 创建 product_spu + product_sku ──
-        const bj = draft.bodyJson as any
-        const spuCode = `S-${(bj.shapeCode || 'GEN').substring(0, 3)}-${Date.now().toString(36).toUpperCase()}`
-        const spuName = bj.spuName || draft.title || draft.draftNo
+        const bj = draft.bodyJson as Record<string, unknown>
+        const shapeSuffix = (bj.shapeCode as string || 'GEN').substring(0, 3)
+        const spuCode = `S-${shapeSuffix}-${Date.now().toString(36).toUpperCase()}`
+        const spuName = (bj.spuName as string) || draft.title || draft.draftNo
 
         const queryRunner = this.dataSource.createQueryRunner()
         await queryRunner.connect()
@@ -160,22 +162,22 @@ export class DraftService {
             gender: bj.gender || 'unisex',
             description: draft.bodyText || '',
             status: 'draft',
-          } as any)
+          } as Partial<ProductSpu>)
           spuId = spu.spuId
 
           // 创建 SKU（如果有）
-          const skus = bj.skus || bj.skuList || []
+          const skus = (bj.skus || bj.skuList || []) as Array<Record<string, unknown>>
           const createdSkuIds: string[] = []
           for (const sku of skus) {
             const s = await queryRunner.manager.save(ProductSku, {
               spuId,
-              skuCode: `${spuCode}-${(sku.colorCode || 'DEF').substring(0, 8)}`,
+              skuCode: `${spuCode}-${((sku.colorCode as string) || 'DEF').substring(0, 8)}`,
               colorCode: sku.colorCode || null,
               skinToneEffect: sku.skinToneEffect || null,
               faceShapeEffect: sku.faceShapeEffect || null,
               retailPrice: sku.retailPrice || 299,
               status: 'active',
-            } as any)
+            } as Partial<ProductSku>)
             createdSkuIds.push(s.skuId)
           }
 
@@ -205,13 +207,13 @@ export class DraftService {
 
       // 记录发布
       draft.publishAction = {
-        action: dto.action as any,
+        action: dto.action as unknown as string,
         entity: dto.entity,
-        targets: targets as any,
+        targets: targets as unknown as Array<Record<string, unknown>>,
         snapshot_before: {},
         executed_by: 'human',
         executed_at: new Date().toISOString(),
-      }
+      } as unknown as PublishRecord
       draft.publishSnapshot = JSON.stringify(targets)
       draft.status = 'published'
       draft.publishedAt = new Date()
