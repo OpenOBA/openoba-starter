@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import { Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { InjectRepository } from '@nestjs/typeorm'
@@ -14,7 +13,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(username: string, password: string): Promise<any> {
+  async validateUser(username: string, password: string): Promise<{ userId: string; username: string; realName: string; status: string; roles: string[] } | null> {
     const user = await this.userRepository.findOne({
       where: { username, isDeleted: false },
       relations: ['roles'],
@@ -27,13 +26,13 @@ export class AuthService {
     return {
       userId: user.userId,
       username: user.username,
-      realName: user.realName,
-      status: user.status,
+      realName: user.realName ?? '',
+      status: user.status ?? '',
       roles: (user.roles || []).map((r) => r.roleCode),
     }
   }
 
-  async login(userData: any) {
+  async login(userData: { userId: string; username: string; realName: string; roles: string[] }) {
     await this.userRepository.update({ userId: userData.userId }, { lastLoginAt: new Date() })
 
     // P0修复：JWT payload 携带 roles，确保 RolesGuard 可正常校验

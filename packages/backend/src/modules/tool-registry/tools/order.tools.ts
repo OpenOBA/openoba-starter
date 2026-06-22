@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- TODO: 需要类型化 */
 /**
  * OpenOBA · 订单域 Tool 注册（行业模块 → Core ToolRegistry 桥接）
  *
@@ -7,6 +6,7 @@
 
 import { ToolRegistry } from '@openoba/core/dist/modules/tool-registry/tool-registry.service'
 import { OrderService } from '../../order/order.service'
+import type { CreateOrderDto } from '../../order/dto/order.dto'
 import type { ToolResult } from '@openoba/core/dist/modules/tool-registry/types/tool.interface'
 
 export function registerOrderTools(registry: ToolRegistry, orderService: OrderService): void {
@@ -40,11 +40,11 @@ export function registerOrderTools(registry: ToolRegistry, orderService: OrderSe
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
     },
     async (args: Record<string, unknown>): Promise<ToolResult> => {
-      const dto: any = {
+      const dto: Record<string, unknown> = {
         customerId: args.customerId as string,
         customerName: `Customer-${(args.customerId as string).substring(0, 8)}`,
         customerType: (args.customerType as string) || 'retail',
-        items: (args.items as any[])?.map((item: any) => ({
+        items: ((args.items as Array<Record<string, unknown>>) || []).map((item: Record<string, unknown>) => ({
           productType: 'frame',
           productName: `SKU-${item.skuId}`,
           skuId: item.skuId,
@@ -54,7 +54,7 @@ export function registerOrderTools(registry: ToolRegistry, orderService: OrderSe
         })),
         remark: args.remark as string | undefined,
       }
-      const order = await orderService.createOrder(dto)
+      const order = await orderService.createOrder(dto as unknown as CreateOrderDto)
       return { success: true, data: order }
     },
   )
@@ -83,7 +83,7 @@ export function registerOrderTools(registry: ToolRegistry, orderService: OrderSe
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     },
     async (args: Record<string, unknown>): Promise<ToolResult> => {
-      const result = await orderService.findOrders(args as any)
+      const result = await orderService.findOrders(args as unknown as Record<string, unknown>)
       return { success: true, data: result }
     },
   )

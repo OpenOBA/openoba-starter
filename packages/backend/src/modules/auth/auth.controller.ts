@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import {
   Controller,
   Post,
@@ -9,7 +8,6 @@ import {
   Get,
   Request,
   Logger,
-  Req,
   UnauthorizedException,
   OnModuleDestroy,
 } from '@nestjs/common'
@@ -68,8 +66,8 @@ export class AuthController implements OnModuleDestroy {
   @Public()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '用户登录' })
-  async login(@Body() loginDto: LoginDto, @Req() req: any) {
-    const ip = req.ip || req.connection?.remoteAddress || 'unknown'
+  async login(@Body() loginDto: LoginDto, @Request() req: Record<string, unknown>) {
+    const ip = (req.ip as string) || (req.connection as Record<string, unknown> | undefined)?.remoteAddress as string || 'unknown'
     const key = `${ip}:${loginDto.username}`
 
     // 暴力破解检查

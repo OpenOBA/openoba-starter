@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 /**
  * OpenOBA · Inventory Domain Tool Registration
  */
 
 import { ToolRegistry } from '@openoba/core/dist/modules/tool-registry/tool-registry.service'
 import { InventoryService } from '../../inventory/inventory.service'
+import type { Inventory } from '../../inventory/entity/inventory.entity'
 import type { ToolResult } from '@openoba/core/dist/modules/tool-registry/types/tool.interface'
 
 export function registerInventoryTools(registry: ToolRegistry, inventoryService: InventoryService): void {
@@ -91,13 +91,13 @@ export function registerInventoryTools(registry: ToolRegistry, inventoryService:
       const minQty = args.minQuantity as number | undefined
       const listResult = await inventoryService.findAll({ page: 1, pageSize: 100, warningOnly: 'true' })
       if (minQty) {
-        listResult.items = listResult.items.filter((item: any) => (item.availableQuantity ?? 0) <= minQty)
+        listResult.items = listResult.items.filter((item: Inventory) => (item.availableQuantity ?? 0) <= minQty)
       }
       return {
         success: true,
         data: {
           alertCount: listResult.items.length,
-          items: listResult.items.map((item: any) => ({
+          items: listResult.items.map((item: Inventory) => ({
             skuId: item.skuId,
             skuCode: item.skuCode,
             available: item.availableQuantity,

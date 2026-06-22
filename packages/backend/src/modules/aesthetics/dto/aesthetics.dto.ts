@@ -57,7 +57,7 @@ export class AestheticFeedbackDto {
 
   @IsOptional()
   @IsObject()
-  skuContext?: any
+  skuContext?: Record<string, unknown>
 
   @IsOptional()
   @IsString()

@@ -50,7 +50,7 @@ export class CreateAfterSalesDto {
   @ApiPropertyOptional({ description: '售后商品明细' })
   @IsOptional()
   @IsArray()
-  items: any[]
+  items: Array<Record<string, unknown>>
 
   @ApiPropertyOptional({ description: '申请人类型', enum: ['customer', 'admin'] })
   @IsOptional()

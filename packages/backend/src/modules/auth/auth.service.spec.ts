@@ -46,8 +46,8 @@ describe('AuthService', () => {
 
       const result = await service.validateUser('admin', 'password')
       expect(result).toBeDefined()
-      expect(result.username).toBe('admin')
-      expect(result.roles).toContain('admin')
+      expect(result!.username).toBe('admin')
+      expect(result!.roles).toContain('admin')
     })
 
     it('should return null on wrong password', async () => {
