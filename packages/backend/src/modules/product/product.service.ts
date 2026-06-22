@@ -3,11 +3,11 @@ import { ColorService } from './color.service'
 import { SpuService } from './spu.service'
 import { SkuService } from './sku.service'
 import { SetService } from './set.service'
+import type { QuerySkuDto, CreateSkuDto, UpdateSkuDto, QuerySkuImageDto, CreateSkuImageDto } from './dto/product.dto'
+import type { CreateSetDto, UpdateSetDto } from './dto/product.dto'
+import type { SkuDisplayNameInput } from './interfaces/sku.interface'
 
-/**
- * Product Facade Service
- * Delegates to domain-specific services: Color, SPU, SKU, Set
- */
+/** Product Facade Service — 委托调用 domain services */
 @Injectable()
 export class ProductService {
   constructor(
@@ -18,128 +18,128 @@ export class ProductService {
   ) {}
 
   // ===== 颜色字典 =====
-  async findColors(query: any) {
+  async findColors(query: unknown): Promise<unknown> {
     return this.colorService.findColors(query)
   }
-  async findOneColor(id: string) {
+  async findOneColor(id: string): Promise<unknown> {
     return this.colorService.findOneColor(id)
   }
-  async createColor(dto: any) {
+  async createColor(dto: unknown): Promise<unknown> {
     return this.colorService.createColor(dto)
   }
-  async updateColor(id: string, dto: any) {
+  async updateColor(id: string, dto: unknown): Promise<unknown> {
     return this.colorService.updateColor(id, dto)
   }
-  async deleteColor(id: string) {
+  async deleteColor(id: string): Promise<unknown> {
     return this.colorService.deleteColor(id)
   }
 
   // ===== SPU =====
-  async findSpus(query: any) {
+  async findSpus(query: unknown): Promise<unknown> {
     return this.spuService.findSpus(query)
   }
-  async findOneSpu(id: string) {
+  async findOneSpu(id: string): Promise<unknown> {
     return this.spuService.findOneSpu(id)
   }
-  async createSpu(dto: any) {
+  async createSpu(dto: unknown): Promise<unknown> {
     return this.spuService.createSpu(dto)
   }
-  async updateSpu(id: string, dto: any) {
+  async updateSpu(id: string, dto: unknown): Promise<unknown> {
     return this.spuService.updateSpu(id, dto)
   }
-  async deleteSpu(id: string) {
+  async deleteSpu(id: string): Promise<unknown> {
     return this.spuService.deleteSpu(id)
   }
 
   // ===== SKU =====
-  async findSkus(query: any) {
+  async findSkus(query: QuerySkuDto): Promise<unknown> {
     return this.skuService.findSkus(query)
   }
-  async findOneSku(id: string) {
+  async findOneSku(id: string): Promise<unknown> {
     return this.skuService.findOneSku(id)
   }
-  async createSku(dto: any) {
+  async createSku(dto: CreateSkuDto): Promise<unknown> {
     return this.skuService.createSku(dto)
   }
-  async updateSku(id: string, dto: any) {
+  async updateSku(id: string, dto: UpdateSkuDto): Promise<unknown> {
     return this.skuService.updateSku(id, dto)
   }
-  async deleteSku(id: string) {
+  async deleteSku(id: string): Promise<unknown> {
     return this.skuService.deleteSku(id)
   }
 
   // ===== 条码查询 =====
-  async findOneByBarcode(barcode: string) {
+  async findOneByBarcode(barcode: string): Promise<unknown> {
     return this.skuService.findOneByBarcode(barcode)
   }
 
   // ===== 套装 =====
-  async findSets(query: any) {
+  async findSets(query: unknown): Promise<unknown> {
     return this.setService.findSets(query)
   }
-  async findOneSet(id: string) {
+  async findOneSet(id: string): Promise<unknown> {
     return this.setService.findOneSet(id)
   }
-  async createSet(dto: any) {
+  async createSet(dto: CreateSetDto): Promise<unknown> {
     return this.setService.createSet(dto)
   }
-  async updateSet(id: string, dto: any) {
+  async updateSet(id: string, dto: UpdateSetDto): Promise<unknown> {
     return this.setService.updateSet(id, dto)
   }
-  async deleteSet(id: string) {
+  async deleteSet(id: string): Promise<unknown> {
     return this.setService.deleteSet(id)
   }
 
   // ===== SKU 图片管理 =====
-  async findSkuImages(query: any) {
+  async findSkuImages(query: QuerySkuImageDto): Promise<unknown> {
     return this.skuService.findSkuImages(query)
   }
-  async findOneSkuImage(id: string) {
+  async findOneSkuImage(id: string): Promise<unknown> {
     return this.skuService.findOneSkuImage(id)
   }
-  async getSkuImagesGrouped(skuId: string) {
+  async getSkuImagesGrouped(skuId: string): Promise<unknown> {
     return this.skuService.getSkuImagesGrouped(skuId)
   }
-  async createSkuImage(dto: any) {
+  async createSkuImage(dto: CreateSkuImageDto): Promise<unknown> {
     return this.skuService.createSkuImage(dto)
   }
-  async batchCreateSkuImages(dto: { skuId: string; images: any[] }) {
+  async batchCreateSkuImages(dto: { skuId: string; images: CreateSkuImageDto[] }): Promise<unknown> {
     return this.skuService.batchCreateSkuImages(dto)
   }
-  async updateSkuImage(id: string, dto: any) {
+  async updateSkuImage(id: string, dto: Partial<CreateSkuImageDto>): Promise<unknown> {
     return this.skuService.updateSkuImage(id, dto)
   }
-  async deleteSkuImage(id: string) {
+  async deleteSkuImage(id: string): Promise<unknown> {
     return this.skuService.deleteSkuImage(id)
   }
-  async reorderSkuImages(skuId: string, imageType: string, orderedIds: string[]) {
+  async reorderSkuImages(skuId: string, imageType: string, orderedIds: string[]): Promise<unknown> {
     return this.skuService.reorderSkuImages(skuId, imageType, orderedIds)
   }
 
   // ===== V2.0 命名规范 =====
-  async generateSpuCode(structureStandardCode: string): Promise<string> {
+  async generateSpuCode(structureStandardCode: string): Promise<unknown> {
     return this.spuService.generateSpuCode(structureStandardCode)
   }
-  async generateSkuCode(spuCode: string): Promise<string> {
+  async generateSkuCode(spuCode: string): Promise<unknown> {
     return this.skuService.generateSkuCode(spuCode)
   }
-  async generateSpuDisplayName(spuData: any): Promise<string> {
+  async generateSpuDisplayName(spuData: unknown): Promise<unknown> {
     return this.spuService.generateSpuDisplayName(spuData)
   }
-  async generateSkuDisplayName(skuData: any): Promise<string> {
+  async generateSkuDisplayName(skuData: SkuDisplayNameInput): Promise<unknown> {
     return this.skuService.generateSkuDisplayName(skuData)
   }
 
   // ===== V2.0 效果词推荐 =====
-  async getEffectRecommendation(colorCode: string) {
+  async getEffectRecommendation(colorCode: string): Promise<unknown> {
     return this.skuService.getEffectRecommendation(colorCode)
   }
-  async getEffectTags(type: 'skin_tone' | 'face_shape') {
+  async getEffectTags(type: 'skin_tone' | 'face_shape'): Promise<unknown> {
     return this.skuService.getEffectTags(type)
   }
 
   // ===== 辅助 =====
-  async ensureSkuExists(skuId: string) {
+  async ensureSkuExists(skuId: string): Promise<unknown> {
     return this.skuService.ensureSkuExists(skuId)
   }
 }
