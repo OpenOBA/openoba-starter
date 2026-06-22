@@ -20,8 +20,8 @@ function mockRepo() {
   return {
     findOne: jest.fn().mockResolvedValue(null),
     find: jest.fn().mockResolvedValue([]),
-    save: jest.fn((e: any) => Promise.resolve(e)),
-    create: jest.fn((d: any) => d),
+    save: jest.fn((e: unknown) => Promise.resolve(e)),
+    create: jest.fn((d: unknown) => d),
     createQueryBuilder: jest.fn().mockReturnValue(qb),
     delete: jest.fn().mockResolvedValue({ affected: 1 }),
     count: jest.fn().mockResolvedValue(0),
