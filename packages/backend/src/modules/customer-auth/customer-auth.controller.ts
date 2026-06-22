@@ -1,4 +1,9 @@
+import { Request } from 'express'
 import { Controller, Post, Get, Put, Body, UseGuards, Req, Logger, BadRequestException, Inject } from '@nestjs/common'
+export interface CustomerRequest extends Request {
+  customerId: string
+}
+
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger'
 import { CustomerAuthService } from './customer-auth.service'
 import { CustomerJwtGuard } from './customer-auth.guard'
@@ -58,7 +63,7 @@ export class CustomerAuthController {
   @Post('login')
   @Public()
   @ApiOperation({ summary: '官网账户登录（密码模式）' })
-  async login(@Body() dto: LoginCustomerDto, @Req() req: any) {
+  async login(@Body() dto: LoginCustomerDto, @Req() req: CustomerRequest) {
     const identifier = dto.phone || req.ip || 'unknown'
     await this.checkRateLimit(identifier)
     const result = await this.authService.login(dto)
@@ -71,7 +76,7 @@ export class CustomerAuthController {
   @Post('sms-login')
   @Public()
   @ApiOperation({ summary: '验证码登录（手机号+验证码，自动注册）' })
-  async smsLogin(@Body() dto: SmsLoginDto, @Req() req: any) {
+  async smsLogin(@Body() dto: SmsLoginDto, @Req() req: CustomerRequest) {
     const identifier = dto.phone || req.ip || 'unknown'
     await this.checkRateLimit(identifier)
     const result = await this.authService.smsLogin(dto)
@@ -92,7 +97,7 @@ export class CustomerAuthController {
   @ApiOperation({ summary: '修改密码' })
   @ApiBearerAuth()
   @UseGuards(CustomerJwtGuard)
-  async changePassword(@Req() req: any, @Body() dto: ChangePasswordDto) {
+  async changePassword(@Req() req: CustomerRequest, @Body() dto: ChangePasswordDto) {
     return this.authService.changePassword(req.customerId, dto)
   }
 
@@ -116,7 +121,7 @@ export class CustomerAuthController {
   @ApiOperation({ summary: '注销账户' })
   @ApiBearerAuth()
   @UseGuards(CustomerJwtGuard)
-  async deactivate(@Req() req: any) {
+  async deactivate(@Req() req: CustomerRequest) {
     return this.authService.deactivateAccount(req.customerId)
   }
 
@@ -124,7 +129,7 @@ export class CustomerAuthController {
   @ApiOperation({ summary: '获取个人资料' })
   @ApiBearerAuth()
   @UseGuards(CustomerJwtGuard)
-  async getProfile(@Req() req: any) {
+  async getProfile(@Req() req: CustomerRequest) {
     return this.authService.getProfile(req.customerId)
   }
 
@@ -132,7 +137,7 @@ export class CustomerAuthController {
   @ApiOperation({ summary: '更新个人资料' })
   @ApiBearerAuth()
   @UseGuards(CustomerJwtGuard)
-  async updateProfile(@Req() req: any, @Body() data: { nickname?: string; email?: string; avatarUrl?: string }) {
+  async updateProfile(@Req() req: CustomerRequest, @Body() data: { nickname?: string; email?: string; avatarUrl?: string }) {
     return this.authService.updateProfile(req.customerId, data)
   }
 }
