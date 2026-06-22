@@ -69,7 +69,7 @@ export class CreateSpuDto {
   @ApiPropertyOptional() @IsOptional() @IsString() description?: string
   @ApiPropertyOptional() @IsOptional() @IsString() mainImage?: string
   @ApiPropertyOptional() @IsOptional() @IsArray() images?: string[]
-  @ApiPropertyOptional() @IsOptional() attributes?: Record<string, any>
+  @ApiPropertyOptional() @IsOptional() attributes?: Record<string, unknown>
   @ApiPropertyOptional() @IsOptional() compatibilityLevels?: string[]
   @ApiPropertyOptional() @IsOptional() @IsString() status?: string
 }
@@ -88,9 +88,9 @@ export class UpdateSpuDto {
   @ApiPropertyOptional() @IsOptional() @IsString() description?: string
   @ApiPropertyOptional() @IsOptional() @IsString() mainImage?: string
   @ApiPropertyOptional() @IsOptional() @IsArray() images?: string[]
-  @ApiPropertyOptional() @IsOptional() attributes?: Record<string, any>
+  @ApiPropertyOptional() @IsOptional() attributes?: Record<string, unknown>
   @ApiPropertyOptional() @IsOptional() compatibilityLevels?: string[]
-  @ApiPropertyOptional() @IsOptional() category?: Record<string, any>
+  @ApiPropertyOptional() @IsOptional() category?: Record<string, unknown>
   @ApiPropertyOptional() @IsOptional() @IsString() status?: string
   @ApiPropertyOptional() @IsOptional() @IsString() createdAt?: string
   @ApiPropertyOptional() @IsOptional() @IsString() updatedAt?: string
@@ -109,7 +109,7 @@ export class CreateSkuDto {
   // V3.0 命名规范：效果字段
   @ApiPropertyOptional() @IsOptional() @IsString() skinToneEffect?: string
   @ApiPropertyOptional() @IsOptional() @IsString() faceShapeEffect?: string
-  @ApiPropertyOptional() @IsOptional() skuAttributes?: Record<string, any>
+  @ApiPropertyOptional() @IsOptional() skuAttributes?: Record<string, unknown>
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Type(() => Number) costPrice?: number
   @ApiProperty() @IsNumber() @Type(() => Number) @Min(0) retailPrice: number
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Type(() => Number) @Min(0) minPrice?: number
@@ -139,22 +139,22 @@ export class CreateSkuDto {
   // Phase 8B: ææ¯åæ°ï¼åè½ï¼
   @ApiPropertyOptional()
   @IsOptional()
-  @Transform(({ value }: { value: any }) => value === true || value === 1 || value === '1')
+  @Transform(({ value }: { value: unknown }) => value === true || value === 1 || value === '1')
   @IsBoolean()
   hasBlueLightFilter?: boolean
   @ApiPropertyOptional()
   @IsOptional()
-  @Transform(({ value }: { value: any }) => value === true || value === 1 || value === '1')
+  @Transform(({ value }: { value: unknown }) => value === true || value === 1 || value === '1')
   @IsBoolean()
   hasPhotochromic?: boolean
   @ApiPropertyOptional()
   @IsOptional()
-  @Transform(({ value }: { value: any }) => value === true || value === 1 || value === '1')
+  @Transform(({ value }: { value: unknown }) => value === true || value === 1 || value === '1')
   @IsBoolean()
   hasPolarized?: boolean
   @ApiPropertyOptional() @IsOptional() @IsString() uvProtection?: string
   // Phase 8B: æ©å±åæ°é¢ç
-  @ApiPropertyOptional() @IsOptional() techSpecExtra?: Record<string, any>
+  @ApiPropertyOptional() @IsOptional() techSpecExtra?: Record<string, unknown>
 }
 
 export class UpdateSkuDto {
@@ -171,14 +171,14 @@ export class UpdateSkuDto {
   @ApiPropertyOptional() @IsOptional() @IsString() createdAt?: string
   @ApiPropertyOptional() @IsOptional() @IsString() updatedAt?: string
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isDeleted?: boolean
-  @ApiPropertyOptional() @IsOptional() spu?: Record<string, any>
-  @ApiPropertyOptional() @IsOptional() color?: Record<string, any>
-  @ApiPropertyOptional() @IsOptional() primaryImage?: Record<string, any>
+  @ApiPropertyOptional() @IsOptional() spu?: Record<string, unknown>
+  @ApiPropertyOptional() @IsOptional() color?: Record<string, unknown>
+  @ApiPropertyOptional() @IsOptional() primaryImage?: Record<string, unknown>
   // V2.0 å½åè§èï¼ææå­æ®µ
   @ApiPropertyOptional() @IsOptional() @IsString() skinToneEffect?: string
   @ApiPropertyOptional() @IsOptional() @IsString() faceShapeEffect?: string
   @ApiPropertyOptional() @IsOptional() @IsString() displayName?: string
-  @ApiPropertyOptional() @IsOptional() skuAttributes?: Record<string, any>
+  @ApiPropertyOptional() @IsOptional() skuAttributes?: Record<string, unknown>
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Type(() => Number) costPrice?: number
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Type(() => Number) retailPrice?: number
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Type(() => Number) @Min(0) minPrice?: number
@@ -203,21 +203,21 @@ export class UpdateSkuDto {
   @ApiPropertyOptional() @IsOptional() @IsString() surfaceTreatment?: string
   @ApiPropertyOptional()
   @IsOptional()
-  @Transform(({ value }: { value: any }) => value === true || value === 1 || value === '1')
+  @Transform(({ value }: { value: unknown }) => value === true || value === 1 || value === '1')
   @IsBoolean()
   hasBlueLightFilter?: boolean
   @ApiPropertyOptional()
   @IsOptional()
-  @Transform(({ value }: { value: any }) => value === true || value === 1 || value === '1')
+  @Transform(({ value }: { value: unknown }) => value === true || value === 1 || value === '1')
   @IsBoolean()
   hasPhotochromic?: boolean
   @ApiPropertyOptional()
   @IsOptional()
-  @Transform(({ value }: { value: any }) => value === true || value === 1 || value === '1')
+  @Transform(({ value }: { value: unknown }) => value === true || value === 1 || value === '1')
   @IsBoolean()
   hasPolarized?: boolean
   @ApiPropertyOptional() @IsOptional() @IsString() uvProtection?: string
-  @ApiPropertyOptional() @IsOptional() techSpecExtra?: Record<string, any>
+  @ApiPropertyOptional() @IsOptional() techSpecExtra?: Record<string, unknown>
 }
 
 // ============ å¥è£  DTO ============
