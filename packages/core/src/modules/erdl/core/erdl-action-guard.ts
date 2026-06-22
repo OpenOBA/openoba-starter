@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- CORE 泛型/第三方库约束 */
+
 /**
  * 秒镜科技 · ERDL V1.5 — Action Guard
  *
@@ -40,6 +40,20 @@ export interface ValidationResult {
   normalizedArgs?: Record<string, unknown>
 }
 
+/** LLM API 返回的 choice 结构 — 覆盖 tool_calls + content 两种路径 */
+export interface LLMChoice {
+  message?: {
+    content?: string
+    tool_calls?: Array<{
+      id?: string
+      function: {
+        name?: string
+        arguments?: string
+      }
+    }>
+  }
+}
+
 /** Service 执行器签名 */
 export type ActionExecutor = (name: string, args: Record<string, unknown>) => Promise<string>
 
@@ -69,7 +83,7 @@ export class ERDLActionGuard {
    * - 文本中的 <invoke> XML 标签
    * - （未来）纯文本语义解析
    */
-  extractActions(rawChoices: any[] | undefined): ParsedAction[] {
+  extractActions(rawChoices: LLMChoice[] | undefined): ParsedAction[] {
     if (!rawChoices || rawChoices.length === 0) return []
 
     const choice = rawChoices[0]
