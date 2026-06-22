@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- TODO: 需要类型化 */
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
 import { Inventory } from './entity/inventory.entity'
 import { InventoryTransaction, TransactionType } from './entity/inventory-transaction.entity'
+import { EntityManager } from 'typeorm'
 
 /**
  * 库存事务内子 Service
@@ -19,7 +19,7 @@ export class InventoryTxService {
    * P0-2修复：已发货订单取消时回滚库存（stockIn，在外部事务内）
    */
   async rollbackStockInTransaction(
-    manager: any,
+    manager: EntityManager,
     dto: { skuId: string; orderId: string; quantity: number },
     operatorId?: string,
   ) {
@@ -56,7 +56,7 @@ export class InventoryTxService {
    * C7-P0修复：在外部事务中解锁库存（由调用方管理事务）
    */
   async unlockInTransaction(
-    manager: any,
+    manager: EntityManager,
     dto: { skuId: string; orderId: string; quantity: number },
     operatorId?: string,
   ) {
@@ -97,7 +97,7 @@ export class InventoryTxService {
    * 失败 → 调用方事务回滚，防止超卖
    */
   async lockInTransaction(
-    manager: any,
+    manager: EntityManager,
     dto: { skuId: string; orderId: string; quantity: number },
     operatorId?: string,
   ) {
@@ -139,7 +139,7 @@ export class InventoryTxService {
    * 失败 → 调用方事务回滚，防止库存不一致
    */
   async stockOutInTransaction(
-    manager: any,
+    manager: EntityManager,
     dto: {
       skuId: string
       quantity: number
@@ -172,7 +172,7 @@ export class InventoryTxService {
       skuCode: inv.skuCode,
       structureStandardCode: inv.structureStandardCode,
       warehouseCode: 'WH-MAIN',
-      transactionType: dto.transactionType,
+      transactionType: dto.transactionType as unknown as TransactionType,
       quantity: -dto.quantity,
       quantityBefore: before,
       quantityAfter: inv.currentQuantity,
