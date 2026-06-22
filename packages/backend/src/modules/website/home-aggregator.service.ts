@@ -88,8 +88,8 @@ export class WebsiteHomeAggregatorService {
       .getRawMany()
 
     const countMap: Record<string, number> = {}
-    counts.forEach((c: any) => {
-      countMap[c.categoryId] = parseInt(c.count)
+    counts.forEach((c: Record<string, unknown>) => {
+      countMap[c.categoryId as string] = parseInt(c.count as string)
     })
 
     const nodes: CategoryNodeDto[] = categories.map((c) => ({
@@ -116,7 +116,7 @@ export class WebsiteHomeAggregatorService {
     return rootNodes
   }
 
-  async getCompatibleFrames(structureStandardCode: string): Promise<any[]> {
+  async getCompatibleFrames(structureStandardCode: string): Promise<unknown[]> {
     const compatRecords = await this.compatRepo
       .createQueryBuilder('sc')
       .where('sc.structure_standard_code = :code', { code: structureStandardCode })
@@ -156,8 +156,8 @@ export class WebsiteHomeAggregatorService {
       return {
         skuId: sku.skuId,
         skuCode: sku.skuCode,
-        spuName: (sku as any).spu?.spuName || '',
-        categoryName: (sku as any).spu?.category?.categoryName || '',
+        spuName: ((sku as unknown as { spu?: { spuName?: string } }).spu?.spuName) || '',
+        categoryName: ((sku as unknown as { spu?: { category?: { categoryName?: string } } }).spu?.category?.categoryName) || '',
         colorName: sku.color?.colorName || '',
         colorHex: sku.color?.hexValue || '',
         price: Number(sku.retailPrice),
@@ -205,10 +205,10 @@ export class WebsiteHomeAggregatorService {
       .getRawMany()
 
     const map: Record<string, number> = {}
-    result.forEach((r: any) => {
-      const spuId = spuIdBySkuId.get(r.skuCode)
+    result.forEach((r: Record<string, unknown>) => {
+      const spuId = spuIdBySkuId.get(r.skuCode as string)
       if (spuId) {
-        map[spuId] = (map[spuId] || 0) + parseInt(r.totalQty)
+        map[spuId] = (map[spuId] || 0) + parseInt(r.totalQty as string)
       }
     })
     return map
@@ -230,8 +230,8 @@ export class WebsiteHomeAggregatorService {
       .getRawMany()
 
     const map: Record<string, number> = {}
-    result.forEach((r: any) => {
-      map[r.skuCode] = parseInt(r.totalQty)
+    result.forEach((r: Record<string, unknown>) => {
+      map[r.skuCode as string] = parseInt(r.totalQty as string)
     })
     return map
   }
@@ -352,7 +352,7 @@ export class WebsiteHomeAggregatorService {
         spuId: spu.spuId,
         spuCode: spu.spuCode,
         spuName: spu.spuName,
-        categoryName: (spu as any).category?.categoryName || '',
+        categoryName: ((spu as unknown as { category?: { categoryName?: string } }).category?.categoryName) || '',
         gender: spu.gender,
         sceneTags: spu.sceneTags || [],
         description: spu.description || '',

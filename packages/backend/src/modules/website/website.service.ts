@@ -48,7 +48,7 @@ export class WebsiteService {
   // 兼容镜框查询 → 委托 home-aggregator
   // ============================================================
   async getCompatibleFrames(structureStandardCode: string): Promise<CompatibleFrameDto[]> {
-    return this.homeAggregator.getCompatibleFrames(structureStandardCode)
+    return this.homeAggregator.getCompatibleFrames(structureStandardCode) as Promise<CompatibleFrameDto[]>
   }
 
   // ============================================================
