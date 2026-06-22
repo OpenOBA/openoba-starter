@@ -235,9 +235,9 @@ export class ReviewService {
       avgComfort: parseFloat(stats?.avgComfort || 0)?.toFixed(1),
       avgStyle: parseFloat(stats?.avgStyle || 0)?.toFixed(1),
       avgValue: parseFloat(stats?.avgValue || 0)?.toFixed(1),
-      distribution: distribution.map((d: any) => ({
-        score: parseInt(d.score),
-        count: parseInt(d.count),
+      distribution: distribution.map((d: Record<string, unknown>) => ({
+        score: parseInt(d.score as string),
+        count: parseInt(d.count as string),
       })),
       hotTags,
     }
@@ -247,9 +247,9 @@ export class ReviewService {
   private async updateSpuStats(spuId: string) {
     const stats = await this.getSpuStats(spuId)
 
-    const scoreDist: Record<number, number> = {}
-    stats.distribution.forEach((d: any) => {
-      scoreDist[d.score] = d.count
+    const scoreDist: Record<string, number> = {}
+    stats.distribution.forEach((d: Record<string, unknown>) => {
+      scoreDist[d.score as string] = d.count as number
     })
 
     // 使用原生 SQL upsert
