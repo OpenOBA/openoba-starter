@@ -1,5 +1,6 @@
 ﻿import { ref } from 'vue'
 import { getAgents } from '@/api/system'
+import type { AgentItem } from '@/api/system'
 import type { AgentEntry } from '@/components/AgentSidebar.vue'
 
 const AGENT_STORAGE_KEY = 'eros_agents'
@@ -27,15 +28,15 @@ export function useAgentList() {
     try {
       const agents = await getAgents()
       if (agents && agents.length > 0) {
-        agentList.value = agents.map((a: any) => ({
-          id: a.agentCode || a.agentId,
-          agentCode: a.agentCode,
-          agentName: a.agentName,
-          displayName: a.agentName,
+        agentList.value = agents.map((a: AgentItem) => ({
+          id: (a.agentCode || a.agentId) as string,
+          agentCode: a.agentCode as string,
+          agentName: a.agentName as string,
+          displayName: a.agentName as string,
           icon: '',
           description: `${a.agentType} 路 ${a.securityClearance}`,
-          agentType: a.agentType,
-          securityClearance: a.securityClearance,
+          agentType: a.agentType as string,
+          securityClearance: a.securityClearance as string,
           status: (a.status === 'active' ? 'active' : 'inactive') as 'active' | 'inactive',
         }))
       }
