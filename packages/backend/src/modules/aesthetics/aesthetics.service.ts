@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
@@ -62,8 +61,8 @@ export class AestheticsService {
   async recordFeedback(data: {
     ruleCode: string
     action: string
-    skuContext?: any
-    spuContext?: any
+    skuContext?: Record<string, unknown>
+    spuContext?: Record<string, unknown>
     operatorNote?: string
   }): Promise<void> {
     const feedback = new AestheticFeedback()
@@ -80,7 +79,7 @@ export class AestheticsService {
   }
 
   async getMatrices(matrixType?: string): Promise<AestheticCompatMatrix[]> {
-    const where: any = {}
+    const where: Record<string, unknown> = {}
     if (matrixType) where.matrixType = matrixType
     return this.matrixRepo.find({ where, order: { matrixType: 'ASC', dimA: 'ASC', dimB: 'ASC' } })
   }
