@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Logger } from '@nestjs/common'
 import * as mysql from 'mysql2/promise'
 
@@ -34,7 +33,7 @@ export class WizardGuard implements CanActivate {
         connectTimeout: 3000,
       })
       const [rows] = await conn.execute('SELECT COUNT(*) AS cnt FROM sys_user WHERE username = ?', ['admin'])
-      const adminExists = ((rows as any[])[0]?.cnt || 0) > 0
+      const adminExists = (Number((rows as Array<Record<string, unknown>>)[0]?.cnt) || 0) > 0
       await conn.end()
 
       if (adminExists) {
