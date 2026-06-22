@@ -1,4 +1,6 @@
 import { Controller, Post, Get, Delete, Body, Param, Logger, UseGuards, Inject, Req } from '@nestjs/common'
+import { Request } from 'express'
+import { IncomingMessage } from 'http'
 import { request as httpsRequest } from 'https'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { RolesGuard } from '../../common/guards/roles.guard'
@@ -41,10 +43,10 @@ export class LlmConfigController {
 
     // 兜底：硬编码（首次启动无 DB 数据时）
     const available = getAvailableProviders()
-    const list = available.map((p: any) => ({
+    const list = available.map((p) => ({
       id: p.id,
       name: p.name,
-      models: p.models.map((m: any) => ({
+      models: p.models.map((m) => ({
         id: m.id,
         name: m.name,
         reasoning: m.reasoning || false,
@@ -71,14 +73,14 @@ export class LlmConfigController {
 
     // 兜底：硬编码
     const available = getAvailableProviders()
-    const list = available.map((p: any) => ({
+    const list = available.map((p) => ({
       id: p.id,
       providerCode: p.id,
       agentCode: 'global',
       label: p.name,
       hasKey: true,
       baseUrl: p.baseUrl || null,
-      models: p.models.map((m: any) => ({
+      models: p.models.map((m) => ({
         id: p.id + ':' + m.id,
         modelCode: m.id,
         modelName: m.name,
@@ -125,11 +127,12 @@ export class LlmConfigController {
           try {
             const kd = await this.modelRegistry.getKeyWithDecrypted(body.customProviderCode)
             if (kd) {
-              const models = await (this.modelRegistry as any).registryRepo?.find({
+              const models = await (this.modelRegistry as unknown as { registryRepo?: { find: (q: Record<string, unknown>) => Promise<Array<Record<string, unknown>>> } }).registryRepo?.find({
                 where: { providerCode: body.customProviderCode, modelCode: body.modelCode },
               })
-              if (models?.length) {
-                await this.modelRegistry.setDefaultModel(kd.key.id, models[0].id)
+              if (models && models.length > 0) {
+                const firstModel = models[0] as Record<string, unknown>
+                await this.modelRegistry.setDefaultModel(kd.key.id, firstModel.id as string)
               }
             }
           } catch { /* model linking best-effort */ }
@@ -155,7 +158,7 @@ export class LlmConfigController {
     }
 
     // 同步 process.env（运行时兼容 erdl-llm-bridge）
-    const providerDef = BUILTIN_LLM_PROVIDERS.find((p: any) => p.id === provider)
+    const providerDef = BUILTIN_LLM_PROVIDERS.find((p) => p.id === provider)
     if (providerDef && body.apiKey) {
       process.env[providerDef.apiKeyEnv] = body.apiKey
     }
@@ -184,7 +187,7 @@ export class LlmConfigController {
   // ============================================================
 
   @Post('llm/test')
-  async testLlmConnection(@Body() body: { provider: string; apiKey: string; baseUrl?: string }, @Req() req: any) {
+  async testLlmConnection(@Body() body: { provider: string; apiKey: string; baseUrl?: string }, @Req() req: Request) {
     // 限流：10 次/分钟，防止暴力探测
     const ip = req.ip || 'unknown'
     const { lockedUntil } = await this.rateLimiter.attempt(`llm-test:${ip}`, 10, 60_000)
@@ -216,7 +219,7 @@ export class LlmConfigController {
     }
 
     // 兜底：硬编码 Provider
-    const providerDef = BUILTIN_LLM_PROVIDERS.find((p: any) => p.id === body.provider)
+    const providerDef = BUILTIN_LLM_PROVIDERS.find((p) => p.id === body.provider)
     const apiKey = body.apiKey || (providerDef ? process.env[providerDef.apiKeyEnv] : '') || ''
     if (!apiKey) return { success: false, error: 'API Key 未配置' }
     const baseUrl = body.baseUrl || providerDef?.baseUrl || 'https://api.deepseek.com'
@@ -233,9 +236,9 @@ export class LlmConfigController {
           headers: { Authorization: 'Bearer ' + apiKey },
           timeout: TIMEOUT.LLM_TEST,
         },
-        (res: any) => {
+        (res: IncomingMessage) => {
           let d = ''
-          res.on('data', (c: any) => (d += c))
+          res.on('data', (c: string) => (d += c))
           res.on('end', () =>
             resolve(
               res.statusCode === 200
@@ -245,7 +248,7 @@ export class LlmConfigController {
           )
         },
       )
-      req.on('error', (e: any) => resolve({ success: false, error: e.message }))
+      req.on('error', (e: Error) => resolve({ success: false, error: e.message }))
       req.on('timeout', () => {
         req.destroy()
         resolve({ success: false, error: '连接超时' })
