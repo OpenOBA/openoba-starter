@@ -34,7 +34,7 @@ export class AfterSalesController {
     @Query('afterSalesType') afterSalesType?: string,
     @Query('afterSalesNo') afterSalesNo?: string,
   ) {
-    const filters: Record<string, any> = {}
+    const filters: Record<string, unknown> = {}
     if (orderId) filters.orderId = orderId
     if (customerId) filters.customerId = customerId
     if (status) filters.status = status

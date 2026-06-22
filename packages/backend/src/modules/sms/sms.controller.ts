@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
+import { Request } from 'express'
 import { Controller, Post, Body, Req, UseGuards } from '@nestjs/common'
 import { ApiTags, ApiOperation } from '@nestjs/swagger'
 import { SmsService } from './sms.service'
@@ -13,7 +14,7 @@ export class SmsController {
 
   @Post('send-code')
   @ApiOperation({ summary: '发送验证码' })
-  async sendCode(@Body() dto: SendSmsCodeDto, @Req() req: any) {
+  async sendCode(@Body() dto: SendSmsCodeDto, @Req() req: Request) {
     const ip = req.ip || req.connection?.remoteAddress
     return this.smsService.sendCode(dto, ip)
   }
