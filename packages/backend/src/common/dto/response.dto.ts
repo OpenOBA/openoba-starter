@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   code: number
   message: string
   data: T
@@ -34,10 +33,10 @@ export function success<T>(data: T, message = 'success'): ApiResponse<T> {
 export class SuccessResponse {
   code: number
   message: string
-  data: any
+  data: unknown
   timestamp: number
 
-  constructor(data: any, message = 'success') {
+  constructor(data: unknown, message = 'success') {
     this.code = 0
     this.message = message
     this.data = data
