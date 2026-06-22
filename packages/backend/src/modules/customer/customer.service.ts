@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import { Injectable, NotFoundException, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, DataSource } from 'typeorm'
@@ -181,7 +180,7 @@ export class CustomerService {
       prescriptionId?: string
       purchaseDate?: string
       orderId?: string
-      attributes?: Record<string, any>
+      attributes?: Record<string, unknown>
     },
   ) {
     return this.lensService.createCustomerLens(customerId, dto)
@@ -209,7 +208,7 @@ export class CustomerService {
       useStatus?: string
       useFrequency?: string
       sceneTags?: string[]
-      attributes?: Record<string, any>
+      attributes?: Record<string, unknown>
     },
   ) {
     return this.lensService.createConsumptionProfile(customerLensId, dto)
@@ -237,7 +236,7 @@ export class CustomerService {
     return this.memberService.getAccountInfo(customerId)
   }
 
-  async scanMemberDowngrades(): Promise<{ count: number; details: any[] }> {
+  async scanMemberDowngrades(): Promise<{ count: number; details: Array<Record<string, unknown>> }> {
     return this.memberService.scanMemberDowngrades()
   }
 
