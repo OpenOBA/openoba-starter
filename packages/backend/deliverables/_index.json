@@ -1,8 +1,32 @@
 {
   "workspace": "C:\\Users\\99tan\\openoba\\repos\\openoba-starter\\packages\\backend",
   "deliverableRoot": "C:\\Users\\99tan\\openoba\\repos\\openoba-starter\\packages\\backend\\deliverables",
-  "updatedAt": "2026-06-21T12:49:52.440Z",
+  "updatedAt": "2026-06-21T16:23:00.815Z",
   "entries": [
+    {
+      "taskId": "6d245e9784c148e583e48c9cea5cc2fd",
+      "title": "⚠️ 先说明一下",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-21T16:23:00.755Z"
+    },
+    {
+      "taskId": "44b1979dd52946d88599f6aa96e7c0b0",
+      "title": "好的，我来分析销售数据。先并行拉取订单明细和商品数据。数据已拉取，让我用分析工具做统计汇总。---",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-21T16:18:49.193Z"
+    },
+    {
+      "taskId": "48a00ca4badd48dabd57fa1bc13db709",
+      "title": "好的，我先从 ERP 系统拉取订单和产品数据，马上分析。订单有 9 条，接下来查明细和产品。数据齐全了，让我做汇总分析。---",
+      "userType": "operator",
+      "latestVersion": 1,
+      "status": "approved",
+      "createdAt": "2026-06-21T16:14:00.100Z"
+    },
     {
       "taskId": "b9dce23bff184480bcb7e71f75744651",
       "title": "好的，我来分析销售数据。先拉取订单明细和产品数据。订单数据拿到了，再查订单明细和产品数据。数据已齐全，现在汇总分析。---",

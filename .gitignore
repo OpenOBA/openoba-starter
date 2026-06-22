@@ -37,6 +37,11 @@ openoba-core/
 *~
 *.backup
 
+# 运行时数据（Agent 聊天记录/提案输出，运行时自动生成，不入仓库）
+data/
+packages/backend/deliverables/*/
+!packages/backend/deliverables/_index.json
+
 # 临时脚本（防止凭据泄露）
 tmp-*.js
 tmp-*.ts
