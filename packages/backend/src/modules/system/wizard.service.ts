@@ -30,10 +30,10 @@ export class WizardService {
         connectTimeout: 5000,
       })
       const [rows] = await conn.execute('SELECT VERSION() AS version')
-      const version = (rows as any[])[0]?.version || 'unknown'
+      const version = ((rows as Array<Record<string, unknown>>)[0])?.version as string || 'unknown'
       await conn.end()
       return { success: true, message: `连接成功！MySQL ${version}`, serverVersion: version }
-    } catch (e: any) {
+    } catch (_e: unknown) { const e = _e as Error & { sqlMessage?: string }
       let msg = e.message || '连接失败'
       if (/Access denied/i.test(msg)) msg = '用户名或密码错误'
       else if (/ECONNREFUSED|ETIMEDOUT/i.test(msg)) msg = `无法连接 ${host}:${port}，MySQL 是否启动？`
@@ -78,7 +78,7 @@ export class WizardService {
         try {
           await conn.query(block)
           executed++
-        } catch (e: any) {
+        } catch (_e: unknown) { const e = _e as Error & { sqlMessage?: string }
           if (/already exists|Duplicate/i.test(e.sqlMessage || e.message || '')) { skipped++; continue }
           this.logger.warn(`SQL skip: ${(e.sqlMessage || e.message).substring(0, 100)}`)
           skipped++
@@ -89,11 +89,11 @@ export class WizardService {
       const [rows] = await conn.execute(
         "SELECT COUNT(*) AS cnt FROM information_schema.tables WHERE table_schema = ?", [dbName]
       )
-      const tableCount = (rows as any[])[0]?.cnt || 0
+      const tableCount = Number((rows as Array<Record<string, unknown>>)[0]?.cnt) || 0
       this.logger.log(`Tables: ${tableCount}`)
 
       return { success: true, message: `建表完成：${tableCount} 张表`, tableCount }
-    } catch (e: any) {
+    } catch (_e: unknown) { const e = _e as Error & { sqlMessage?: string }
       return { success: false, message: `建表失败：${e.message}` }
     } finally {
       await conn.end()
@@ -127,7 +127,7 @@ export class WizardService {
         try {
           await conn.query(stmt)
           ok++
-        } catch (e: any) {
+        } catch (_e: unknown) { const e = _e as Error & { sqlMessage?: string }
           if (/Duplicate|already exists/i.test(e.sqlMessage || e.message || '')) { skip++; continue }
           this.logger.warn(`Seed skip: ${(e.sqlMessage || e.message).substring(0, 80)}`)
         }
@@ -135,7 +135,7 @@ export class WizardService {
 
       this.logger.log(`Seed: ${ok} ok, ${skip} skipped`)
       return { success: true, message: `种子数据导入完成` }
-    } catch (e: any) {
+    } catch (_e: unknown) { const e = _e as Error & { sqlMessage?: string }
       return { success: false, message: `种子导入失败：${e.message}` }
     } finally {
       await conn.end()
@@ -143,7 +143,7 @@ export class WizardService {
   }
 
   /** 检测系统状态 */
-  async checkStatus(): Promise<any> {
+  async checkStatus(): Promise<{ initialized: boolean; checks: Record<string, unknown>; nextStep: string }> {
     const dbConfigured = !!(process.env.DB_HOST && process.env.DB_DATABASE)
     let connected = false, tablesExist = false, adminExists = false
     if (dbConfigured) {
@@ -159,10 +159,10 @@ export class WizardService {
           "SELECT COUNT(*) AS cnt FROM information_schema.tables WHERE table_schema = ?",
           [dbName]
         )
-        tablesExist = (rows as any[])[0]?.cnt >= 10
+        tablesExist = Number((rows as Array<Record<string, unknown>>)[0]?.cnt) >= 10
         if (tablesExist) {
           const [ur] = await conn.execute("SELECT COUNT(*) AS cnt FROM sys_user WHERE username = 'admin'")
-          adminExists = (ur as any[])[0]?.cnt > 0
+          adminExists = Number((ur as Array<Record<string, unknown>>)[0]?.cnt) > 0
         }
         await conn.end()
       } catch { /* ignore */ }
