@@ -17,14 +17,22 @@ import * as fs from 'fs'
 // Zod Schema — ERDL 语法校验
 // ============================================
 
-/** ERDL Entity 属性值 Schema — V1.3 新增 dbColumn */
+/** JSON 兼容的默认值类型（替代 z.any()） */
+const DefaultValueSchema = z.union([
+  z.string(),
+  z.number(),
+  z.boolean(),
+  z.null(),
+  z.record(z.string(), z.unknown()),
+  z.array(z.unknown()),
+])
 const PropertySchema = z.union([
   z.string(),
   z.object({
     type: z.string().optional(),
     required: z.boolean().optional(),
     maxLength: z.number().optional(),
-    default: z.any().optional(),
+    default: DefaultValueSchema.optional(),
     enum: z.array(z.string()).optional(),
     dbColumn: z.string().optional(),         // V1.3: 数据库物理列名
   }),
@@ -55,7 +63,7 @@ const RuleConditionSchema: z.ZodType = z.lazy(() =>
 /** ERDL 规则动作 Schema */
 const RuleActionSchema = z.object({
   type: z.enum(['assign', 'calculate', 'validate', 'notify']),
-  params: z.record(z.string(), z.any()),
+  params: z.record(z.string(), z.unknown()),
 })
 
 /** ERDL 策略规则 Schema */
@@ -148,7 +156,7 @@ const ActionParamSchema = z.object({
   enum: z.array(z.string()).optional(),
   values: z.array(z.string()).optional(),
   isArray: z.boolean().optional(),
-  default: z.any().optional(),
+  default: DefaultValueSchema.optional(),
 })
 
 /** ERDL Action 定义 Schema (V1.5) */
