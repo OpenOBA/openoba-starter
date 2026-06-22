@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- TODO: 需要类型化 */
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, DataSource } from 'typeorm'
 import { Inventory } from './entity/inventory.entity'
+import { EntityManager } from 'typeorm'
 import { InventoryTransaction, TransactionType } from './entity/inventory-transaction.entity'
 import { InventoryDocument } from './entity/inventory-document.entity'
 import { InventoryBatchService } from './inventory-batch.service'
@@ -273,7 +273,7 @@ export class InventoryService {
 
   // ===== 解锁库存（取消订单） =====
 
-  async rollbackStockInTransaction(manager: any, dto: { skuId: string; orderId: string; quantity: number }, operatorId?: string) {
+  async rollbackStockInTransaction(manager: EntityManager, dto: { skuId: string; orderId: string; quantity: number }, operatorId?: string) {
     const inv = await manager.findOne(Inventory, {
       where: { skuId: dto.skuId, warehouseCode: 'WH-MAIN' },
       lock: { mode: 'pessimistic_write' },
@@ -303,7 +303,7 @@ export class InventoryService {
     })
   }
 
-  async unlockInTransaction(manager: any, dto: { skuId: string; orderId: string; quantity: number }, operatorId?: string) {
+  async unlockInTransaction(manager: EntityManager, dto: { skuId: string; orderId: string; quantity: number }, operatorId?: string) {
     const inv = await manager.findOne(Inventory, {
       where: { skuId: dto.skuId, warehouseCode: 'WH-MAIN' },
       lock: { mode: 'pessimistic_write' },
@@ -336,7 +336,7 @@ export class InventoryService {
     })
   }
 
-  async lockInTransaction(manager: any, dto: { skuId: string; orderId: string; quantity: number }, operatorId?: string) {
+  async lockInTransaction(manager: EntityManager, dto: { skuId: string; orderId: string; quantity: number }, operatorId?: string) {
     const inv = await manager.findOne(Inventory, {
       where: { skuId: dto.skuId, warehouseCode: 'WH-MAIN' },
       lock: { mode: 'pessimistic_write' },
@@ -370,7 +370,7 @@ export class InventoryService {
     })
   }
 
-  async stockOutInTransaction(manager: any, dto: { skuId: string; quantity: number; transactionType: string; referenceType?: string; referenceId?: string; remark?: string }, operatorId?: string) {
+  async stockOutInTransaction(manager: EntityManager, dto: { skuId: string; quantity: number; transactionType: string; referenceType?: string; referenceId?: string; remark?: string }, operatorId?: string) {
     const inv = await manager.findOne(Inventory, {
       where: { skuId: dto.skuId, warehouseCode: 'WH-MAIN' },
       lock: { mode: 'pessimistic_write' },
@@ -393,7 +393,7 @@ export class InventoryService {
       skuCode: inv.skuCode,
       structureStandardCode: inv.structureStandardCode,
       warehouseCode: 'WH-MAIN',
-      transactionType: dto.transactionType,
+      transactionType: dto.transactionType as unknown as TransactionType,
       quantity: -dto.quantity,
       quantityBefore: before,
       quantityAfter: inv.currentQuantity,
