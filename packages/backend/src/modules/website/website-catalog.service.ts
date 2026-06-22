@@ -9,7 +9,7 @@ import { DictFrameType } from '../product/entity/dict-frame-type.entity'
 import { DictNosePad } from '../product/entity/dict-nose-pad.entity'
 import { DictHinge } from '../product/entity/dict-hinge.entity'
 import { DictSurfaceTreatment } from '../product/entity/dict-surface-treatment.entity'
-import { SpuDetailDto, SkuDetailDto, SearchResultDto, PaginatedResponse, SpuCardDto } from './website.dto'
+import { SpuDetailDto, SkuDetailDto, SearchResultDto, PaginatedResponse, SpuCardDto, WebsiteImageDto } from './website.dto'
 import { PRODUCT_STATUS, SKU_STATUS } from '../product/product.constants'
 
 // ============================================================
@@ -139,7 +139,7 @@ export class WebsiteCatalogService {
       const sales = salesMap[sku.skuId] || 0
       totalSales += sales
       const inv = invMap[sku.skuId]
-      const availableQty = inv?.availableQuantity ?? 0
+      const availableQty = (inv as Record<string, unknown> | undefined)?.availableQuantity as number ?? 0
       const stockStatus = helpers.getStockStatus(availableQty)
       if (stockStatus === 'in_stock') hasStock = true
       if (stockStatus === 'low_stock') hasLowStock = true
@@ -163,9 +163,9 @@ export class WebsiteCatalogService {
         availableQuantity: availableQty,
         salesVolume: sales,
         skuAttributes: sku.skuAttributes || {},
-        images: imagesMap[sku.skuId] || {},
+        images: (imagesMap[sku.skuId] || {}) as Record<string, WebsiteImageDto[]>,
         displayParams: skuTech.displayParams,
-        fullTechSpec: skuTech.fullTechSpec,
+        fullTechSpec: skuTech.fullTechSpec as SkuDetailDto['fullTechSpec'],
       }
     })
 
@@ -178,8 +178,8 @@ export class WebsiteCatalogService {
       spuId: spu.spuId,
       spuCode: spu.spuCode,
       spuName: spu.spuName,
-      categoryName: (spu as any).category?.categoryName || '',
-      categoryId: (spu as any).category?.categoryId || '',
+      categoryName: (spu.category as Record<string, unknown> | undefined)?.categoryName as string || '',
+      categoryId: (spu.category as Record<string, unknown> | undefined)?.categoryId as string || '',
       gender: spu.gender,
       sceneTags: spu.sceneTags || [],
       description: spu.description || '',
@@ -229,7 +229,7 @@ export class WebsiteCatalogService {
       .limit(5)
       .getRawMany()
 
-    const suggestions = [...colorSuggestions.map((c: any) => c.color_name), keyword.trim()].slice(0, 8)
+    const suggestions = [...colorSuggestions.map((c: Record<string, unknown>) => c.color_name as string), keyword.trim()].slice(0, 8)
 
     return {
       products: cards.slice(0, pageSize),
@@ -238,17 +238,17 @@ export class WebsiteCatalogService {
     }
   }
 
-  private buildTechSpec(sku: any, matMap: Map<string, any>, typeMap: Map<string, any>, noseMap: Map<string, any>, hingeMap: Map<string, any>, surfMap: Map<string, any>) {
+  private buildTechSpec(sku: any, matMap: Map<string, unknown>, typeMap: Map<string, unknown>, noseMap: Map<string, unknown>, hingeMap: Map<string, unknown>, surfMap: Map<string, unknown>) {
     const sizeLabelFormatted =
       sku.lensWidth && sku.bridgeWidth && sku.templeLength ? `${sku.lensWidth}□${sku.bridgeWidth}-${sku.templeLength}` : ''
 
-    const mat = sku.frameMaterial ? matMap.get(sku.frameMaterial) : null
-    const ft = sku.frameType ? typeMap.get(sku.frameType) : null
-    const np = sku.nosePadType ? noseMap.get(sku.nosePadType) : null
-    const hg = sku.hingeType ? hingeMap.get(sku.hingeType) : null
-    const st = sku.surfaceTreatment ? surfMap.get(sku.surfaceTreatment) : null
+    const mat = sku.frameMaterial ? matMap.get(sku.frameMaterial) as Record<string, unknown> | undefined : null
+    const ft = sku.frameType ? typeMap.get(sku.frameType) as Record<string, unknown> | undefined : null
+    const np = sku.nosePadType ? noseMap.get(sku.nosePadType) as Record<string, unknown> | undefined : null
+    const hg = sku.hingeType ? hingeMap.get(sku.hingeType) as Record<string, unknown> | undefined : null
+    const st = sku.surfaceTreatment ? surfMap.get(sku.surfaceTreatment) as Record<string, unknown> | undefined : null
 
-    const weight = sku.weightG
+    const weight = sku.weightG as number | undefined
     const weightLabel = weight == null ? '' : weight < 15 ? '超轻' : weight < 25 ? '轻盈' : weight < 35 ? '标准' : '偏重'
 
     const faceShapeMap: Record<string, string> = {
@@ -272,17 +272,17 @@ export class WebsiteCatalogService {
       surfaceTreatment: st?.treatmentName || sku.surfaceTreatment || '',
     }
 
-    const fullTechSpec = {
+    const fullTechSpec: Record<string, unknown> = {
       lensWidth: sku.lensWidth || null,
       bridgeWidth: sku.bridgeWidth || null,
       templeLength: sku.templeLength || null,
       totalWidth: sku.totalWidth || null,
-      frameMaterial: mat ? { code: mat.materialCode, name: mat.materialName } : null,
-      frameType: ft ? { code: ft.typeCode, name: ft.typeName } : null,
-      nosePad: np ? { code: np.padCode, name: np.padName } : null,
-      hingeType: hg ? { code: hg.hingeCode, name: hg.hingeName } : null,
+      frameMaterial: mat ? { code: mat.materialCode as string, name: mat.materialName as string } : null,
+      frameType: ft ? { code: ft.typeCode as string, name: ft.typeName as string } : null,
+      nosePad: np ? { code: np.padCode as string, name: np.padName as string } : null,
+      hingeType: hg ? { code: hg.hingeCode as string, name: hg.hingeName as string } : null,
       weightGrams: sku.weightG || null,
-      surfaceTreatment: st ? { code: st.treatmentCode, name: st.treatmentName } : null,
+      surfaceTreatment: st ? { code: st.treatmentCode as string, name: st.treatmentName as string } : null,
       suitableFaceShapes: faceShapes,
       hasBlueLightFilter: !!sku.hasBlueLightFilter,
       hasPhotochromic: !!sku.hasPhotochromic,
@@ -316,17 +316,17 @@ function resolveTier(tierCode: string): { name: string; iconColor: string } {
 // ============================================================
 
 export interface CatalogHelpers {
-  mapSpuCards(spus: any[]): Promise<SpuCardDto[]>
+  mapSpuCards(spus: unknown[]): Promise<SpuCardDto[]>
 }
 
 export interface ProductDetailHelpers {
   batchGetSalesBySku(skuIds: string[]): Promise<Record<string, number>>
-  batchGetInventory(skuIds: string[]): Promise<Record<string, any>>
-  batchGetSkuImages(skuIds: string[]): Promise<Record<string, Record<string, any[]>>>
+  batchGetInventory(skuIds: string[]): Promise<Record<string, unknown>>
+  batchGetSkuImages(skuIds: string[]): Promise<Record<string, Record<string, unknown[]>>>
   getCompatibleFrameCount(structureStandardCode: string): Promise<number>
   getStockStatus(availableQty: number): 'in_stock' | 'low_stock' | 'out_of_stock'
 }
 
 export interface SearchHelpers {
-  mapSpuCards(spus: any[]): Promise<SpuCardDto[]>
+  mapSpuCards(spus: unknown[]): Promise<SpuCardDto[]>
 }
