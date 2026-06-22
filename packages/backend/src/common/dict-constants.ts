@@ -69,7 +69,7 @@ export interface DictItem {
   name: string
   sort_order: number
   is_active: number
-  [key: string]: any
+  [key: string]: unknown
 }
 
 @Injectable()
@@ -101,7 +101,7 @@ export class DictConstantsService implements OnModuleInit {
             throw new BadRequestException(`字典表白名单校验失败: ${tableName}`)
           }
           const rows = await this.dataSource.query(`SELECT * FROM ${tableName} ORDER BY sort_order ASC`)
-          const items = rows.filter((r: any) => r.is_active !== 0 && r.is_active !== false)
+          const items = rows.filter((r: Record<string, unknown>) => r.is_active !== 0 && r.is_active !== false)
           this.cache.set(key, items as DictItem[])
         } catch (err) {
           this.logger.warn(`字典表 ${key} 加载失败: ${(err as Error).message}`)

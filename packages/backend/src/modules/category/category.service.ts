@@ -48,7 +48,7 @@ export class CategoryService {
   async create(dto: CreateCategoryDto): Promise<Category> {
     // 自动生成编码
     if (!dto.categoryCode || dto.categoryCode.trim() === '') {
-      dto.categoryCode = await generateCategoryCode(this.repo as any)
+      dto.categoryCode = await generateCategoryCode(this.repo as unknown as Repository<Category>)
     }
     // boolean → number for isRecommended
     if (typeof dto.isRecommended === 'boolean') {

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
+import { Request } from 'express'
 import { Controller, Get, Post, Body, Req, HttpException, HttpStatus, UseGuards } from '@nestjs/common'
 import { ApiOperation } from '@nestjs/swagger'
 import { WizardService } from './wizard.service'
@@ -15,7 +15,7 @@ export class WizardController {
 
   @Post('test-db')
   @ApiOperation({ summary: '测试数据库连接' })
-  async testDb(@Req() req: any, @Body() body: { host: string; port: number; username: string; password: string }) {
+  async testDb(@Req() req: Request, @Body() body: { host: string; port: number; username: string; password: string }) {
     this.verifyNotInitialized()
     return this.wizard.testDbConnection(body)
   }
@@ -23,7 +23,7 @@ export class WizardController {
   /** 步骤2：建库建表 */
   @Post('create-tables')
   @ApiOperation({ summary: '建库建表 — 步骤2' })
-  async createTables(@Req() req: any, @Body() body: { host: string; port: number; username: string; password: string; database?: string }) {
+  async createTables(@Req() req: Request, @Body() body: { host: string; port: number; username: string; password: string; database?: string }) {
     this.verifyNotInitialized()
     return this.wizard.createTables(body)
   }
@@ -31,7 +31,7 @@ export class WizardController {
   /** 步骤3：种子数据 */
   @Post('seed-db')
   @ApiOperation({ summary: '导入种子数据 — 步骤3' })
-  async seedDb(@Req() req: any, @Body() body: { host: string; port: number; username: string; password: string; database?: string }) {
+  async seedDb(@Req() req: Request, @Body() body: { host: string; port: number; username: string; password: string; database?: string }) {
     this.verifyNotInitialized()
     return this.wizard.seedDb(body)
   }
