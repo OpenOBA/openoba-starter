@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- TODO: 需要类型化 */
 // @openoba/types — 草稿池 + 交付物 + 报表接口
 // 来源：draft-spu.entity.ts, deliverable-manifest.entity.ts, report-target.entity.ts
 // V1.4-b M1 Step 4

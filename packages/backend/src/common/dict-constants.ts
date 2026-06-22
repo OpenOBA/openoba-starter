@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import { Injectable, OnModuleInit, Logger, BadRequestException } from '@nestjs/common'
 import { InjectDataSource } from '@nestjs/typeorm'
 import { DataSource } from 'typeorm'
@@ -103,7 +104,7 @@ export class DictConstantsService implements OnModuleInit {
           const items = rows.filter((r: any) => r.is_active !== 0 && r.is_active !== false)
           this.cache.set(key, items as DictItem[])
         } catch (err) {
-          this.logger.warn(`字典表 ${key} 加载失败: ${err.message}`)
+          this.logger.warn(`字典表 ${key} 加载失败: ${(err as Error).message}`)
           this.cache.set(key, [])
         }
       }),

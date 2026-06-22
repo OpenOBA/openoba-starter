@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import { Controller, Get, Query, Logger } from '@nestjs/common'
 import { request as httpsRequest } from 'https'
 import { TIMEOUT } from '@openoba/core/dist/common/constants/timeouts'

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- CORE 泛型/第三方库约束 */
 /**
  * 秒镜 AI-BOS · ToolRegistry — 异常映射服务
  *

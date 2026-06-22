@@ -19,17 +19,36 @@ module.exports = {
     jest: true,
   },
   ignorePatterns: ['dist', 'node_modules', '*.js', 'coverage'],
+  // ── 确定性执行防线：any/unknown 严格管控 ──
+  reportUnusedDisableDirectives: true,
   rules: {
     'prettier/prettier': 'warn',
-    '@typescript-eslint/no-explicit-any': 'warn',
+
+    // ── 红线：any 类型全面禁止，显式豁免方可使用 ──
+    '@typescript-eslint/no-explicit-any': 'error',
+    '@typescript-eslint/no-unsafe-assignment': 'warn',
+    '@typescript-eslint/no-unsafe-member-access': 'warn',
+    '@typescript-eslint/no-unsafe-argument': 'warn',
+    '@typescript-eslint/no-unsafe-call': 'warn',
+    '@typescript-eslint/no-unsafe-return': 'warn',
+
+    // ── 确定性执行防线：unknown 规范 ──
+    '@typescript-eslint/consistent-type-assertions': ['warn', {
+      assertionStyle: 'as',
+      objectLiteralTypeAssertions: 'allow',
+    }],
+
     '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/no-empty-object-type': 'warn',
+
+    // ── 禁止绕过类型检查的注释 ──
     '@typescript-eslint/ban-ts-comment': ['error', {
       'ts-ignore': true,
       'ts-expect-error': 'allow-with-description',
       'ts-nocheck': true,
     }],
+
     'no-console': 'warn',
     'security/detect-object-injection': 'off',
     'no-secrets/no-secrets': 'warn',

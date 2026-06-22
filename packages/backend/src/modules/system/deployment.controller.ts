@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- TODO: 需要类型化 */
 /**
  * 部署管理 Controller — 双环境隔离 / 同步 / 回滚 / 发布
  *

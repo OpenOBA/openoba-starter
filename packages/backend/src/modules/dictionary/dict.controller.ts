@@ -1,4 +1,5 @@
-﻿import { Controller, Get, Post, Put, Delete, Param, Body, BadRequestException, UseGuards } from '@nestjs/common'
+/* eslint-disable @typescript-eslint/no-explicit-any -- TODO: 需要类型化 */
+import { Controller, Get, Post, Put, Delete, Param, Body, BadRequestException, UseGuards } from '@nestjs/common'
 import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger'
 import { DictionaryService } from './dict.service'
 import { InjectDataSource } from '@nestjs/typeorm'

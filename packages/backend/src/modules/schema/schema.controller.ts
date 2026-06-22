@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 // ============================================
 // Schema Controller — AI-BOS V2.0
 // 暴露行业 Schema 供前端动态表单渲染使用

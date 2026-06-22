@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards, Get, Request, Logger, Req, UnauthorizedException, OnModuleDestroy } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { IsString, IsNotEmpty, MinLength, MaxLength } from 'class-validator'

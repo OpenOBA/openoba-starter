@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- CORE 泛型/第三方库约束 */
 /**
  * 元镜 Entity Scanner — 扫描所有 .entity.ts 文件
  *

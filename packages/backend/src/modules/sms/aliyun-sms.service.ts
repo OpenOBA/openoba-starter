@@ -64,7 +64,7 @@ export class AliyunSmsService {
       this.logger.error(`短信发送失败 → ${phone}: ${result.Message} (${result.Code})`)
       return false
     } catch (error) {
-      this.logger.error(`短信发送异常 → ${phone}: ${error.message}`)
+      this.logger.error(`短信发送异常 → ${phone}: ${(error as Error).message}`)
       return false
     }
   }

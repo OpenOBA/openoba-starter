@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- TypeORM DeepPartial 不兼容 Record<string,unknown> */
 import { IsString, IsOptional, IsNumber, IsBoolean, IsInt, Min, Max } from 'class-validator'
 import { Type } from 'class-transformer'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'

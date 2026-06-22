@@ -1,4 +1,5 @@
-﻿import { Injectable, NotFoundException, ConflictException } from '@nestjs/common'
+/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common'
 import * as crypto from 'crypto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'

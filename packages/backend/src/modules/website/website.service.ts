@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- TODO: 需要类型化 */
 import { Injectable } from '@nestjs/common'
 import { WebsiteHomeAggregatorService } from './home-aggregator.service'
 import { WebsiteCatalogService, CatalogHelpers, ProductDetailHelpers, SearchHelpers } from './website-catalog.service'

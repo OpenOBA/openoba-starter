@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm'
 // TASK-013 Batch 4: 硬编码替换 — Entity enum/default 保持字符串字面值（TypeORM 编译期限制），注释指向常量
 import { AFTER_SALES_STATUS, AFTER_SALES_TYPE, AFTER_SALES_REASON, REFUND_METHOD, APPLICANT_TYPE } from '../after-sales.constants'

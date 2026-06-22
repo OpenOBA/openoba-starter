@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- CORE 泛型/第三方库约束 */
 /**
  * MigrationRunner — Git 操作 + 数据库迁移 + 进程查找
  *

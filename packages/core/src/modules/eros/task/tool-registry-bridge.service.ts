@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- CORE 泛型/第三方库约束 */
 /**
  * 秒镜 AI-BOS · ToolRegistry → Agent 桥接服务
  *

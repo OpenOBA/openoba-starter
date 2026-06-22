@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- TODO: 需要类型化 */
 /**
  * OpenOBA · 订单域 Tool 注册（行业模块 → Core ToolRegistry 桥接）
  *

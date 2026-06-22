@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import { Controller, Get, Param, Query, UseInterceptors, CallHandler, ExecutionContext, NestInterceptor } from '@nestjs/common'
 import { Observable } from 'rxjs'
 import { ApiTags, ApiOperation } from '@nestjs/swagger'

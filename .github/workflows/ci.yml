@@ -20,8 +20,11 @@ jobs:
 
       - run: npm ci --install-strategy=nested
 
-      - name: Lint backend
-        run: npm run lint -w packages/backend
+      - name: Lint backend（确定性防线 — any/unknown 零容忍）
+        run: npm run lint -w packages/backend -- --quiet
+
+      - name: Lint frontend（确定性防线 — any/unknown 零容忍）
+        run: cd frontend && npx eslint "src/**/*.{ts,vue}" --quiet
 
       - name: Security audit
         run: npm audit --audit-level=moderate

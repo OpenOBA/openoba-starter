@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- Jest mock 生态刚需 */
 /**
  * entity-proxy.service 单元测试
  *

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- CORE 泛型/第三方库约束 */
 /**
  * 元镜 ERDL ↔ DTO 审计扫描器 — 交叉比对 ERDL Ruleset 与 Controller DTO 校验约束
  *

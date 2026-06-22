@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 // @openoba/types — Agent 执行引擎层接口
 // 来源：agent-task.entity.ts, agent-registry.entity.ts, cognitive-log.entity.ts,
 //        knowledge-entry.entity.ts, skill-registry.entity.ts, skill-key-vault.entity.ts

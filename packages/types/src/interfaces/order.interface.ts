@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 // @openoba/types — 订单层接口
 // 来源：order.entity.ts, order-item.entity.ts, order-payment.entity.ts
 // V1.4-b M1 Step 4

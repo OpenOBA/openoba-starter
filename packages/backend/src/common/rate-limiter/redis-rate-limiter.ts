@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 // V1.4-b #15: Redis 限流器（多实例部署）
 // 依赖 ioredis，若 REDIS_URL 未配置则回退到 MemoryRateLimiter
 

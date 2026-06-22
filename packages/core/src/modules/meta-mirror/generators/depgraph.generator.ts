@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- CORE 泛型/第三方库约束 */
 /**
  * 元镜 依赖图生成器 — 实体关系图 + 创建依赖排序
  *

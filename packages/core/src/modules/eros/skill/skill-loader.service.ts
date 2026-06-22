@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- CORE 泛型约束/第三方库类型缺口，需架构级重构 */
 /**
  * SKILL Loader — 目录扫描 → 自动注册 Agent 工具
  *

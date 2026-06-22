@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- CORE 泛型/第三方库约束 */
 import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards, Get, Request, Logger, Req, UnauthorizedException, Res, Inject } from '@nestjs/common'
 import { Response } from 'express'
 import { AuthService } from './auth.service'

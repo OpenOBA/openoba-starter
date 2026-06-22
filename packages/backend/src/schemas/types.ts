@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 // ============================================
 // 行业 Schema 类型定义 — AI-BOS V2.0
 // ============================================

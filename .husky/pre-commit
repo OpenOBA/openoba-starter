@@ -7,6 +7,15 @@ if [ $? -ne 0 ]; then
 fi
 echo "✅ [pre-commit] Backend TypeScript passed"
 
+echo "🔍 [pre-commit] Running backend ESLint (确定性防线 — no-explicit-any 零容忍)..."
+npx eslint "{src,apps,libs,test}/**/*.ts" --quiet
+if [ $? -ne 0 ]; then
+  echo "❌ [pre-commit] Backend ESLint errors — commit aborted"
+  echo "   违反 any/unknown 红线，修复后方可提交"
+  exit 1
+fi
+echo "✅ [pre-commit] Backend ESLint passed"
+
 echo "🔍 [pre-commit] Running frontend vue-tsc -b..."
 cd ../../frontend
 npx vue-tsc -b
@@ -16,6 +25,14 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 echo "✅ [pre-commit] Frontend TypeScript passed"
+
+echo "🔍 [pre-commit] Running frontend ESLint (确定性防线)..."
+npx eslint "src/**/*.{ts,vue}" --quiet -c .eslintrc.cjs --resolve-plugins-relative-to .
+if [ $? -ne 0 ]; then
+  echo "❌ [pre-commit] Frontend ESLint errors — commit aborted"
+  exit 1
+fi
+echo "✅ [pre-commit] Frontend ESLint passed"
 
 echo "🔍 [pre-commit] Running frontend vitest..."
 npx vitest run

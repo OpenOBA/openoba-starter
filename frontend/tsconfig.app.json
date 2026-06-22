@@ -10,6 +10,10 @@
       "@/*": ["src/*"]
     },
 
+    /* 确定性执行防线 */
+    "strict": true,
+    "useUnknownInCatchVariables": true,
+
     /* Linting */
     "noUnusedLocals": true,
     "noUnusedParameters": true,

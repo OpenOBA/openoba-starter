@@ -1,4 +1,5 @@
-﻿import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common'
+/* eslint-disable @typescript-eslint/no-explicit-any -- TODO: 需要类型化 */
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common'
 import * as crypto from 'crypto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, In } from 'typeorm'

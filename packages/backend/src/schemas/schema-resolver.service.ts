@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 // ============================================
 // Schema 解析器 — 将 Schema 配置转化为运行时服务
 // AI-BOS V2.0

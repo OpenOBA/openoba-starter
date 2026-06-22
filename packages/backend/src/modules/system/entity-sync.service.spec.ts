@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- Jest mock 生态刚需 */
 import { EntitySyncService } from './entity-sync.service'
 
 describe('EntitySyncService', () => {

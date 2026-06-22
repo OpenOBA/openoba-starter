@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 /**
  * Entity-Schema 同步服务 — 检测 entity 文件改动，自动生成 migration SQL
  *

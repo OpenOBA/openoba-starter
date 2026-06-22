@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- Jest mock 生态刚需，mockImplementation 回调需要 any 绕过类型推断缺陷 */
 import { Test, TestingModule } from '@nestjs/testing'
 import { getRepositoryToken } from '@nestjs/typeorm'
 import { ColorService } from './color.service'

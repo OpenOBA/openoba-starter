@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm'
 // TASK-013 Batch 2: 硬编码替换 — Entity default 保持字符串字面值（TypeORM 编译期限制），注释指向常量
 import {
