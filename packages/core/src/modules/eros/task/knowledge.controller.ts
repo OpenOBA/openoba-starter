@@ -69,7 +69,7 @@ export class KnowledgeController {
   @Put(':id')
   @ApiOperation({ summary: '编辑知识' })
   update(@Param('id') id: string, @Body() body: { title?: string; content?: string; tags?: string[]; visibility?: string; type?: string; contributor?: string }) {
-    return this.service.update(id, body as any)
+    return this.service.update(id, body as unknown as Record<string, unknown>)
   }
 
   @Post(':id/archive')

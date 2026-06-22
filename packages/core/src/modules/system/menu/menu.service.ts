@@ -38,7 +38,7 @@ export class MenuService {
   /** 获取菜单树 */
   async findTree(): Promise<Menu[]> {
     const allMenus = await this.menuRepo.find({
-      where: { isDeleted: false } as any,
+      where: { isDeleted: false },
       order: { sortOrder: 'ASC', createdAt: 'ASC' },
     })
     return this.buildTree(allMenus)
@@ -98,7 +98,7 @@ export class MenuService {
   /** 更新排序 */
   async updateSort(items: { menuId: string; sortOrder: number }[]): Promise<{ message: string }> {
     for (const item of items) {
-      await this.menuRepo.update(item.menuId, { sortOrder: item.sortOrder } as any)
+      await this.menuRepo.update(item.menuId, { sortOrder: item.sortOrder } as Partial<Menu>)
     }
     return { message: '排序已更新' }
   }

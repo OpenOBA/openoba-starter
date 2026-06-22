@@ -215,7 +215,7 @@ export class ErdlAuditScanner {
     field: string,
     operator: string,
     value: string | undefined,
-    dtoField: any | undefined,
+    dtoField: Record<string, unknown> | undefined,
   ): AuditStatus {
     if (!dtoField) return 'CODE_MISSING'
 
@@ -239,7 +239,7 @@ export class ErdlAuditScanner {
     // ERDL exists → DTO 必填
     if (operator === 'exists') {
       if (!dtoField.isOptional) return 'OK'
-      return 'CODE_LOOSER' as any
+      return 'CODE_LOOSER' as AuditStatus
     }
 
     // 无法判断 → OK（不误报）

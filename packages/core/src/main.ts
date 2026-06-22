@@ -54,7 +54,7 @@ async function bootstrap() {
 
   // P1-4: 全局未捕获异常处理器 — 防止进程崩溃
   const errorLogger = new Logger('GlobalErrorHandler')
-  process.on('unhandledRejection', (reason: any) => {
+  process.on('unhandledRejection', (reason: unknown) => {
     errorLogger.error(`Unhandled Rejection: ${reason?.message || reason}`, reason?.stack)
   })
   process.on('uncaughtException', (error: Error) => {

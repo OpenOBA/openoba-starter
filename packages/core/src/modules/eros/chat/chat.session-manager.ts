@@ -113,7 +113,7 @@ export class ChatSessionManager {
   // ═══════════════════════════════════════════
 
   /** 向同 session 的所有客户端广播（预埋，M3 启用） */
-  broadcastToSession(sessionKey: string, event: string, payload: any, excludeClientId?: string): void {
+  broadcastToSession(sessionKey: string, event: string, payload: Record<string, unknown>, excludeClientId?: string): void {
     const sessionSet = this.sessionClients.get(sessionKey)
     if (!sessionSet) return
 

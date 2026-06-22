@@ -106,7 +106,7 @@ export class EntityProxyService {
     const dbToSemantic = new Map<string, string>()
 
     for (const [fieldName, raw] of Object.entries(entity.properties)) {
-      const prop = typeof raw === 'string' ? { type: raw } : (raw as Record<string, any>)
+      const prop = typeof raw === 'string' ? { type: raw } : (raw as Record<string, unknown>)
       const dbColumn = prop.dbColumn || fieldName
 
       // 安全校验：物理列名必须符合标识符规范

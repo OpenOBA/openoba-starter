@@ -49,7 +49,7 @@ export class DeliverableManifest {
   dirPath: string
 
   @Column('json', { nullable: true, comment: '扩展信息' })
-  extra?: Record<string, any>
+  extra?: Record<string, unknown>
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date

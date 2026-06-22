@@ -90,7 +90,7 @@ export class VersionController {
   /**
    * 通道 2：GitHub Releases API（降级）
    */
-  private fetchFromGitHub(current: string): Promise<any> {
+  private fetchFromGitHub(current: string): Promise<Record<string, unknown>> {
     return new Promise((resolve, reject) => {
       const url = 'https://api.github.com/repos/openoba/core/releases/latest'
       const req = httpsRequest(url, {

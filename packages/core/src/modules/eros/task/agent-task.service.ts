@@ -574,7 +574,7 @@ export class AgentTaskService {
 
   /** 获取统计 */
   async getStats(reportTo?: string): Promise<Record<string, number>> {
-    const where: any = {}
+    const where: Record<string, unknown> = {}
     if (reportTo) where.reportTo = reportTo
 
     const [proposed, executing, completed, escalated] = await Promise.all([
@@ -671,7 +671,7 @@ export class AgentTaskService {
 
     try {
       const staleTasks = await this.taskRepo.find({
-        where: { status: 'executing' as AgentTaskStatus, updatedAt: LessThan(staleTime) as any },
+        where: { status: 'executing' as AgentTaskStatus, updatedAt: LessThan(staleTime) as unknown as ReturnType<typeof LessThan> },
       })
 
       for (const task of staleTasks) {

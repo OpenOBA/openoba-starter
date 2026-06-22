@@ -79,7 +79,7 @@ export class DraftPoolService {
    * 更新草稿
    * [ENGINE STUB]
    */
-  async updateDraft(draftId: string, update: Record<string, any>): Promise<DraftSpuResult> {
+  async updateDraft(draftId: string, update: Record<string, unknown>): Promise<DraftSpuResult> {
     this.logger.warn('[ENGINE STUB] DraftPoolService.updateDraft - 行业模块未注册')
     return { draftId }
   }

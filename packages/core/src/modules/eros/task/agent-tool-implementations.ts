@@ -729,7 +729,7 @@ export class AgentToolImplementations {
     else {
       ext = 'md'
       if (data.length > 0 && Array.isArray(data[0])) {
-        content = '| ' + (data[0] as unknown as Record<string, unknown> as unknown as unknown[]).map(c => String(c || '')).join(' | ') + ' |\n|' + (data[0] as any[]).map(() => '---').join('|') + '|\n'
+        content = '| ' + (data[0] as unknown as unknown[]).map(c => String(c || '')).join(' | ') + ' |\n|' + (data[0] as unknown[]).map(() => '---').join('|') + '|\n'
         for (let i = 1; i < data.length; i++) content += '| ' + (data[i] as unknown as Record<string, unknown> as unknown as unknown[]).map(c => String(c || '')).join(' | ') + ' |\n'
       }
     }

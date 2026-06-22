@@ -7,9 +7,9 @@ import { Logger } from '@nestjs/common'
 
 export class RedisRateLimiter implements RateLimiter {
   private readonly logger = new Logger(RedisRateLimiter.name)
-  private redis: any // Redis instance
+  private redis: Record<string, unknown> // Redis instance (ioredis type not installed)
 
-  constructor(redisClient: any) {
+  constructor(redisClient: Record<string, unknown>) {
     this.redis = redisClient
   }
 

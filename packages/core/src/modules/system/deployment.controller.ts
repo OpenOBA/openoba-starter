@@ -142,7 +142,7 @@ export class DeploymentController {
   @Roles('super_admin', 'admin')
   @ApiOperation({ summary: '变更 Delta 状态（校验状态机转换合法性）' })
   transitionDelta(@Param('id') id: string, @Body() body: { status: string; feedback?: string }) {
-    return this.deployment.transitionDelta(id, body.status as any, { feedback: body.feedback })
+    return this.deployment.transitionDelta(id, body.status as unknown as string, { feedback: body.feedback })
   }
 
   @Post('sync')
@@ -175,7 +175,7 @@ export class DeploymentController {
     try {
       await this.deployment.executeRawMigration(body.sql)
       return { success: true, message: 'Migration 执行成功' }
-    } catch (e: any) {
+    } catch (_e: unknown) { const e = _e as Error {
       return { success: false, message: e.message || 'Migration 执行失败' }
     }
   }

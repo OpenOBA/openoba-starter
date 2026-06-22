@@ -14,7 +14,7 @@ import { Injectable, Logger } from '@nestjs/common'
 export interface UniversalDraftCreateInput {
   draftType: 'spu' | 'sku' | 'set'
   title: string
-  bodyJson?: Record<string, any>
+  bodyJson?: Record<string, unknown>
   draftId?: string
 }
 
@@ -41,7 +41,7 @@ export class DraftService {
     }
   }
 
-  async update(id: string, update: Record<string, any>): Promise<UniversalDraftResult> {
+  async update(id: string, update: Record<string, unknown>): Promise<UniversalDraftResult> {
     this.logger.warn('[ENGINE STUB] DraftService.update - 行业模块未注册')
     return {
       id,

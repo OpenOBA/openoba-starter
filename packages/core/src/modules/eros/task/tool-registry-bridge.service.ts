@@ -28,12 +28,12 @@ export class ToolRegistryBridge {
     const definitions = this.toolRegistry.getAllDefinitions(industry)
 
     return definitions.map((def) => {
-      const properties: Record<string, any> = {}
+      const properties: Record<string, unknown> = {}
 
       // 将我们的 JSONSchemaProperty → OpenAI parameters.properties
       const props = def.inputSchema.properties
       for (const key of Object.keys(props)) {
-        const p = (props as any)[key]
+        const p = (props as Record<string, unknown>)[key]
         properties[key] = {
           type: p.type,
           description: p.description,
