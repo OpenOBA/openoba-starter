@@ -11,6 +11,13 @@ interface RuleResult {
   severity: 'block' | 'warn' | 'info'
 }
 
+interface CompatibilityRecommendation {
+  type: string
+  current: string
+  suggested: string
+  reason: string
+}
+
 interface CheckContext {
   shapeCode: string
   seriesCode: string
@@ -41,13 +48,13 @@ export class RuleEngineService {
     errors: RuleResult[]
     warnings: RuleResult[]
     tips: RuleResult[]
-    recommendations: any[]
+    recommendations: CompatibilityRecommendation[]
   }> {
     await this.ensureCache()
     const errors: RuleResult[] = []
     const warnings: RuleResult[] = []
     const tips: RuleResult[] = []
-    const recommendations: any[] = []
+    const recommendations: CompatibilityRecommendation[] = []
 
     // Execute rules in order: L4 (validate) → L1 (block) → L2 (warn) → L3 (suggest)
     const rules = this.rulesCache!
@@ -122,7 +129,7 @@ export class RuleEngineService {
     const config = rule.config || {}
     const required = config.required || []
     for (const field of required) {
-      const value = (ctx as any)[field]
+      const value = ctx[field as keyof CheckContext] as string
       if (!value || value.trim() === '') {
         return {
           ruleCode: rule.ruleCode,
@@ -199,9 +206,9 @@ export class RuleEngineService {
     }
   }
 
-  private generateRecommendations(rule: AestheticRule, ctx: CheckContext): any[] {
+  private generateRecommendations(rule: AestheticRule, ctx: CheckContext): CompatibilityRecommendation[] {
     const config = rule.config || {}
-    const recs: any[] = []
+    const recs: CompatibilityRecommendation[] = []
 
     // R020: Best effect recommendation
     if (config.source === 'sku_effect_recommend') {
