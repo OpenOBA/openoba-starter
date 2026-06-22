@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- TODO: 需要类型化 */
 /**
  * 部署管理 Controller — 双环境隔离 / 同步 / 回滚 / 发布
  *
@@ -6,11 +5,13 @@
  * @since 2026-05-23
  */
 
+import { Request } from 'express'
 import { Controller, Get, Post, Put, Body, Param, UseGuards, Req, Inject } from '@nestjs/common'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { Roles } from '../../common/decorators/roles.decorator'
 import { ApiOperation } from '@nestjs/swagger'
 import { DeploymentService } from './deployment.service'
+import type { DeltaStatus } from './delta-state-machine'
 import { EntitySyncService } from './entity-sync.service'
 import { RateLimiter } from '@openoba/core/dist/common/rate-limiter'
 
@@ -142,7 +143,7 @@ export class DeploymentController {
   @Roles('super_admin', 'admin')
   @ApiOperation({ summary: '变更 Delta 状态（校验状态机转换合法性）' })
   transitionDelta(@Param('id') id: string, @Body() body: { status: string; feedback?: string }) {
-    return this.deployment.transitionDelta(id, body.status as any, { feedback: body.feedback })
+    return this.deployment.transitionDelta(id, body.status as unknown as DeltaStatus, { feedback: body.feedback })
   }
 
   @Post('sync')
@@ -157,7 +158,7 @@ export class DeploymentController {
   @Post('migrate')
   @Roles('super_admin', 'admin')
   @ApiOperation({ summary: '执行 Migration SQL（仅 ADD COLUMN，安全模式）' })
-  async runMigration(@Body() body: { sql: string }, @Req() req: any) {
+  async runMigration(@Body() body: { sql: string }, @Req() req: Request) {
     // 限流：3 次/分钟，防止重复迁移
     const ip = req.ip || 'unknown'
     const { lockedUntil } = await this.rateLimiter.attempt(`deploy-migrate:${ip}`, 3, 60_000)
@@ -196,7 +197,7 @@ export class DeploymentController {
     try {
       await this.deployment.executeRawMigration(body.sql)
       return { success: true, message: 'Migration 执行成功' }
-    } catch (e: any) {
+    } catch (_e: unknown) { const e = _e as Error
       return { success: false, message: e.message || 'Migration 执行失败' }
     }
   }
@@ -206,7 +207,7 @@ export class DeploymentController {
   @Post('rollback')
   @Roles('super_admin')
   @ApiOperation({ summary: '回滚生产到指定版本' })
-  async rollback(@Body() body: { targetVersion: string; fullRollback?: boolean }, @Req() req: any) {
+  async rollback(@Body() body: { targetVersion: string; fullRollback?: boolean }, @Req() req: Request) {
     // 限流：2 次/分钟，防止重复回滚
     const ip = req.ip || 'unknown'
     const { lockedUntil } = await this.rateLimiter.attempt(`deploy-rollback:${ip}`, 2, 60_000)
