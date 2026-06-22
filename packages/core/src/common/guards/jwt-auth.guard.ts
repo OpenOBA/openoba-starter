@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- CORE 泛型/第三方库约束 */
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'

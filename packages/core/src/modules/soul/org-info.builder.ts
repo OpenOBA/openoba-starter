@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- CORE 泛型/第三方库约束 */
 /**
  * ERA SOUL 模块 — 组织信息构建器
  *

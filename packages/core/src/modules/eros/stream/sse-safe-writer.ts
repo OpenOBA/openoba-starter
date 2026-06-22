@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- CORE 泛型/第三方库约束 */
 /**
  * OpenOBA ERA — SSE Safe Writer
  *

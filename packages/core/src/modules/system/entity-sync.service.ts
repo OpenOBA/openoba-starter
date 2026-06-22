@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- CORE 泛型/第三方库约束 */
 /**
  * Entity-Schema 同步服务 — 检测 entity 文件改动，自动生成 migration SQL
  *

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- CORE 泛型/第三方库约束 */
 /**
  * 秒镜科技 · ERDL — Enterprise Resource Definition Language
  *

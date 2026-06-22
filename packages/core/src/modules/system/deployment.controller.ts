@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- CORE 泛型/第三方库约束 */
 /**
  * 部署管理 Controller — 双环境隔离 / 同步 / 回滚 / 发布
  *
