@@ -12,6 +12,9 @@ import {
 import { getCategoriesFlat } from '@/api/category'
 import { getStructureList } from '@/api/structure'
 import { getSchema, type IndustrySchema } from '@/api/schema'
+import type { StructureStandard } from '@/api/structure'
+import type { PaginatedData } from '@/api/api-types'
+import type { DictItem } from '@/composables/useDict'
 
 // 产品级别映射
 const TIER_MAP: Record<string, { name: string; color: string }> = {
@@ -62,13 +65,13 @@ export function useProducts() {
   }
 
   // Tech dicts
-  const frameMaterials = ref<any[]>([])
-  const frameTypes = ref<any[]>([])
-  const nosePads = ref<any[]>([])
-  const hinges = ref<any[]>([])
-  const surfaceTreatments = ref<any[]>([])
-  const seriesList = ref<any[]>([])
-  const computedSeriesList = computed(() => seriesList.value.map((s: Record<string, unknown>) => ({ code: s.code, name: s.name })))
+  const frameMaterials = ref<DictItem[]>([])
+  const frameTypes = ref<DictItem[]>([])
+  const nosePads = ref<DictItem[]>([])
+  const hinges = ref<DictItem[]>([])
+  const surfaceTreatments = ref<DictItem[]>([])
+  const seriesList = ref<DictItem[]>([])
+  const computedSeriesList = computed(() => seriesList.value.map((s) => ({ code: s.code, name: s.name })))
 
   const techDictsData = computed(() => ({
     frameMaterials: frameMaterials.value,
@@ -80,7 +83,7 @@ export function useProducts() {
 
   function getDictName(dictKey: string, code: string): string {
     if (!code) return '-'
-    const dictMap: Record<string, any[]> = {
+    const dictMap: Record<string, DictItem[]> = {
       frameMaterials: frameMaterials.value,
       frameTypes: frameTypes.value,
       nosePads: nosePads.value,
@@ -103,8 +106,8 @@ export function useProducts() {
   }
 
   // Effect tags
-  const skinToneEffects = ref<any[]>([])
-  const faceShapeEffects = ref<any[]>([])
+  const skinToneEffects = ref<DictItem[]>([])
+  const faceShapeEffects = ref<DictItem[]>([])
   const skinEffectTags = computed(() => skinToneEffects.value)
   const faceEffectTags = computed(() => faceShapeEffects.value)
 
@@ -117,15 +120,14 @@ export function useProducts() {
   }
 
   // Tiers
-  const tierList = ref<any[]>([])
+  const tierList = ref<Record<string, unknown>[]>([])
   const loadTiers = async () => {
     try {
-      const res: any = await getTierPricings()
-      const raw = res.data || res.items || res || []
-      tierList.value = raw.map((t: any) => ({
+      const raw = await getTierPricings()
+      tierList.value = raw.map((t) => ({
         tier_code: t.tierCode || t.tier_code,
         tier_name: t.tierName || t.tier_name,
-        icon_color: TIER_MAP[t.tierCode || t.tier_code]?.color || '#999',
+        icon_color: TIER_MAP[String(t.tierCode || t.tier_code)]?.color || '#999',
         ...t,
       }))
     } catch (e: unknown) {
@@ -150,22 +152,16 @@ export function useProducts() {
   }
 
   // Structure standards
-  const structureStandardList = ref<any[]>([])
+  const structureStandardList = ref<StructureStandard[]>([])
   const loadStructureStandards = async () => {
     try {
       const res = await getStructureList({ page: 1, pageSize: 500 })
-      if (Array.isArray(res)) {
-        structureStandardList.value = res
-      } else if (res && typeof res === 'object' && Array.isArray(res.items)) {
-        structureStandardList.value = res.items
-      } else {
-        structureStandardList.value = []
-      }
+      structureStandardList.value = res.items
     } catch { /* ignore */ }
   }
 
   // Category
-  const categoryList = ref<any[]>([])
+  const categoryList = ref<Record<string, unknown>[]>([])
   const loadCategoryList = async () => {
     try {
       categoryList.value = await getCategoriesFlat()
@@ -175,16 +171,16 @@ export function useProducts() {
   }
 
   // SPU
-  const spuList = ref<any[]>([])
-  const spuSelection = ref<any[]>([])
-  const spuListAll = ref<any[]>([])
+  const spuList = ref<Record<string, unknown>[]>([])
+  const spuSelection = ref<Record<string, unknown>[]>([])
+  const spuListAll = ref<Record<string, unknown>[]>([])
   const spuLoading = ref(false)
   const spuPage = ref(1)
   const spuPageSize = ref(20)
   const spuTotal = ref(0)
   const spuSearch = reactive({ keyword: '', gender: '', status: '', productTier: '' })
   const spuDialogVisible = ref(false)
-  const spuEditRow = ref<any>(null)
+  const spuEditRow = ref<Record<string, unknown> | null>(null)
 
   const loadSpus = async () => {
     spuLoading.value = true
@@ -201,7 +197,8 @@ export function useProducts() {
         spuTotal.value = 0
       }
     } catch (e: unknown) {
-      ElMessage.error((e as any)?.message || '加载失败')
+      const errMsg = (e as Error)?.message || '加载失败'
+      ElMessage.error(errMsg)
     } finally {
       spuLoading.value = false
     }
@@ -210,11 +207,11 @@ export function useProducts() {
   const loadSpusAll = async () => {
     try {
       const res = await getSpus({ pageSize: 9999 })
-      spuListAll.value = Array.isArray(res) ? res : (res as any)?.items || []
+      spuListAll.value = Array.isArray(res) ? res : ((res as unknown) as PaginatedData<Record<string, unknown>>)?.items || []
     } catch { /* ignore */ }
   }
 
-  const openSpuDialog = (row?: any) => {
+  const openSpuDialog = (row?: Record<string, unknown>) => {
     spuEditRow.value = row || null
     spuDialogVisible.value = true
   }
@@ -232,7 +229,7 @@ export function useProducts() {
 
   const batchDeleteSpus = async () => {
     try {
-      for (const r of spuSelection.value) await deleteSpu(r.spuId)
+      for (const r of spuSelection.value) await deleteSpu(r.spuId as string)
       ElMessage.success(spuSelection.value.length + ' 条已删除')
       spuSelection.value = []
       loadSpus()
@@ -242,15 +239,15 @@ export function useProducts() {
   }
 
   // SKU
-  const skuList = ref<any[]>([])
-  const skuSelection = ref<any[]>([])
+  const skuList = ref<Record<string, unknown>[]>([])
+  const skuSelection = ref<Record<string, unknown>[]>([])
   const skuLoading = ref(false)
   const skuPage = ref(1)
   const skuPageSize = ref(20)
   const skuTotal = ref(0)
   const skuSearch = reactive({ keyword: '', spuId: '', skinToneEffect: '', faceShapeEffect: '' })
   const skuDialogVisible = ref(false)
-  const skuEditRow = ref<any>(null)
+  const skuEditRow = ref<Record<string, unknown> | null>(null)
 
   const loadSkus = async () => {
     skuLoading.value = true
@@ -268,13 +265,13 @@ export function useProducts() {
         skuTotal.value = 0
       }
     } catch (e: unknown) {
-      ElMessage.error((e as any)?.message || '加载失败')
+      ElMessage.error((e as Error)?.message || '加载失败')
     } finally {
       skuLoading.value = false
     }
   }
 
-  const openSkuDialog = (row?: any) => {
+  const openSkuDialog = (row?: Record<string, unknown>) => {
     skuEditRow.value = row || null
     skuDialogVisible.value = true
   }
@@ -291,7 +288,7 @@ export function useProducts() {
 
   const batchDeleteSkus = async () => {
     try {
-      for (const r of skuSelection.value) await deleteSku(r.skuId)
+      for (const r of skuSelection.value) await deleteSku(r.skuId as string)
       ElMessage.success(skuSelection.value.length + ' 条已删除')
       skuSelection.value = []
       loadSkus()
@@ -301,8 +298,8 @@ export function useProducts() {
   }
 
   // Sets
-  const setSelection = ref<any[]>([])
-  const setList = ref<any[]>([])
+  const setSelection = ref<Record<string, unknown>[]>([])
+  const setList = ref<Record<string, unknown>[]>([])
   const setLoading = ref(false)
   const setDialogVisible = ref(false)
   const setEditRow = ref<Record<string, unknown> | null>(null)
@@ -319,7 +316,7 @@ export function useProducts() {
     }
   }
 
-  const openSetDialog = (row?: any) => {
+  const openSetDialog = (row?: Record<string, unknown>) => {
     setEditRow.value = row || null
     setDialogVisible.value = true
   }
@@ -331,23 +328,23 @@ export function useProducts() {
 
   const batchDeleteSets = async () => {
     try {
-      for (const r of setSelection.value) await deleteSet(r.setId)
+      for (const r of setSelection.value) await deleteSet(r.setId as string)
       ElMessage.success('已删除')
       setSelection.value = []
       loadSets()
     } catch (e: unknown) {
-      ElMessage.error((e as any)?.message || '批量删除失败')
+      ElMessage.error((e as Error)?.message || '批量删除失败')
     }
   }
 
   // SKU list for select (used by SkuImagePanel + SetDialog)
-  const skuListForSelect = ref<any[]>([])
+  const skuListForSelect = ref<Record<string, unknown>[]>([])
   const skuSelectLoading = ref(false)
 
   const loadSkusAll = async () => {
     try {
       const res = await getSkus({ pageSize: 9999 })
-      skuListForSelect.value = Array.isArray(res) ? res : (res as any)?.items || []
+      skuListForSelect.value = Array.isArray(res) ? res : ((res as unknown) as PaginatedData<Record<string, unknown>>)?.items || []
     } catch { /* ignore */ }
   }
 
