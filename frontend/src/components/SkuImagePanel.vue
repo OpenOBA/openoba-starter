@@ -42,8 +42,8 @@
       <el-table-column prop="imageUrl" label="URL" min-width="200" show-overflow-tooltip />
       <el-table-column label="类型" width="90">
         <template #default="{ row }">
-          <el-tag :type="(typeColorMap as any)[row.imageType] || 'info'" size="small">
-            {{ (typeLabelMap as any)[row.imageType] || row.imageType }}
+          <el-tag :type="typeColorMap[row.imageType] || 'info'" size="small">
+            {{ typeLabelMap[row.imageType] || row.imageType }}
           </el-tag>
         </template>
       </el-table-column>
@@ -162,7 +162,7 @@ import {
 } from '@/api/product'
 
 const props = defineProps<{
-  skuListForSelect: any[]
+  skuListForSelect: Record<string, unknown>[]
   skuSelectLoading: boolean
 }>()
 
@@ -175,23 +175,23 @@ const emit = defineEmits<{
 
 // ===== 图片搜索 =====
 const imageSearch = reactive({ skuId: '', imageType: '' })
-const skuImageList = ref<any[]>([])
+const skuImageList = ref<Record<string, unknown>[]>([])
 const imageLoading = ref(false)
 
 // ===== 排序 =====
 const hasReordered = ref(false)
-const originalOrder = ref<any[]>([])
+const originalOrder = ref<Record<string, unknown>[]>([])
 
 const sortedImageList = computed(() => {
-  return [...skuImageList.value].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+  return [...skuImageList.value].sort((a, b) => ((a.sortOrder as number) ?? 0) - ((b.sortOrder as number) ?? 0))
 })
 
 async function loadSkuImages() {
   if (!imageSearch.skuId) { skuImageList.value = []; return }
   imageLoading.value = true
   try {
-    const res: any = await getSkuImages({ skuId: imageSearch.skuId, imageType: imageSearch.imageType || undefined } as any)
-    skuImageList.value = Array.isArray(res) ? res : (res.items || [])
+    const res = await getSkuImages({ skuId: imageSearch.skuId, imageType: imageSearch.imageType || undefined })
+    skuImageList.value = Array.isArray(res) ? res : (res as unknown as Record<string, unknown>)?.items as Record<string, unknown>[] || []
     originalOrder.value = [...skuImageList.value]
     hasReordered.value = false
   } catch { skuImageList.value = [] }
@@ -199,19 +199,20 @@ async function loadSkuImages() {
 }
 
 // ===== 单张图片 Dialog =====
+interface ImageForm { imageId: string; skuId: string; imageUrl: string; imageType: string; sortOrder: number; isPrimary: boolean; isActive: boolean; altText: string; fileSize?: number; width?: number; height?: number }
 const imageDialogVisible = ref(false)
-const imageForm = reactive<any>({ imageId: '', skuId: '', imageUrl: '', imageType: 'gallery', sortOrder: 0, isPrimary: false, isActive: true, altText: '' })
+const imageForm = reactive<ImageForm>({ imageId: '', skuId: '', imageUrl: '', imageType: 'gallery', sortOrder: 0, isPrimary: false, isActive: true, altText: '' })
 const imageFileInput = ref<HTMLInputElement | null>(null)
 const imageUploading = ref(false)
 
 function triggerImageFileSelect() { imageFileInput.value?.click() }
 
-function openImageDialog(row?: any) {
+function openImageDialog(row?: Record<string, unknown>) {
   if (row) {
     Object.assign(imageForm, {
-      imageId: row.imageId, skuId: row.skuId, imageUrl: row.imageUrl || '',
-      imageType: row.imageType || 'gallery', sortOrder: row.sortOrder ?? 0,
-      isPrimary: row.isPrimary ?? false, isActive: row.isActive ?? true, altText: row.altText || '',
+      imageId: row.imageId as string, skuId: row.skuId as string, imageUrl: (row.imageUrl as string) || '',
+      imageType: (row.imageType as string) || 'gallery', sortOrder: (row.sortOrder as number) ?? 0,
+      isPrimary: (row.isPrimary as boolean) ?? false, isActive: (row.isActive as boolean) ?? true, altText: (row.altText as string) || '',
     })
   } else {
     Object.assign(imageForm, { imageId: '', skuId: imageSearch.skuId, imageUrl: '', imageType: 'gallery', sortOrder: 0, isPrimary: false, isActive: true, altText: '' })
@@ -224,13 +225,13 @@ async function onImageFileSelect(e: Event) {
   if (!file) return
   imageUploading.value = true
   try {
-    const res: any = await uploadImage(file)
-    const result = res.data || res
-    imageForm.imageUrl = result.url || ''
-    if (result.size) imageForm.fileSize = result.size
-    if (result.width) imageForm.width = result.width
-    if (result.height) imageForm.height = result.height
-  } catch (err: unknown) { ElMessage.error((err as any)?.message || '上传失败') }
+    const res = await uploadImage(file) as unknown as Record<string, unknown>
+    const result = (res?.data || res) as Record<string, unknown>
+    imageForm.imageUrl = (result?.url as string) || ''
+    if (result?.size) imageForm.fileSize = result.size as number
+    if (result?.width) imageForm.width = result.width as number
+    if (result?.height) imageForm.height = result.height as number
+  } catch (err: unknown) { ElMessage.error((err as Error)?.message || '上传失败') }
   finally { imageUploading.value = false }
 }
 
@@ -258,12 +259,12 @@ async function handleSaveImage() {
     imageDialogVisible.value = false
     loadSkuImages()
     emit('refresh')
-  } catch (e: unknown) { ElMessage.error((e as any)?.message || '保存失败') }
+  } catch (e: unknown) { ElMessage.error((e as Error)?.message || '保存失败') }
 }
 
 async function handleDeleteImage(id: string) {
   try { await deleteSkuImage(id); ElMessage.success('已删除'); loadSkuImages(); emit('refresh') }
-  catch (e: unknown) { ElMessage.error((e as any)?.message || '删除失败') }
+  catch (e: unknown) { ElMessage.error((e as Error)?.message || '删除失败') }
 }
 
 // ===== 图片预览 =====
@@ -277,12 +278,12 @@ function onPreviewWheel(e: WheelEvent) { previewScale.value = Math.min(3, Math.m
 // ===== 排序 =====
 async function handleSaveOrder() {
   try {
-    const ids = sortedImageList.value.map(i => i.imageId)
+    const ids = sortedImageList.value.map(i => i.imageId as string)
     await reorderSkuImages({ skuId: imageSearch.skuId, imageType: imageSearch.imageType || '', orderedIds: ids })
     ElMessage.success('排序已保存')
     hasReordered.value = false
     originalOrder.value = [...skuImageList.value]
-  } catch (e: unknown) { ElMessage.error((e as any)?.message || '保存失败') }
+  } catch (e: unknown) { ElMessage.error((e as Error)?.message || '保存失败') }
 }
 
 function cancelReorder() { hasReordered.value = false; skuImageList.value = [...originalOrder.value] }
@@ -303,7 +304,7 @@ const batchDialogVisible = ref(false)
 const batchText = ref('')
 const batchTab = ref('url')
 const batchFileInput = ref<HTMLInputElement | null>(null)
-const batchFileList = ref<any[]>([])
+const batchFileList = ref<{ name: string; file: File; status: string }[]>([])
 const batchUploading = ref(false)
 const batchUploadedCount = ref(0)
 
@@ -332,7 +333,7 @@ async function handleBatchUpload() {
     batchDialogVisible.value = false
     loadSkuImages()
     emit('refresh')
-  } catch (e: unknown) { ElMessage.error((e as any)?.message || '批量上传失败') }
+  } catch (e: unknown) { ElMessage.error((e as Error)?.message || '批量上传失败') }
   finally { batchUploading.value = false }
 }
 
@@ -350,10 +351,10 @@ async function startBatchFileUpload() {
   for (const item of batchFileList.value) {
     item.status = 'uploading'
     try {
-      const res: any = await uploadImage(item.file)
+      const res = await uploadImage(item.file) as unknown as Record<string, unknown>
       await createSkuImage({
         skuId: imageSearch.skuId,
-        imageUrl: res.url || res.data?.url || '',
+        imageUrl: (res?.url || (res?.data as Record<string, unknown>)?.url || '') as string,
         imageType: 'gallery',
         sortOrder: 0,
         isPrimary: false,
