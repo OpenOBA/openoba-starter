@@ -119,13 +119,13 @@
         <el-descriptions :column="2" border>
           <el-descriptions-item label="客户">{{ currentReview.customerName }}</el-descriptions-item>
           <el-descriptions-item label="总评分">
-            <span :style="{ color: currentReview.overallScore >= 4 ? '#67c23a' : '#f56c6c' }">{{ currentReview.overallScore }} / 5</span>
+            <span :style="{ color: (currentReview.overallScore as number) >= 4 ? '#67c23a' : '#f56c6c' }">{{ currentReview.overallScore }} / 5</span>
           </el-descriptions-item>
           <el-descriptions-item label="质量分">{{ currentReview.qualityScore || '-' }}</el-descriptions-item>
           <el-descriptions-item label="舒适分">{{ currentReview.comfortScore || '-' }}</el-descriptions-item>
           <el-descriptions-item label="风格分">{{ currentReview.styleScore || '-' }}</el-descriptions-item>
           <el-descriptions-item label="价值分">{{ currentReview.valueScore || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="状态"><el-tag :type="statusType(currentReview.status)" size="small">{{ statusLabel(currentReview.status) }}</el-tag></el-descriptions-item>
+          <el-descriptions-item label="状态"><el-tag :type="statusType(currentReview.status as string)" size="small">{{ statusLabel(currentReview.status as string) }}</el-tag></el-descriptions-item>
           <el-descriptions-item label="时间">{{ currentReview.createdAt }}</el-descriptions-item>
           <el-descriptions-item label="内容" :span="2">{{ currentReview.content || '-' }}</el-descriptions-item>
           <el-descriptions-item label="标签" :span="2">

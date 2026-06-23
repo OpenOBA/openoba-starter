@@ -265,7 +265,7 @@ async function handleSave() {
       }
     }
     if (isEdit.value) {
-      await updateSpu(props.row.spuId, payload)
+      if (!props.row) return; await updateSpu(props.row.spuId as string, payload)
       ElMessage.success('SPU 已更新')
     } else {
       await createSpu(payload)

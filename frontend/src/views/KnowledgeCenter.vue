@@ -339,7 +339,7 @@ async function load() {
  if (filterVis.value) params.visibility = filterVis.value
  if (activeTags.value.length > 0) params.tags = activeTags.value.join(',')
  const r: KnowledgePageResponse = await request.get('/knowledge', { params })
- items.value = r.items; total.value = r.total
+ items.value = r.items as unknown as KnowledgeItem[]; total.value = r.total
  } catch { ElMessage.error('加载失败') } finally { loading.value = false }
 }
 
@@ -358,7 +358,7 @@ function toggleTag(tag: string) {
  load()
 }
 
-function showDetail(row: Record<string, unknown>) { detail.value = row; showDetailDialog.value = true }
+function showDetail(row: Record<string, unknown>) { detail.value = row as unknown as KnowledgeItem; showDetailDialog.value = true }
 
 // ══════════════════════════════════════
 // 保存 / 归档 / 删除

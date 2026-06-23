@@ -292,8 +292,8 @@ async function loadData() {
   loading.value = true
   try {
     const res = await getCustomerList(query)
-    tableData.value = res.items
-    total.value = res.total
+    tableData.value = (res.items as unknown as Record<string, unknown>[]) || []
+    total.value = res.total as number
   } finally {
     loading.value = false
   }
@@ -309,7 +309,7 @@ async function openDialog(row?: Record<string, unknown>) {
   await Promise.all([dictType.forceReload(), dictLevel.forceReload()])
   
   isEdit.value = !!row
-  editId.value = row?.customerId || ''
+  editId.value = (row?.customerId as string) || ''
   if (row) {
     Object.assign(form, row)
   } else {
@@ -373,7 +373,7 @@ async function batchEdit() {
 async function batchDelete() {
   if (selectedRows.value.length === 0) { ElMessage.warning('请先勾选客户'); return }
   for (const row of selectedRows.value) {
-    await deleteCustomer(row.customerId)
+    await deleteCustomer(row.customerId as string)
   }
   ElMessage.success(`已删除 ${selectedRows.value.length} 条`)
   selectedRows.value = []

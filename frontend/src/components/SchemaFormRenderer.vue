@@ -143,11 +143,11 @@ async function loadDicts() {
 
   for (const table of dictTables) {
     try {
-      const res = await request.get(`/dict/${table}`) as Record<string, unknown>
-      const items = res.data?.items || res.data || []
+      const res = await request.get(`/dict/${table}`) as unknown as { items?: Record<string, unknown>[]; data?: { items?: Record<string, unknown>[] } }
+      const items = (res.items || res.data?.items || []) as Record<string, unknown>[]
       dictCache.value[table] = items.map((item: Record<string, unknown>) => ({
-        label: item.name || item.label || item.code || '',
-        value: item.code || item.value || item.key || '',
+        label: (item.name || item.label || item.code || '') as string,
+        value: (item.code || item.value || item.key || '') as string,
       }))
     } catch (e) {
       console.warn(`Failed to load dict: ${table}`, e)

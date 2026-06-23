@@ -110,25 +110,25 @@ const keyRows = ref<KeyRow[]>([])
 async function loadKeyRows() {
   try {
     const [providersRes, keysRes] = await Promise.all([
-      request.get('/system/llm/providers') as Promise<Record<string, unknown>>,
-      request.get('/system/llm/keys') as Promise<Record<string, unknown>>,
-    ])
-    const providers = providersRes?.success ? providersRes.providers : []
+      request.get('/system/llm/providers'),
+      request.get('/system/llm/keys'),
+    ]) as unknown as [Record<string, unknown>, Record<string, unknown>]
+    const providers = providersRes?.success ? (providersRes.providers as unknown as Array<Record<string, unknown>>) : []
     const keys = Array.isArray(keysRes) ? keysRes : (keysRes?.keys || [])
     const rows: KeyRow[] = []
     for (const p of providers) {
-      const keyInfo = (keys as unknown as Record<string, unknown>[]).find((k) => k.providerCode === (p as unknown as Record<string, unknown>).providerCode)
-      const hasKey = p.hasKey || keyInfo?.hasKey || false
-      for (const m of (p.models || [])) {
+      const keyInfo = (keys as unknown as Record<string, unknown>[]).find((k) => k.providerCode === p.providerCode)
+      const hasKey: boolean = !!(p.hasKey || keyInfo?.hasKey)
+      for (const m of (p.models as unknown as Array<Record<string, unknown>> || [])) {
         const models = (keyInfo as unknown as Record<string, unknown>)?.models as unknown as Record<string, unknown>[]
-        const modelKeyInfo = models?.find((mk) => mk.modelCode === (m as unknown as Record<string, unknown>).modelCode || mk.modelCode === (m as unknown as Record<string, unknown>).id)
+        const modelKeyInfo = models?.find((mk) => mk.modelCode === m.modelCode || mk.modelCode === m.id)
         const isDefault = modelKeyInfo?.isDefault || false
         rows.push({
-          keyId: keyInfo?.id || '', registryId: m.id || '',
-          providerCode: p.providerCode || p.id, provider: p.providerName || p.name,
-          model: m.modelName || m.name, modelCode: m.modelCode || m.id,
-          baseUrl: p.baseUrl || '', maskedKey: hasKey ? '●●●●****' : '',
-          hasKey, isDefault: !!isDefault, isBuiltin: p.isBuiltin !== false ? true : false,
+          keyId: (keyInfo?.id as string) || '', registryId: (m.id || '') as string,
+          providerCode: (p.providerCode as string) || '', provider: (p.providerName as string) || (p.name as string) || '',
+          model: (m.modelName as string) || (m.name as string) || '', modelCode: (m.modelCode as string) || (m.id as string) || '',
+          baseUrl: (p.baseUrl as string) || '', maskedKey: hasKey ? '●●●●****' : '',
+          hasKey, isDefault: !!isDefault, isBuiltin: (p.isBuiltin as boolean | null) ?? null,
           editing: false, editKey: '', saving: false,
         })
       }
@@ -197,7 +197,7 @@ async function doAddProvider() {
       provider: addProviderForm.code, apiKey: addProviderForm.apiKey || '',
       baseUrl: addProviderForm.baseUrl, modelCode: addProviderForm.modelName,
       providerName: addProviderForm.name, customProviderCode: addProviderForm.code,
-    })
+    }) as unknown as { success?: boolean; error?: string }
     if (res?.success === false) { ElMessage.error(res?.error || '添加失败'); return }
     ElMessage.success(`Provider "${addProviderForm.name}" 已添加`)
     showAddProvider.value = false
@@ -226,7 +226,8 @@ async function activateObaKey() {
     localStorage.setItem(LLM_KEY_STORAGE, JSON.stringify({ obaKey: apiKey.obaKey }))
     ElMessage.success('OpenOBA Key 已激活')
   } catch (e: unknown) {
-    obaStatus.value = 'error'; obaError.value = e?.response?.data?.message || '激活失败，请检查 Key 是否正确'
+    const errResp = (e as unknown as { response?: { data?: { message?: string } } })?.response?.data?.message
+    obaStatus.value = 'error'; obaError.value = errResp || '激活失败，请检查 Key 是否正确'
   } finally { activatingOba.value = false }
 }
 

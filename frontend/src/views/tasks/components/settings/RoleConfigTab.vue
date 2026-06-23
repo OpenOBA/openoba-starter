@@ -47,7 +47,7 @@ import { ref, onMounted } from 'vue'
 import request from '@/api/request'
 
 const props = defineProps<{
-  s: { agent?: { workspacePath?: string; logRetentionDays?: number; autoArchiveLogs?: boolean; docFormat?: string; codeStyle?: string; creativity?: number; autoApprove?: boolean; autoRefineMemory?: boolean; defaultModel?: string; maxRetries?: number; timeoutSeconds?: number }; notifications?: { enabled?: boolean; channels?: string[]; taskComplete?: boolean; errorAlert?: boolean }; [key:string]: unknown }
+  s: { agent: { workspacePath?: string; logRetentionDays?: number; autoArchiveLogs?: boolean; docFormat?: string; codeStyle?: string; creativity?: number; autoApprove?: boolean; autoRefineMemory?: boolean; defaultModel?: string; maxRetries?: number; timeoutSeconds?: number }; notifications: { enabled?: boolean; channels?: string[]; taskComplete?: boolean; errorAlert?: boolean }; [key:string]: unknown }
   resetSection: (section: string) => void
 }>()
 
@@ -57,13 +57,13 @@ const loadingModels = ref(false)
 async function fetchModels() {
   loadingModels.value = true
   try {
-    const res = await request.get('/system/llm/providers') as unknown as Record<string, unknown>
+    const res = await request.get('/system/llm/providers') as unknown as { success?: boolean; providers?: Array<{ hasKey?: boolean; models?: Array<{ id: string; name: string; modelCode?: string }> }> }
     if (res?.success) {
       const allModels: Array<{ id: string; name: string }> = []
-      for (const p of res.providers) {
+      for (const p of res.providers ?? []) {
         if (!p.hasKey) continue
-        for (const m of p.models) {
-          allModels.push({ id: m.id || m.modelCode, name: (p.providerName || p.name) + ' · ' + (m.modelName || m.name) })
+        for (const m of p.models ?? []) {
+          allModels.push({ id: (m.id || m.modelCode || '') as string, name: ((p as unknown as Record<string, unknown>).providerName as string || (p as unknown as Record<string, unknown>).name as string) + ' · ' + ((m as unknown as Record<string, unknown>).modelName as string || m.name) })
         }
       }
       availableModels.value = allModels

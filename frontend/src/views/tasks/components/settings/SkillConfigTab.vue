@@ -55,7 +55,7 @@
 
 <script setup lang="ts">
 defineProps<{
-  s: { name?: string; workspace?: { rootDir?: string; deliverablesDir?: string; draftsDir?: string; logsDir?: string; knowledgeDir?: string }; deliverables?: { versionFormat?: string; autoCreateVersionDir?: boolean; autoGenerateManifest?: boolean; autoUpdateIndex?: boolean; autoWriteTimeline?: boolean }; files?: { tempRetentionDays?: number; maxUploadSizeMB?: number; exportFormats?: string[] }; [key:string]: unknown }
+  s: { name?: string; workspace: { rootDir?: string; deliverablesDir?: string; draftsDir?: string; logsDir?: string; knowledgeDir?: string }; deliverables: { versionFormat?: string; autoCreateVersionDir?: boolean; autoGenerateManifest?: boolean; autoUpdateIndex?: boolean; autoWriteTimeline?: boolean }; files: { tempRetentionDays?: number; maxUploadSizeMB?: number; exportFormats?: string[] }; [key:string]: unknown }
   resetSection: (section: string) => void
 }>()
 </script>

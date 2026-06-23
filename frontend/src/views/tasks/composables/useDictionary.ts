@@ -339,11 +339,11 @@ export function useDictionary() {
   const selectedDict = ref<Record<string, unknown> | null>(null)
   const dictData = ref<Record<string, unknown>[]>([])
   const dictSelection = ref<Record<string, unknown>[]>([])
-  const dictColumns = ref<Array<{ prop: string; label: string; type?: string; width?: number; required?: boolean; placeholder?: string; disabled?: boolean; options?: Record<string, unknown>[] }>>([])
+  const dictColumns = ref<Array<{ prop: string; key?: string; label: string; type?: string; width?: number; required?: boolean; placeholder?: string; disabled?: boolean; options?: Record<string, unknown>[] }>>([])
   const dialogVisible = ref(false)
   const dialogTitle = ref('新增')
   const form = ref<Record<string, unknown>>({})
-  const formFields = ref<Array<{ prop: string; label: string; type?: string; width?: number; required?: boolean; placeholder?: string; disabled?: boolean; options?: Record<string, unknown>[] }>>([])
+  const formFields = ref<Array<{ prop: string; key: string; label: string; type?: string; width?: number; required?: boolean; placeholder?: string; disabled?: boolean; options?: Record<string, unknown>[] }>>([])
   const saving = ref(false)
   const editMode = ref<'add' | 'edit'>('add')
 

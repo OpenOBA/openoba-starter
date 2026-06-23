@@ -11,7 +11,7 @@
         <span class="log-dot" :style="{ background: log.level === 'error' ? '#f56c6c' : log.level === 'warn' ? '#e6a23c' : '#409eff' }"></span>
         <span class="log-actor">{{ log.actor }}</span>
         <span class="log-title">{{ log.title }}</span>
-        <span class="log-time">{{ formatLogTime(log.createdAt) }}</span>
+        <span class="log-time">{{ formatLogTime(log.createdAt ?? '') }}</span>
       </div>
     </div>
     <div v-else class="log-empty">暂无记录</div>
@@ -20,7 +20,7 @@
 
 <script setup lang="ts">
 defineProps<{
-  logs: Array<{ type: string; actor: string; title: string; time: string; id: string }>
+  logs: Array<{ type: string; actor: string; title: string; time: string; id: string; level?: string; createdAt?: string }>
 }>()
 
 function formatLogTime(ts: string | number): string {

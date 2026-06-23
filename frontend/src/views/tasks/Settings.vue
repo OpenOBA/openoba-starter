@@ -7,10 +7,10 @@
 
     <el-tabs v-model="activeTab" type="border-card" class="settings-tabs">
       <!-- Content management tabs → SkillConfigTab -->
-      <SkillConfigTab :s="s" :resetSection="resetSectionAny" />
+      <SkillConfigTab :s="(s as unknown as { workspace: Record<string, unknown>; deliverables: Record<string, unknown>; files: Record<string, unknown>; [key:string]: unknown })" :resetSection="resetSectionAny" />
 
       <!-- Agent config tabs → RoleConfigTab -->
-      <RoleConfigTab :s="s" :resetSection="resetSectionAny" />
+      <RoleConfigTab :s="(s as unknown as { agent: Record<string, unknown>; notifications: Record<string, unknown>; [key:string]: unknown })" :resetSection="resetSectionAny" />
 
       <!-- 7. 外观 -->
       <el-tab-pane label="外观" name="appearance">

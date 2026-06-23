@@ -11,7 +11,7 @@ export function useHistoryTasks() {
       const res = await queryTasks({ pageSize: 20 }) as unknown as { items?: Record<string, unknown>[]; data?: { items?: Record<string, unknown>[] } }
       const items = res?.items || res?.data?.items || []
       historyTasks.value = items.filter((t) =>
-        ['drafted', 'proposed', 'executing', 'completed', 'delivered', 'published', 'cancelled', 'aborted'].includes(t.status),
+        ['drafted', 'proposed', 'executing', 'completed', 'delivered', 'published', 'cancelled', 'aborted'].includes(t.status as string),
       )
     } catch { /* ignore */ }
     finally { historyLoading.value = false }

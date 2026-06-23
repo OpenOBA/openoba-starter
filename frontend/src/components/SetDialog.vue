@@ -48,11 +48,11 @@
       <div v-if="selectedSkuRows.length" class="selected-sku-section">
         <div class="selected-sku-header">已选 SKU（{{ selectedSkuRows.length }} 件）</div>
         <div class="selected-sku-list">
-          <div v-for="s in selectedSkuRows" :key="s.skuId" class="selected-sku-item">
+          <div v-for="s in selectedSkuRows" :key="(s.skuId as string)" class="selected-sku-item">
             <span class="sku-code">{{ s.skuCode }}</span>
             <span class="sku-name">{{ s.skuName || s.colorCode || '-' }}</span>
-            <span class="sku-retail">¥{{ Number(s.retailPrice || 0).toFixed(2) }}</span>
-            <el-button link type="danger" size="small" @click="removeSku(s.skuId)">×</el-button>
+            <span class="sku-retail">¥{{ Number((s as Record<string, unknown>).retailPrice || 0).toFixed(2) }}</span>
+            <el-button link type="danger" size="small" @click="removeSku(s.skuId as string)">×</el-button>
           </div>
         </div>
         <div class="selected-sku-total">
@@ -124,7 +124,7 @@ const totalRetailPrice = computed(() =>
 
 const discountRatePercent = computed(() => {
   if (!setForm.setPrice || totalRetailPrice.value === 0) return ''
-  const pct = ((setForm.setPrice / totalRetailPrice.value) * 100).toFixed(0)
+  const pct = (((setForm.setPrice as number) / totalRetailPrice.value) * 100).toFixed(0)
   return `${pct}% Off`
 })
 
@@ -132,7 +132,7 @@ function onSkuSelectionChange() {
   const total = totalRetailPrice.value
   setForm.originalTotalPrice = total
   if (!setForm.setPrice || setForm.setPrice === 0) {
-    setForm.setPrice = Math.round(total * (setForm.discountRate || 0.9) * 100) / 100
+    setForm.setPrice = Math.round(total * ((setForm.discountRate as number) || 0.9) * 100) / 100
   }
 }
 
@@ -163,7 +163,7 @@ function generateSetCode(): string {
 
 // ===== 保存 =====
 async function handleSaveSet() {
-  if (!setForm.setName.trim()) return ElMessage.warning('请输入套装名称')
+  if (!(setForm.setName as string).trim()) return ElMessage.warning('请输入套装名称')
   if (selectedSkuIds.value.length === 0) return ElMessage.warning('请选择至少一个 SKU')
 
   if (!setForm.setId && !setForm.setCode) {

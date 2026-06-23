@@ -10,7 +10,7 @@
     <el-select v-model="spuSearch.productTier" placeholder="级别" clearable style="width: 110px">
       <el-option v-for="t in tierList" :key="t.tier_code" :label="t.tier_name" :value="t.tier_code">
         <span>{{ t.tier_name }}</span>
-        <span :style="{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', background: t.icon_color, marginLeft: '6px' }"></span>
+        <span :style="{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', background: t.icon_color as string, marginLeft: '6px' }"></span>
       </el-option>
     </el-select>
     <el-button type="primary" @click="$emit('search')">搜索</el-button>

@@ -96,7 +96,7 @@
 
     <CallingInput
       ref="callingInputRef"
-      :agents="agentList"
+      :agents="(agentList as unknown as AgentEntry[])"
       :sending="creating"
       :rows="2"
       @send="$emit('send', $event)"
@@ -123,13 +123,14 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import CallingInput from '@/components/CallingInput.vue'
+import type { AgentEntry } from '@/components/AgentSidebar.vue'
 
 interface TemplateItem { icon: string; text: string; fill: string }
 
 const props = defineProps<{
-  agentList: Record<string, unknown>[]
+  agentList: unknown[]
   creating: boolean
-  messages: Record<string, unknown>[]
+  messages: Array<{ role: string; sender: string; time: string; content: string; data?: string[]; needConfirm?: boolean; confirmText?: string; taskId?: string }>
   taskDone: boolean
   templates: TemplateItem[]
 }>()
@@ -138,6 +139,7 @@ const emit = defineEmits<{
   quickTask: [type: string]
   send: [payload: { text: string; agentIds: string[]; taskType?: string }]
   agentSelect: [agent: unknown]
+  goToTask: [taskId: string]
   templateEdit: [index: number]
   templateRemove: [index: number]
   templateAdd: []
@@ -145,7 +147,6 @@ const emit = defineEmits<{
   templateApply: [tpl: TemplateItem]
   cancelConfirm: [index: number]
   executeConfirm: [index: number]
-  goToTask: [taskId: string]
   templatesSaved: [items: TemplateItem[]]
 }>()
 

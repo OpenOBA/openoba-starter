@@ -56,7 +56,7 @@ export function usePricingPromotions() {
       const payload = { ...promoForm };
       delete payload.promotionId;
       if (promoForm.promotionId) {
-        await updatePromotion(promoForm.promotionId, payload);
+        await updatePromotion(promoForm.promotionId as string, payload);
         ElMessage.success('更新成功');
       } else {
         await createPromotion(payload);

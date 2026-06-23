@@ -28,6 +28,7 @@ export interface ChatMsg {
   streaming?: boolean
   time?: string
   reactTimeline?: TimelineItem[]
+  toolCalls?: { name: string; args: unknown; status: string; result?: string; _expanded?: boolean }[]
   statusHint?: string
   version?: number
   status?: string
@@ -139,17 +140,17 @@ export function useAgentChat(
         try {
           const parsed = JSON.parse(cached)
           if (Array.isArray(parsed) && parsed.length > 0) {
-            const arr = parsed as unknown as Record<string, unknown>[];
-            messages.value = arr.map((m) => ({
-              role: m.role,
-              content: m.content || '',
-              time: m.time || '',
-              agentFooter: m.agentFooter || undefined,
-              reactTimeline: m.reactTimeline || (m.thoughts || m.toolCalls || m.observations
+            const arr = parsed as unknown as Array<Record<string, unknown>>;
+            messages.value = arr.map((m): ChatMsg => ({
+              role: (m.role as ChatMsg['role']) || 'agent',
+              content: (m.content as string) || '',
+              time: m.time as string || '',
+              agentFooter: m.agentFooter as ChatMsg['agentFooter'] || undefined,
+              reactTimeline: m.reactTimeline as TimelineItem[] || (m.thoughts || m.toolCalls || m.observations
                 ? [
-                    ...(m.thoughts || []).map((t: TimelineItem) => ({ kind: 'thought' as const, text: t.text, ts: Date.now() })),
-                    ...(m.toolCalls || []).map((t: TimelineItem) => ({ kind: 'tool' as const, name: t.name, args: t.args, status: t.status, result: t.result, _expanded: false, ts: Date.now() })),
-                    ...(m.observations || []).map((o: TimelineItem) => ({ kind: 'observation' as const, text: o.text, ts: Date.now() })),
+                    ...((m.thoughts as TimelineItem[]) || []).map((t) => ({ kind: 'thought' as const, text: t.text, ts: Date.now() })),
+                    ...((m.toolCalls as TimelineItem[]) || []).map((t) => ({ kind: 'tool' as const, name: t.name, args: t.args, status: t.status, result: t.result, _expanded: false, ts: Date.now() })),
+                    ...((m.observations as TimelineItem[]) || []).map((o) => ({ kind: 'observation' as const, text: o.text, ts: Date.now() })),
                   ]
                 : undefined),
               streaming: false,
@@ -168,15 +169,15 @@ export function useAgentChat(
 
       if (proposals.length > 0) {
         const initMsg = String(ctx['任务主体'] || t.title)
-        const built: Array<{ role: string; content: string; reactTimeline?: TimelineItem[]; time?: string; version?: number; status?: string; feedback?: Record<string, unknown> }> = [{
-          role: 'human', content: initMsg, time: formatTime(t.createdAt),
+        const built: ChatMsg[] = [{
+          role: 'human' as const, content: initMsg, time: formatTime(t.createdAt),
         }]
         for (const p of proposals) {
           if (p.content) {
             built.push({
-              role: 'proposal', content: p.content, version: p.version,
-              status: p.status || 'submitted', feedback: p.feedback,
-              time: p.timestamp ? formatTime(p.timestamp) : '',
+              role: 'proposal' as const, content: p.content as string, version: p.version as number,
+              status: (p.status as string) || 'submitted', feedback: p.feedback as Record<string, unknown>,
+              time: p.timestamp ? formatTime(p.timestamp as string) : '',
             })
           }
         }

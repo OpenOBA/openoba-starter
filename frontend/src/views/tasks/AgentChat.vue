@@ -15,9 +15,9 @@
       <AgentChatSidebar
         :task-info="taskInfo"
         :task-id="taskId"
-        :history-tasks="historyTasks"
+        :history-tasks="(historyTasks as unknown as Array<{ id: string; title: string; status: string; createdAt: string; updatedAt: string }>)"
         :history-loading="historyLoading"
-        :logs="logs"
+        :logs="(logs as unknown as Array<{ id: string; type: string; actor: string; title: string; time: string }>)"
         @switch-task="switchToTask"
       />
 
@@ -114,7 +114,7 @@ const { handleSSEEvent, syncProposals, insertSummary } = timeline
 
 const chat = useAgentChat(
   messages, () => triggerRef(messages), handleSSEEvent, saveCache, saveReActCache,
-  scrollBottom, formatTime, formatFooterTime, syncProposals, insertSummary,
+  scrollBottom, formatTime, formatFooterTime, syncProposals, insertSummary as unknown as (t: unknown, fileUrl: string, fileName: string) => void,
 )
 const {
   taskId, taskTitle, taskDone, taskInfo, logs, inputText, agentLoading,
