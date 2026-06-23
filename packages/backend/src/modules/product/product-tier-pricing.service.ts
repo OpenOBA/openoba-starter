@@ -25,7 +25,7 @@ export class ProductTierPricingService {
   }
 
   async update(tierId: string, dto: UpdateProductTierDto) {
-    await this.repo.update(tierId, dto)
+    await this.repo.update(tierId, dto as unknown as Parameters<typeof this.repo.update>[1])
     return this.repo.findOneBy({ tierId })
   }
 

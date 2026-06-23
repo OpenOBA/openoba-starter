@@ -172,7 +172,7 @@ export class OrderCrudService {
           productId: skuId,
           productName: orderItem.productName || '',
           skuCode: orderItem.skuCode || '',
-          skuAttributes: orderItem.skuAttributes,
+          skuAttributes: orderItem.skuAttributes as Record<string, unknown> | undefined,
           quantity: qty,
           unitPrice,
           subtotal: unitPrice * qty,

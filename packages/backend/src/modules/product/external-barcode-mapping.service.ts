@@ -16,7 +16,11 @@ export class ExternalBarcodeMappingService {
   ) {}
 
   async findAll(query: Record<string, unknown>) {
-    const { page = 1, pageSize = 20, keyword, structureStandardCode, status } = query
+    const page = (query.page as number) || 1
+    const pageSize = (query.pageSize as number) || 20
+    const keyword = query.keyword as string | undefined
+    const structureStandardCode = query.structureStandardCode as string | undefined
+    const status = query.status as string | undefined
     const qb = this.repo.createQueryBuilder('m').where('1=1')
     if (keyword)
       qb.andWhere('(m.external_barcode LIKE :kw OR m.external_brand LIKE :kw OR m.external_product LIKE :kw)', {

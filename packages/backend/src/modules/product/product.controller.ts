@@ -59,14 +59,14 @@ export class ProductController {
   @Post('colors')
   @MCPCapable({ tool: 'product.createColor', description: '创建颜色字典', category: 'product', industryScoped: true })
   async createColor(@Body() dto: CreateColorDto) {
-    return this.productService.createColor(dto)
+    return this.productService.createColor(dto as unknown as Record<string, unknown>)
   }
 
   @ApiOperation({ summary: '更新颜色' })
   @Put('colors/:id')
   @MCPCapable({ tool: 'product.updateColor', description: '更新颜色字典', category: 'product', industryScoped: true })
   async updateColor(@Param('id') id: string, @Body() dto: UpdateColorDto) {
-    return this.productService.updateColor(id, dto)
+    return this.productService.updateColor(id, dto as unknown as Record<string, unknown>)
   }
 
   @ApiOperation({ summary: '删除颜色' })
@@ -87,7 +87,7 @@ export class ProductController {
     industryScoped: true,
   })
   async spus(@Query() q: QueryProductDto) {
-    return this.productService.findSpus(q)
+    return this.productService.findSpus(q as unknown as Record<string, unknown>)
   }
 
   @ApiOperation({ summary: 'SPU 详情' })
@@ -107,14 +107,14 @@ export class ProductController {
   @Post('spus')
   @MCPCapable({ tool: 'product.createSpu', description: '创建SPU', category: 'product', industryScoped: true })
   async createSpu(@Body() dto: CreateSpuDto) {
-    return this.productService.createSpu(dto)
+    return this.productService.createSpu(dto as unknown as Record<string, unknown>)
   }
 
   @ApiOperation({ summary: '更新 SPU' })
   @Put('spus/:id')
   @MCPCapable({ tool: 'product.updateSpu', description: '更新SPU信息', category: 'product', industryScoped: true })
   async updateSpu(@Param('id') id: string, @Body() dto: UpdateSpuDto) {
-    return this.productService.updateSpu(id, dto)
+    return this.productService.updateSpu(id, dto as unknown as Record<string, unknown>)
   }
 
   @ApiOperation({ summary: '删除 SPU' })
@@ -210,14 +210,14 @@ export class ProductController {
   @Post('sets')
   @MCPCapable({ tool: 'product.createSet', description: '创建套装', category: 'product', industryScoped: true })
   async createSet(@Body() dto: CreateSetDto) {
-    return this.productService.createSet(dto)
+    return this.productService.createSet(dto as unknown as Record<string, unknown>)
   }
 
   @ApiOperation({ summary: '更新套装' })
   @Put('sets/:id')
   @MCPCapable({ tool: 'product.updateSet', description: '更新套装信息', category: 'product', industryScoped: true })
   async updateSet(@Param('id') id: string, @Body() dto: UpdateSetDto) {
-    return this.productService.updateSet(id, dto)
+    return this.productService.updateSet(id, dto as unknown as Record<string, unknown>)
   }
 
   @ApiOperation({ summary: '删除套装' })

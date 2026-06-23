@@ -2,7 +2,7 @@
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { ProductSet } from './entity/product-set.entity'
-import { Category } from '../../product-category/entity/product-category.entity'
+import { ProductCategory as Category } from './entity/product-category.entity'
 
 
 
@@ -11,7 +11,11 @@ export class SetService {
   constructor(@InjectRepository(ProductSet) private setRepo: Repository<ProductSet>) {}
 
   async findSets(query: Record<string, unknown>) {
-    const { page = 1, pageSize = 20, keyword, status, categoryId } = query
+    const page = (query.page as number) || 1
+    const pageSize = (query.pageSize as number) || 20
+    const keyword = query.keyword as string | undefined
+    const status = query.status as string | undefined
+    const categoryId = query.categoryId as string | undefined
     const qb = this.setRepo
       .createQueryBuilder('s')
       .leftJoinAndSelect('s.category', 'cat')
