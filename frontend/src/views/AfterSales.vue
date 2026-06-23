@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="page-container">
     <el-card>
       <!-- 顶部统计 -->
@@ -181,12 +181,12 @@
         <el-descriptions-item label="售后编号">{{ detailData.afterSalesNo }}</el-descriptions-item>
         <el-descriptions-item label="订单编号">{{ detailData.orderNo }}</el-descriptions-item>
         <el-descriptions-item label="客户">{{ detailData.customerName }}</el-descriptions-item>
-        <el-descriptions-item label="类型">{{ asTypeLabel(detailData.afterSalesType) }}</el-descriptions-item>
-        <el-descriptions-item label="原因">{{ reasonLabel(detailData.reasonType) }}</el-descriptions-item>
+        <el-descriptions-item label="类型">{{ asTypeLabel(detailData.afterSalesType as string) }}</el-descriptions-item>
+        <el-descriptions-item label="原因">{{ reasonLabel(detailData.reasonType as string) }}</el-descriptions-item>
         <el-descriptions-item label="退款金额">¥{{ detailData.refundAmount }}</el-descriptions-item>
         <el-descriptions-item label="实际退款金额">¥{{ detailData.actualRefundAmount || '-' }}</el-descriptions-item>
         <el-descriptions-item label="状态">
-          <el-tag :type="statusTag(detailData.status)" size="small">{{ statusLabel(detailData.status) }}</el-tag>
+          <el-tag :type="statusTag(detailData.status as string)" size="small">{{ statusLabel(detailData.status as string) }}</el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="申请时间">{{ detailData.createdAt }}</el-descriptions-item>
         <el-descriptions-item label="审核时间">{{ detailData.reviewedAt || '-' }}</el-descriptions-item>
@@ -246,7 +246,7 @@ const reviewItem = ref<Record<string, unknown> | null>(null)
 const reviewForm = reactive({ actualRefundAmount: 0, reviewNote: '' })
 function showReviewDialog(row: Record<string, unknown>, action: string) {
   reviewAction.value = action; reviewItem.value = row
-  reviewForm.reviewNote = ''; reviewForm.actualRefundAmount = parseFloat(row.refundAmount) || 0
+  reviewForm.reviewNote = ''; reviewForm.actualRefundAmount = parseFloat(row.refundAmount as string) || 0
   reviewVisible.value = true
 }
 async function doReview() {
@@ -276,7 +276,7 @@ function showRefundDialog(row: Record<string, unknown>) {
 }
 async function doRefund() {
   try {
-    await processAfterSales(refundItem.value.id, { action: 'refund', ...refundForm })
+    await processAfterSales(refundItem.value!.id as string, { action: 'refund', ...refundForm })
     ElMessage.success('退款成功'); refundVisible.value = false; loadData(); loadStats()
   } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '退款失败') }
 }
@@ -336,7 +336,7 @@ function reasonLabel(type: string) {
 async function loadData() {
   loading.value = true
   try {
-    const params: Record<string, unknown> = {
+    const params: Record<string, string | number | undefined> = {
       page: Number(query.page) || 1,
       pageSize: Number(query.pageSize) || 20,
     }

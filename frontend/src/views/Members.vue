@@ -132,9 +132,9 @@
 
     <!-- 降级扫描结果 -->
     <div v-if="downgradeResult" style="margin-top: 16px">
-      <el-alert :title="'扫描完成：' + downgradeResult.count + ' 个客户需要降级'" :type="downgradeResult.count > 0 ? 'warning' : 'success'" :closable="false">
-        <div v-if="downgradeResult.details && downgradeResult.details.length > 0" style="margin-top: 8px">
-          <el-table :data="downgradeResult.details" size="small" border>
+      <el-alert :title="'扫描完成：' + (downgradeResult.count as number) + ' 个客户需要降级'" :type="(downgradeResult.count as number) > 0 ? 'warning' : 'success'" :closable="false">
+        <div v-if="(downgradeResult.details as unknown as Record<string, unknown>[]) && ((downgradeResult.details as unknown as Record<string, unknown>[]).length > 0)" style="margin-top: 8px">
+          <el-table :data="downgradeResult.details as unknown as Record<string, unknown>[]" size="small" border>
             <el-table-column prop="contactName" label="客户" width="120" />
             <el-table-column label="变更" width="160">
               <template #default="{ r }">{{ r.oldLevel }} → {{ r.newLevel }}</template>
@@ -166,7 +166,8 @@ const summary = reactive({
   active30d: 0, active90d: 0,
   avgSpent: 0, totalRevenue: 0, avgOrders: 0,
 })
-const levelDistribution = ref<Record<string, unknown>[]>([])
+interface LevelDist { level: string; count: number; totalSpent: number; color?: string; percentage?: number; [key:string]: unknown }
+const levelDistribution = ref<LevelDist[]>([])
 
 // 列表
 const list = ref<Record<string, unknown>[]>([])
@@ -180,7 +181,7 @@ const loadDashboard = async () => {
     const res = await getMemberDashboard() as unknown as Record<string, unknown>
     const data = (res.data || res) as Record<string, unknown>
     if (data.summary) Object.assign(summary, data.summary as Record<string, unknown>)
-    levelDistribution.value = (data.levelDistribution as Record<string, unknown>[]) || []
+    levelDistribution.value = (data.levelDistribution as unknown as LevelDist[]) || []
   } catch { /* ignore */ }
 }
 

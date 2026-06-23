@@ -372,8 +372,8 @@ async function loadData() {
   loading.value = true
   try {
     const res = await getStructureList(query)
-    tableData.value = res.items
-    total.value = res.total
+    tableData.value = (res.items as unknown as Record<string, unknown>[]) || []
+    total.value = res.total as number
   } finally {
     loading.value = false
   }
@@ -385,11 +385,11 @@ function resetQuery() {
 }
 
 function onBatchEdit() { if(selection.value.length===1) openDialog(selection.value[0]); else if(selection.value.length>1) ElMessage.warning('暂仅支持单条编辑'); }
-async function onBatchDelete() { try { for(const r of selection.value) { await deleteStructure(r.structureId); } selection.value=[]; loadData(); ElMessage.success('批量删除成功'); } catch { ElMessage.error('删除失败'); } }
+async function onBatchDelete() { try { for(const r of selection.value) { await deleteStructure(r.structureId as string); } selection.value=[]; loadData(); ElMessage.success('批量删除成功'); } catch { ElMessage.error('删除失败'); } }
 
 function openDialog(row?: Record<string, unknown>) {
   isEdit.value = !!row
-  editId.value = row?.structureId || ''
+  editId.value = (row?.structureId as string) || ''
   attachments.value = []
   if (row) {
     // 兼容旧数据：如果返回的是 surfaceType/refractiveIndex 单值，转为数组
@@ -445,16 +445,16 @@ async function handleSave() {
 }
 
 async function openDetail(row: Record<string, unknown>) {
-  detail.value = await getStructureDetail(String(row.structureId ?? ''))
-  frames.value = await getCompatibleFrames(String(row.externalCode ?? ''))
+  detail.value = (await getStructureDetail(String(row.structureId ?? ''))) as unknown as Record<string, unknown>
+  frames.value = (await getCompatibleFrames(String(row.externalCode ?? ''))) as unknown as Record<string, unknown>[]
   detailVisible.value = true
 }
 
 // 附件管理
 async function loadAttachments(structureId: string) {
   try {
-    const detail = await getStructureDetail(structureId)
-    attachments.value = ((detail.value as unknown as Record<string, unknown>)?.attachments as Record<string, unknown>[]) || []
+    const d = await getStructureDetail(structureId) as unknown as Record<string, unknown>
+    attachments.value = (d?.attachments as Record<string, unknown>[]) || []
   } catch {}
 }
 
