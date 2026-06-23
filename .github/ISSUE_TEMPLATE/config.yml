@@ -1,0 +1,14 @@
+# Issue 模板配置
+# 控制_issue_template_的选择和默认行为
+
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 文档与教程
+    url: https://github.com/openoba/openoba-starter/tree/main/docs
+    about: 查看完整文档（安装、架构、开发、API、部署）
+  - name: 💬 社区讨论
+    url: https://github.com/openoba/openoba-starter/discussions
+    about: 提问、分享经验、讨论想法（非 Bug 报告）
+  - name: 🔒 安全漏洞报告
+    url: mailto:postmaster@openoba.com
+    about: 安全漏洞请发送加密邮件，请勿在公开 Issue 中报告

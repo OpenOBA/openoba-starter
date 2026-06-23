@@ -1,7 +1,7 @@
 # Contributing to OpenOBA
 
 感谢你关注 OpenOBA！
-OpenOBA 是**企业的 AI 执行官**——一个 AI Agent 操作系统，让企业通过自然语言完成运营和开发。
+OpenOBA 是**企业的 AI 数字执行官**——一个 AI Agent 操作系统，让企业通过自然语言完成运营和开发。
 
 ## 行为准则
 
