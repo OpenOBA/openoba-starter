@@ -455,7 +455,7 @@ async function loadAttachments(structureId: string) {
   try {
     const d = await getStructureDetail(structureId) as unknown as Record<string, unknown>
     attachments.value = (d?.attachments as Record<string, unknown>[]) || []
-  } catch {}
+  } catch { /* fail silently */ }
 }
 
 function beforeUpload(file: File) {

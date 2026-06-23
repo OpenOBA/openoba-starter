@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 秒镜 ERP — API product.ts 测试
  *
  * 测试维度：
@@ -13,17 +13,17 @@ import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest'
 // ═══════════════════════════════════════
 // Mock request 实例
 // ═══════════════════════════════════════
-const mockCalls: Array<{ method: string; url: string; data?: any; params?: any; config?: any }> = []
+const mockCalls: Array<{ method: string; url: string; data?: unknown; params?: unknown; config?: unknown }> = []
 const mockRequest: Record<string, Mock> = {
-  get: vi.fn((url?: string, config?: any) => {
+  get: vi.fn((url?: string, config?: unknown) => {
     mockCalls.push({ method: 'GET', url: url ?? '', params: config?.params })
     return Promise.resolve([])
   }),
-  post: vi.fn((url?: string, data?: any, config?: any) => {
+  post: vi.fn((url?: string, data?: unknown, config?: unknown) => {
     mockCalls.push({ method: 'POST', url: url ?? '', data, config })
     return Promise.resolve({})
   }),
-  put: vi.fn((url?: string, data?: any) => {
+  put: vi.fn((url?: string, data?: unknown) => {
     mockCalls.push({ method: 'PUT', url: url ?? '', data })
     return Promise.resolve({})
   }),
@@ -37,34 +37,34 @@ const mockRequest: Record<string, Mock> = {
 // 内联 API 函数（模拟 product.ts）
 // ═══════════════════════════════════════
 const api = {
-  getColors: (p: any) => mockRequest.get('/products/colors', { params: p }),
+  getColors: (p: unknown) => mockRequest.get('/products/colors', { params: p }),
   getColor: (id: string) => mockRequest.get(`/products/colors/${id}`),
-  createColor: (d: any) => mockRequest.post('/products/colors', d),
-  updateColor: (id: string, d: any) => mockRequest.put(`/products/colors/${id}`, d),
+  createColor: (d: unknown) => mockRequest.post('/products/colors', d),
+  updateColor: (id: string, d: unknown) => mockRequest.put(`/products/colors/${id}`, d),
   deleteColor: (id: string) => mockRequest.delete(`/products/colors/${id}`),
 
-  getSpus: (p: any) => mockRequest.get('/products/spus', { params: p }),
+  getSpus: (p: unknown) => mockRequest.get('/products/spus', { params: p }),
   getSpu: (id: string) => mockRequest.get(`/products/spus/${id}`),
-  createSpu: (d: any) => mockRequest.post('/products/spus', d),
-  updateSpu: (id: string, d: any) => mockRequest.put(`/products/spus/${id}`, d),
+  createSpu: (d: unknown) => mockRequest.post('/products/spus', d),
+  updateSpu: (id: string, d: unknown) => mockRequest.put(`/products/spus/${id}`, d),
   deleteSpu: (id: string) => mockRequest.delete(`/products/spus/${id}`),
 
-  getSkus: (p: any) => mockRequest.get('/products/skus', { params: p }),
+  getSkus: (p: unknown) => mockRequest.get('/products/skus', { params: p }),
   getSku: (id: string) => mockRequest.get(`/products/skus/${id}`),
-  createSku: (d: any) => mockRequest.post('/products/skus', d),
-  updateSku: (id: string, d: any) => mockRequest.put(`/products/skus/${id}`, d),
+  createSku: (d: unknown) => mockRequest.post('/products/skus', d),
+  updateSku: (id: string, d: unknown) => mockRequest.put(`/products/skus/${id}`, d),
   deleteSku: (id: string) => mockRequest.delete(`/products/skus/${id}`),
 
-  getSets: (p: any) => mockRequest.get('/products/sets', { params: p }),
+  getSets: (p: unknown) => mockRequest.get('/products/sets', { params: p }),
   getProductTiers: () => mockRequest.get('/dict/dict_product_tier'),
 
   getEffectTags: (type: 'skin_tone' | 'face_shape') => mockRequest.get(`/products/effects/${type}`),
   getEffectRecommend: (colorCode: string) => mockRequest.post('/products/effects/recommend', { colorCode }),
   getSkuImagesGrouped: (skuId: string) => mockRequest.get(`/products/sku-images-grouped/${skuId}`),
-  batchCreateSkuImages: (data: { skuId: string; images: any[] }) => mockRequest.post('/products/sku-images/batch', data),
+  batchCreateSkuImages: (data: { skuId: string; images: unknown[] }) => mockRequest.post('/products/sku-images/batch', data),
   reorderSkuImages: (data: { skuId: string; imageType: string; orderedIds: string[] }) =>
     mockRequest.post('/products/sku-images/reorder', data),
-  calculatePrice: (data: any) => mockRequest.post('/pricing/calculate', data),
+  calculatePrice: (data: unknown) => mockRequest.post('/pricing/calculate', data),
   scanMemberDowngrades: () => mockRequest.post('/pricing/members/downgrade-scan'),
 }
 

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
  <div class="knowledge-center">
  <div class="page-header">
  <h2>知识库</h2>
@@ -256,7 +256,7 @@ function fileIcon(type: string): string {
 }
 
 function preview(content: string) {
- return content?.replace(/[#*`>\-\|]/g, '').replace(/\n/g, ' ').substring(0, 100) || ''
+ return content?.replace(/[#*`>|\\-]/g, '').replace(/\n/g, ' ').substring(0, 100) || ''
 }
 
 const mdContent = computed(() => {

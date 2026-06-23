@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 秒镜 ERP — User Store 单元测试
  */
 import { describe, it, expect, beforeEach } from 'vitest'
@@ -17,14 +17,14 @@ const mockLocalStorage = {
 // Pinia store 定义（等同于 src/stores/user.ts）
 const useUserStore = defineStore('user', () => {
   const token = ref(mockLocalStorage.getItem('access_token') || '')
-  const userInfo = ref<any>(JSON.parse(mockLocalStorage.getItem('user_info') || 'null'))
+  const userInfo = ref<unknown>(JSON.parse(mockLocalStorage.getItem('user_info') || 'null'))
 
   function setToken(newToken: string) {
     token.value = newToken
     mockLocalStorage.setItem('access_token', newToken)
   }
 
-  function setInfo(info: any) {
+  function setInfo(info: unknown) {
     userInfo.value = info
     mockLocalStorage.setItem('user_info', JSON.stringify(info))
   }

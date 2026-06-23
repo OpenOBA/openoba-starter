@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 秒镜 ERP — API order.ts + customer.ts + task-engine.ts 综合测试
  *
  * 测试维度：
@@ -8,29 +8,29 @@
  */
 import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest'
 
-const mockCalls: Array<{ method: string; url: string; data?: any; params?: any }> = []
+const mockCalls: Array<{ method: string; url: string; data?: unknown; params?: unknown }> = []
 const mockRequest: Record<string, Mock> = {
-  get: vi.fn((url?: string, config?: any) => { mockCalls.push({ method: 'GET', url: url ?? '', params: config?.params }); return Promise.resolve({}) }),
-  post: vi.fn((url?: string, data?: any) => { mockCalls.push({ method: 'POST', url: url ?? '', data }); return Promise.resolve({}) }),
-  put: vi.fn((url?: string, data?: any) => { mockCalls.push({ method: 'PUT', url: url ?? '', data }); return Promise.resolve({}) }),
+  get: vi.fn((url?: string, config?: unknown) => { mockCalls.push({ method: 'GET', url: url ?? '', params: config?.params }); return Promise.resolve({}) }),
+  post: vi.fn((url?: string, data?: unknown) => { mockCalls.push({ method: 'POST', url: url ?? '', data }); return Promise.resolve({}) }),
+  put: vi.fn((url?: string, data?: unknown) => { mockCalls.push({ method: 'PUT', url: url ?? '', data }); return Promise.resolve({}) }),
   delete: vi.fn((url?: string) => { mockCalls.push({ method: 'DELETE', url: url ?? '' }); return Promise.resolve({}) }),
 }
 
-function resetMocks() { mockCalls.length = 0; Object.values(mockRequest).forEach((f: any) => f.mockClear()) }
+function resetMocks() { mockCalls.length = 0; Object.values(mockRequest).forEach((f: unknown) => f.mockClear()) }
 
 // ═══════════════════════════════════════
 // Order API
 // ═══════════════════════════════════════
 const orderApi = {
-  getOrders: (p: any) => mockRequest.get('/orders', { params: p }),
+  getOrders: (p: unknown) => mockRequest.get('/orders', { params: p }),
   getOrder: (id: string) => mockRequest.get(`/orders/${id}`),
-  createOrder: (d: any) => mockRequest.post('/orders', d),
-  updateOrder: (id: string, d: any) => mockRequest.put(`/orders/${id}`, d),
+  createOrder: (d: unknown) => mockRequest.post('/orders', d),
+  updateOrder: (id: string, d: unknown) => mockRequest.put(`/orders/${id}`, d),
   deleteOrder: (id: string) => mockRequest.delete(`/orders/${id}`),
-  updateOrderStatus: (id: string, d: any) => mockRequest.put(`/orders/${id}/status`, d),
-  cancelOrder: (id: string, d: any) => mockRequest.put(`/orders/${id}/cancel`, d),
-  createPayment: (d: any) => mockRequest.post('/orders/payments', d),
-  createShipment: (d: any) => mockRequest.post('/orders/shipments', d),
+  updateOrderStatus: (id: string, d: unknown) => mockRequest.put(`/orders/${id}/status`, d),
+  cancelOrder: (id: string, d: unknown) => mockRequest.put(`/orders/${id}/cancel`, d),
+  createPayment: (d: unknown) => mockRequest.post('/orders/payments', d),
+  createShipment: (d: unknown) => mockRequest.post('/orders/shipments', d),
   getOrderStats: () => mockRequest.get('/orders/stats/overview'),
 }
 
@@ -95,10 +95,10 @@ describe('Order API', () => {
 // Customer API
 // ═══════════════════════════════════════
 const customerApi = {
-  getCustomers: (p: any) => mockRequest.get('/customers', { params: p }),
+  getCustomers: (p: unknown) => mockRequest.get('/customers', { params: p }),
   getCustomer: (id: string) => mockRequest.get(`/customers/${id}`),
-  createCustomer: (d: any) => mockRequest.post('/customers', d),
-  updateCustomer: (id: string, d: any) => mockRequest.put(`/customers/${id}`, d),
+  createCustomer: (d: unknown) => mockRequest.post('/customers', d),
+  updateCustomer: (id: string, d: unknown) => mockRequest.put(`/customers/${id}`, d),
   deleteCustomer: (id: string) => mockRequest.delete(`/customers/${id}`),
 }
 
@@ -147,9 +147,9 @@ describe('Customer API', () => {
 // Task Engine API
 // ═══════════════════════════════════════
 const taskApi = {
-  getTasks: (p?: any) => mockRequest.get('/eros/tasks', { params: p }),
+  getTasks: (p?: unknown) => mockRequest.get('/eros/tasks', { params: p }),
   getTask: (id: string) => mockRequest.get(`/eros/tasks/${id}`),
-  createTask: (d: any) => mockRequest.post('/eros/tasks', d),
+  createTask: (d: unknown) => mockRequest.post('/eros/tasks', d),
   cancelTask: (id: string) => mockRequest.put(`/eros/tasks/${id}/cancel`),
   deleteTask: (id: string) => mockRequest.delete(`/eros/tasks/${id}`),
   sendMessage: (taskId: string, message: string) => mockRequest.post(`/eros/tasks/${taskId}/message`, { message }),

@@ -224,7 +224,7 @@ async function loadStats() {
 }
 
 async function loadErosStats() {
-  try { const r = await getTaskStats(); Object.assign(erosStats, r) } catch {}
+  try { const r = await getTaskStats(); Object.assign(erosStats, r) } catch { /* fallback */ }
 }
 
 async function loadERDLStats() {
@@ -238,7 +238,7 @@ async function loadERDLStats() {
       erdlStats.syncPolicies = data.syncPolicies || 0
       erdlStats.files = data.files || 0
     }
-  } catch {}
+  } catch { /* fallback */ }
 }
 
 async function loadMirrorStats() {

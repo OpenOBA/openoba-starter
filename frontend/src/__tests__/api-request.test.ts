@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 秒镜 ERP — API 请求拦截器测试（request.ts）
  *
  * 测试维度：
@@ -36,7 +36,7 @@ function simulateRequestInterceptor(config: { headers: Record<string, string> })
   return config
 }
 
-function simulateResponseInterceptor(responseData: any, status: number) {
+function simulateResponseInterceptor(responseData: unknown, status: number) {
   // 401 处理
   if (status === 401) {
     mockLS.removeItem('access_token')
@@ -123,7 +123,7 @@ describe('Response 拦截器 — 错误处理', () => {
     mockLS.setItem('user_info', '{"name":"test"}')
     try {
       await simulateResponseInterceptor({ code: 401 }, 401)
-    } catch {}
+    } catch { /* expected */ }
     expect(didClearStorage).toBe(true)
     expect(didRedirect).toBe(true)
   })

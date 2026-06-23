@@ -111,7 +111,7 @@ export function useAgentChat(
       const items = res?.items || res?.data?.items || []
       const statuses: string[] = ['drafted', 'proposed', 'executing', 'completed', 'delivered', 'published', 'cancelled', 'aborted']
       historyTasks.value = items.filter((t) => statuses.includes(t.status as string))
-    } catch { }
+    } catch { /* skip load errors */ }
     finally { historyLoading.value = false }
   }
 
@@ -356,8 +356,7 @@ export function useAgentChat(
         }
       }, 5000)
 
-      function read() {
-        reader.read().then(({ done, value }) => {
+      const read = () => { reader.read().then(({ done, value }) => {
           lastEventTime = Date.now()
           if (done) {
             messages.value[msgIdx].streaming = false
