@@ -223,7 +223,7 @@ const afterSaleStatusDict = useDict('dict_after_sale_status');
 const afterSaleStatusItems = computed(() => afterSaleStatusDict.items.value);
 const AFTER_SALES_STATUS = { pending: 'pending', approved: 'approved', rejected: 'rejected', returning: 'returning', received: 'received', refunded: 'refunded', completed: 'completed', closed: 'closed' } as const
 
-const orderList = ref<any[]>([])
+const orderList = ref<Record<string, unknown>[]>([])
 
 const loading = ref(false)
 const tableData = ref<Record<string, unknown>[]>([])
@@ -242,32 +242,32 @@ const stats = reactive({ total: 0, pending: 0, approved: 0, completed: 0 })
 // 审核
 const reviewVisible = ref(false)
 const reviewAction = ref('approve')
-const reviewItem = ref<any>(null)
+const reviewItem = ref<Record<string, unknown> | null>(null)
 const reviewForm = reactive({ actualRefundAmount: 0, reviewNote: '' })
-function showReviewDialog(row: any, action: string) {
+function showReviewDialog(row: Record<string, unknown>, action: string) {
   reviewAction.value = action; reviewItem.value = row
   reviewForm.reviewNote = ''; reviewForm.actualRefundAmount = parseFloat(row.refundAmount) || 0
   reviewVisible.value = true
 }
 async function doReview() {
   try {
-    await reviewAfterSales(reviewItem.value.id, { action: reviewAction.value, ...reviewForm })
+    await reviewAfterSales(reviewItem.value!.id as string, { action: reviewAction.value, ...reviewForm })
     ElMessage.success(reviewAction.value === 'approve' ? '已批准' : '已拒绝')
     reviewVisible.value = false; loadData(); loadStats()
   } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '审核失败') }
 }
 
 // 收货
-async function doProcess(row: any, action: string) {
+async function doProcess(row: Record<string, unknown>, action: string) {
   try {
-    await processAfterSales(row.id, { action })
+    await processAfterSales(row.id as string, { action })
     ElMessage.success('操作成功'); loadData()
   } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '操作失败') }
 }
 
 // 退款
 const refundVisible = ref(false)
-const refundItem = ref<any>(null)
+const refundItem = ref<Record<string, unknown> | null>(null)
 const refundForm = reactive({ actualRefundAmount: 0, refundMethod: 'original', note: '' })
 function showRefundDialog(row: Record<string, unknown>) {
   refundItem.value = row
@@ -291,7 +291,7 @@ async function doCreate() {
 
 // 详情
 const detailVisible = ref(false)
-const detailData = ref<any>({})
+const detailData = ref<Record<string, unknown>>({})
 interface AfterSalesLog {
   id: string
   action: string
@@ -299,7 +299,7 @@ interface AfterSalesLog {
   fromStatus?: string
   toStatus?: string
   createdAt: string
-  [key: string]: any
+  [key: string]: unknown
 }
 const detailLogs = ref<AfterSalesLog[]>([])
 async function viewDetail(row: Record<string, unknown>) {
@@ -336,7 +336,7 @@ function reasonLabel(type: string) {
 async function loadData() {
   loading.value = true
   try {
-    const params: Record<string, any> = {
+    const params: Record<string, unknown> = {
       page: Number(query.page) || 1,
       pageSize: Number(query.pageSize) || 20,
     }

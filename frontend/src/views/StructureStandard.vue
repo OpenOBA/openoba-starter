@@ -324,8 +324,8 @@ async function handleUpload(options: Record<string, unknown>) {
 
 const loading = ref(false)
 const saving = ref(false)
-const tableData = ref<any[]>([])
-const selection = ref<any[]>([])
+const tableData = ref<Record<string, unknown>[]>([])
+const selection = ref<Record<string, unknown>[]>([])
 const total = ref(0)
 const dialogVisible = ref(false)
 
@@ -340,8 +340,8 @@ const detailVisible = ref(false)
 const isEdit = ref(false)
 const editId = ref('')
 const formRef = ref<FormInstance>()
-const detail = ref<any>(null)
-const frames = ref<any[]>([])
+const detail = ref<Record<string, unknown> | null>(null)
+const frames = ref<Record<string, unknown>[]>([])
 
 const query = reactive({ page: 1, pageSize: 20, keyword: '', shapeCode: '', seriesCode: '', status: '' })
 
@@ -357,7 +357,7 @@ function updateStandardCode() {
   // 宽度/高度变化时自动更新 standardCodeDisplay（computed 自动响应）
 }
 
-const attachments = ref<any[]>([])
+const attachments = ref<Record<string, unknown>[]>([])
 
 const rules = {
   shapeCode: [{ required: true, message: '请选择造型', trigger: 'change' }],
@@ -387,16 +387,16 @@ function resetQuery() {
 function onBatchEdit() { if(selection.value.length===1) openDialog(selection.value[0]); else if(selection.value.length>1) ElMessage.warning('暂仅支持单条编辑'); }
 async function onBatchDelete() { try { for(const r of selection.value) { await deleteStructure(r.structureId); } selection.value=[]; loadData(); ElMessage.success('批量删除成功'); } catch { ElMessage.error('删除失败'); } }
 
-function openDialog(row?: any) {
+function openDialog(row?: Record<string, unknown>) {
   isEdit.value = !!row
   editId.value = row?.structureId || ''
   attachments.value = []
   if (row) {
     // 兼容旧数据：如果返回的是 surfaceType/refractiveIndex 单值，转为数组
-    const surfaceTypes = row.surfaceTypes || (row.surfaceType ? [row.surfaceType] : ['ASP'])
-    const refractiveIndexes = row.refractiveIndexes || (row.refractiveIndex ? [row.refractiveIndex] : [1.60])
-    Object.assign(form, { ...row, surfaceTypes, refractiveIndexes })
-    loadAttachments(row.structureId)
+    const surfaceTypes = (row.surfaceTypes as string[]) || ((row.surfaceType as string) ? [(row.surfaceType as string)] : ['ASP'])
+    const refractiveIndexes = (row.refractiveIndexes as number[]) || ((row.refractiveIndex as number) ? [(row.refractiveIndex as number)] : [1.60])
+    Object.assign(form, { ...row as Record<string, unknown>, surfaceTypes, refractiveIndexes } as Record<string, unknown>)
+    loadAttachments(row.structureId as string)
   } else {
     Object.assign(form, { internalCode: '', shapeCode: '', seriesCode: null, width: 51.0, height: 47.0, bridgeWidth: null, circumference: 157.0, baseCurve: 200, surfaceTypes: [SURFACE_TYPE.ASP], refractiveIndexes: [1.60], description: '', status: STRUCT_STATUS[0] })
   }
@@ -454,7 +454,7 @@ async function openDetail(row: Record<string, unknown>) {
 async function loadAttachments(structureId: string) {
   try {
     const detail = await getStructureDetail(structureId)
-    attachments.value = (detail as unknown as Record<string, unknown>).attachments as any[] || []
+    attachments.value = ((detail.value as unknown as Record<string, unknown>)?.attachments as Record<string, unknown>[]) || []
   } catch {}
 }
 

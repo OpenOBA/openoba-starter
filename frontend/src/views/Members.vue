@@ -158,7 +158,7 @@ import { getMemberDashboard, getMemberAnalytics, scanMemberDowngradesNew } from 
 const router = useRouter()
 const loading = ref(false)
 const downgradeScanning = ref(false)
-const downgradeResult = ref<any>(null)
+const downgradeResult = ref<Record<string, unknown> | null>(null)
 
 // 概览
 const summary = reactive({
@@ -166,10 +166,10 @@ const summary = reactive({
   active30d: 0, active90d: 0,
   avgSpent: 0, totalRevenue: 0, avgOrders: 0,
 })
-const levelDistribution = ref<any[]>([])
+const levelDistribution = ref<Record<string, unknown>[]>([])
 
 // 列表
-const list = ref<any[]>([])
+const list = ref<Record<string, unknown>[]>([])
 const total = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
@@ -177,23 +177,23 @@ const filter = reactive({ level: '', keyword: '', sortBy: 'totalAmount' })
 
 const loadDashboard = async () => {
   try {
-    const res: any = await getMemberDashboard()
-    const data = res.data || res
-    if (data.summary) Object.assign(summary, data.summary)
-    levelDistribution.value = data.levelDistribution || []
+    const res = await getMemberDashboard() as unknown as Record<string, unknown>
+    const data = (res.data || res) as Record<string, unknown>
+    if (data.summary) Object.assign(summary, data.summary as Record<string, unknown>)
+    levelDistribution.value = (data.levelDistribution as Record<string, unknown>[]) || []
   } catch { /* ignore */ }
 }
 
 const loadList = async () => {
   loading.value = true
   try {
-    const res: any = await getMemberAnalytics({
+    const res = await getMemberAnalytics({
       page: page.value, pageSize: pageSize.value,
       level: filter.level, keyword: filter.keyword, sortBy: filter.sortBy,
-    })
-    const data = res.data || res
-    list.value = data.items || []
-    total.value = data.total || 0
+    }) as unknown as { data?: Record<string, unknown>; items?: Record<string, unknown>[]; total?: number };
+    const data: Record<string, unknown> = res.data || res
+    list.value = (data.items as Record<string, unknown>[]) || []
+    total.value = (data.total as number) || 0
   } catch {
     list.value = []
   } finally {
@@ -204,10 +204,11 @@ const loadList = async () => {
 const handleDowngradeScan = async () => {
   downgradeScanning.value = true
   try {
-    const res: any = await scanMemberDowngradesNew()
-    downgradeResult.value = res.data || res || { count: 0, details: [] }
-    if (downgradeResult.value.count > 0) {
-      ElMessage.warning(`发现 ${downgradeResult.value.count} 个客户需要降级`)
+    const res = await scanMemberDowngradesNew() as unknown as Record<string, unknown>
+    downgradeResult.value = (res.data || res || { count: 0, details: [] }) as Record<string, unknown>
+    const count = downgradeResult.value?.count as number
+    if (count > 0) {
+      ElMessage.warning(`发现 ${count} 个客户需要降级`)
     } else {
       ElMessage.success('没有需要降级的客户')
     }
@@ -216,15 +217,15 @@ const handleDowngradeScan = async () => {
   }
 }
 
-const openCustomerDetail = (row: any) => {
-  router.push({ path: '/customers', query: { id: row.customerId } })
+const openCustomerDetail = (row: Record<string, unknown>) => {
+  router.push({ path: '/customers', query: { id: row.customerId as string } })
 }
 
-const formatMoney = (v: any) => Number(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const formatMoney = (v: unknown) => Number(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const formatDate = (d: string) => d ? new Date(d).toLocaleDateString('zh-CN') : '-'
 
 const getLevelName = (code: string) => ({ normal: '普通', vip: 'VIP', svip: 'SVIP', gold: '黄金' }[code] || code)
-const getLevelTagType = (code: string) => ({ normal: 'info', vip: 'primary', svip: 'success', gold: 'warning' }[code] || 'info') as any
+const getLevelTagType = (code: string): string => ({ normal: 'info', vip: 'primary', svip: 'success', gold: 'warning' }[code] || 'info')
 const getLevelColor = (code: string) => ({ normal: '#909399', vip: '#409eff', svip: '#67c23a', gold: '#e6a23c' }[code] || '#909399')
 
 onMounted(() => {
