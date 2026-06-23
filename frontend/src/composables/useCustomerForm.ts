@@ -11,13 +11,13 @@ import type { FormInstance } from 'element-plus'
 export function useCustomerForm(forceReloadDict: () => Promise<void>) {
   const loading = ref(false)
   const saving = ref(false)
-  const tableData = ref<any[]>([])
+  const tableData = ref<Record<string, unknown>[]>([])
   const total = ref(0)
   const dialogVisible = ref(false)
   const isEdit = ref(false)
   const editId = ref('')
   const formRef = ref<FormInstance>()
-  const selectedRows = ref<any[]>([])
+  const selectedRows = ref<Record<string, unknown>[]>([])
 
   const query = reactive({ page: 1, pageSize: 20, keyword: '', customerType: '', customerLevel: '', status: '' })
 
@@ -33,13 +33,13 @@ export function useCustomerForm(forceReloadDict: () => Promise<void>) {
     phone: [{ required: true, message: '请输入联系电话', trigger: 'blur' }],
   }
 
-  function handleSelectionChange(rows: any[]) { selectedRows.value = rows }
+  function handleSelectionChange(rows: Record<string, unknown>[]) { selectedRows.value = rows }
 
   async function loadData() {
     loading.value = true
     try {
       const res = await getCustomerList(query)
-      tableData.value = res.items; total.value = res.total
+      tableData.value = (res.items as unknown as Record<string, unknown>[]) || []; total.value = res.total as number
     } finally { loading.value = false }
   }
 
@@ -48,17 +48,17 @@ export function useCustomerForm(forceReloadDict: () => Promise<void>) {
     loadData()
   }
 
-  async function openDialog(row?: any) {
+  async function openDialog(row?: Record<string, unknown>) {
     await forceReloadDict()
     isEdit.value = !!row
-    editId.value = row?.customerId || ''
-    if (row) { Object.assign(form, row) }
+    editId.value = (row?.customerId as string) || ''
+    if (row) { Object.assign(form, row as unknown as Record<string, unknown>) }
     else {
       Object.assign(form, {
         customerType: 'retail', customerLevel: 'normal', companyName: '', contactName: '',
         phone: '', email: '', wechatId: '', nickname: '', address: '', city: '', province: '',
         status: 'active', notes: '', referralSource: '', preferredStyle: '', subscriptionStatus: '',
-      })
+      } as Record<string, unknown>)
     }
     dialogVisible.value = true
   }
@@ -68,7 +68,7 @@ export function useCustomerForm(forceReloadDict: () => Promise<void>) {
     if (!valid) return
     saving.value = true
     try {
-      const payload: any = { ...form, wechat: form.wechatId }
+      const payload: Record<string, unknown> = { ...form, wechat: form.wechatId }
       if (isEdit.value) { await updateCustomer(editId.value, payload); ElMessage.success('更新成功') }
       else { await createCustomer(payload); ElMessage.success('创建成功') }
       dialogVisible.value = false; loadData()
@@ -84,7 +84,7 @@ export function useCustomerForm(forceReloadDict: () => Promise<void>) {
 
   async function batchDelete() {
     if (selectedRows.value.length === 0) { ElMessage.warning('请先勾选客户'); return }
-    for (const row of selectedRows.value) { await deleteCustomer(row.customerId) }
+    for (const row of selectedRows.value) { await deleteCustomer(row.customerId as string) }
     ElMessage.success(`已删除 ${selectedRows.value.length} 条`)
     selectedRows.value = []; loadData()
   }

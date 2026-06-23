@@ -12,12 +12,12 @@ import {
 } from '@/api/product';
 import type { SkuImage } from '@/types';
 
-export function useSkuImages(_skuListRef: ReturnType<typeof ref<any[]>>) {
+export function useSkuImages(_skuListRef: ReturnType<typeof ref<Record<string, unknown>[]>>) {
   const skuImageList = ref<SkuImage[]>([]);
   const imageLoading = ref(false);
   const imageSearch = reactive({ skuId: '', imageType: '' });
   const imageDialogVisible = ref(false);
-  const imageForm = reactive<any>({
+  const imageForm = reactive<Record<string, unknown>>({
     imageId: '', skuId: '', imageUrl: '', imageType: 'gallery',
     sortOrder: 0, isPrimary: false, isActive: true, altText: '',
     width: null, height: null,
@@ -30,7 +30,7 @@ export function useSkuImages(_skuListRef: ReturnType<typeof ref<any[]>>) {
   const batchText = ref('');
   const batchTab = ref('url');
   const batchFileInput = ref<HTMLInputElement | null>(null);
-  const batchFileList = ref<any[]>([]);
+  const batchFileList = ref<{ name: string; file: File; status: string }[]>([]);
   const batchUploading = ref(false);
   const batchUploadedCount = ref(0);
   const batchUploadProgress = ref('');
@@ -99,7 +99,7 @@ export function useSkuImages(_skuListRef: ReturnType<typeof ref<any[]>>) {
     if (imageForm.height != null) payload.height = imageForm.height;
     try {
       if (imageForm.imageId) {
-        await updateSkuImage(imageForm.imageId, payload);
+        await updateSkuImage(imageForm.imageId as string, payload);
         ElMessage.success('图片已更新');
       } else {
         // 新建时需要 skuId
@@ -128,7 +128,7 @@ export function useSkuImages(_skuListRef: ReturnType<typeof ref<any[]>>) {
     try {
       const formData = new FormData();
       formData.append('file', options.files![0]!);
-      const res: any = await uploadImage(options.files![0]!);
+      const res = await uploadImage(options.files![0]!) as unknown as Record<string, unknown>;
       const url = res?.url || res?.imageUrl || '';
       if (url) {
         imageForm.imageUrl = url;
@@ -169,8 +169,8 @@ export function useSkuImages(_skuListRef: ReturnType<typeof ref<any[]>>) {
         };
       });
       const payload = { skuId: imageSearch.skuId, images };
-      const res: any = await batchCreateSkuImages(payload);
-      batchUploadedCount.value = res?.created || lines.length;
+      const res = await batchCreateSkuImages(payload) as unknown as Record<string, unknown>;
+      batchUploadedCount.value = (res?.created as number) || lines.length;
       batchUploadProgress.value = `批量创建成功：${batchUploadedCount.value} 张`;
       ElMessage.success(`已创建 ${batchUploadedCount.value} 张图片`);
       batchText.value = '';

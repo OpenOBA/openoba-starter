@@ -9,12 +9,12 @@ import { getSets, createSet, updateSet, deleteSet } from '@/api/product';
 import type { ProductSet } from '@/types';
 
 export function useProductSet(
-  skuListRef: ReturnType<typeof ref<any[]>>
+  skuListRef: ReturnType<typeof ref<Record<string, unknown>[]>>
 ) {
   const setList = ref<ProductSet[]>([]);
   const setLoading = ref(false);
   const setDialogVisible = ref(false);
-  const setForm = reactive<any>({
+  const setForm = reactive<Record<string, unknown>>({
     setId: '', setCode: '', setName: '', setPrice: 0, originalTotalPrice: 0,
     discountRate: 0, retailPrice: 0, status: 'draft', categoryId: '',
     description: '', mainImage: '',
@@ -23,8 +23,8 @@ export function useProductSet(
 
   // 选中 SKU 行数据
   const selectedSkuRows = computed(() => {
-    const list = (skuListRef as any).value ?? [] as any[]
-    return list.filter((s: any) => selectedSkuIds.value.includes(s.skuId as string));
+    const list = (skuListRef.value ?? []) as unknown as Record<string, unknown>[]
+    return list.filter((s) => selectedSkuIds.value.includes(s.skuId as string));
   });
 
   // 所有选中 SKU 的零售价累加（价格锚点）
@@ -35,7 +35,7 @@ export function useProductSet(
   // 折扣率百分比显示
   const discountRatePercent = computed(() => {
     if (setForm.discountRate == null) return '-';
-    return (setForm.discountRate * 100).toFixed(0) + '%';
+    return ((setForm.discountRate as number) * 100).toFixed(0) + '%';
   });
 
   // 套装编码生成
@@ -54,13 +54,13 @@ export function useProductSet(
     const retail = totalRetailPrice.value;
     setForm.retailPrice = retail;
     setForm.originalTotalPrice = retail;
-    if (retail > 0 && !setForm.setId && setForm.discountRate > 0) {
-      setForm.setPrice = parseFloat((retail * setForm.discountRate).toFixed(2));
+    if (retail > 0 && !setForm.setId && (setForm.discountRate as number) > 0) {
+      setForm.setPrice = parseFloat((retail * (setForm.discountRate as number)).toFixed(2));
     } else if (retail > 0 && !setForm.setId) {
       setForm.discountRate = 0.75;
       setForm.setPrice = parseFloat((retail * 0.75).toFixed(2));
-    } else if (retail > 0 && setForm.setPrice > 0) {
-      setForm.discountRate = parseFloat((setForm.setPrice / retail).toFixed(2));
+    } else if (retail > 0 && (setForm.setPrice as number) > 0) {
+      setForm.discountRate = parseFloat(((setForm.setPrice as number) / retail).toFixed(2));
     } else {
       setForm.setPrice = 0;
       setForm.discountRate = 0;
@@ -148,7 +148,7 @@ export function useProductSet(
     if (setForm.status) payload.status = setForm.status;
     if (!setForm.setId && setForm.setCode) payload.setCode = setForm.setCode;
     try {
-      if (setForm.setId) await updateSet(setForm.setId, payload);
+      if (setForm.setId) await updateSet(setForm.setId as string, payload);
       else await createSet(payload);
       ElMessage.success('保存成功');
       setDialogVisible.value = false;
