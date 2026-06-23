@@ -20,13 +20,13 @@
               <el-tag :type="typeTag(detail.customerType)" size="small">{{ typeLabel(detail.customerType) }}</el-tag>
             </el-descriptions-item>
             <el-descriptions-item label="等级">
-              <el-tag :type="levelTag(detail.customerLevel)" size="small" effect="dark">{{ detail.customerLevel?.toUpperCase() }}</el-tag>
+              <el-tag :type="levelTag(detail.customerLevel as string)" size="small" effect="dark">{{ (detail.customerLevel as string)?.toUpperCase() }}</el-tag>
             </el-descriptions-item>
             <el-descriptions-item label="邮箱">{{ detail.email || '—' }}</el-descriptions-item>
             <el-descriptions-item label="微信">{{ detail.wechatId || '—' }}</el-descriptions-item>
-            <el-descriptions-item label="来源渠道">{{ referralLabel(detail.referralSource) }}</el-descriptions-item>
+            <el-descriptions-item label="来源渠道">{{ referralLabel(detail.referralSource as string) }}</el-descriptions-item>
             <el-descriptions-item label="偏好风格">{{ detail.preferredStyle || '—' }}</el-descriptions-item>
-            <el-descriptions-item label="订阅状态">{{ subscriptionLabel(detail.subscriptionStatus) }}</el-descriptions-item>
+            <el-descriptions-item label="订阅状态">{{ subscriptionLabel(detail.subscriptionStatus as string) }}</el-descriptions-item>
             <el-descriptions-item label="城市">{{ detail.province ? detail.province + ' ' + detail.city : detail.city || '—' }}</el-descriptions-item>
             <el-descriptions-item label="累计订单">{{ detail.totalOrders || 0 }}</el-descriptions-item>
             <el-descriptions-item label="累计消费">¥{{ Number(detail.totalAmount || 0).toFixed(2) }}</el-descriptions-item>
@@ -100,9 +100,9 @@
         <!-- Tab 4: 在用结构标准 -->
         <el-tab-pane label="在用结构标准" name="structure">
           <el-descriptions :column="3" size="small" border style="margin-bottom: 12px">
-            <el-descriptions-item label="镜片总数">{{ lensSummary?.total || customerLenses.length || 0 }}</el-descriptions-item>
-            <el-descriptions-item label="在用">{{ lensSummary?.active || customerLenses.filter(l => l.status === 'active').length || 0 }}</el-descriptions-item>
-            <el-descriptions-item label="已停用">{{ (lensSummary?.total || customerLenses.length) - (lensSummary?.active || customerLenses.filter(l => l.status === 'active').length) || 0 }}</el-descriptions-item>
+            <el-descriptions-item label="镜片总数">{{ (lensSummary?.total as number) || customerLenses.length || 0 }}</el-descriptions-item>
+            <el-descriptions-item label="在用">{{ (lensSummary?.active as number) || customerLenses.filter(l => l.status === 'active').length || 0 }}</el-descriptions-item>
+            <el-descriptions-item label="已停用">{{ ((lensSummary?.total as number) || customerLenses.length || 0) - ((lensSummary?.active as number) || customerLenses.filter(l => l.status === 'active').length || 0) || 0 }}</el-descriptions-item>
           </el-descriptions>
           <el-table :data="customerLenses" size="small" border style="margin-bottom: 12px">
             <el-table-column prop="lensStandardCode" label="结构标准" width="120" />
@@ -207,7 +207,7 @@
         <el-tab-pane label="会员等级" name="member">
           <el-card shadow="never" style="margin-bottom: 16px; background: #fafafa">
             <el-row :gutter="16">
-              <el-col :span="6"><div class="member-stat"><div class="member-stat-value"><el-tag :type="levelTag(detail.customerLevel)" effect="dark" size="large">{{ detail.customerLevel?.toUpperCase() || 'NOR' }}</el-tag></div><div class="member-stat-label">当前等级</div></div></el-col>
+              <el-col :span="6"><div class="member-stat"><div class="member-stat-value"><el-tag :type="levelTag(detail.customerLevel as string)" effect="dark" size="large">{{ (detail.customerLevel as string)?.toUpperCase() || 'NOR' }}</el-tag></div><div class="member-stat-label">当前等级</div></div></el-col>
               <el-col :span="6"><div class="member-stat"><div class="member-stat-value">¥{{ Number(detail.totalAmount || 0).toFixed(2) }}</div><div class="member-stat-label">累计消费</div></div></el-col>
               <el-col :span="6"><div class="member-stat"><div class="member-stat-value">{{ detail.pointsBalance || 0 }} 分</div><div class="member-stat-label">积分余额</div></div></el-col>
               <el-col :span="6"><div class="member-stat"><div class="member-stat-value">{{ nextLevelInfo }}</div><div class="member-stat-label">距下一级</div></div></el-col>
@@ -241,8 +241,8 @@
           <el-descriptions :column="2" border>
             <el-descriptions-item label="客户编号">{{ detail.customerCode }}</el-descriptions-item>
             <el-descriptions-item label="联系人">{{ detail.contactName }}</el-descriptions-item>
-            <el-descriptions-item label="类型"><el-tag :type="typeTag(detail.customerType)" size="small">{{ typeLabel(detail.customerType) }}</el-tag></el-descriptions-item>
-            <el-descriptions-item label="等级"><el-tag :type="levelTag(detail.customerLevel)" size="small" effect="dark">{{ detail.customerLevel?.toUpperCase() }}</el-tag></el-descriptions-item>
+            <el-descriptions-item label="类型"><el-tag :type="typeTag(detail.customerType as string)" size="small">{{ typeLabel(detail.customerType as string) }}</el-tag></el-descriptions-item>
+            <el-descriptions-item label="等级"><el-tag :type="levelTag(detail.customerLevel as string)" size="small" effect="dark">{{ (detail.customerLevel as string)?.toUpperCase() }}</el-tag></el-descriptions-item>
             <el-descriptions-item label="企业名称" :span="2">{{ detail.companyName || '—' }}</el-descriptions-item>
             <el-descriptions-item label="电话">{{ detail.phone }}</el-descriptions-item>
             <el-descriptions-item label="邮箱">{{ detail.email || '—' }}</el-descriptions-item>

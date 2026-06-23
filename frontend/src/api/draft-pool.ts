@@ -79,19 +79,19 @@ export interface AestheticCheckResult {
 
 // ======= 美学校验 =======
 export function checkAesthetics(data: { spu: CreateUpdateData; sku: CreateUpdateData }) {
-  return request.post<any>('/aesthetics/check', data);
+  return request.post<Record<string, unknown>>('/aesthetics/check', data);
 }
 
 export function batchCheckAesthetics(data: { checks: Array<{ spu: CreateUpdateData; sku: CreateUpdateData }> }) {
-  return request.post<any>('/aesthetics/batch-check', data);
+  return request.post<Record<string, unknown>>('/aesthetics/batch-check', data);
 }
 
 export function getAestheticRules() {
-  return request.get<any[]>('/aesthetics/rules');
+  return request.get<Record<string, unknown>[]>('/aesthetics/rules');
 }
 
 export function getAestheticMatrices(type?: string) {
-  return request.get<any[]>('/aesthetics/matrices', { params: { type } });
+  return request.get<Record<string, unknown>[]>('/aesthetics/matrices', { params: { type } });
 }
 
 // ======= 草稿 SPU =======
@@ -148,11 +148,11 @@ export function getBatches(): Promise<DraftBatch[]> {
 
 // ======= 顾问报告 =======
 export function createAdvisoryReport(data: { reportName: string; reportType: string; queryContext?: string }) {
-  return request.post<any>('/draft-pool/reports', data);
+  return request.post<Record<string, unknown>>('/draft-pool/reports', data);
 }
 
 export function getAdvisoryReports() {
-  return request.get<any[]>('/draft-pool/reports');
+  return request.get<Record<string, unknown>[]>('/draft-pool/reports');
 }
 
 

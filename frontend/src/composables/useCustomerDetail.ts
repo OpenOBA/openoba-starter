@@ -9,27 +9,27 @@ import {
  * 客户详情 composable — 详情抽屉 + 所有 Tab 逻辑
  */
 export function useCustomerDetail() {
-  const detail = ref<any>(null)
-  const contacts = ref<any[]>([])
-  const addresses = ref<any[]>([])
-  const tierPricings = ref<any[]>([])
-  const prescriptions = ref<any[]>([])
-  const customerLenses = ref<any[]>([])
-  const lensSummary = ref<any>(null)
-  const customerOrders = ref<any[]>([])
+  const detail = ref<Record<string, unknown> | null>(null)
+  const contacts = ref<Record<string, unknown>[]>([])
+  const addresses = ref<Record<string, unknown>[]>([])
+  const tierPricings = ref<Record<string, unknown>[]>([])
+  const prescriptions = ref<Record<string, unknown>[]>([])
+  const customerLenses = ref<Record<string, unknown>[]>([])
+  const lensSummary = ref<Record<string, unknown> | null>(null)
+  const customerOrders = ref<Record<string, unknown>[]>([])
   const orderTotal = ref(0)
   const orderPage = ref(1)
   const ordersLoading = ref(false)
-  const memberLevelLogs = ref<any[]>([])
-  const pointsTransactions = ref<any[]>([])
+  const memberLevelLogs = ref<Record<string, unknown>[]>([])
+  const pointsTransactions = ref<Record<string, unknown>[]>([])
   const activeTab = ref('basic')
 
   // 会员升级进度
   const upgradeProgress = computed(() => {
     if (!detail.value) return 0
     const thresholds: Record<string, number> = { normal: 500, vip: 2000, svip: 5000, gold: 5000 }
-    const currentLevel = detail.value.customerLevel || 'normal'
-    const totalAmount = Number(detail.value.totalAmount || 0)
+    const currentLevel = (detail.value?.customerLevel as string) || 'normal'
+    const totalAmount = Number(detail.value?.totalAmount || 0)
     const nextThreshold = thresholds[currentLevel] ?? 5000
     return Math.min(100, Math.round((totalAmount / nextThreshold) * 100))
   })
@@ -42,7 +42,7 @@ export function useCustomerDetail() {
       svip: { next: 'Gold', threshold: 5000 },
       gold: { next: '最高', threshold: 5000 },
     }
-    const info = levels[detail.value.customerLevel || 'normal']
+    const info = levels[(detail.value?.customerLevel as string) || 'normal']
     if (!info) return '—'
     if (info.next === '最高') return '已是最高等级'
     const remaining = Math.max(0, info.threshold - Number(detail.value.totalAmount || 0))
@@ -66,7 +66,7 @@ export function useCustomerDetail() {
   async function loadCustomerOrders(page: number) {
     ordersLoading.value = true
     try {
-      const res = await getCustomerOrders(detail.value.customerId, page, 10)
+      const res = await getCustomerOrders(detail.value?.customerId as string, page, 10)
       customerOrders.value = (res as Record<string, unknown>).items as Record<string, unknown>[] || []
       orderTotal.value = Number((res as Record<string, unknown>).total ?? 0)
       orderPage.value = page

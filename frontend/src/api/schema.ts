@@ -47,7 +47,7 @@ export interface RuntimeConfig {
   faceShapeLabels?: Record<string, string>
   uvProtectionOptions?: { value: string; label: string }[]
   tierLabels?: Record<string, { name: string; color: string }>
-  extra?: Record<string, any>
+  extra?: Record<string, unknown>
 }
 
 /** 完整行业 Schema */
@@ -128,8 +128,8 @@ export function getPricingRules(industry?: string): Promise<PricingRule[]> {
  * 生成展示名（按 Schema 模板）
  */
 export function generateDisplayName(
-  spuData: Record<string, any>,
-  skuData: Record<string, any>,
+  spuData: Record<string, unknown>,
+  skuData: Record<string, unknown>,
   industry?: string,
 ): Promise<{ displayName: string }> {
   return request.get('/schema/display-name', {
