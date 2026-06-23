@@ -1,6 +1,6 @@
 # OpenOBA Starter
 
-> **AI 执行官 · 眼镜行业 ERP** — 不用写代码就能开发自己的 ERP，不用记菜单就能运营自己的业务
+> **AI 数字执行官 · 眼镜行业 ERP** — 不用写代码就能开发自己的 ERP，不用记菜单就能运营自己的业务
 
 [![License: MIT + BSL](https://img.shields.io/badge/License-MIT%20%2F%20BSL-blue.svg)](./LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18-green.svg)](https://nodejs.org)
