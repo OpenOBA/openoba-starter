@@ -20,7 +20,7 @@
 
 <script setup lang="ts">
 defineProps<{
-  logs: any[]
+  logs: Array<{ type: string; actor: string; title: string; time: string; id: string }>
 }>()
 
 function formatLogTime(ts: string | number): string {

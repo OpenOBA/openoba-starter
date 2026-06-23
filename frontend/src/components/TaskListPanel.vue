@@ -48,8 +48,8 @@
         :data="displayedTasks"
         stripe
         v-loading="loading"
-        @selection-change="$emit('selectionChange', $event as any)"
-        @row-dblclick="$emit('goDetail', $event as any)"
+        @selection-change="$emit('selectionChange', $event)"
+        @row-dblclick="$emit('goDetail', $event)"
         row-class-name="clickable-row"
         size="small"
       >

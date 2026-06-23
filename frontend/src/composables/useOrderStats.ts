@@ -2,9 +2,10 @@ import { ref, computed } from 'vue'
 import { getOrderStats } from '@/api/order'
 
 export function useOrderStats() {
-  const stats = ref<any>({ total: 0, pending: 0, paid: 0, shipping: 0, completed: 0, cancelled: 0, todaySales: '0' })
+  interface OrderStats { total: number; pending: number; paid: number; shipping: number; completed: number; cancelled: number; todaySales: string }
+  const stats = ref<OrderStats>({ total: 0, pending: 0, paid: 0, shipping: 0, completed: 0, cancelled: 0, todaySales: '0' })
 
-  function ensureStats(s: any) {
+  function ensureStats(s: OrderStats | null | undefined): OrderStats {
     return {
       total: s?.total ?? 0,
       pending: s?.pending ?? 0,
@@ -31,7 +32,7 @@ export function useOrderStats() {
   async function loadStats() {
     try {
       const res = await getOrderStats()
-      stats.value = ensureStats(res)
+      stats.value = ensureStats(res as OrderStats | null)
     } catch (e) {
       console.error('loadStats error:', e)
     }

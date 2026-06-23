@@ -34,11 +34,11 @@ export function statusTag(s: string) {
 }
 
 export function orderStatusTag(s: string) {
-  return ({ pending: 'warning', paid: 'primary', shipped: 'primary', completed: 'success', cancelled: 'info' } as any)[s] || 'info';
+  const ORDER_STATUS_TAG: Record<string,string> = { pending: 'warning', paid: 'primary', shipped: 'primary', completed: 'success', cancelled: 'info' }; return ORDER_STATUS_TAG[s] || 'info';
 }
 
 export function accountStatusTag(s: string) {
-  return ({ active: 'success', inactive: 'info', suspended: 'danger', deactivated: 'info', none: 'info' } as any)[s] || 'info';
+  const ACCOUNT_STATUS_TAG: Record<string,string> = { active: 'success', inactive: 'info', suspended: 'danger', deactivated: 'info', none: 'info' }; return ACCOUNT_STATUS_TAG[s] || 'info';
 }
 
 export function triggerTypeTag(t: string) {

@@ -224,7 +224,7 @@ import { getInventoryList, getInventoryStats, stockIn, stockOut, adjustStock, ge
 import { getSkus } from '@/api/product'
 import { ElMessage } from 'element-plus'
 
-const skuList = ref<any[]>([])
+const skuList = ref<Record<string, unknown>[]>([])
 
 const loading = ref(false)
 const tableData = ref<Record<string, unknown>[]>([])
@@ -304,7 +304,7 @@ function txTypeTag(type: string) {
 async function loadData() {
   loading.value = true
   try {
-    const params: Record<string, any> = {
+    const params: Record<string, string | number | undefined> = {
       page: Number(query.page) || 1,
       pageSize: Number(query.pageSize) || 20,
     }

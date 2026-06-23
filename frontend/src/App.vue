@@ -121,7 +121,7 @@ async function checkUpdate() {
   try {
     const res = await request.get('/system/version/check', {
       params: { current: currentVersion.value, channel: updateChannel.value }
-    }) as Record<string, any>
+    }) as Record<string, unknown>
     if (res.hasUpdate) {
       latestVersion.value = res.latestVersion as string
       hasUpdate.value = true

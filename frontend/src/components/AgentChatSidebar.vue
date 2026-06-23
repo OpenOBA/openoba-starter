@@ -64,7 +64,7 @@ void (null as unknown as import('@/api/task-engine').TaskStatus)
 defineProps<{
   taskInfo: Record<string, unknown> | null
   taskId: string
-  historyTasks: any[]
+  historyTasks: Array<{ id: string; title: string; status: string; createdAt: string; updatedAt: string }>
   historyLoading: boolean
   logs?: Array<{ id: string; type: string; actor: string; title: string; time: string }>
 }>()

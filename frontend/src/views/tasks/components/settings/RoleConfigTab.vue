@@ -47,7 +47,7 @@ import { ref, onMounted } from 'vue'
 import request from '@/api/request'
 
 const props = defineProps<{
-  s: any
+  s: { agent?: { workspacePath?: string; logRetentionDays?: number; autoArchiveLogs?: boolean; docFormat?: string; codeStyle?: string; creativity?: number; autoApprove?: boolean }; notifications?: { enabled?: boolean; channels?: string[] }; [key:string]: unknown }
   resetSection: (section: string) => void
 }>()
 
@@ -57,7 +57,7 @@ const loadingModels = ref(false)
 async function fetchModels() {
   loadingModels.value = true
   try {
-    const res: any = await request.get('/system/llm/providers')
+    const res = await request.get('/system/llm/providers') as unknown as Record<string, unknown>
     if (res?.success) {
       const allModels: Array<{ id: string; name: string }> = []
       for (const p of res.providers) {

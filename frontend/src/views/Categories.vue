@@ -285,8 +285,8 @@ async function handleDelete() {
 
 // === 拖拽 ===
 async function handleDragEnd(
-  draggingNode: any,
-  dropNode: any,
+  draggingNode: { data: CategoryNode },
+  dropNode: { data: CategoryNode },
   dropType: 'before' | 'after' | 'inner',
 ) {
   const dragData: CategoryNode = draggingNode.data

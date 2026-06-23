@@ -94,14 +94,14 @@ export function useReactTimeline(
     // proposals 只在 TaskDetail 历史档案中查看
   }
 
-  function insertSummary(t: any, fileUrl: string, fileName: string) {
-    const proposals = (t as any).proposals || []
+  function insertSummary(t: Record<string, unknown>, fileUrl: string, fileName: string) {
+    const proposals = (t.proposals as unknown as Record<string, unknown>[]) || []
     const hasProposal = proposals.length > 0
     const lines: string[] = ['**方案已同意 · 执行总结**', '']
     if (hasProposal) {
       const last = proposals[proposals.length - 1]
-      const modelMatch = last.content?.match(/🤖 使用模型: (.+)/)
-      const kbMatch = last.content?.match(/📚 引用知识: (.+)/)
+      const modelMatch = (last.content as string)?.match(/🤖 使用模型: (.+)/)
+      const kbMatch = (last.content as string)?.match(/📚 引用知识: (.+)/)
       if (modelMatch) lines.push(`**模型**：${modelMatch[1]}`)
       if (kbMatch) lines.push(`**知识引用**：${kbMatch[1]}`)
       lines.push(`**版本**：V${last.version}`)

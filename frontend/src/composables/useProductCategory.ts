@@ -13,7 +13,7 @@ export function useProductCategory() {
   const categoryList = ref<ProductCategory[]>([]);
   const categoryLoading = ref(false);
   const categoryDialogVisible = ref(false);
-  const categoryForm = reactive<any>({
+  const categoryForm = reactive<Record<string, unknown>>({
     categoryId: '', categoryCode: '', categoryName: '', categoryType: '',
     level: 1, sortOrder: 0, isActive: true,
   });
@@ -24,7 +24,7 @@ export function useProductCategory() {
     try {
       const type = categorySearchType.value || undefined;
       const flat = await getCategoriesFlat() as unknown as ProductCategory[];
-      categoryList.value = type ? flat.filter((c: ProductCategory) => (c as any).categoryType === type) : flat;
+      categoryList.value = type ? flat.filter((c) => c.categoryType === type) : flat;
     } catch (e: unknown) {
       const err = e instanceof Error ? e.message : String(e);
       ElMessage.error(err);
@@ -62,7 +62,7 @@ export function useProductCategory() {
     };
     try {
       if (categoryForm.categoryId) {
-        await updateCategory(categoryForm.categoryId, payload);
+        await updateCategory(categoryForm.categoryId as string, payload);
         ElMessage.success('分类已更新');
       } else {
         await createCategory(payload);

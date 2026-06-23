@@ -105,8 +105,8 @@ const timeline = computed<TimelineItem[]>(() => {
   }
   const proposals = task.value.proposals || []
   for (let i = 0; i < proposals.length; i++) {
-    const p = proposals[i] as any
-    items.push({ type: 'proposal', version: p.version, content: p.content, status: p.status || 'submitted', feedback: p.feedback, time: formatTime(p.timestamp) })
+    const p = proposals[i] as unknown as Record<string, unknown>
+    items.push({ type: 'proposal' as const, version: p.version as number, content: p.content as string, status: (p.status as string) || 'submitted', feedback: p.feedback as string, time: formatTime(p.timestamp as string) })
   }
   return items
 })

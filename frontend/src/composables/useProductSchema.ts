@@ -51,7 +51,7 @@ export function useProductSchema() {
 
   const productTypeDict = useDict('dict_product_type');
   const productTypeOptions = computed(() =>
-    productTypeDict.items.value.map((d: any) => ({ label: d.name, value: d.code }))
+    productTypeDict.items.value.map((d) => ({ label: d.name, value: d.code }))
   );
 
   const shapeLabels = computed(() => schemaConfig.value?.shapeLabels || {});
