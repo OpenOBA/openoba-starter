@@ -142,14 +142,15 @@ export class ProductSpuService {
   }
 
   async generateSpuDisplayName(spuData: Record<string, unknown>): Promise<string> {
-    const { structureStandardCode, seriesCode } = spuData
+    const structureStandardCode = spuData.structureStandardCode as string | undefined
+    const seriesCode = spuData.seriesCode as string | undefined
     if (!structureStandardCode) return '???系列'
     const structInfo = await this.getStructureInfo(structureStandardCode)
     if (!structInfo) return '???系列'
-    const seriesName = this.getSeriesChineseName(seriesCode)
+    const seriesName = this.getSeriesChineseName(seriesCode ?? '')
     const input: SpuNameInput = {
       structureStandardCode,
-      seriesCode,
+      seriesCode: seriesCode ?? '',
       externalCode: structInfo.externalCode,
       shapeCode: structInfo.shapeCode,
       seriesChineseName: seriesName,

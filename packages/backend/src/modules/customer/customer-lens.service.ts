@@ -133,9 +133,9 @@ export class CustomerLensService {
         consumptionProfileId: id,
         customerLensId,
         purchaseDate: dto.purchaseDate ? new Date(dto.purchaseDate as string) : null,
-        useStatus: dto.useStatus || CUSTOMER_STATUS[0],
+        useStatus: (dto.useStatus as string) || CUSTOMER_STATUS[0],
         isDeleted: false,
-      }),
+      } as unknown as Parameters<typeof this.consumptionProfileRepo.create>[0]),
     )
   }
 
