@@ -237,13 +237,13 @@ import type { RuntimeConfig } from '@/api/schema'
 
 const props = defineProps<{
   visible: boolean
-  row?: any | null
+  row?: Record<string, unknown> | null
   schemaConfig?: RuntimeConfig | null
-  spuList: any[]
+  spuList: Record<string, unknown>[]
   tierList: Record<string, unknown>[]
-  structureStandards: any[]
-  skinTags: any[]
-  faceTags: any[]
+  structureStandards: Record<string, unknown>[]
+  skinTags: Array<{ effectCode?: string; effectName?: string; targetValue?: string; [key: string]: unknown }>
+  faceTags: Array<{ effectCode?: string; effectName?: string; targetValue?: string; [key: string]: unknown }>
   techDicts: {
     frameMaterials: Record<string, unknown>[]
     frameTypes: Record<string, unknown>[]
@@ -274,7 +274,7 @@ const basicFormRules: FormRules = {
 }
 
 // ===== 色彩列表（从色彩标准库加载） =====
-const colorList = ref<any[]>([]);
+const colorList = ref<Record<string, unknown>[]>([]);
 const loadColors = async () => {
   try {
     const res = await getColors({});
@@ -333,7 +333,7 @@ const effectiveTierList = computed(() => {
 })
 
 // 表单模型
-const form = reactive<Record<string, any>>({
+const form = reactive<Record<string, unknown>>({
   skuId: '',
   skuCode: '',
   skuName: '',
@@ -392,8 +392,8 @@ const displayName = computed(() => {
   const shapeName = shapeM[struct.shapeCode] || struct.shapeCode || ''
   const seriesName = seriesM[spu.seriesCode] || ''
   const colorName = color?.colorName || '未知色'
-  const skinEffect = form.skinToneEffect
-  const faceEffect = form.faceShapeEffect
+  const skinEffect = form.skinToneEffect as string
+  const faceEffect = form.faceShapeEffect as string
   // V3.0 一维效果：优先脸型 → 肤色 → 兜底
   const effect = faceEffect || skinEffect || '中性百搭'
   const genderLabel = genderM[spu.gender] || '中性'
@@ -414,19 +414,19 @@ const dictItems = computed(() => {
   return defaults[dictType.value].map(name => ({ effectCode: name, effectName: name, targetValue: '通用' }))
 })
 function openEffectDict(type: 'skin_tone' | 'face_shape') { dictType.value = type; effectDictVisible.value = true }
-function applyEffectFromDict(tag: any) {
-  const name = tag.effectName || tag
-  if (dictType.value === 'skin_tone') form.skinToneEffect = name
-  else form.faceShapeEffect = name
+function applyEffectFromDict(tag: Record<string, unknown>) {
+  const name = (tag.effectName as string) || tag
+  if (dictType.value === 'skin_tone') form.skinToneEffect = name as string
+  else form.faceShapeEffect = name as string
   effectDictVisible.value = false
 }
 
 // ===== 条码工具（使用 @/utils/barcode 共享库） =====
 function genBarcode() {
   const spu = props.spuList.find(s => s.spuId === form.spuId)
-  const tier = form.productTier || spu?.productTier || ''
-  form.skuBarcode = generateInternalBarcode(form.skuCode, form.structureStandardCode || '', 1, tier)
-  form.ean13 = generateTransitionalEAN13(form.skuCode)
+  const tier = (form.productTier || spu?.productTier || '') as string
+  form.skuBarcode = generateInternalBarcode(form.skuCode as string, (form.structureStandardCode as string) || '', 1, tier)
+  form.ean13 = generateTransitionalEAN13(form.skuCode as string)
 }
 
 // ===== 事件处理 =====
@@ -448,7 +448,7 @@ async function onColorChange(colorCode: string) {
   form.colorCode = colorCode || ''
   if (colorCode && !isEdit.value) {
     try {
-      const rec: any = await getEffectRecommend(colorCode)
+      const rec = await getEffectRecommend(colorCode) as unknown as Record<string, unknown>
       if (rec) {
         form.skinToneEffect = rec.skinToneEffect || ''
         form.faceShapeEffect = rec.faceShapeEffect || ''
@@ -503,7 +503,7 @@ async function handleSave() {
   saving.value = true
   try {
     const dropKeys = ['spu', 'color', 'primaryImage', 'skuImages', 'skuId', 'skuCode', 'skuBarcode', 'ean13', 'status', 'isDeleted', 'createdAt', 'updatedAt', 'warningQuantity', 'spuId']
-    const saveData: Record<string, any> = {}
+    const saveData: Record<string, unknown> = {}
     for (const key of Object.keys(form)) {
       if (!dropKeys.includes(key) && form[key] !== undefined && form[key] !== null) {
         saveData[key] = form[key]
@@ -527,13 +527,13 @@ async function handleSave() {
     if (isNew) {
       await createSku(saveData)
     } else {
-      await updateSku(props.row.skuId, saveData)
+      await updateSku(props.row!.skuId as string, saveData)
     }
     ElMessage.success('保存成功')
     emit('saved')
     internalVisible.value = false
   } catch (e: unknown) {
-    const msg = (e as any)?.message || '保存失败'
+    const msg = (e as Error)?.message || '保存失败'
     ElMessage.error(msg)
   } finally {
     saving.value = false
