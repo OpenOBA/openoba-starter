@@ -62,8 +62,8 @@ interface ChatSSEEvent {
 }
 
 export function useAgentChat(
-  messages: { value: Record<string, unknown>[] },
-  triggerRef: (v: Record<string, unknown>) => void,
+  messages: { value: ChatMsg[] },
+  triggerRef: (v: unknown) => void,
   onEvent: (json: ChatSSEEvent, msgIdx: number) => void,
   _onSaveCache: () => void,
   onSaveReActCache: () => void,
@@ -71,7 +71,7 @@ export function useAgentChat(
   formatTime: (isoStr?: string) => string,
   formatFooterTime: () => string,
   syncProposals: (proposals: Array<{ version: number; content: string; timestamp: string; status: string }>) => void,
-  insertSummary: (t: Record<string, unknown>, fileUrl: string, fileName: string) => void,
+  insertSummary: (t: unknown, fileUrl: string, fileName: string) => void,
 ) {
   const route = useRoute()
   const router = useRouter()
@@ -99,7 +99,7 @@ export function useAgentChat(
   const showAgreeBtn = computed(() => {
     if (taskDone.value) return false
     if (agentLoading.value) return false
-    const hasAgentReply = messages.value.some((m: ChatMsg) => m.role === 'agent' && m.content && !m.streaming)
+    const hasAgentReply = messages.value.some((m) => m.role === 'agent' && m.content && !m.streaming)
     return hasAgentReply
   })
 
@@ -108,9 +108,8 @@ export function useAgentChat(
     try {
       const res = await queryTasks({ pageSize: 20 }) as unknown as { items?: Record<string, unknown>[]; data?: { items?: Record<string, unknown>[] } }
       const items = res?.items || res?.data?.items || []
-      historyTasks.value = items.filter((t) =>
-        ['drafted', 'proposed', 'executing', 'completed', 'delivered', 'published', 'cancelled', 'aborted'].includes(t.status)
-      )
+      const statuses: string[] = ['drafted', 'proposed', 'executing', 'completed', 'delivered', 'published', 'cancelled', 'aborted']
+      historyTasks.value = items.filter((t) => statuses.includes(t.status as string))
     } catch { }
     finally { historyLoading.value = false }
   }
@@ -131,16 +130,17 @@ export function useAgentChat(
     try {
       const t = await getTask(taskId.value)
       taskTitle.value = t.title
-      taskInfo.value = t
+      taskInfo.value = t as unknown as Record<string, unknown>
       taskDone.value = ['completed', 'cancelled', 'aborted'].includes(t.status)
-      getTaskLogs(taskId.value).then(l => logs.value = l).catch(() => {})
+      getTaskLogs(taskId.value).then(l => logs.value = l as unknown as Record<string, unknown>[]).catch(() => {})
 
       const cached = localStorage.getItem(LS_KEY.value)
       if (cached) {
         try {
           const parsed = JSON.parse(cached)
           if (Array.isArray(parsed) && parsed.length > 0) {
-            messages.value = parsed.map((m: Record<string, unknown>) => ({
+            const arr = parsed as unknown as Record<string, unknown>[];
+            messages.value = arr.map((m) => ({
               role: m.role,
               content: m.content || '',
               time: m.time || '',
@@ -163,7 +163,7 @@ export function useAgentChat(
       }
 
       const ctx = (t.context || {}) as Record<string, unknown>
-      const proposals = (t.proposals || []) as Record<string, unknown>[]
+      const proposals = (t.proposals || []) as unknown as Record<string, unknown>[]
       console.log('🔍 AgentChat: localStorage 无缓存, proposals=' + proposals.length + '条, status=' + t.status)
 
       if (proposals.length > 0) {
@@ -208,15 +208,15 @@ export function useAgentChat(
         if (msg.role === 'proposal' && msg.status !== 'accepted') msg.status = 'accepted'
       }
       const t = await getTask(taskId.value)
-      taskInfo.value = t
+      taskInfo.value = t as unknown as Record<string, unknown>
       taskDone.value = ['completed', 'cancelled', 'aborted'].includes(t.status)
       syncProposalsLocal(t.proposals || [])
       let fileUrl = ''
       let fileName = ''
       try {
         const json = await request.post(`/eros/tasks/${taskId.value}/export-md`) as unknown as Record<string, unknown>
-        fileUrl = json?.url || ''
-        fileName = json?.fileName || ''
+        fileUrl = (json?.url as string) || ''
+        fileName = (json?.fileName as string) || ''
       } catch { /* ignore */ }
       insertSummary(t, fileUrl, fileName)
       saveCache()
@@ -243,7 +243,7 @@ export function useAgentChat(
     if (pendingSendKeys.has(idempotencyKey)) return
     pendingSendKeys.add(idempotencyKey)
 
-    const agentMsg = {
+    const agentMsg: ChatMsg = {
       role: 'agent',
       content: '',
       time: formatTime(),
@@ -307,7 +307,8 @@ export function useAgentChat(
         onSaveReActCache()
       })
 
-      const history = messages.value.slice(0, -2).map((m) => ({ role: m.role, content: m.content }))
+      const msgs = messages.value as unknown as ChatMsg[]
+      const history = msgs.slice(0, -2).map((m) => ({ role: m.role, content: m.content }))
       ws.send('chat.send', { sessionKey: taskId.value, message: text, history, idempotencyKey, model: eraSettings.agent.defaultModel })
       agentLoading.value = true
       return
@@ -317,7 +318,8 @@ export function useAgentChat(
     try {
       const token = localStorage.getItem('access_token') || ''
       pendingSendKeys.delete(idempotencyKey)
-      const sseHistory = messages.value.slice(0, -2).map((m) => ({ role: m.role, content: m.content }))
+      const msgs = messages.value as unknown as ChatMsg[]
+      const sseHistory = msgs.slice(0, -2).map((m) => ({ role: m.role, content: m.content }))
       const streamRes = await fetch('/api/eros/chat', {
         method: 'POST',
         headers: {
@@ -396,7 +398,7 @@ export function useAgentChat(
                 if (heartbeatTimer) clearInterval(heartbeatTimer)
                 onSaveReActCache()
                 getTask(taskId.value).then(t => {
-                  taskInfo.value = t
+                  taskInfo.value = t as unknown as Record<string, unknown>
                   taskDone.value = ['completed', 'cancelled', 'aborted'].includes(t.status)
                   syncProposalsLocal(t.proposals || [])
                 }).catch(() => {})

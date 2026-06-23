@@ -202,7 +202,7 @@ function typeTag(t: string) { return TYPE_TAG_MAP[t] || 'info' }
 
 const loading = ref(false)
 const saving = ref(false)
-const items = ref<Record<string, unknown>[]>([])
+const items = ref<KnowledgeItem[]>([])
 const total = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
@@ -214,11 +214,12 @@ const tagCloud = ref<Array<{ tag: string; count: number }>>([])
 const showCreate = ref(false)
 const editingId = ref<string | null>(null)
 const showDetailDialog = ref(false)
-const detail = ref<Record<string, unknown> | null>(null)
+const detail = ref<KnowledgeItem | null>(null)
 const fileList = ref<UploadFile[]>([])
 
 interface AttachMeta { name: string; type: string; url: string; size?: number }
 
+interface KnowledgeItem { id: string; type: string; title: string; content: string; weight: number; contributor: string; updatedAt: string; createdAt: string; visibility: string; tags: string[]; attachments: AttachMeta[] }
 interface KnowledgePageResponse { items: Record<string, unknown>[]; total: number }
 interface KnowledgeTagResponse { tag: string; count: number }
 

@@ -339,11 +339,11 @@ export function useDictionary() {
   const selectedDict = ref<Record<string, unknown> | null>(null)
   const dictData = ref<Record<string, unknown>[]>([])
   const dictSelection = ref<Record<string, unknown>[]>([])
-  const dictColumns = ref<Array<{ key: string; label: string; type: string }>>([])
+  const dictColumns = ref<Array<{ prop: string; label: string; type?: string; width?: number; required?: boolean; placeholder?: string; disabled?: boolean; options?: Record<string, unknown>[] }>>([])
   const dialogVisible = ref(false)
   const dialogTitle = ref('新增')
   const form = ref<Record<string, unknown>>({})
-  const formFields = ref<Array<{ key: string; label: string; type: string }>>([])
+  const formFields = ref<Array<{ prop: string; label: string; type?: string; width?: number; required?: boolean; placeholder?: string; disabled?: boolean; options?: Record<string, unknown>[] }>>([])
   const saving = ref(false)
   const editMode = ref<'add' | 'edit'>('add')
 
@@ -354,8 +354,8 @@ export function useDictionary() {
   async function loadDictList() {
     loading.value = true
     try {
-      const res = await request.get('/dict') as unknown as { data?: string[] }
-      const tables: string[] = res.data || res || []
+      const res = await request.get('/dict') as string[]
+      const tables: string[] = res || []
       dictList.value = tables.map((name: string, index: number) => ({
         index: index + 1, tableName: name, displayName: displayNameMap[name] || name,
       }))
@@ -371,7 +371,7 @@ export function useDictionary() {
     dataLoading.value = true
     try {
       const res = await request.get(`/dict/${row.tableName}`) as unknown as { data?: Record<string, unknown>[] }
-      const items = res.data || res || []
+      const items = (res.data || res || []) as Record<string, unknown>[]
       dictData.value = Array.isArray(items) ? items : []
       const config = dictFieldConfigs[String(row.tableName ?? '')]
       if (config) {
@@ -390,9 +390,10 @@ export function useDictionary() {
   }
 
   function openAdd() {
-    const config = getFormConfig(selectedDict.value.tableName)
+    if (!selectedDict.value) return
+    const config = getFormConfig(selectedDict.value.tableName as string)
     if (!config) { ElMessage.warning('该字典表暂不支持在线编辑'); return }
-    editMode.value = 'add'; dialogTitle.value = '新增字典项'; formFields.value = config.fields; form.value = {}
+    editMode.value = 'add'; dialogTitle.value = '新增字典项'; formFields.value = config.fields as typeof formFields.value; form.value = {}
     config.fields.forEach((f: Record<string, unknown>) => {
       const k = String(f.key ?? '')
       if (f.type === 'switch') form.value[k] = true
@@ -403,9 +404,10 @@ export function useDictionary() {
   }
 
   function openEdit(row: Record<string, unknown>) {
-    const config = getFormConfig(selectedDict.value.tableName)
+    if (!selectedDict.value) return
+    const config = getFormConfig(selectedDict.value.tableName as string)
     if (!config) { ElMessage.warning('该字典表暂不支持在线编辑'); return }
-    editMode.value = 'edit'; dialogTitle.value = '编辑字典项'; formFields.value = config.fields; form.value = { ...row }
+    editMode.value = 'edit'; dialogTitle.value = '编辑字典项'; formFields.value = config.fields as typeof formFields.value; form.value = { ...row }
     config.fields.forEach((f: Record<string, unknown>) => {
       const k = String(f.key ?? '')
       if (f.type === 'switch' && typeof form.value[k] === 'number') form.value[k] = form.value[k] === 1
@@ -414,7 +416,8 @@ export function useDictionary() {
   }
 
   async function onSave() {
-    const config = getFormConfig(selectedDict.value.tableName)
+    if (!selectedDict.value) return
+    const config = getFormConfig(selectedDict.value.tableName as string)
     if (!config) return
     for (const f of config.fields) {
       const k = String(f.key ?? '')
@@ -428,11 +431,11 @@ export function useDictionary() {
         if (f.type === 'switch') payload[k] = (payload[k] === true || payload[k] === 1) ? 1 : 0
       })
       if (editMode.value === 'add') {
-        await request.post(`/dict/${selectedDict.value.tableName}`, payload)
+        await request.post(`/dict/${selectedDict.value!.tableName}`, payload)
         ElMessage.success('新增成功')
       } else {
         const keyVal = payload[config.keyField]
-        await request.put(`/dict/${selectedDict.value.tableName}/${encodeURIComponent(keyVal)}`, payload)
+        await request.put(`/dict/${selectedDict.value!.tableName}/${encodeURIComponent(String(keyVal))}`, payload)
         ElMessage.success('保存成功')
       }
       dialogVisible.value = false
@@ -449,8 +452,8 @@ export function useDictionary() {
       if (!selectedDict.value) return
       const config = getFormConfig(selectedDict.value.tableName as string)
       const keyField = config?.keyField ?? ''
-      for(const r of dictSelection.value) await request.delete(`/dict/${selectedDict.value.tableName}/${encodeURIComponent(String((r as Record<string, unknown>)[keyField] ?? ''))}`)
-      dictSelection.value=[]; await onSelectDict(selectedDict.value as unknown as Record<string, unknown>); ElMessage.success('批量删除成功')
+      for(const r of dictSelection.value) await request.delete(`/dict/${selectedDict.value!.tableName}/${encodeURIComponent(String((r as Record<string, unknown>)[keyField] ?? ''))}`)
+      dictSelection.value=[]; await onSelectDict(selectedDict.value! as unknown as Record<string, unknown>); ElMessage.success('批量删除成功')
     } catch { ElMessage.error('删除失败') }
   }
 
