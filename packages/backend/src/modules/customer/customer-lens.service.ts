@@ -129,7 +129,7 @@ export class CustomerLensService {
     const id = `cp-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 6)}`
     return this.consumptionProfileRepo.save(
       this.consumptionProfileRepo.create({
-        ...dto,
+        ...(dto as unknown as Record<string, unknown>),
         consumptionProfileId: id,
         customerLensId,
         purchaseDate: dto.purchaseDate ? new Date(dto.purchaseDate as string) : null,

@@ -153,8 +153,9 @@ export class SubSkuService {
   // ============ 辅助 ============
 
   private buildTree(categories: SubSkuCategory[]): Record<string, unknown>[] {
-    const map = new Map<string, Record<string, unknown>>()
-    const roots: Record<string, unknown>[] = []
+    interface TreeNode extends SubSkuCategory { children: TreeNode[] }
+    const map = new Map<string, TreeNode>()
+    const roots: TreeNode[] = []
 
     categories.forEach((c) => {
       map.set(c.id, { ...c, children: [] })

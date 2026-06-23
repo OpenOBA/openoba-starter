@@ -46,7 +46,7 @@ export class SetService {
     }
     const entity = this.setRepo.create({
       ...rest,
-      category: categoryId ? ({ categoryId } as Partial<Category>) : undefined,
+      category: categoryId ? ({ categoryId } as Category) : undefined,
       isDeleted: false,
     })
     return this.setRepo.save(entity)
@@ -65,7 +65,7 @@ export class SetService {
     const { ...rest } = dto
     Object.assign(item, rest)
     if (categoryId !== undefined) {
-      item.category = categoryId ? ({ categoryId } as Partial<Category>) : null
+      item.category = categoryId ? ({ categoryId } as Category) : undefined
     }
     return this.setRepo.save(item)
   }
