@@ -134,13 +134,13 @@ export class SubSkuService {
     // 非镜片类商品：直接使用传入的 name
     if (!dto.specValues) return dto.name || ''
 
-    const sv = dto.specValues as Record<string, unknown>
+    const sv = dto.specValues as Record<string, string | undefined>
     const brand = '秒镜'
     const func = sv.lens_function_display || sv.lens_function || ''
     const coat = sv.coating_display || sv.coating || ''
     const ri = sv.refractive_index_display || sv.refractive_index || ''
 
-    if (!func && !ri) return dto.name || ''
+    if (!func && !ri) return (dto.name as string) || ''
 
     const parts = [brand]
     if (func) parts.push(func)

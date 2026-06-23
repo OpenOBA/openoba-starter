@@ -152,7 +152,9 @@ export class ReviewService {
 
   // ===== 官网：SPU 评价列表（只读） =====
   async findReviewsBySpu(spuId: string, query: Record<string, unknown>) {
-    const { page = 1, pageSize = 10, withImages } = query
+    const page = (query.page as number) || 1
+    const pageSize = (query.pageSize as number) || 10
+    const withImages = query.withImages as string | undefined
     const qb = this.reviewRepo
       .createQueryBuilder('r')
       .where('r.spu_id = :sid', { sid: spuId })
