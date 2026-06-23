@@ -115,7 +115,7 @@ import type { RuntimeConfig } from '@/api/schema'
 
 const props = defineProps<{
   visible: boolean
-  row?: any | null
+  row?: Record<string, unknown> | null
   schemaConfig?: RuntimeConfig | null
   tierList: Record<string, unknown>[]
   structureStandards: Record<string, unknown>[]
@@ -161,7 +161,7 @@ const effectiveTierList = computed(() => {
 })
 
 // 表单模型
-const form = reactive<Record<string, any>>({
+const form = reactive<Record<string, unknown>>({
   spuCode: '',
   spuName: '',
   productTier: '',
@@ -192,7 +192,7 @@ const generatedName = computed(() => {
   const shape = shapeM[(struct.shapeCode as string) || ''] || (struct.shapeCode as string) || ''
   const series = seriesM[form.seriesCode as string] || ''
   const genderLabel = form.gender
-    ? (props.genderOptions as any[]).find(o => o.value === form.gender)?.label || ''
+    ? (props.genderOptions as unknown as Record<string, unknown>[]).find(o => o.value === form.gender)?.label || ''
     : ''
   const genderPart = genderLabel ? ` · ${genderLabel}` : ''
   return `秒镜 S${extCode} · ${shape}${series}系列${genderPart}`
@@ -258,7 +258,7 @@ async function handleSave() {
   saving.value = true
   try {
     const allowedFields = ['spuCode', 'spuName', 'productTier', 'gender', 'categoryId', 'structureStandardCode', 'seriesCode', 'status', 'sceneTags', 'description']
-    const payload: Record<string, any> = {}
+    const payload: Record<string, unknown> = {}
     for (const key of allowedFields) {
       if (form[key] !== undefined && form[key] !== null && form[key] !== '') {
         payload[key] = form[key]
@@ -274,7 +274,7 @@ async function handleSave() {
     emit('saved')
     internalVisible.value = false
   } catch (e: unknown) {
-    ElMessage.error((e as any)?.message || '保存失败')
+    ElMessage.error((e as Error)?.message || '保存失败')
   } finally {
     saving.value = false
   }

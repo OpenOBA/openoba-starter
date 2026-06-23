@@ -18,8 +18,8 @@
             :data="colorList"
             v-loading="colorLoading"
             stripe
-            @selection-change="(rows: any[]) => selectedColors = rows"
-            @row-dblclick="(row: any) => openColorDialog(row)"
+            @selection-change="(rows: Record<string, unknown>[]) => selectedColors = rows"
+            @row-dblclick="(row: Record<string, unknown>) => openColorDialog(row)"
             highlight-current-row
           >
             <el-table-column type="selection" width="45" />
@@ -71,8 +71,8 @@
             :data="mappingList"
             v-loading="mappingLoading"
             stripe
-            @selection-change="(rows: any[]) => selectedMappings = rows"
-            @row-dblclick="(row: any) => openMappingDialog(row)"
+            @selection-change="(rows: Record<string, unknown>[]) => selectedMappings = rows"
+            @row-dblclick="(row: Record<string, unknown>) => openMappingDialog(row)"
             highlight-current-row
           >
             <el-table-column type="selection" width="45" />
@@ -141,8 +141,8 @@
             :data="paletteList"
             v-loading="paletteLoading"
             stripe
-            @selection-change="(rows: any[]) => selectedPalettes = rows"
-            @row-dblclick="(row: any) => openPaletteDialog(row)"
+            @selection-change="(rows: Record<string, unknown>[]) => selectedPalettes = rows"
+            @row-dblclick="(row: Record<string, unknown>) => openPaletteDialog(row)"
             highlight-current-row
           >
             <el-table-column type="selection" width="45" />
@@ -200,8 +200,8 @@
             :data="projectList"
             v-loading="projectLoading"
             stripe
-            @selection-change="(rows: any[]) => selectedProjects = rows"
-            @row-dblclick="(row: any) => openProjectDialog(row)"
+            @selection-change="(rows: Record<string, unknown>[]) => selectedProjects = rows"
+            @row-dblclick="(row: Record<string, unknown>) => openProjectDialog(row)"
             highlight-current-row
           >
             <el-table-column type="selection" width="45" />

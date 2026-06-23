@@ -108,13 +108,13 @@ async function fetchModels() {
 const about = reactive({
   version: '-',
   agentCount: 0,
-  apiBase: (request as any).defaults?.baseURL || window.location.origin,
+  apiBase: ((request as unknown as { defaults?: { baseURL?: string } }).defaults?.baseURL) || window.location.origin,
   deployMode: 'operator',
 })
 
 async function loadAbout() {
   try {
-    const res = await request.get('/system/version/check', { params: { current: '1.4.0-alpha9' } }) as Record<string,any>
+    const res = await request.get('/system/version/check', { params: { current: '1.4.0-alpha9' } }) as Record<string, unknown>
     about.version = res?.currentVersion as string || '1.4.0-alpha9'
     about.deployMode = 'operator'
   } catch {
@@ -124,7 +124,7 @@ async function loadAbout() {
     const raw = localStorage.getItem('***')
     if (raw) {
       const agents = JSON.parse(raw)
-      about.agentCount = agents.filter((a: any) => a.status === 'active').length || agents.length
+      about.agentCount = agents.filter((a: Record<string, unknown>) => a.status === 'active').length || agents.length
     } else { about.agentCount = 7 }
   } catch { about.agentCount = 0 }
 }

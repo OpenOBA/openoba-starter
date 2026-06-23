@@ -10,15 +10,15 @@ import {
 } from '@/api/product';
 
 export function usePricingPromotions() {
-  const promoList = ref<any[]>([]);
+  const promoList = ref<Record<string, unknown>[]>([]);
   const promoLoading = ref(false);
   const promoDialogVisible = ref(false);
-  const promoForm = reactive<any>({
+  const promoForm = reactive<Record<string, unknown>>({
     promotionId: '', promotionCode: '', promotionName: '',
     promotionType: 'percent', discountValue: null, scope: 'all', skuIds: [],
     startTime: '', endTime: '', status: 'draft', description: '', totalLimit: null,
   });
-  const promoItemSkus = ref<any[]>([]);
+  const promoItemSkus = ref<Record<string, unknown>[]>([]);
 
   const loadPromotions = async () => {
     promoLoading.value = true;

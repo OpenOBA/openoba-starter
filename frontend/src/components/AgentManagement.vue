@@ -200,7 +200,7 @@ async function loadAgents() {
  try {
  agentList.value = await getAgents()
  } catch (e: unknown) {
- ElMessage.error((e as any)?.message || '加载 Agent 失败')
+ ElMessage.error((e as Error)?.message || '加载 Agent 失败')
  } finally {
  loading.value = false
  }
@@ -236,8 +236,8 @@ async function handleSave() {
  ElMessage.success('已保存')
  editMode.value = 'view'
  await loadAgents()
- } catch (e: any) {
- ElMessage.error(e?.message || '保存失败')
+ } catch (e: unknown) {
+ ElMessage.error((e as Error)?.message || '保存失败')
  } finally {
  saving.value = false
  }
@@ -250,7 +250,7 @@ async function handleSuspend(row: AgentItem) {
  ElMessage.success('已挂起')
  loadAgents()
  } catch (e: unknown) {
- ElMessage.error((e as any)?.message || '操作失败')
+ ElMessage.error((e as Error)?.message || '操作失败')
  }
 }
 
@@ -260,7 +260,7 @@ async function handleActivate(row: AgentItem) {
  ElMessage.success('已恢复')
  loadAgents()
  } catch (e: unknown) {
- ElMessage.error((e as any)?.message || '操作失败')
+ ElMessage.error((e as Error)?.message || '操作失败')
  }
 }
 
@@ -271,7 +271,7 @@ async function handleDelete(row: AgentItem) {
  ElMessage.success('已删除')
  loadAgents()
  } catch (e: unknown) {
- ElMessage.error((e as any)?.message || '删除失败')
+ ElMessage.error((e as Error)?.message || '删除失败')
  }
 }
 
@@ -303,7 +303,7 @@ async function handleCreate() {
  createVisible.value = false
  loadAgents()
  } catch (e: unknown) {
- ElMessage.error((e as any)?.message || '创建失败')
+ ElMessage.error((e as Error)?.message || '创建失败')
  } finally {
  creating.value = false
  }

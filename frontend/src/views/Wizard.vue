@@ -172,8 +172,8 @@ async function testDb() {
     const raw = await res.json()
     dbResult.value = raw.data || raw
     dbConnected.value = dbResult.value!.success
-  } catch (e: any) {
-    dbResult.value = { success: false, message: `网络错误：${e.message}` }
+  } catch (e: unknown) {
+    dbResult.value = { success: false, message: `网络错误：${(e as Error).message}` }
     dbConnected.value = false
   } finally { testing.value = false }
 }
@@ -204,8 +204,8 @@ async function createTables() {
       tableProgressText.value = '建表失败：' + (data.message || '')
       steps[1].status = 'failed'
     }
-  } catch (e: any) {
-    tableProgressText.value = '建表失败：' + e.message
+  } catch (e: unknown) {
+    tableProgressText.value = '建表失败：' + (e as Error).message
     steps[1].status = 'failed'
   } finally { creating.value = false }
 }
@@ -232,8 +232,8 @@ async function seedData() {
       seedProgressText.value = '导入失败：' + (data.message || '')
       steps[2].status = 'failed'
     }
-  } catch (e: any) {
-    seedProgressText.value = '导入失败：' + e.message
+  } catch (e: unknown) {
+    seedProgressText.value = '导入失败：' + (e as Error).message
     steps[2].status = 'failed'
   } finally { seeding.value = false }
 }

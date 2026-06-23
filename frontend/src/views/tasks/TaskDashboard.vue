@@ -39,7 +39,7 @@
         :templates="templates"
         @quick-task="quickTask"
         @send="handleCallingSend"
-        @agent-select="onAgentSelect"
+        @agent-select="onAgentSelect($event as AgentEntry)"
         @template-edit="handleTemplateEdit"
         @template-remove="removeTemplate"
         @template-add="handleTemplateAdd"

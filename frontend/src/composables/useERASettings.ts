@@ -69,7 +69,7 @@ const STORAGE_KEY = 'era_settings'
 
 const defaultWorkspace = () => {
   // 优先使用环境注入的工作区路径，否则使用浏览器当前页面的 origin 推断
-  const cwd = (window as any).__ERA_WORKSPACE__ || ''
+  const cwd = (window as unknown as { __ERA_WORKSPACE__?: string }).__ERA_WORKSPACE__ || ''
   if (cwd) return cwd
   // 默认指向当前项目所在的工作空间目录（openoba-starter 根）
   // 用户可在设置中自行修改
@@ -136,12 +136,12 @@ function load(): ERASettings {
   return defaults()
 }
 
-function deepMerge<T extends Record<string, any>>(base: T, override: Partial<T>): T {
-  const result = { ...base } as Record<string, any>
+function deepMerge<T extends Record<string, unknown>>(base: T, override: Partial<T>): T {
+  const result = { ...base } as Record<string, unknown>
   for (const key of Object.keys(base)) {
     if (override[key] !== undefined) {
       if (typeof base[key] === 'object' && !Array.isArray(base[key]) && typeof override[key] === 'object') {
-        result[key] = deepMerge(base[key], override[key] as any)
+        result[key] = deepMerge(base[key] as Record<string, unknown>, override[key] as Record<string, unknown>)
       } else {
         result[key] = override[key]
       }

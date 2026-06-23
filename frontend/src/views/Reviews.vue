@@ -166,7 +166,7 @@ const reviewStatusDict = useDict('dict_review_status');
 const reviewStatusItems = computed(() => reviewStatusDict.items.value);
 const REVIEW_STATUS = { pending: 'pending', approved: 'approved', rejected: 'rejected' } as const;
 
-const reviewList = ref<any[]>([]);
+const reviewList = ref<Record<string, unknown>[]>([]);
 const loading = ref(false);
 const total = ref(0);
 const page = ref(1);
@@ -199,7 +199,7 @@ const updateStats = () => {
   stats.pending = reviewList.value.filter((r: Record<string, unknown>) => r.status === 'pending').length;
   stats.approved = reviewList.value.filter((r: Record<string, unknown>) => r.status === 'approved').length;
   const approved = reviewList.value.filter((r: Record<string, unknown>) => r.status === 'approved' && r.overallScore);
-  stats.avgScore = approved.length > 0 ? (approved.reduce((s: number, r: any) => s + r.overallScore, 0) / approved.length).toFixed(1) : '-';
+  stats.avgScore = approved.length > 0 ? (approved.reduce((s: number, r: Record<string, unknown>) => s + (r.overallScore as number), 0) / approved.length).toFixed(1) : '-';
   const today = new Date().toISOString().slice(0, 10);
   stats.todayCount = reviewList.value.filter((r: Record<string, unknown>) => String(r.createdAt ?? '').startsWith(today)).length;
 };
@@ -212,7 +212,7 @@ const statusLabel = (s: string) => reviewStatusDict.labels.value[s] || { pending
 
 // 详情
 const detailVisible = ref(false);
-const currentReview = ref<any>(null);
+const currentReview = ref<Record<string, unknown> | null>(null);
 const openDetailDialog = (row: Record<string, unknown>) => { currentReview.value = row; detailVisible.value = true; };
 
 // 通过/拒绝

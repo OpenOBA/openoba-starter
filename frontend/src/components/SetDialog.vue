@@ -95,8 +95,8 @@ import request from '@/api/request'
 const props = defineProps<{
   visible: boolean
   editRow?: Record<string, unknown> | null
-  skuListForSelect: any[]
-  categoryList: any[]
+  skuListForSelect: Record<string, unknown>[]
+  categoryList: Record<string, unknown>[]
 }>()
 
 const emit = defineEmits<{
@@ -107,7 +107,7 @@ const emit = defineEmits<{
 const internalVisible = ref(false)
 
 // ===== 套装表单 =====
-const setForm = reactive<any>({
+const setForm = reactive<Record<string, unknown>>({
   setId: '', setCode: '', setName: '', setPrice: 0, originalTotalPrice: 0,
   categoryId: '', discountRate: 0.9, description: '', mainImage: '', status: 'draft',
 })
@@ -119,7 +119,7 @@ const selectedSkuRows = computed(() =>
 )
 
 const totalRetailPrice = computed(() =>
-  selectedSkuRows.value.reduce((sum: number, s: any) => sum + Number(s.retailPrice || 0), 0)
+  selectedSkuRows.value.reduce((sum: number, s) => sum + Number((s as Record<string, unknown>).retailPrice || 0), 0)
 )
 
 const discountRatePercent = computed(() => {
@@ -187,7 +187,7 @@ async function handleSaveSet() {
     emit('saved')
     internalVisible.value = false
   } catch (e: unknown) {
-    ElMessage.error((e as any).response?.data?.message || (e as any).message || '保存失败')
+    ElMessage.error((e as Error).message || '保存失败')
   }
 }
 

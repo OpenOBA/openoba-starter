@@ -3,11 +3,11 @@
 
 import request from '../api/request';
 
-const cache: Record<string, any[]> = {};
+const cache: Record<string, Record<string, unknown>[]> = {};
 
-export async function getDictCache(tableName: string): Promise<any[]> {
+export async function getDictCache(tableName: string): Promise<Record<string, unknown>[]> {
   if (!cache[tableName]) {
-    const res = await request.get<any[]>(`/dictionary/${tableName}`);
+    const res = await request.get<Record<string, unknown>[]>(`/dictionary/${tableName}`);
     cache[tableName] = res;
   }
   return cache[tableName];

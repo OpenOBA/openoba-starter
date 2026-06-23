@@ -25,10 +25,10 @@
 <script setup lang="ts">
 defineProps<{
   spuSearch: { keyword: string; gender: string; status: string; productTier: string }
-  genderOptions: any[]
-  statusOptions: any[]
-  tierList: any[]
-  spuSelection: any[]
+  genderOptions: Record<string, unknown>[]
+  statusOptions: Record<string, unknown>[]
+  tierList: Record<string, unknown>[]
+  spuSelection: Record<string, unknown>[]
 }>()
 
 defineEmits<{

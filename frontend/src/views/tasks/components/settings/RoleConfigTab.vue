@@ -47,7 +47,7 @@ import { ref, onMounted } from 'vue'
 import request from '@/api/request'
 
 const props = defineProps<{
-  s: { agent?: { workspacePath?: string; logRetentionDays?: number; autoArchiveLogs?: boolean; docFormat?: string; codeStyle?: string; creativity?: number; autoApprove?: boolean }; notifications?: { enabled?: boolean; channels?: string[] }; [key:string]: unknown }
+  s: { agent?: { workspacePath?: string; logRetentionDays?: number; autoArchiveLogs?: boolean; docFormat?: string; codeStyle?: string; creativity?: number; autoApprove?: boolean; autoRefineMemory?: boolean; defaultModel?: string; maxRetries?: number; timeoutSeconds?: number }; notifications?: { enabled?: boolean; channels?: string[]; taskComplete?: boolean; errorAlert?: boolean }; [key:string]: unknown }
   resetSection: (section: string) => void
 }>()
 

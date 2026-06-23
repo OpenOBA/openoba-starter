@@ -28,9 +28,9 @@
 <script setup lang="ts">
 defineProps<{
   query: { keyword: string; status: string; paymentStatus: string; orderType: string; page: number; pageSize: number }
-  orderStatusItems: any[]
-  paymentStatusItems: any[]
-  customerTypeItems: any[]
+  orderStatusItems: Record<string, unknown>[]
+  paymentStatusItems: Record<string, unknown>[]
+  customerTypeItems: Record<string, unknown>[]
 }>()
 
 defineEmits<{

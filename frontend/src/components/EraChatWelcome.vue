@@ -127,9 +127,9 @@ import CallingInput from '@/components/CallingInput.vue'
 interface TemplateItem { icon: string; text: string; fill: string }
 
 const props = defineProps<{
-  agentList: any[]
+  agentList: Record<string, unknown>[]
   creating: boolean
-  messages: any[]
+  messages: Record<string, unknown>[]
   taskDone: boolean
   templates: TemplateItem[]
 }>()
@@ -137,7 +137,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   quickTask: [type: string]
   send: [payload: { text: string; agentIds: string[]; taskType?: string }]
-  agentSelect: [agent: any]
+  agentSelect: [agent: unknown]
   templateEdit: [index: number]
   templateRemove: [index: number]
   templateAdd: []

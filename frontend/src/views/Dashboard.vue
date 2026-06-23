@@ -217,10 +217,10 @@ const hotwords = ref<Array<{
 }>>([])
 
 async function loadStats() {
-  try { const r: any = await getCustomerList({ page: 1, pageSize: 1 }); stats.totalCustomers = r.total || r.data?.total || 0 } catch {}
-  try { const r: any = await getOrderStats(); const d = r.data || r; stats.pendingOrders = d.pendingCount || d.pending || 0 } catch {}
-  try { const r: any = await getSpus({ page: 1, pageSize: 1 }); stats.totalProducts = r.total || r.data?.total || 0 } catch {}
-  try { const r: any = await getAfterSalesStats(); const d = r.data || r; stats.pendingAfterSales = d.pending || 0 } catch {}
+  try { const r = await getCustomerList({ page: 1, pageSize: 1 }) as unknown as { total?: number; data?: { total?: number } }; stats.totalCustomers = r.total || r.data?.total || 0 } catch { /* ignore */ }
+  try { const r = await getOrderStats() as unknown as { data?: { pendingCount?: number; pending?: number }; pendingCount?: number; pending?: number }; const d = r.data || r; stats.pendingOrders = d.pendingCount || d.pending || 0 } catch { /* ignore */ }
+  try { const r = await getSpus({ page: 1, pageSize: 1 }) as unknown as { total?: number; data?: { total?: number } }; stats.totalProducts = r.total || r.data?.total || 0 } catch { /* ignore */ }
+  try { const r = await getAfterSalesStats() as unknown as { data?: { pending?: number }; pending?: number }; const d = r.data || r; stats.pendingAfterSales = d.pending || 0 } catch { /* ignore */ }
 }
 
 async function loadErosStats() {
@@ -271,7 +271,7 @@ async function loadHotwords() {
 async function checkLLM() {
   try {
     const res = await request.get('/eros/agent-tools')
-    llmStatus.value = (res && (Array.isArray(res) || Array.isArray((res as any)?.items))) ? '已连接' : '未配置'
+    llmStatus.value = (res && (Array.isArray(res) || Array.isArray((res as unknown as { items?: unknown[] })?.items))) ? '已连接' : '未配置'
   } catch { llmStatus.value = '未配置' }
 }
 

@@ -335,15 +335,15 @@ const displayNameMap: Record<string, string> = {
 export function useDictionary() {
   const loading = ref(false)
   const dataLoading = ref(false)
-  const dictList = ref<any[]>([])
-  const selectedDict = ref<any>(null)
-  const dictData = ref<any[]>([])
-  const dictSelection = ref<any[]>([])
-  const dictColumns = ref<any[]>([])
+  const dictList = ref<Record<string, unknown>[]>([])
+  const selectedDict = ref<Record<string, unknown> | null>(null)
+  const dictData = ref<Record<string, unknown>[]>([])
+  const dictSelection = ref<Record<string, unknown>[]>([])
+  const dictColumns = ref<Array<{ key: string; label: string; type: string }>>([])
   const dialogVisible = ref(false)
   const dialogTitle = ref('新增')
-  const form = ref<Record<string, any>>({})
-  const formFields = ref<any[]>([])
+  const form = ref<Record<string, unknown>>({})
+  const formFields = ref<Array<{ key: string; label: string; type: string }>>([])
   const saving = ref(false)
   const editMode = ref<'add' | 'edit'>('add')
 
@@ -354,7 +354,7 @@ export function useDictionary() {
   async function loadDictList() {
     loading.value = true
     try {
-      const res: any = await request.get('/dict')
+      const res = await request.get('/dict') as unknown as { data?: string[] }
       const tables: string[] = res.data || res || []
       dictList.value = tables.map((name: string, index: number) => ({
         index: index + 1, tableName: name, displayName: displayNameMap[name] || name,
@@ -370,7 +370,7 @@ export function useDictionary() {
     selectedDict.value = row
     dataLoading.value = true
     try {
-      const res: any = await request.get(`/dict/${row.tableName}`)
+      const res = await request.get(`/dict/${row.tableName}`) as unknown as { data?: Record<string, unknown>[] }
       const items = res.data || res || []
       dictData.value = Array.isArray(items) ? items : []
       const config = dictFieldConfigs[String(row.tableName ?? '')]
@@ -446,10 +446,11 @@ export function useDictionary() {
   function onBatchEdit() { if(dictSelection.value.length===1) openEdit(dictSelection.value[0]); else if(dictSelection.value.length>1) ElMessage.warning('暂仅支持单条编辑'); }
   async function onBatchDelete() {
     try {
-      const config = getFormConfig(selectedDict.value.tableName)
+      if (!selectedDict.value) return
+      const config = getFormConfig(selectedDict.value.tableName as string)
       const keyField = config?.keyField ?? ''
-      for(const r of dictSelection.value) await request.delete(`/dict/${selectedDict.value.tableName}/${encodeURIComponent(String(r[keyField] ?? ''))}`)
-      dictSelection.value=[]; await onSelectDict(selectedDict.value); ElMessage.success('批量删除成功')
+      for(const r of dictSelection.value) await request.delete(`/dict/${selectedDict.value.tableName}/${encodeURIComponent(String((r as Record<string, unknown>)[keyField] ?? ''))}`)
+      dictSelection.value=[]; await onSelectDict(selectedDict.value as unknown as Record<string, unknown>); ElMessage.success('批量删除成功')
     } catch { ElMessage.error('删除失败') }
   }
 

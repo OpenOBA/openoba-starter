@@ -96,7 +96,7 @@ import request from '@/api/request'
 
 const props = defineProps<{
   attributes: SchemaAttribute[]
-  model: Record<string, any>
+  model: Record<string, unknown>
   /** 字段可见性控制（隐藏某些字段） */
   hiddenKeys?: string[]
   /** 额外选项覆盖（用于替代 dict 默认值） */
@@ -110,7 +110,7 @@ const props = defineProps<{
   /** 是否禁用 */
   disabled?: boolean
   /** 变化回调 */
-  onChange?: (key: string, value: any) => void
+  onChange?: (key: string, value: unknown) => void
 }>()
 
 const dictCache = ref<Record<string, { label: string; value: string }[]>>({})
@@ -143,7 +143,7 @@ async function loadDicts() {
 
   for (const table of dictTables) {
     try {
-      const res = await request.get(`/dict/${table}`) as Record<string,any>
+      const res = await request.get(`/dict/${table}`) as Record<string, unknown>
       const items = res.data?.items || res.data || []
       dictCache.value[table] = items.map((item: Record<string, unknown>) => ({
         label: item.name || item.label || item.code || '',
@@ -156,7 +156,7 @@ async function loadDicts() {
   }
 }
 
-function handleChange(key: string, value: any) {
+function handleChange(key: string, value: unknown) {
   props.onChange?.(key, value)
 }
 

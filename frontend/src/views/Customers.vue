@@ -250,7 +250,7 @@ watch(() => dictLevel.error.value, (error) => {
 
 const loading = ref(false)
 const saving = ref(false)
-const tableData = ref<any[]>([])
+const tableData = ref<Record<string, unknown>[]>([])
 const total = ref(0)
 const dialogVisible = ref(false)
 const detailVisible = ref(false)
@@ -259,8 +259,8 @@ const selectedCustomerId = ref('')
 const formRef = ref<FormInstance>()
 const isEdit = ref(false)
 const editId = ref('')
-const selectedRows = ref<any[]>([])
-const handleSelectionChange = (rows: any[]) => { selectedRows.value = rows }
+const selectedRows = ref<Record<string, unknown>[]>([])
+const handleSelectionChange = (rows: Record<string, unknown>[]) => { selectedRows.value = rows }
 
 const query = reactive({ page: 1, pageSize: 20, keyword: '', customerType: '', customerLevel: '', status: '' })
 
@@ -304,7 +304,7 @@ function resetQuery() {
   loadData()
 }
 
-async function openDialog(row?: any) {
+async function openDialog(row?: Record<string, unknown>) {
   // 强制刷新字典缓存，确保弹窗中下拉选项为最新数据
   await Promise.all([dictType.forceReload(), dictLevel.forceReload()])
   

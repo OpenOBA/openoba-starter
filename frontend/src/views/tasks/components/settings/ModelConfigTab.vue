@@ -110,17 +110,18 @@ const keyRows = ref<KeyRow[]>([])
 async function loadKeyRows() {
   try {
     const [providersRes, keysRes] = await Promise.all([
-      request.get('/system/llm/providers') as Promise<any>,
-      request.get('/system/llm/keys') as Promise<any>,
+      request.get('/system/llm/providers') as Promise<Record<string, unknown>>,
+      request.get('/system/llm/keys') as Promise<Record<string, unknown>>,
     ])
     const providers = providersRes?.success ? providersRes.providers : []
     const keys = Array.isArray(keysRes) ? keysRes : (keysRes?.keys || [])
     const rows: KeyRow[] = []
     for (const p of providers) {
-      const keyInfo = keys.find((k: any) => k.providerCode === p.providerCode)
+      const keyInfo = (keys as unknown as Record<string, unknown>[]).find((k) => k.providerCode === (p as unknown as Record<string, unknown>).providerCode)
       const hasKey = p.hasKey || keyInfo?.hasKey || false
       for (const m of (p.models || [])) {
-        const modelKeyInfo = keyInfo?.models?.find((mk: any) => mk.modelCode === m.modelCode || mk.modelCode === m.id)
+        const models = (keyInfo as unknown as Record<string, unknown>)?.models as unknown as Record<string, unknown>[]
+        const modelKeyInfo = models?.find((mk) => mk.modelCode === (m as unknown as Record<string, unknown>).modelCode || mk.modelCode === (m as unknown as Record<string, unknown>).id)
         const isDefault = modelKeyInfo?.isDefault || false
         rows.push({
           keyId: keyInfo?.id || '', registryId: m.id || '',
@@ -143,7 +144,7 @@ async function doSaveKey(row: KeyRow) {
   if (!row.editKey) { ElMessage.warning('请输入 API Key'); return }
   row.saving = true
   try {
-    const res: any = await request.post('/system/llm/config', { provider: row.providerCode, apiKey: row.editKey, modelCode: row.modelCode })
+    const res = await request.post('/system/llm/config', { provider: row.providerCode, apiKey: row.editKey, modelCode: row.modelCode }) as unknown as Record<string, unknown>
     if (res?.success === false) { ElMessage.error(res?.error || '保存失败'); return }
     row.hasKey = true; row.maskedKey = '●●●●****'; row.editing = false; row.editKey = ''
     ElMessage.success(`${row.provider} · ${row.model} Key 已保存`)
@@ -154,7 +155,7 @@ async function doSaveKey(row: KeyRow) {
 
 async function doSetDefault(row: KeyRow) {
   try {
-    const res: any = await request.post('/system/llm/config/set-default', { provider: row.providerCode, modelCode: row.modelCode })
+    const res = await request.post('/system/llm/config/set-default', { provider: row.providerCode, modelCode: row.modelCode }) as unknown as Record<string, unknown>
     if (res?.success === false) { ElMessage.error(res?.error || '操作失败'); return }
     ElMessage.success(res?.isDefault ? '已设为默认' : '已取消默认'); await loadKeyRows(); emit('modelsUpdated')
   } catch { ElMessage.error('操作失败') }
@@ -192,7 +193,7 @@ async function doAddProvider() {
   }
   addingProvider.value = true
   try {
-    const res: any = await request.post('/system/llm/config', {
+    const res = await request.post('/system/llm/config', {
       provider: addProviderForm.code, apiKey: addProviderForm.apiKey || '',
       baseUrl: addProviderForm.baseUrl, modelCode: addProviderForm.modelName,
       providerName: addProviderForm.name, customProviderCode: addProviderForm.code,
@@ -220,11 +221,11 @@ function obaKeyFormatted() { apiKey.obaKey = apiKey.obaKey.toUpperCase().trim() 
 async function activateObaKey() {
   activatingOba.value = true; obaError.value = ''
   try {
-    const res = await request.post('/system/license/activate', { key: apiKey.obaKey }) as Record<string,any>
+    const res = await request.post('/system/license/activate', { key: apiKey.obaKey }) as Record<string, unknown>
     obaStatus.value = 'active'; obaQuota.value = (res.quota || '-') as string; obaSeats.value = (res.seats || '-') as string
     localStorage.setItem(LLM_KEY_STORAGE, JSON.stringify({ obaKey: apiKey.obaKey }))
     ElMessage.success('OpenOBA Key 已激活')
-  } catch (e: any) {
+  } catch (e: unknown) {
     obaStatus.value = 'error'; obaError.value = e?.response?.data?.message || '激活失败，请检查 Key 是否正确'
   } finally { activatingOba.value = false }
 }

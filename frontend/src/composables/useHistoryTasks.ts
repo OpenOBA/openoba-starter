@@ -2,15 +2,15 @@ import { ref } from 'vue'
 import { queryTasks } from '@/api/task-engine'
 
 export function useHistoryTasks() {
-  const historyTasks = ref<any[]>([])
+  const historyTasks = ref<Record<string, unknown>[]>([])
   const historyLoading = ref(false)
 
   async function loadHistoryTasks() {
     historyLoading.value = true
     try {
-      const res: any = await queryTasks({ pageSize: 20 })
+      const res = await queryTasks({ pageSize: 20 }) as unknown as { items?: Record<string, unknown>[]; data?: { items?: Record<string, unknown>[] } }
       const items = res?.items || res?.data?.items || []
-      historyTasks.value = items.filter((t: any) =>
+      historyTasks.value = items.filter((t) =>
         ['drafted', 'proposed', 'executing', 'completed', 'delivered', 'published', 'cancelled', 'aborted'].includes(t.status),
       )
     } catch { /* ignore */ }

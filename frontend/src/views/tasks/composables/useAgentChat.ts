@@ -62,8 +62,8 @@ interface ChatSSEEvent {
 }
 
 export function useAgentChat(
-  messages: { value: any[] },
-  triggerRef: (v: any) => void,
+  messages: { value: Record<string, unknown>[] },
+  triggerRef: (v: Record<string, unknown>) => void,
   onEvent: (json: ChatSSEEvent, msgIdx: number) => void,
   _onSaveCache: () => void,
   onSaveReActCache: () => void,
@@ -71,7 +71,7 @@ export function useAgentChat(
   formatTime: (isoStr?: string) => string,
   formatFooterTime: () => string,
   syncProposals: (proposals: Array<{ version: number; content: string; timestamp: string; status: string }>) => void,
-  insertSummary: (t: any, fileUrl: string, fileName: string) => void,
+  insertSummary: (t: Record<string, unknown>, fileUrl: string, fileName: string) => void,
 ) {
   const route = useRoute()
   const router = useRouter()
@@ -81,15 +81,15 @@ export function useAgentChat(
   const taskId = computed(() => route.params.id as string)
   const taskTitle = ref('')
   const taskDone = ref(false)
-  const taskInfo = ref<any>(null)
-  const logs = ref<any[]>([])
+  const taskInfo = ref<Record<string, unknown> | null>(null)
+  const logs = ref<Record<string, unknown>[]>([])
   const inputText = ref('')
   const agentLoading = ref(false)
   const isLoading = ref(false)
   const isStreaming = ref(false)
   const agreeing = ref(false)
   const usedModel = ref('')
-  const historyTasks = ref<any[]>([])
+  const historyTasks = ref<Record<string, unknown>[]>([])
   const historyLoading = ref(false)
   const chatBodyRef = ref<HTMLElement>()
 
@@ -106,9 +106,9 @@ export function useAgentChat(
   async function loadHistoryTasks() {
     historyLoading.value = true
     try {
-      const res: any = await queryTasks({ pageSize: 20 })
+      const res = await queryTasks({ pageSize: 20 }) as unknown as { items?: Record<string, unknown>[]; data?: { items?: Record<string, unknown>[] } }
       const items = res?.items || res?.data?.items || []
-      historyTasks.value = items.filter((t: any) =>
+      historyTasks.value = items.filter((t) =>
         ['drafted', 'proposed', 'executing', 'completed', 'delivered', 'published', 'cancelled', 'aborted'].includes(t.status)
       )
     } catch { }
@@ -140,7 +140,7 @@ export function useAgentChat(
         try {
           const parsed = JSON.parse(cached)
           if (Array.isArray(parsed) && parsed.length > 0) {
-            messages.value = parsed.map((m: any) => ({
+            messages.value = parsed.map((m: Record<string, unknown>) => ({
               role: m.role,
               content: m.content || '',
               time: m.time || '',
@@ -163,7 +163,7 @@ export function useAgentChat(
       }
 
       const ctx = (t.context || {}) as Record<string, unknown>
-      const proposals = (t.proposals || []) as any[]
+      const proposals = (t.proposals || []) as Record<string, unknown>[]
       console.log('🔍 AgentChat: localStorage 无缓存, proposals=' + proposals.length + '条, status=' + t.status)
 
       if (proposals.length > 0) {
@@ -214,7 +214,7 @@ export function useAgentChat(
       let fileUrl = ''
       let fileName = ''
       try {
-        const json: any = await request.post(`/eros/tasks/${taskId.value}/export-md`)
+        const json = await request.post(`/eros/tasks/${taskId.value}/export-md`) as unknown as Record<string, unknown>
         fileUrl = json?.url || ''
         fileName = json?.fileName || ''
       } catch { /* ignore */ }
@@ -307,7 +307,7 @@ export function useAgentChat(
         onSaveReActCache()
       })
 
-      const history = messages.value.slice(0, -2).map((m: any) => ({ role: m.role, content: m.content }))
+      const history = messages.value.slice(0, -2).map((m) => ({ role: m.role, content: m.content }))
       ws.send('chat.send', { sessionKey: taskId.value, message: text, history, idempotencyKey, model: eraSettings.agent.defaultModel })
       agentLoading.value = true
       return
@@ -317,7 +317,7 @@ export function useAgentChat(
     try {
       const token = localStorage.getItem('access_token') || ''
       pendingSendKeys.delete(idempotencyKey)
-      const sseHistory = messages.value.slice(0, -2).map((m: any) => ({ role: m.role, content: m.content }))
+      const sseHistory = messages.value.slice(0, -2).map((m) => ({ role: m.role, content: m.content }))
       const streamRes = await fetch('/api/eros/chat', {
         method: 'POST',
         headers: {

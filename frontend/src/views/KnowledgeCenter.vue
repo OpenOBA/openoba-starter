@@ -202,7 +202,7 @@ function typeTag(t: string) { return TYPE_TAG_MAP[t] || 'info' }
 
 const loading = ref(false)
 const saving = ref(false)
-const items = ref<any[]>([])
+const items = ref<Record<string, unknown>[]>([])
 const total = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
@@ -214,7 +214,7 @@ const tagCloud = ref<Array<{ tag: string; count: number }>>([])
 const showCreate = ref(false)
 const editingId = ref<string | null>(null)
 const showDetailDialog = ref(false)
-const detail = ref<any>(null)
+const detail = ref<Record<string, unknown> | null>(null)
 const fileList = ref<UploadFile[]>([])
 
 interface AttachMeta { name: string; type: string; url: string; size?: number }
@@ -316,7 +316,7 @@ function resetForm() {
 
 function showEdit(row: Record<string, unknown>) {
  editingId.value = String(row.id ?? '')
-  const r = row as Record<string, any>;
+  const r = row as Record<string, unknown>;
   form.title = String(r.title ?? ''); form.type = String(r.type ?? ''); form.tags = Array.isArray(r.tags) ? [...r.tags] : []; form.content = String(r.content ?? '')
  form.visibility = String(r.visibility ?? ''); form.contributor = String(r.contributor ?? 'Henry')
  form.existingAttachments = Array.isArray(r.attachments) ? [...r.attachments] : []
