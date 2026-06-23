@@ -281,14 +281,14 @@ export class CustomerMemberService {
         memberCount: Number(s.memberCount || 0),
         active30d: Number(s.active30d || 0),
         active90d: Number(s.active90d || 0),
-        avgSpent: parseFloat(s.avgSpent || '0'),
-        totalRevenue: parseFloat(s.totalRevenue || '0'),
-        avgOrders: parseFloat(s.avgOrders || '0'),
+        avgSpent: parseFloat((s.avgSpent as string) || '0'),
+        totalRevenue: parseFloat((s.totalRevenue as string) || '0'),
+        avgOrders: parseFloat((s.avgOrders as string) || '0'),
       },
       levelDistribution: (levelDist || []).map((l: Record<string, unknown>) => ({
         level: l.level,
         count: Number(l.cnt || 0),
-        totalSpent: parseFloat(l.totalSpent || '0'),
+        totalSpent: parseFloat((l.totalSpent as string) || '0'),
       })),
     }
   }
@@ -342,9 +342,9 @@ export class CustomerMemberService {
       .take(pageSize)
       .getManyAndCount()
 
-    const enriched = items.map((c: Record<string, unknown>) => {
-      const daysSinceLastActive = c.lastActiveAt
-        ? Math.floor((Date.now() - new Date(c.lastActiveAt).getTime()) / (1000 * 60 * 60 * 24))
+    const enriched = items.map((c) => {
+      const daysSinceLastActive = (c as Record<string, unknown>).lastActiveAt
+        ? Math.floor((Date.now() - new Date((c as Record<string, unknown>).lastActiveAt as string).getTime()) / (1000 * 60 * 60 * 24))
         : 999
       let activityStatus = 'inactive'
       if (daysSinceLastActive <= 30) activityStatus = 'active'

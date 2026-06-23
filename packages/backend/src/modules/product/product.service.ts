@@ -37,16 +37,16 @@ export class ProductService {
   }
 
   // ===== SPU =====
-  async findSpus(query: unknown): Promise<unknown> {
+  async findSpus(query: Record<string, unknown>): Promise<unknown> {
     return this.spuService.findSpus(query)
   }
   async findOneSpu(id: string): Promise<unknown> {
     return this.spuService.findOneSpu(id)
   }
-  async createSpu(dto: unknown): Promise<unknown> {
+  async createSpu(dto: Record<string, unknown>): Promise<unknown> {
     return this.spuService.createSpu(dto)
   }
-  async updateSpu(id: string, dto: unknown): Promise<unknown> {
+  async updateSpu(id: string, dto: Record<string, unknown>): Promise<unknown> {
     return this.spuService.updateSpu(id, dto)
   }
   async deleteSpu(id: string): Promise<unknown> {
@@ -76,16 +76,16 @@ export class ProductService {
   }
 
   // ===== 套装 =====
-  async findSets(query: unknown): Promise<unknown> {
+  async findSets(query: Record<string, unknown>): Promise<unknown> {
     return this.setService.findSets(query)
   }
   async findOneSet(id: string): Promise<unknown> {
     return this.setService.findOneSet(id)
   }
-  async createSet(dto: CreateSetDto): Promise<unknown> {
+  async createSet(dto: Record<string, unknown>): Promise<unknown> {
     return this.setService.createSet(dto)
   }
-  async updateSet(id: string, dto: UpdateSetDto): Promise<unknown> {
+  async updateSet(id: string, dto: Record<string, unknown>): Promise<unknown> {
     return this.setService.updateSet(id, dto)
   }
   async deleteSet(id: string): Promise<unknown> {
