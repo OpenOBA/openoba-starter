@@ -1,14 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- TODO: 需要类型化 */
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { ProductSet } from './entity/product-set.entity'
+import { Category } from '../../product-category/entity/product-category.entity'
 
 @Injectable()
 export class SetService {
   constructor(@InjectRepository(ProductSet) private setRepo: Repository<ProductSet>) {}
 
-  async findSets(query: any) {
+  async findSets(query: Record<string, unknown>) {
     const { page = 1, pageSize = 20, keyword, status, categoryId } = query
     const qb = this.setRepo
       .createQueryBuilder('s')
@@ -31,7 +31,7 @@ export class SetService {
     return item
   }
 
-  async createSet(dto: any) {
+  async createSet(dto: Record<string, unknown>) {
     const { categoryId, ...rest } = dto
     // 自动生成套装编码 SET + 6位序号
     if (!rest.setCode) {
@@ -39,7 +39,7 @@ export class SetService {
     }
     const entity = this.setRepo.create({
       ...rest,
-      category: categoryId ? ({ categoryId } as any) : undefined,
+      category: categoryId ? ({ categoryId } as Partial<Category>) : undefined,
       isDeleted: false,
     })
     return this.setRepo.save(entity)
@@ -52,12 +52,12 @@ export class SetService {
     return result?.code || 'SET000001'
   }
 
-  async updateSet(id: string, dto: any) {
+  async updateSet(id: string, dto: Record<string, unknown>) {
     const item = await this.findOneSet(id)
     const { categoryId, ...rest } = dto
     Object.assign(item, rest)
     if (categoryId !== undefined) {
-      item.category = categoryId ? ({ categoryId } as any) : null
+      item.category = categoryId ? ({ categoryId } as Partial<Category>) : null
     }
     return this.setRepo.save(item)
   }

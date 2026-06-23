@@ -26,7 +26,7 @@ export class SchemaResolver {
   }
 
   /** 生成展示名（按 namingTemplate 替换变量） */
-  generateDisplayName(spu: Record<string, any>, sku: Record<string, any>, industry?: string): string {
+  generateDisplayName(spu: Record<string, unknown>, sku: Record<string, unknown>, industry?: string): string {
     const schema = this.getSchema(industry)
     let name = schema.product.namingTemplate
 
@@ -70,7 +70,7 @@ export class SchemaResolver {
   }
 
   /** 注册新行业 */
-  registerSchema(industry: string, schema: any): void {
+  registerSchema(industry: string, schema: Record<string, unknown>): void {
     registerSchema(industry, schema)
   }
 }

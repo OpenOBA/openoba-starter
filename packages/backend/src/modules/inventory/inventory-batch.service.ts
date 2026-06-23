@@ -204,7 +204,7 @@ export class InventoryBatchService {
    * 在外部事务中执行单据（消除嵌套事务）
    * 4R05修复：直接使用外部事务manager
    */
-  async executeDocumentInTx(manager: any, docId: string, operatorId?: string): Promise<void> {
+  async executeDocumentInTx(manager: EntityManager, docId: string, operatorId?: string): Promise<void> {
     const doc = await manager.findOne(InventoryDocument, { where: { id: docId } })
     if (!doc || doc.status !== 'confirmed') return
 
@@ -216,7 +216,7 @@ export class InventoryBatchService {
   /**
    * 执行单据中的单个行项目
    */
-  private async executeItem(manager: any, doc: InventoryDocument, item: any, operatorId?: string): Promise<void> {
+  private async executeItem(manager: EntityManager, doc: InventoryDocument, item: Record<string, unknown>, operatorId?: string): Promise<void> {
     const sku = await manager.findOne(Inventory, {
       where: { skuCode: item.skuCode, warehouseCode: item.warehouseCode || 'WH-MAIN' },
       lock: { mode: 'pessimistic_write' },

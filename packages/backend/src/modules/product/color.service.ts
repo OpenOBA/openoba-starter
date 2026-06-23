@@ -12,7 +12,7 @@ export class ColorService {
     @InjectRepository(ProductSku) private skuRepo: Repository<ProductSku>,
   ) {}
 
-  async findColors(query: any) {
+  async findColors(query: Record<string, unknown>) {
     const { page = 1, pageSize = 20, keyword, colorFamily, colorType } = query
     const qb = this.colorRepo.createQueryBuilder('c').where('1=1')
     if (keyword)
@@ -36,11 +36,11 @@ export class ColorService {
     return item
   }
 
-  async createColor(dto: any) {
+  async createColor(dto: Record<string, unknown>) {
     return this.colorRepo.save(this.colorRepo.create(dto))
   }
 
-  async updateColor(id: string, dto: any) {
+  async updateColor(id: string, dto: Record<string, unknown>) {
     const item = await this.findOneColor(id)
     Object.assign(item, dto)
     return this.colorRepo.save(item)

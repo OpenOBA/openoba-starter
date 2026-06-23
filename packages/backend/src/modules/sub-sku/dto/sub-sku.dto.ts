@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { IsString, IsOptional, IsInt, IsBoolean, IsNumber, IsJSON } from 'class-validator'
 
@@ -22,7 +22,7 @@ export class CreateSubSkuDto {
 
   @ApiPropertyOptional({ description: '规格参数值 JSON' })
   @IsOptional()
-  specValues?: Record<string, any>
+  specValues?: Record<string, unknown>
 
   @ApiPropertyOptional({ description: '结构标准ID' })
   @IsOptional()
@@ -96,7 +96,7 @@ export class UpdateSubSkuDto {
 
   @ApiPropertyOptional({ description: '规格参数值' })
   @IsOptional()
-  specValues?: Record<string, any>
+  specValues?: Record<string, unknown>
 
   @ApiPropertyOptional({ description: '结构标准ID' })
   @IsOptional()

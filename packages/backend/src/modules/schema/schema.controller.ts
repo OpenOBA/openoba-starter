@@ -96,8 +96,8 @@ export class SchemaController {
     industryScoped: true,
   })
   generateDisplayName(@Query('industry') industry?: string, @Query('spu') spu?: string, @Query('sku') sku?: string) {
-    let spuObj: Record<string, any> = {}
-    let skuObj: Record<string, any> = {}
+    let spuObj: Record<string, unknown> = {}
+    let skuObj: Record<string, unknown> = {}
     try {
       if (spu) spuObj = JSON.parse(spu)
       if (sku) skuObj = JSON.parse(sku)

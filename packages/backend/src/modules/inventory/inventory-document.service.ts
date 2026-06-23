@@ -68,7 +68,7 @@ export class InventoryDocumentService {
    * 单据执行核心逻辑（在外部事务中运行）
    * 4R05修复：直接使用外部事务manager，消除嵌套事务
    */
-  private async executeDocumentInTx(manager: any, docId: string, operatorId?: string): Promise<void> {
+  private async executeDocumentInTx(manager: EntityManager, docId: string, operatorId?: string): Promise<void> {
     const doc = await manager.findOne(InventoryDocument, { where: { id: docId } })
     if (!doc || doc.status !== 'confirmed') return
 

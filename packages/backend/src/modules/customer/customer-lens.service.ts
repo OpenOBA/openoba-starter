@@ -23,7 +23,7 @@ export class CustomerLensService {
   ) {}
 
   // ===== 验光处方 =====
-  async createPrescription(customerId: string, dto: any) {
+  async createPrescription(customerId: string, dto: Record<string, unknown>) {
     const id = `rx-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 6)}`
     return this.prescriptionRepo.save(
       this.prescriptionRepo.create({
@@ -50,7 +50,7 @@ export class CustomerLensService {
   }
 
   // ===== 客户镜片 =====
-  async createCustomerLens(customerId: string, dto: any) {
+  async createCustomerLens(customerId: string, dto: Record<string, unknown>) {
     const id = `cl-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 6)}`
     return this.customerLensRepo.save(
       this.customerLensRepo.create({
@@ -77,14 +77,14 @@ export class CustomerLensService {
       .getMany()
 
     const codes = [...new Set(lenses.map((l) => l.structureStandardCode).filter(Boolean))]
-    const lensMap = new Map<string, any>()
+    const lensMap = new Map<string, Record<string, unknown>>()
     if (codes.length > 0) {
       const placeholders = codes.map(() => '?').join(',')
       const rows = await this.dataSource.query(
         `SELECT external_code, shape_code, width, height, surface_types, refractive_indexes FROM structure_standard WHERE external_code IN (${placeholders})`,
         codes,
       )
-      rows.forEach((r: any) => lensMap.set(r.external_code, r))
+      rows.forEach((r: Record<string, unknown>) => lensMap.set(r.external_code as string, r))
     }
 
     return {
@@ -125,7 +125,7 @@ export class CustomerLensService {
   }
 
   // ===== 消费档案 =====
-  async createConsumptionProfile(customerLensId: string, dto: any) {
+  async createConsumptionProfile(customerLensId: string, dto: Record<string, unknown>) {
     const id = `cp-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 6)}`
     return this.consumptionProfileRepo.save(
       this.consumptionProfileRepo.create({

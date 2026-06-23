@@ -19,7 +19,7 @@ export class ProductSpuService {
     private dataSource: DataSource,
   ) {}
 
-  async findSpus(query: any) {
+  async findSpus(query: Record<string, unknown>) {
     const { page = 1, pageSize = 20, keyword, categoryId, status, seriesCode, gender, sceneTag, productTier } = query
     const qb = this.spuRepo
       .createQueryBuilder('s')
@@ -46,7 +46,7 @@ export class ProductSpuService {
     return item
   }
 
-  async createSpu(dto: any) {
+  async createSpu(dto: Record<string, unknown>) {
     const { gender, structureStandardCode, seriesCode, sceneTags, ...rest } = dto
     if (gender && !VALID_GENDERS.includes(gender)) {
       throw new BadRequestException(`无效的性别值: ${gender}`)
@@ -68,7 +68,7 @@ export class ProductSpuService {
     return this.spuRepo.save(spu)
   }
 
-  async updateSpu(id: string, dto: any) {
+  async updateSpu(id: string, dto: Record<string, unknown>) {
     const item = await this.findOneSpu(id)
     const { gender, structureStandardCode, categoryId, seriesCode, sceneTags, ...rest } = dto
     if (gender && !VALID_GENDERS.includes(gender)) {
@@ -122,7 +122,7 @@ export class ProductSpuService {
     return `${prefix}${String(next).padStart(4, '0')}`
   }
 
-  async generateSpuDisplayName(spuData: any): Promise<string> {
+  async generateSpuDisplayName(spuData: Record<string, unknown>): Promise<string> {
     const { structureStandardCode, seriesCode } = spuData
     if (!structureStandardCode) return '???系列'
     const structInfo = await this.getStructureInfo(structureStandardCode)

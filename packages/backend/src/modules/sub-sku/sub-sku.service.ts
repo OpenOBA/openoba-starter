@@ -61,7 +61,7 @@ export class SubSkuService {
   // ============ SubSku CRUD ============
 
   async findAll(query: QuerySubSkuDto) {
-    const where: any = {}
+    const where: Record<string, unknown> = {}
     if (query.categoryId) where.categoryId = query.categoryId
     if (query.isActive !== undefined) where.isActive = query.isActive
 
@@ -134,7 +134,7 @@ export class SubSkuService {
     // 非镜片类商品：直接使用传入的 name
     if (!dto.specValues) return dto.name || ''
 
-    const sv = dto.specValues as Record<string, any>
+    const sv = dto.specValues as Record<string, unknown>
     const brand = '秒镜'
     const func = sv.lens_function_display || sv.lens_function || ''
     const coat = sv.coating_display || sv.coating || ''
@@ -152,9 +152,9 @@ export class SubSkuService {
 
   // ============ 辅助 ============
 
-  private buildTree(categories: SubSkuCategory[]): any[] {
-    const map = new Map<string, any>()
-    const roots: any[] = []
+  private buildTree(categories: SubSkuCategory[]): Record<string, unknown>[] {
+    const map = new Map<string, Record<string, unknown>>()
+    const roots: Record<string, unknown>[] = []
 
     categories.forEach((c) => {
       map.set(c.id, { ...c, children: [] })

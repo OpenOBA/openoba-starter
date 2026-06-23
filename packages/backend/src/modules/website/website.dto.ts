@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm'
 
 /**
@@ -89,7 +89,7 @@ export class SpuDetailDto {
   description: string
   mainImage: string | null
   images: string[]
-  attributes: Record<string, any>
+  attributes: Record<string, unknown>
   structureStandardCode: string
   compatibilityLevels: string[]
   /** æä½ä»· */
@@ -128,7 +128,7 @@ export class SkuDetailDto {
   stockStatus: 'in_stock' | 'low_stock' | 'out_of_stock'
   availableQuantity: number
   salesVolume: number
-  skuAttributes: Record<string, any>
+  skuAttributes: Record<string, unknown>
   /** å¾çæç±»ååï¿½?*/
   images: Record<string, WebsiteImageDto[]>
   /** Phase 8B: ææ¯åæ°ï¼å±ç¤ºç¨ç²¾ç®ï¿½?+ å®æ´çï¼ */

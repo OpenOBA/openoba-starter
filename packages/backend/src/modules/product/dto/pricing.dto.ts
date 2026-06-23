@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- TypeORM DeepPartial 不兼容 Record<string,unknown> */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any -- TypeORM DeepPartial 不兼容 Record<string,unknown> */
 import { IsString, IsOptional, IsNumber, IsBoolean, IsInt, Min, Max } from 'class-validator'
 import { Type } from 'class-transformer'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
@@ -18,7 +18,7 @@ export class UpdateProductTierDto {
   @ApiPropertyOptional() @IsOptional() @IsString() positioning?: string
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Type(() => Number) sortOrder?: number
-  @ApiPropertyOptional() @IsOptional() extra?: Record<string, any>
+  @ApiPropertyOptional() @IsOptional() extra?: Record<string, unknown>
 }
 
 // ============ 批发阶梯 DTO ============
@@ -85,7 +85,7 @@ export class CreatePromotionDto {
   @ApiPropertyOptional() @IsOptional() @IsInt() @Type(() => Number) totalLimit?: number
   @ApiPropertyOptional() @IsOptional() @IsInt() @Type(() => Number) priority?: number
   @ApiPropertyOptional() @IsOptional() @IsBoolean() stackable?: boolean
-  @ApiPropertyOptional() @IsOptional() extra?: Record<string, any>
+  @ApiPropertyOptional() @IsOptional() extra?: Record<string, unknown>
 }
 
 export class UpdatePromotionDto {
@@ -104,7 +104,7 @@ export class UpdatePromotionDto {
   @ApiPropertyOptional() @IsOptional() @IsInt() @Type(() => Number) priority?: number
   @ApiPropertyOptional() @IsOptional() @IsBoolean() stackable?: boolean
   @ApiPropertyOptional() @IsOptional() @IsString() status?: string
-  @ApiPropertyOptional() @IsOptional() extra?: Record<string, any>
+  @ApiPropertyOptional() @IsOptional() extra?: Record<string, unknown>
 }
 
 export class QueryPromotionDto {
@@ -119,7 +119,7 @@ export class CreateMemberLevelDto {
   @ApiProperty() @IsString() levelCode: string
   @ApiProperty() @IsNumber() @Min(0) @Max(1) @Type(() => Number) discountRate: number
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Type(() => Number) upgradeThreshold?: number
-  @ApiPropertyOptional() @IsOptional() benefits?: Record<string, any>
+  @ApiPropertyOptional() @IsOptional() benefits?: Record<string, unknown>
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Type(() => Number) sortOrder?: number
 }
 
@@ -127,7 +127,7 @@ export class UpdateMemberLevelDto {
   @ApiPropertyOptional() @IsOptional() @IsString() levelName?: string
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) @Max(1) @Type(() => Number) discountRate?: number
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Type(() => Number) upgradeThreshold?: number
-  @ApiPropertyOptional() @IsOptional() benefits?: Record<string, any>
+  @ApiPropertyOptional() @IsOptional() benefits?: Record<string, unknown>
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Type(() => Number) sortOrder?: number
 }

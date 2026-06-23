@@ -69,7 +69,7 @@ export interface RuntimeConfig {
   tierLabels?: Record<string, { name: string; color: string }>
 
   /** 额外配置（行业专属） */
-  extra?: Record<string, any>
+  extra?: Record<string, unknown>
 }
 
 /** Schema 属性定义 */

@@ -13,7 +13,7 @@ export class ExternalBarcodeMappingService {
     private repo: Repository<ExternalBarcodeMapping>,
   ) {}
 
-  async findAll(query: any) {
+  async findAll(query: Record<string, unknown>) {
     const { page = 1, pageSize = 20, keyword, structureStandardCode, status } = query
     const qb = this.repo.createQueryBuilder('m').where('1=1')
     if (keyword)
@@ -42,7 +42,7 @@ export class ExternalBarcodeMappingService {
     return item
   }
 
-  async create(dto: any) {
+  async create(dto: Record<string, unknown>) {
     const mappingId = dto.mappingId || `ebm-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`
     // 字段映射：请求用 barcode/skuId，Entity 用 externalBarcode/skuId
     const entity = this.repo.create({
@@ -60,7 +60,7 @@ export class ExternalBarcodeMappingService {
     return this.repo.save(entity)
   }
 
-  async update(id: string, dto: any) {
+  async update(id: string, dto: Record<string, unknown>) {
     const item = await this.findOne(id)
     Object.assign(item, dto)
     return this.repo.save(item)

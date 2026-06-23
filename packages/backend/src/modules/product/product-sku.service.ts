@@ -49,7 +49,7 @@ export class ProductSkuService {
     @InjectRepository(StructureStandard) private structRepo: Repository<StructureStandard>,
   ) {}
 
-  async findSkus(query: any) {
+  async findSkus(query: Record<string, unknown>) {
     const { page = 1, pageSize = 20, spuId, keyword, status, skuBarcode, ean13, productTier } = query
     const qb = this.skuRepo
       .createQueryBuilder('s')
@@ -77,7 +77,7 @@ export class ProductSkuService {
     return item
   }
 
-  async createSku(dto: any) {
+  async createSku(dto: Record<string, unknown>) {
     try {
       const { spuId, colorCode, ...rest } = dto
       if (!spuId) throw new BadRequestException('spuId 不能为空')
@@ -120,7 +120,7 @@ export class ProductSkuService {
     }
   }
 
-  async updateSku(id: string, dto: any) {
+  async updateSku(id: string, dto: Record<string, unknown>) {
     const item = await this.findOneSku(id)
     const { spuId, productTier: newTier, colorCode, ...rest } = dto
     const typedItem = item as Partial<ProductSku> & { productTier?: string; spu?: { productTier?: string } }
@@ -214,7 +214,7 @@ export class ProductSkuService {
     return `${spuCode}-${String(next).padStart(3, '0')}`
   }
 
-  async generateSkuDisplayName(skuData: any): Promise<string> {
+  async generateSkuDisplayName(skuData: Record<string, unknown>): Promise<string> {
     const spu = skuData.spu || (await this.spuRepo.findOne({ where: { spuId: skuData.spuId } }))
     if (!spu) return '??? · ???系列'
     const typedSpu = spu as Partial<ProductSpu> & {

@@ -55,7 +55,7 @@ export class OrderLifecycleService {
   ) {}
 
   // ===== 取消订单 =====
-  async cancelOrder(id: string, ensureExistsFn: () => Promise<any>, remark?: string, operator?: string) {
+  async cancelOrder(id: string, ensureExistsFn: () => Promise<unknown>, remark?: string, operator?: string) {
     const order = await ensureExistsFn()
     const allowed = VALID_TRANSITIONS[order.status]
     if (!allowed || !allowed.includes(ORDER_STATUS.cancelled)) {

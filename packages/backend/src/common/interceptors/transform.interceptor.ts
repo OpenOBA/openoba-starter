@@ -11,7 +11,7 @@ export const SkipTransform = () => SetMetadata('skipTransform', true)
 
 @Injectable()
 export class TransformInterceptor implements NestInterceptor {
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     // 检查是否标记了跳过转换（官网 API）
     const skipTransform = context.getHandler() ? Reflect.getMetadata('skipTransform', context.getHandler()) : false
 

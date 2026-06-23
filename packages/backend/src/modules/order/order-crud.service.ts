@@ -219,7 +219,7 @@ export class OrderCrudService {
     }
   }
 
-  async updateOrder(id: string, dto: UpdateOrderDto, ensureExistsFn: () => Promise<any>) {
+  async updateOrder(id: string, dto: UpdateOrderDto, ensureExistsFn: () => Promise<unknown>) {
     await ensureExistsFn()
     const allowedFields: Record<string, unknown> = {}
     if (dto.customerName !== undefined) allowedFields.customerName = dto.customerName
@@ -232,7 +232,7 @@ export class OrderCrudService {
     await this.orderRepo.update(id, allowedFields)
   }
 
-  async updateOrderStatus(id: string, dto: UpdateOrderStatusDto, ensureExistsFn: () => Promise<any>) {
+  async updateOrderStatus(id: string, dto: UpdateOrderStatusDto, ensureExistsFn: () => Promise<unknown>) {
     const order = await ensureExistsFn()
     const oldStatus = order.status
 

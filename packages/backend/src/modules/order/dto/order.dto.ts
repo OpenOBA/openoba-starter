@@ -15,7 +15,7 @@ export class OrderItemDto {
   @ApiProperty() @IsString() structureStandardCode: string
   @ApiPropertyOptional({ default: 'frame_only' }) @IsOptional() @IsString() orderFulfillmentType?: string
   @ApiPropertyOptional({ default: 'not_needed' }) @IsOptional() @IsString() lensStatus?: string
-  @ApiPropertyOptional() @IsOptional() skuAttributes?: Record<string, any>
+  @ApiPropertyOptional() @IsOptional() skuAttributes?: Record<string, unknown>
   @ApiPropertyOptional() @IsOptional() @IsString() frameColor?: string
   @ApiPropertyOptional() @IsOptional() @IsString() frameSize?: string
   @ApiPropertyOptional({ default: false }) @IsOptional() prescriptionRequired?: boolean
@@ -60,7 +60,7 @@ export class CreateOrderDto {
   @ApiPropertyOptional() @IsOptional() @IsString() internalRemark?: string
   @ApiPropertyOptional() @IsOptional() @IsString() source?: string
   @ApiPropertyOptional() @IsOptional() @IsString() createdBy?: string
-  @ApiPropertyOptional() @IsOptional() attributes?: Record<string, any>
+  @ApiPropertyOptional() @IsOptional() attributes?: Record<string, unknown>
 }
 
 export class UpdateOrderDto {

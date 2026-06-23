@@ -69,7 +69,7 @@ export class CustomerMemberService {
     return customer
   }
 
-  async scanMemberDowngrades(): Promise<{ count: number; details: any[] }> {
+  async scanMemberDowngrades(): Promise<{ count: number; details: Record<string, unknown>[] }> {
     const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
     const customers = await this.customerRepo
       .createQueryBuilder('c')
@@ -79,7 +79,7 @@ export class CustomerMemberService {
       .getMany()
 
     const downgradeOrder = ['gold', 'svip', 'vip', 'normal']
-    const details: any[] = []
+    const details: Record<string, unknown>[] = []
 
     for (const customer of customers) {
       const currentIndex = downgradeOrder.indexOf(customer.customerLevel || 'normal')
@@ -263,7 +263,7 @@ export class CustomerMemberService {
         .where('c.isDeleted = 0 AND c.customerType = :type', { type: 'retail' })
         .getRawOne()) || {}
 
-    const s: any = summary
+    const s: Record<string, unknown> = summary
     const levelDist =
       (await this.customerRepo
         .createQueryBuilder('c')
@@ -283,7 +283,7 @@ export class CustomerMemberService {
         totalRevenue: parseFloat(s.totalRevenue || '0'),
         avgOrders: parseFloat(s.avgOrders || '0'),
       },
-      levelDistribution: (levelDist || []).map((l: any) => ({
+      levelDistribution: (levelDist || []).map((l: Record<string, unknown>) => ({
         level: l.level,
         count: Number(l.cnt || 0),
         totalSpent: parseFloat(l.totalSpent || '0'),
@@ -340,7 +340,7 @@ export class CustomerMemberService {
       .take(pageSize)
       .getManyAndCount()
 
-    const enriched = items.map((c: any) => {
+    const enriched = items.map((c: Record<string, unknown>) => {
       const daysSinceLastActive = c.lastActiveAt
         ? Math.floor((Date.now() - new Date(c.lastActiveAt).getTime()) / (1000 * 60 * 60 * 24))
         : 999

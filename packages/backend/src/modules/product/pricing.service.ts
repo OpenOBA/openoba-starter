@@ -109,7 +109,7 @@ export class PricingService {
 
     // 批量查询 SKU 信息
     const skuIds = [...new Set(items.map((i) => i.skuId))]
-    const skuMap = new Map<string, any>()
+    const skuMap = new Map<string, Record<string, unknown>>()
     if (skuIds.length > 0) {
       const skus = await this.skuRepo.find({
         where: skuIds.map((id) => ({ skuId: id })),

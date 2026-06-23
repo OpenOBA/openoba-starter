@@ -146,7 +146,7 @@ export class OrderService {
     } catch (e: unknown) {
       this.logger.error(`会员资产更新失败 [${result.orderId}]: ${(e as Error).message}`)
       try {
-        await this.orderRepo.update(result.orderId, { internalRemark: 'MEMBER_UPDATE_FAILED' } as any)
+        await this.orderRepo.update(result.orderId, { internalRemark: 'MEMBER_UPDATE_FAILED' } as Partial<Order>)
       } catch (e2: unknown) {
         this.logger.error(`更新订单备注失败 [${result.orderId}]: ${(e2 as Error).message}`)
       }

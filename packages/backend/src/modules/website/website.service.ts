@@ -67,9 +67,9 @@ export class WebsiteService {
   // ============================================================
   // 商品目录（分页 + 筛选 + 排序）→ 委托 catalog-service
   // ============================================================
-  async getCatalog(query: any): Promise<PaginatedResponse<SpuCardDto>> {
+  async getCatalog(query: Record<string, unknown>): Promise<PaginatedResponse<SpuCardDto>> {
     const helpers: CatalogHelpers = {
-      mapSpuCards: (spus: any[]) => this.homeAggregator.mapSpuCards(spus),
+      mapSpuCards: (spus) => this.homeAggregator.mapSpuCards(spus),
     }
     return this.catalogService.getCatalog(query, helpers)
   }
@@ -91,9 +91,9 @@ export class WebsiteService {
   // ============================================================
   // 搜索 → 委托 catalog-service
   // ============================================================
-  async search(query: any): Promise<SearchResultDto> {
+  async search(query: Record<string, unknown>): Promise<SearchResultDto> {
     const helpers: SearchHelpers = {
-      mapSpuCards: (spus: any[]) => this.homeAggregator.mapSpuCards(spus),
+      mapSpuCards: (spus) => this.homeAggregator.mapSpuCards(spus),
     }
     return this.catalogService.search(query, helpers)
   }

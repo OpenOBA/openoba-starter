@@ -66,7 +66,7 @@ export class AgentManifestService {
   }
 
   /** 获取所有 Agent 清单（含关联用户信息） */
-  async findAll(): Promise<any[]> {
+  async findAll(): Promise<Record<string, unknown>[]> {
     // 使用 raw query 联表查询，避免 TypeORM 复杂 join
     try {
       const rows = await this.agentRepo.manager.query(`
@@ -100,7 +100,7 @@ export class AgentManifestService {
           u.real_name
       `)
       // 转换为 camelCase
-      return rows.map((row: any) => ({
+      return rows.map((row: Record<string, unknown>) => ({
         agentId: row.agent_id,
         agentCode: row.agent_code,
         agentName: row.agent_name,

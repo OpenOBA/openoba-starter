@@ -39,7 +39,7 @@ export class WebsiteCatalogService {
     @InjectRepository(DictSurfaceTreatment) private surfaceTreatmentRepo: Repository<DictSurfaceTreatment>,
   ) {}
 
-  async getCatalog(query: any, helpers: CatalogHelpers): Promise<PaginatedResponse<SpuCardDto>> {
+  async getCatalog(query: Record<string, unknown>, helpers: CatalogHelpers): Promise<PaginatedResponse<SpuCardDto>> {
     const {
       page = 1,
       pageSize = 20,
@@ -210,7 +210,7 @@ export class WebsiteCatalogService {
     }
   }
 
-  async search(query: any, helpers: SearchHelpers): Promise<SearchResultDto> {
+  async search(query: Record<string, unknown>, helpers: SearchHelpers): Promise<SearchResultDto> {
     const { keyword = '', page = 1, pageSize = 20 } = query
 
     if (!keyword.trim()) {
@@ -253,7 +253,7 @@ export class WebsiteCatalogService {
   }
 
   private buildTechSpec(
-    sku: any,
+    sku: Record<string, unknown>,
     matMap: Map<string, unknown>,
     typeMap: Map<string, unknown>,
     noseMap: Map<string, unknown>,

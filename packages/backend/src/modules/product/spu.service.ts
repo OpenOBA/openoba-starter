@@ -18,7 +18,7 @@ export class SpuService {
     private dataSource: DataSource,
   ) {}
 
-  async findSpus(query: any) {
+  async findSpus(query: Record<string, unknown>) {
     const { page = 1, pageSize = 20, keyword, categoryId, status, seriesCode, gender, sceneTag, productTier } = query
     const qb = this.spuRepo
       .createQueryBuilder('s')
@@ -45,7 +45,7 @@ export class SpuService {
     return item
   }
 
-  async createSpu(dto: any) {
+  async createSpu(dto: Record<string, unknown>) {
     const { categoryId, gender, spuCode, spuName, ...rest } = dto
     if (gender && !VALID_GENDERS.includes(gender)) {
       throw new BadRequestException(`款式必须是以下值之一: ${VALID_GENDERS.join(', ')}`)
@@ -67,7 +67,7 @@ export class SpuService {
     return this.spuRepo.save(entity)
   }
 
-  async updateSpu(id: string, dto: any) {
+  async updateSpu(id: string, dto: Record<string, unknown>) {
     const item = await this.findOneSpu(id)
     const { categoryId, gender, ...rest } = dto
     if (gender && !VALID_GENDERS.includes(gender)) {
@@ -161,7 +161,7 @@ export class SpuService {
     return NamingEngine.getSeriesChineseName(seriesCode)
   }
 
-  async generateSpuDisplayName(spuData: any): Promise<string> {
+  async generateSpuDisplayName(spuData: Record<string, unknown>): Promise<string> {
     const { structureStandardCode, seriesCode } = spuData
     if (!structureStandardCode) return '秒镜 ???'
 

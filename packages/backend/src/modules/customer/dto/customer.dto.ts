@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import { IsString, IsOptional, IsNumber, IsEnum, IsBoolean, IsEmail, Min, Max, IsArray, Matches } from 'class-validator'
 import { Type } from 'class-transformer'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
@@ -565,7 +565,7 @@ export class CreateCustomerLensDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  attributes?: Record<string, any>
+  attributes?: Record<string, unknown>
 }
 
 export class CreateConsumptionProfileDto {
@@ -611,5 +611,5 @@ export class CreateConsumptionProfileDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  attributes?: Record<string, any>
+  attributes?: Record<string, unknown>
 }
