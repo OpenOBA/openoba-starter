@@ -69,7 +69,24 @@ export function useCustomerOperations(
   async function handleDeleteLens(id: string) { await deleteCustomerLens(id); ElMessage.success('镜片已删除'); customerLenses.value = await getCustomerLenses(detail.value.customerId as string); try { lensSummary.value = await getCustomerLensSummary(detail.value.customerId as string) } catch { /* ignore */ } }
 
   // ===== 官网账户 =====
-  const websiteAccount = ref<Record<string, unknown> | null>(null)
+  interface WebsiteAccount {
+    contactName?: string
+    phone?: string
+    accountStatus?: string
+    customerCode?: string
+    hasPassword?: boolean
+    registeredAt?: string
+    lastLoginAt?: string
+    totalOrders?: number
+    totalAmount?: number
+    pointsBalance?: number
+    memberDiscountRate?: string
+    subscriptionStatus?: string
+    memberSince?: string
+    memberValidUntil?: string
+    [key: string]: unknown
+  }
+  const websiteAccount = ref<WebsiteAccount | null>(null)
   const loginLogs = ref<Record<string, unknown>[]>([])
   const loginLogsLoading = ref(false)
   const accountLoading = ref(false)

@@ -31,7 +31,7 @@
                 <el-select v-model="form.colorCode" placeholder="选择色彩" filterable clearable @change="onColorChange">
                   <el-option v-for="c in colorList" :key="c.colorCode" :label="`${c.colorName} / ${c.colorNameEn || c.colorCode}`" :value="c.colorCode">
                     <span style="display: inline-flex; align-items: center; gap: 8px">
-                      <span :style="{ display: 'inline-block', width: '14px', height: '14px', borderRadius: '2px', background: c.hexValue || '#ccc', border: '1px solid #ddd' }"></span>
+                      <span :style="{ display: 'inline-block', width: '14px', height: '14px', borderRadius: '2px', background: (c.hexValue as string) || '#ccc', border: '1px solid #ddd' }"></span>
                       <span>{{ c.colorName }}</span>
                       <span style="color: #909399; font-size: 12px">/ {{ c.colorNameEn }}</span>
                     </span>
@@ -75,9 +75,9 @@
               <el-col :span="12">
                 <div style="margin-bottom: 8px; font-size: 12px; color: #606266">肤色效果</div>
                 <div class="effect-tags">
-                  <span v-for="tag in skinTags" :key="tag.effectCode || tag"
+                  <span v-for="tag in skinTags" :key="tag.effectCode"
                     class="effect-tag" :class="{ active: form.skinToneEffect === (tag.effectName || tag) }"
-                    @click="form.skinToneEffect = tag.effectName || tag; updateDisplayName()">
+                    @click="form.skinToneEffect = (tag.effectName as string) || tag; updateDisplayName()">
                     {{ tag.effectName || tag }}
                   </span>
                 </div>
@@ -86,9 +86,9 @@
               <el-col :span="12">
                 <div style="margin-bottom: 8px; font-size: 12px; color: #606266">脸型效果</div>
                 <div class="effect-tags">
-                  <span v-for="tag in faceTags" :key="tag.effectCode || tag"
+                  <span v-for="tag in faceTags" :key="tag.effectCode"
                     class="effect-tag" :class="{ active: form.faceShapeEffect === (tag.effectName || tag) }"
-                    @click="form.faceShapeEffect = tag.effectName || tag; updateDisplayName()">
+                    @click="form.faceShapeEffect = (tag.effectName as string) || tag; updateDisplayName()">
                     {{ tag.effectName || tag }}
                   </span>
                 </div>
@@ -212,7 +212,7 @@
       <div class="effect-dict-panel">
         <h4>{{ dictType === 'skin_tone' ? '肤色效果词' : '脸型效果词' }}</h4>
         <div class="effect-dict-grid">
-          <div v-for="item in dictItems" :key="item.effectCode || item" class="effect-dict-item" @click="applyEffectFromDict(item)">
+          <div v-for="item in dictItems" :key="item.effectCode" class="effect-dict-item" @click="applyEffectFromDict(item)">
             <div class="name">{{ item.effectName || item }}</div>
             <div class="target" v-if="item.targetValue">适用：{{ item.targetValue }}</div>
           </div>
@@ -389,14 +389,15 @@ const displayName = computed(() => {
   const genderM: Record<string, string> = props.schemaConfig?.genderOptions
     ? Object.fromEntries(props.schemaConfig.genderOptions.map(o => [o.value, o.label]))
     : { female: '女款', male: '男款', unisex: '中性', limited: '限量' }
-  const shapeName = shapeM[struct.shapeCode] || struct.shapeCode || ''
-  const seriesName = seriesM[spu.seriesCode] || ''
-  const colorName = color?.colorName || '未知色'
+  const shapeCode = struct.shapeCode as string
+  const shapeName = shapeM[shapeCode] || shapeCode || ''
+  const seriesName = seriesM[spu.seriesCode as string] || ''
+  const colorName = (color?.colorName as string) || '未知色'
   const skinEffect = form.skinToneEffect as string
   const faceEffect = form.faceShapeEffect as string
   // V3.0 一维效果：优先脸型 → 肤色 → 兜底
   const effect = faceEffect || skinEffect || '中性百搭'
-  const genderLabel = genderM[spu.gender] || '中性'
+  const genderLabel = genderM[spu.gender as string] || '中性'
   // V3.0 四段式：{效果} · {色彩} · {造型}{系列}系列 · {款式}
   return `${effect} · ${colorName} · ${shapeName}${seriesName}系列 · ${genderLabel}`
 })

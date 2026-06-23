@@ -155,7 +155,7 @@
                     <div><div style="font-size: 16px; font-weight: 600">{{ websiteAccount.contactName }}</div><div style="font-size: 12px; color: #909399">{{ websiteAccount.phone }}</div></div>
                   </div>
                 </el-col>
-                <el-col :span="12" style="text-align: right"><el-tag :type="statusType(websiteAccount.accountStatus)" size="large" effect="dark">{{ accountLabel(websiteAccount.accountStatus) }}</el-tag></el-col>
+                <el-col :span="12" style="text-align: right"><el-tag :type="statusType(websiteAccount.accountStatus ?? '')" size="large" effect="dark">{{ accountLabel(websiteAccount.accountStatus ?? '') }}</el-tag></el-col>
               </el-row>
             </el-card>
             <el-card shadow="never" style="margin-bottom: 16px">
@@ -187,8 +187,8 @@
               <el-descriptions-item label="累计消费">¥{{ Number(websiteAccount.totalAmount || 0).toFixed(2) }}</el-descriptions-item>
               <el-descriptions-item label="积分余额">{{ websiteAccount.pointsBalance || 0 }}</el-descriptions-item>
               <el-descriptions-item label="会员折扣">{{ websiteAccount.memberDiscountRate }} 折</el-descriptions-item>
-              <el-descriptions-item label="订阅状态">{{ subscriptionLabel(websiteAccount.subscriptionStatus) }}</el-descriptions-item>
-              <el-descriptions-item label="会员身份">{{ memberLabel(websiteAccount.memberSince, websiteAccount.memberValidUntil) }}</el-descriptions-item>
+              <el-descriptions-item label="订阅状态">{{ subscriptionLabel(websiteAccount.subscriptionStatus ?? '') }}</el-descriptions-item>
+              <el-descriptions-item label="会员身份">{{ memberLabel(websiteAccount.memberSince ?? '', websiteAccount.memberValidUntil ?? '') }}</el-descriptions-item>
             </el-descriptions>
             <el-card shadow="never">
               <template #header><div style="display: flex; justify-content: space-between; align-items: center"><span style="font-weight: 600">登录记录</span><el-button size="small" @click="loadLoginLogs" :loading="loginLogsLoading">刷新</el-button></div></template>
@@ -300,7 +300,7 @@
             <el-card shadow="never" style="margin-bottom: 16px; background: #fafafa">
               <el-row :gutter="16" align="middle">
                 <el-col :span="12"><div style="display: flex; align-items: center; gap: 12px"><el-avatar :size="40" style="background: #409eff">{{ websiteAccount.contactName?.charAt(0) || '用' }}</el-avatar><div><div style="font-size: 16px; font-weight: 600">{{ websiteAccount.contactName }}</div><div style="font-size: 12px; color: #909399">{{ websiteAccount.phone }}</div></div></div></el-col>
-                <el-col :span="12" style="text-align: right"><el-tag :type="statusType(websiteAccount.accountStatus)" size="large" effect="dark">{{ accountLabel(websiteAccount.accountStatus) }}</el-tag></el-col>
+                <el-col :span="12" style="text-align: right"><el-tag :type="statusType(websiteAccount.accountStatus ?? '')" size="large" effect="dark">{{ accountLabel(websiteAccount.accountStatus ?? '') }}</el-tag></el-col>
               </el-row>
             </el-card>
             <el-card shadow="never" style="margin-bottom: 16px">
