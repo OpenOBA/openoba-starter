@@ -99,7 +99,7 @@ export class ProductSkuService {
 
       rest.spuId = spuId
       rest.skuCode = await this.generateSkuCode(spu.spuCode)
-      rest.skuBarcode = generateInternalBarcode(rest.skuCode, '')
+      rest.skuBarcode = generateInternalBarcode(rest.skuCode as string, '')
 
       if (!rest.productTier) {
         const typedSpu = spu as Partial<ProductSpu> & { productTier?: string }
@@ -229,7 +229,7 @@ export class ProductSkuService {
   }
 
   async generateSkuDisplayName(skuData: Record<string, unknown>): Promise<string> {
-    const spu = skuData.spu || (await this.spuRepo.findOne({ where: { spuId: skuData.spuId } }))
+    const spu = (skuData.spu as ProductSpu) || (await this.spuRepo.findOne({ where: { spuId: skuData.spuId as string } }))
     if (!spu) return '??? · ???系列'
     const typedSpu = spu as Partial<ProductSpu> & {
       structureStandardCode?: string
@@ -241,7 +241,7 @@ export class ProductSkuService {
 
     let colorName = '未知色'
     if (colorCode) {
-      const color = await this.colorRepo.findOne({ where: { colorCode } })
+      const color = await this.colorRepo.findOne({ where: { colorCode: colorCode as string } })
       if (color) colorName = (color as Partial<DictSkuColor> & { colorName?: string }).colorName || '未知色'
     }
 
@@ -258,8 +258,8 @@ export class ProductSkuService {
       seriesChineseName: seriesName,
       gender,
       colorName,
-      skinToneEffect,
-      faceShapeEffect,
+      skinToneEffect: skinToneEffect as string,
+      faceShapeEffect: faceShapeEffect as string,
     }
     return NamingEngine.generateSkuName(input)
   }
