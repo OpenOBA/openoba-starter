@@ -1,5 +1,6 @@
 ﻿/* eslint-disable @typescript-eslint/no-explicit-any -- TODO: 需要类型化 */
 import { Injectable } from '@nestjs/common'
+import { ProductSpu } from '../product/entity/product-spu.entity'
 import { WebsiteHomeAggregatorService } from './home-aggregator.service'
 import { WebsiteCatalogService, CatalogHelpers, ProductDetailHelpers, SearchHelpers } from './website-catalog.service'
 import {
@@ -71,7 +72,7 @@ export class WebsiteService {
   // ============================================================
   async getCatalog(query: Record<string, unknown>): Promise<PaginatedResponse<SpuCardDto>> {
     const helpers: CatalogHelpers = {
-      mapSpuCards: (spus) => this.homeAggregator.mapSpuCards(spus),
+      mapSpuCards: (spus: ProductSpu[]) => this.homeAggregator.mapSpuCards(spus),
     }
     return this.catalogService.getCatalog(query, helpers)
   }
@@ -95,7 +96,7 @@ export class WebsiteService {
   // ============================================================
   async search(query: Record<string, unknown>): Promise<SearchResultDto> {
     const helpers: SearchHelpers = {
-      mapSpuCards: (spus) => this.homeAggregator.mapSpuCards(spus),
+      mapSpuCards: (spus: ProductSpu[]) => this.homeAggregator.mapSpuCards(spus),
     }
     return this.catalogService.search(query, helpers)
   }

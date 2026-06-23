@@ -166,7 +166,7 @@ export class OrderCrudService {
         const discAmount = price.discountAmount
         const grossPft = price.profitPerUnit
 
-        await queryRunner.manager.insert(this.itemRepo.target, {
+        const insertData: Record<string, unknown> = {
           orderId,
           productType: orderItem.productType || 'frame',
           productId: skuId,
@@ -191,7 +191,8 @@ export class OrderCrudService {
           prescriptionRequired: orderItem.prescriptionRequired || false,
           reviewStatus: REVIEW_STATUS_CODE.unreviewed,
           afterSaleStatus: AFTER_SALE_STATUS_CODE.none,
-        })
+        }
+        await queryRunner.manager.insert(this.itemRepo.target, insertData as unknown as Parameters<typeof queryRunner.manager.insert>[1])
       }
 
       if (shippingAddress) {

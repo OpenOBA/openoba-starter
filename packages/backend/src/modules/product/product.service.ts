@@ -20,8 +20,8 @@ export class ProductService {
   ) {}
 
   // ===== 颜色字典 =====
-  async findColors(query: unknown): Promise<unknown> {
-    return this.colorService.findColors(query)
+  async findColors(query: Record<string, unknown>): Promise<unknown> {
+    return this.colorService.findColors(query as unknown as Record<string, unknown>)
   }
   async findOneColor(id: string): Promise<unknown> {
     return this.colorService.findOneColor(id)
@@ -61,7 +61,7 @@ export class ProductService {
     return this.skuService.findOneSku(id)
   }
   async createSku(dto: CreateSkuDto): Promise<unknown> {
-    return this.skuService.createSku(dto as unknown as Record<string, unknown>)
+    return this.skuService.createSku(dto as unknown as Parameters<typeof this.skuService.createSku>[0])
   }
   async updateSku(id: string, dto: UpdateSkuDto): Promise<unknown> {
     return this.skuService.updateSku(id, dto as unknown as Record<string, unknown>)
@@ -125,7 +125,7 @@ export class ProductService {
   async generateSkuCode(spuCode: string): Promise<unknown> {
     return this.skuService.generateSkuCode(spuCode)
   }
-  async generateSpuDisplayName(spuData: unknown): Promise<unknown> {
+  async generateSpuDisplayName(spuData: Record<string, unknown>): Promise<unknown> {
     return this.spuService.generateSpuDisplayName(spuData)
   }
   async generateSkuDisplayName(skuData: SkuDisplayNameInput): Promise<unknown> {

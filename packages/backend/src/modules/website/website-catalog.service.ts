@@ -142,7 +142,7 @@ export class WebsiteCatalogService {
     let hasLowStock = false
     let minPrice = Infinity
 
-    const skuDetails: SkuDetailDto[] = skus.map((sku) => {
+    const skuDetails = skus.map((sku): SkuDetailDto => {
       const sales = salesMap[sku.skuId] || 0
       totalSales += sales
       const inv = invMap[sku.skuId]
@@ -154,7 +154,7 @@ export class WebsiteCatalogService {
       const effectivePrice = sku.retailPrice
       if (effectivePrice < minPrice) minPrice = effectivePrice
 
-      const skuTech = this.buildTechSpec(sku, matMap, typeMap, noseMap, hingeMap, surfMap)
+      const skuTech = this.buildTechSpec(sku as unknown as Record<string, unknown>, matMap, typeMap, noseMap, hingeMap, surfMap)
 
       return {
         skuId: sku.skuId,
@@ -171,8 +171,8 @@ export class WebsiteCatalogService {
         salesVolume: sales,
         skuAttributes: sku.skuAttributes || {},
         images: (imagesMap[sku.skuId] || {}) as Record<string, WebsiteImageDto[]>,
-        displayParams: skuTech.displayParams,
-        fullTechSpec: skuTech.fullTechSpec as SkuDetailDto['fullTechSpec'],
+        displayParams: skuTech?.displayParams ?? '',
+        fullTechSpec: (skuTech?.fullTechSpec ?? {}) as SkuDetailDto['fullTechSpec'],
       }
     })
 
@@ -290,13 +290,13 @@ export class WebsiteCatalogService {
 
     const displayParams = {
       sizeLabel: sizeLabelFormatted,
-      frameMaterial: mat?.materialName || sku.frameMaterial || '',
-      frameType: ft?.typeName || sku.frameType || '',
-      nosePad: np?.padName || sku.nosePadType || '',
+      frameMaterial: (mat?.materialName || sku.frameMaterial || '') as string,
+      frameType: (ft?.typeName || sku.frameType || '') as string,
+      nosePad: (np?.padName || sku.nosePadType || '') as string,
       weight: weight != null ? `${weight}g` : '',
       weightLabel,
       suitableFaceShapes: faceShapes,
-      surfaceTreatment: st?.treatmentName || sku.surfaceTreatment || '',
+      surfaceTreatment: (st?.treatmentName || sku.surfaceTreatment || '') as string,
     }
 
     const fullTechSpec: Record<string, unknown> = {

@@ -343,8 +343,9 @@ export class CustomerMemberService {
       .getManyAndCount()
 
     const enriched = items.map((c) => {
-      const daysSinceLastActive = (c as Record<string, unknown>).lastActiveAt
-        ? Math.floor((Date.now() - new Date((c as Record<string, unknown>).lastActiveAt as string).getTime()) / (1000 * 60 * 60 * 24))
+      const rc = c as unknown as Record<string, unknown>
+      const daysSinceLastActive = rc.lastActiveAt
+        ? Math.floor((Date.now() - new Date(rc.lastActiveAt as string).getTime()) / (1000 * 60 * 60 * 24))
         : 999
       let activityStatus = 'inactive'
       if (daysSinceLastActive <= 30) activityStatus = 'active'

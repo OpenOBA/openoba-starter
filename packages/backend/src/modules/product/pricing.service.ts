@@ -58,7 +58,7 @@ export class PricingService {
   }
 
   async updateTier(tierId: string, dto: UpdateProductTierDto) {
-    await this.tierRepo.update(tierId, dto)
+    await this.tierRepo.update(tierId, dto as unknown as Parameters<typeof this.tierRepo.update>[1])
     return this.tierRepo.findOneBy({ tierId })
   }
 
@@ -115,7 +115,7 @@ export class PricingService {
         where: skuIds.map((id) => ({ skuId: id })),
         select: ['skuId', 'skuCode', 'skuName', 'skuBarcode'],
       })
-      skus.forEach((s) => skuMap.set(s.skuId, s))
+      skus.forEach((s) => skuMap.set(s.skuId, s as unknown as Record<string, unknown>))
     }
 
     return items.map((item) => {
