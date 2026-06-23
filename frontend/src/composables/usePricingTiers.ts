@@ -13,10 +13,10 @@ import { getCustomerList, getTierPricings as getCustomerPricings, addTierPricing
 
 export function usePricingTiers() {
   // ===== 分级定义 =====
-  const tierList = ref<any[]>([]);
+  const tierList = ref<Record<string, unknown>[]>([]);
   const tierLoading = ref(false);
   const tierDialogVisible = ref(false);
-  const tierForm = reactive<any>({ tierId: '', tierCode: '', tierName: '', positioning: '', sortOrder: 0 });
+  const tierForm = reactive<Record<string, unknown>>({ tierId: '', tierCode: '', tierName: '', positioning: '', sortOrder: 0 });
 
   const loadTiers = async () => {
     tierLoading.value = true;
@@ -42,11 +42,11 @@ export function usePricingTiers() {
   const handleSaveTier = async () => {
     try {
       if (tierForm.tierId) {
-        await updateTierPricing(tierForm.tierId, { tierName: tierForm.tierName, positioning: tierForm.positioning, sortOrder: tierForm.sortOrder });
+        await updateTierPricing(tierForm.tierId as string, { tierName: tierForm.tierName as string, positioning: tierForm.positioning as string, sortOrder: tierForm.sortOrder as number });
         ElMessage.success('更新成功');
       } else {
         tierForm.tierId = `tier-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
-        await createTierPricing({ ...tierForm, isActive: true });
+        await createTierPricing({ ...tierForm as Record<string, unknown>, isActive: true });
         ElMessage.success('创建成功');
       }
       tierDialogVisible.value = false;
@@ -67,10 +67,10 @@ export function usePricingTiers() {
   };
 
   // ===== 阶梯定价 =====
-  const wholesaleList = ref<any[]>([]);
+  const wholesaleList = ref<Record<string, unknown>[]>([]);
   const wholesaleLoading = ref(false);
   const wholesaleDialogVisible = ref(false);
-  const wholesaleForm = reactive<any>({ tierId: '', tierName: '', minQty: 1, maxQty: 99, discountRate: 1 });
+  const wholesaleForm = reactive<Record<string, unknown>>({ tierId: '', tierName: '', minQty: 1, maxQty: 99, discountRate: 1 });
 
   const loadWholesaleTiers = async () => {
     wholesaleLoading.value = true;
@@ -96,10 +96,10 @@ export function usePricingTiers() {
   const handleSaveWholesale = async () => {
     try {
       if (wholesaleForm.tierId) {
-        await updateWholesaleTier(wholesaleForm.tierId, { tierName: wholesaleForm.tierName, minQty: wholesaleForm.minQty, maxQty: wholesaleForm.maxQty, discountRate: wholesaleForm.discountRate });
+        await updateWholesaleTier(wholesaleForm.tierId as string, { tierName: wholesaleForm.tierName as string, minQty: wholesaleForm.minQty as number, maxQty: wholesaleForm.maxQty as number, discountRate: wholesaleForm.discountRate as number });
         ElMessage.success('更新成功');
       } else {
-        await createWholesaleTier(wholesaleForm);
+        await createWholesaleTier(wholesaleForm as Record<string, unknown>);
         ElMessage.success('创建成功');
       }
       wholesaleDialogVisible.value = false;
@@ -120,11 +120,11 @@ export function usePricingTiers() {
   };
 
   // ===== 协议价管理 =====
-  const agreementList = ref<any[]>([]);
+  const agreementList = ref<Record<string, unknown>[]>([]);
   const agreementLoading = ref(false);
   const agreementDialogVisible = ref(false);
-  const agreementForm = reactive<any>({ pricingId: '', customerId: '', customerName: '', tierId: '', fixedPrice: null, discountRate: null, priceMode: 'discount' });
-  const agreementCustomers = ref<any[]>([]);
+  const agreementForm = reactive<Record<string, unknown>>({ pricingId: '', customerId: '', customerName: '', tierId: '', fixedPrice: null, discountRate: null, priceMode: 'discount' });
+  const agreementCustomers = ref<Record<string, unknown>[]>([]);
   const agreementSearch = reactive({ keyword: '', page: 1, pageSize: 20 });
   const agreementSearchTotal = ref(0);
 
@@ -155,7 +155,7 @@ export function usePricingTiers() {
       if (agreementForm.priceMode === 'fixed') payload.fixedPrice = agreementForm.fixedPrice;
       else payload.discountRate = agreementForm.discountRate;
       if (agreementForm.pricingId) {
-        await updateCustomerPricing(agreementForm.pricingId, payload);
+        await updateCustomerPricing(agreementForm.pricingId as string, payload);
         ElMessage.success('更新成功');
       } else {
         await addTierPricing(payload);
@@ -181,7 +181,7 @@ export function usePricingTiers() {
   const searchAgreementCustomers = async () => {
     try {
       const res = await getCustomerList(agreementSearch);
-      agreementCustomers.value = Array.isArray(res.items) ? res.items : [];
+      agreementCustomers.value = (Array.isArray(res.items) ? res.items : []) as unknown as Record<string, unknown>[];
       agreementSearchTotal.value = res.total || 0;
     } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
       ElMessage.error('搜索客户失败: ' + (err));

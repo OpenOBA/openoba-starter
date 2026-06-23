@@ -18,11 +18,11 @@ import { getTask, approveTask } from '@/api/task-engine'
  *   - saveCache — 保存到 localStorage 的函数
  */
 export function useTaskProposals(
-  taskId: ReturnType<typeof import('vue').computed<any>>,
+  taskId: ReturnType<typeof import('vue').computed<string>>,
   taskDone: ReturnType<typeof import('vue').ref<boolean>>,
-  taskInfo: ReturnType<typeof import('vue').ref<any>>,
+  taskInfo: ReturnType<typeof import('vue').ref<Record<string, unknown>>>,
   agentLoading: ReturnType<typeof import('vue').ref<boolean>>,
-  messages: ReturnType<typeof import('vue').shallowRef<any[]>>,
+  messages: ReturnType<typeof import('vue').shallowRef<Record<string, unknown>[]>>,
   triggerMessages: () => void,
   saveCache: () => void,
 ) {
@@ -31,7 +31,7 @@ export function useTaskProposals(
   const showAgreeBtn = computed(() => {
     if (taskDone.value) return false
     if (agentLoading.value) return false
-    const hasAgentReply = (messages.value ?? []).some((m: any) => m.role === 'agent' && m.content && !m.streaming)
+    const hasAgentReply = (messages.value ?? []).some((m) => m.role === 'agent' && m.content && !m.streaming)
     return hasAgentReply
   })
 
@@ -47,19 +47,19 @@ export function useTaskProposals(
         if (msg.role === 'proposal' && msg.status !== 'accepted') msg.status = 'accepted'
       }
       const t = await getTask(taskId.value)
-      taskInfo.value = t
+      taskInfo.value = t as unknown as Record<string, unknown>
       taskDone.value = ['completed', 'cancelled', 'aborted'].includes(t.status)
       syncProposals(t.proposals || [])
 
       let fileUrl = ''
       let fileName = ''
       try {
-        const json: any = await request.post(`/eros/tasks/${taskId.value}/export-md`)
-        fileUrl = json?.url || ''
-        fileName = json?.fileName || ''
+        const json = await request.post(`/eros/tasks/${taskId.value}/export-md`) as unknown as Record<string, unknown>
+        fileUrl = (json?.url as string) || ''
+        fileName = (json?.fileName as string) || ''
       } catch { /* ignore */ }
 
-      insertSummary(t, fileUrl, fileName)
+      insertSummary(t as unknown as Record<string, unknown>, fileUrl, fileName)
       saveCache()
       triggerMessages()
       ElMessage.success('已同意方案')
@@ -70,14 +70,14 @@ export function useTaskProposals(
     }
   }
 
-  function insertSummary(t: any, fileUrl: string, fileName: string) {
-    const proposals = t.proposals || []
+  function insertSummary(t: Record<string, unknown>, fileUrl: string, fileName: string) {
+    const proposals = (t.proposals as unknown as Array<Record<string, unknown>>) || []
     const hasProposal = proposals.length > 0
     const lines: string[] = ['**方案已同意 · 执行总结**', '']
     if (hasProposal) {
       const last = proposals[proposals.length - 1]
-      const modelMatch = last.content?.match(/🔻 使用模型: (.+)/)
-      const kbMatch = last.content?.match(/📎 引用知识: (.+)/)
+      const modelMatch = (last.content as string)?.match(/🔻 使用模型: (.+)/)
+      const kbMatch = (last.content as string)?.match(/📎 引用知识: (.+)/)
       if (modelMatch) lines.push(`**模型**：${modelMatch[1]}`)
       if (kbMatch) lines.push(`**知识引用**：${kbMatch[1]}`)
       lines.push(`**版本**：V${last.version}`)
@@ -85,7 +85,8 @@ export function useTaskProposals(
     const allTools: string[] = []
     for (const m of (messages.value ?? [])) {
       if (m.role === 'agent' && m.toolCalls) {
-        for (const tc of m.toolCalls || []) {
+        const toolCalls = m.toolCalls as unknown as Array<{ name: string }>
+        for (const tc of toolCalls) {
           if (!allTools.includes(tc.name)) allTools.push(tc.name)
         }
       }

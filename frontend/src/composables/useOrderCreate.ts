@@ -9,8 +9,8 @@ const LENS_STATUS = { not_needed: 'not_needed', pending: 'pending', processing: 
 export function useOrderCreate() {
   const createVisible = ref(false)
   const submitting = ref(false)
-  const customerOptions = ref<any[]>([])
-  const lensOptions = ref<any[]>([])
+  const customerOptions = ref<Record<string, unknown>[]>([])
+  const lensOptions = ref<Record<string, unknown>[]>([])
   const historyLensNotice = ref('')
   const createForm = reactive({
     customerId: '',
@@ -18,7 +18,7 @@ export function useOrderCreate() {
     customerPhone: '',
     orderType: 'retail',
     structureStandardCode: '',
-    items: [] as any[],
+    items: [] as Record<string, unknown>[],
     shippingFee: 0,
     discountAmount: 0,
     remark: '',
@@ -57,26 +57,28 @@ export function useOrderCreate() {
   async function onCustomerSelect(id: string) {
     const c = customerOptions.value.find((x) => x.customerId === id)
     if (c) {
-      createForm.customerName = c.contactName
-      createForm.customerPhone = c.phone
+      createForm.customerName = c.contactName as string
+      createForm.customerPhone = c.phone as string
     }
     historyLensNotice.value = ''
     createForm.structureStandardCode = ''
     try {
       const res = await getCustomerLensSummary(id)
       if (res?.lenses?.length > 0) {
-        const activeLens = res.lenses.find((l: any) => l.status === 'active') || res.lenses[0]
-        const code = activeLens.lensStandardCode
-        const rxInfo = activeLens.prescription ? `球镜: OD${(activeLens.prescription as any).odSphere}/OS${(activeLens.prescription as any).osSphere}` : ''
+        const lenses = (res.lenses as unknown as Record<string, unknown>[]) ?? [];
+        const activeLens = lenses.find((l) => l.status === 'active') || lenses[0]
+        const code = activeLens?.lensStandardCode as string;
+        const rx = activeLens?.prescription as Record<string, string> | undefined;
+        const rxInfo = rx ? `球镜: OD${rx.odSphere}/OS${rx.osSphere}` : '';
         historyLensNotice.value = `🔩 该客户历史镜片：${code}${rxInfo ? ' | ' + rxInfo : ''}`
         const matched = lensOptions.value.find((l) => l.externalCode === code)
-        if (matched) createForm.structureStandardCode = matched.structureId
+        if (matched) createForm.structureStandardCode = matched.structureId as string
       }
     } catch { /* ignore */ }
   }
 
   function calcActual(): string {
-    const itemsTotal = createForm.items.reduce((s, i) => s + i.quantity * i.unitPrice, 0)
+    const itemsTotal = createForm.items.reduce((s, i) => s + (i.quantity as number) * (i.unitPrice as number), 0)
     return `¥${(itemsTotal - createForm.discountAmount + createForm.shippingFee).toFixed(2)}`
   }
 
@@ -94,7 +96,7 @@ export function useOrderCreate() {
       createVisible.value = false
       onSuccess()
     } catch (e: unknown) {
-      ElMessage.error((e as any).message || '创建失败')
+      ElMessage.error((e as Error).message || '创建失败')
     } finally {
       submitting.value = false
     }
