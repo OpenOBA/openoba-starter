@@ -267,6 +267,8 @@ import {
 import { getCategoriesFlat } from '@/api/category';
 import { getStructureList } from '@/api/structure';
 import { getSchema, type IndustrySchema } from '@/api/schema';
+import type { DictItem } from '@/composables/useDict'
+import type { StructureStandard } from '@/api/structure'
 import SpuDialog from '@/components/SpuDialog.vue'
 import SetDialog from '@/components/SetDialog.vue';
 import SkuDialog from '@/components/SkuDialog.vue'
@@ -301,8 +303,8 @@ const tierLabelsConfig = computed(() => schemaConfig.value?.tierLabels || {});
 const genderTagTypes: Record<string, string> = { female: 'danger', male: 'primary', unisex: 'info', limited: 'warning' };
 const genderLabels: Record<string, string> = { female: '女款', male: '男款', unisex: '通用', limited: '限量' };
 
-const spuEditRow = ref<any>(null);
-const skuEditRow = ref<any>(null);
+const spuEditRow = ref<Record<string, unknown> | null>(null);
+const skuEditRow = ref<Record<string, unknown> | null>(null);
 function onSpuDialogSaved() { loadSpus(); loadSpusAll(); spuEditRow.value = null; }
 function onSkuDialogSaved() { loadSkus(); skuEditRow.value = null; }
 const techDictsData = computed(() => ({ frameMaterials: frameMaterials.value, frameTypes: frameTypes.value, nosePads: nosePads.value, hinges: hinges.value, surfaceTreatments: surfaceTreatments.value }));
@@ -311,7 +313,7 @@ const activeTierMap = computed(() => tierLabelsConfig.value && Object.keys(tierL
 // ===== 字典中文映射 =====
 function getDictName(dictKey: string, code: string): string {
   if (!code) return '-';
-  const dictMap: Record<string, any[]> = {
+  const dictMap: Record<string, DictItem[]> = {
     frameMaterials: frameMaterials.value,
     frameTypes: frameTypes.value,
     nosePads: nosePads.value,
@@ -320,7 +322,7 @@ function getDictName(dictKey: string, code: string): string {
   };
   const items = dictMap[dictKey];
   if (!items || !items.length) return code;
-  const found = items.find((d: Record<string, unknown>) => d.code === code);
+  const found = items.find((d) => d.code === code);
   return found?.name || code;
 }
 
@@ -336,16 +338,15 @@ function getFaceShapeLabel(code: string): string {
 const activeTab = ref('spu');
 
 // ===== 产品级别字典 =====
-const tierList = ref<any[]>([]);
+interface TierItem { tier_code: string; tier_name: string; icon_color: string; [key: string]: unknown }
+const tierList = ref<TierItem[]>([]);
 const loadTiers = async () => {
   try {
-    const res: any = await getTierPricings();
-    const raw = res.data || res.items || res || [];
-    // 规范化为模板所需的 snake_case 格式
-    tierList.value = raw.map((t: any) => ({
-      tier_code: t.tierCode || t.tier_code,
-      tier_name: t.tierName || t.tier_name,
-      icon_color: TIER_MAP[t.tierCode || t.tier_code]?.color || '#999',
+    const res = await getTierPricings();
+    tierList.value = res.map((t) => ({
+      tier_code: String(t.tierCode || t.tier_code),
+      tier_name: String(t.tierName || t.tier_name),
+      icon_color: TIER_MAP[String(t.tierCode || t.tier_code)]?.color || '#999',
       ...t,
     }));
   }
@@ -353,16 +354,16 @@ const loadTiers = async () => {
 };
 
 // ===== Phase 8B: 技术参数字典 =====
-const frameMaterials = ref<any[]>([]);
-const frameTypes = ref<any[]>([]);
-const nosePads = ref<any[]>([]);
-const hinges = ref<any[]>([]);
-const surfaceTreatments = ref<any[]>([]);
-const seriesList = ref<any[]>([]);
-const computedSeriesList = computed(() => seriesList.value.map((s: Record<string, unknown>) => ({ code: s.code, name: s.name })));
+const frameMaterials = ref<DictItem[]>([]);
+const frameTypes = ref<DictItem[]>([]);
+const nosePads = ref<DictItem[]>([]);
+const hinges = ref<DictItem[]>([]);
+const surfaceTreatments = ref<DictItem[]>([]);
+const seriesList = ref<DictItem[]>([]);
+const computedSeriesList = computed(() => seriesList.value.map((s) => ({ code: s.code, name: s.name })));
 
-const skinToneEffects = ref<any[]>([]);
-const faceShapeEffects = ref<any[]>([]);
+const skinToneEffects = ref<DictItem[]>([]);
+const faceShapeEffects = ref<DictItem[]>([]);
 const skinEffectTags = computed(() => skinToneEffects.value);
 const faceEffectTags = computed(() => faceShapeEffects.value);
 const loadEffectTags = async () => {
@@ -370,7 +371,7 @@ const loadEffectTags = async () => {
     const [skin, face] = await Promise.all([getEffectTags('skin_tone'), getEffectTags('face_shape')]);
     skinToneEffects.value = Array.isArray(skin) ? skin : [];
     faceShapeEffects.value = Array.isArray(face) ? face : [];
-  } catch (e) {}
+  } catch { /* ignore */ }
 };
 
 const loadTechDicts = async () => {
@@ -388,10 +389,10 @@ const loadTechDicts = async () => {
 };
 
 // ===== SPU =====
-const spuList = ref<any[]>([]);
-const spuSelection = ref<any[]>([]);
-const setSelection = ref<any[]>([]);
-const spuListAll = ref<any[]>([]);  // 全量 SPU 列表（下拉框用，不分页）
+const spuList = ref<Record<string, unknown>[]>([]);
+const spuSelection = ref<Record<string, unknown>[]>([]);
+const setSelection = ref<Record<string, unknown>[]>([]);
+const spuListAll = ref<Record<string, unknown>[]>([]);  // 全量 SPU 列表（下拉框用，不分页）
 const spuLoading = ref(false);
 const spuPage = ref(1);
 const spuPageSize = ref(20);
@@ -413,26 +414,26 @@ const loadSpus = async () => {
       spuList.value = []
       spuTotal.value = 0
     }
-  } catch (e: unknown) { ElMessage.error((e as any)?.message || '加载失败'); }
+  } catch (e: unknown) { ElMessage.error((e as Error)?.message || '加载失败'); }
   finally { spuLoading.value = false; }
 };
 // 全量加载 SPU（下拉框用，不传分页参数）
 const loadSpusAll = async () => {
   try {
     const res = await getSpus({ pageSize: 9999 });
-    spuListAll.value = Array.isArray(res) ? res : (res as any)?.items || [];
+    spuListAll.value = Array.isArray(res) ? res : ((res as unknown) as { items?: Record<string, unknown>[] })?.items || [];
   } catch { /* ignore */ }
 };
-const openSpuDialog = (row?: any) => {
+const openSpuDialog = (row?: Record<string, unknown>) => {
     spuEditRow.value = row || null;
   spuDialogVisible.value = true;
 };
 const batchEditSpus = () => { if(spuSelection.value.length===1) openSpuDialog(spuSelection.value[0]); else if(spuSelection.value.length>1) ElMessage.warning('暂仅支持单条编辑'); };
-const batchDeleteSpus = async () => { try { for(const r of spuSelection.value) await deleteSpu(r.spuId); ElMessage.success(spuSelection.value.length+' 条已删除'); spuSelection.value=[]; loadSpus(); } catch { ElMessage.error('删除失败'); } };
+const batchDeleteSpus = async () => { try { for(const r of spuSelection.value) await deleteSpu(r.spuId as string); ElMessage.success(spuSelection.value.length+' 条已删除'); spuSelection.value=[]; loadSpus(); } catch { ElMessage.error('删除失败'); } };
 
 // ===== SKU =====
-const skuList = ref<any[]>([]);
-const skuSelection = ref<any[]>([]);
+const skuList = ref<Record<string, unknown>[]>([]);
+const skuSelection = ref<Record<string, unknown>[]>([]);
 const skuLoading = ref(false);
 const skuPage = ref(1);
 const skuPageSize = ref(20);
@@ -455,18 +456,18 @@ const loadSkus = async () => {
       skuList.value = []
       skuTotal.value = 0
     }
-  } catch (e: unknown) { ElMessage.error((e as any)?.message || '加载失败'); }
+  } catch (e: unknown) { ElMessage.error((e as Error)?.message || '加载失败'); }
   finally { skuLoading.value = false; }
 };
-const openSkuDialog = (row?: any) => {
+const openSkuDialog = (row?: Record<string, unknown>) => {
   skuEditRow.value = row || null;
   skuDialogVisible.value = true;
 };
 const batchEditSkus = () => { if(skuSelection.value.length===1) openSkuDialog(skuSelection.value[0]); else if(skuSelection.value.length>1) ElMessage.warning('暂仅支持单条编辑'); };
-const batchDeleteSkus = async () => { try { for(const r of skuSelection.value) await deleteSku(r.skuId); ElMessage.success(skuSelection.value.length+' 条已删除'); skuSelection.value=[]; loadSkus(); } catch { ElMessage.error('删除失败'); } };
+const batchDeleteSkus = async () => { try { for(const r of skuSelection.value) await deleteSku(r.skuId as string); ElMessage.success(skuSelection.value.length+' 条已删除'); skuSelection.value=[]; loadSkus(); } catch { ElMessage.error('删除失败'); } };
 
 // ===== 结构标准 =====
-const structureStandardList = ref<any[]>([]);
+const structureStandardList = ref<StructureStandard[]>([]);
 const loadStructureStandards = async () => {
   try {
     const res = await getStructureList({ page: 1, pageSize: 500 })
@@ -478,11 +479,11 @@ const loadStructureStandards = async () => {
     } else {
       structureStandardList.value = []
     }
-  } catch {}
+  } catch { /* ignore */ }
 };
 
 // ===== Category (供 SPU/SKU/Set 表单下拉选择) =====
-const categoryList = ref<any[]>([]);
+const categoryList = ref<Record<string, unknown>[]>([]);
 const loadCategoryList = async () => {
   try { categoryList.value = await getCategoriesFlat(); }
   catch { categoryList.value = []; }
@@ -490,7 +491,7 @@ const loadCategoryList = async () => {
 
 
 // ===== Set (P1-3c: 弹窗逻辑已迁移至 SetDialog.vue) =====
-const setList = ref<any[]>([]);
+const setList = ref<Record<string, unknown>[]>([]);
 const setLoading = ref(false);
 const setDialogVisible = ref(false);
 const setEditRow = ref<Record<string, unknown> | null>(null);
@@ -502,24 +503,24 @@ const loadSets = async () => {
   finally { setLoading.value = false; }
 };
 
-const openSetDialog = (row?: any) => {
+const openSetDialog = (row?: Record<string, unknown>) => {
   setEditRow.value = row || null;
   setDialogVisible.value = true;
 };
 
 const batchEditSets = () => { if (setSelection.value.length === 1) openSetDialog(setSelection.value[0]); else ElMessage.warning("请只勾选一个套装进行编辑"); };
-const batchDeleteSets = async () => { try { for (const r of setSelection.value) await deleteSet(r.setId); ElMessage.success("已删除"); setSelection.value=[]; loadSets(); } catch(e:unknown){ ElMessage.error((e as any)?.message || "批量删除失败"); } };
+const batchDeleteSets = async () => { try { for (const r of setSelection.value) await deleteSet(r.setId as string); ElMessage.success("已删除"); setSelection.value=[]; loadSets(); } catch(e:unknown){ ElMessage.error((e as Error)?.message || "批量删除失败"); } };
 
 
 // ===== SKU 列表（供 SkuImagePanel + SetDialog 使用）=====
-const skuListForSelect = ref<any[]>([]);
+const skuListForSelect = ref<Record<string, unknown>[]>([]);
 const skuSelectLoading = ref(false);
 
 // 全量加载 SKU（套装多选/图片下拉框用）
 const loadSkusAll = async () => {
   try {
     const res = await getSkus({ pageSize: 9999 });
-    skuListForSelect.value = Array.isArray(res) ? res : (res as any)?.items || [];
+    skuListForSelect.value = Array.isArray(res) ? res : ((res as unknown) as { items?: Record<string, unknown>[] })?.items || [];
   } catch { /* ignore */ }
 
 }
