@@ -96,17 +96,17 @@
         <el-descriptions :column="2" border>
           <el-descriptions-item label="订单号">{{ currentOrder.orderNo }}</el-descriptions-item>
           <el-descriptions-item label="状态">
-            <el-tag :type="statusTag(currentOrder.status)" effect="dark">{{ statusLabel(currentOrder.status) }}</el-tag>
+            <el-tag :type="statusTag(currentOrder.status ?? '')" effect="dark">{{ statusLabel(currentOrder.status ?? '') }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="客户">{{ currentOrder.customerName }}</el-descriptions-item>
           <el-descriptions-item label="电话">{{ currentOrder.customerPhone || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="订单类型">{{ orderTypeLabel(currentOrder.orderType) }}</el-descriptions-item>
+          <el-descriptions-item label="订单类型">{{ orderTypeLabel(currentOrder.orderType ?? '') }}</el-descriptions-item>
           <el-descriptions-item label="支付方式">{{ currentOrder.paymentMethod || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="订单总额">¥{{ Number(currentOrder.totalAmount).toFixed(2) }}</el-descriptions-item>
-          <el-descriptions-item label="优惠金额">-¥{{ Number(currentOrder.discountAmount).toFixed(2) }}</el-descriptions-item>
-          <el-descriptions-item label="运费">+¥{{ Number(currentOrder.shippingFee).toFixed(2) }}</el-descriptions-item>
-          <el-descriptions-item label="实付金额"><b>¥{{ Number(currentOrder.actualAmount).toFixed(2) }}</b></el-descriptions-item>
-          <el-descriptions-item label="创建时间" :span="2">{{ formatDate(currentOrder.createdAt) }}</el-descriptions-item>
+          <el-descriptions-item label="订单总额">¥{{ (currentOrder.totalAmount ?? 0).toFixed(2) }}</el-descriptions-item>
+          <el-descriptions-item label="优惠金额">-¥{{ (currentOrder.discountAmount ?? 0).toFixed(2) }}</el-descriptions-item>
+          <el-descriptions-item label="运费">+¥{{ (currentOrder.shippingFee ?? 0).toFixed(2) }}</el-descriptions-item>
+          <el-descriptions-item label="实付金额"><b>¥{{ (currentOrder.actualAmount ?? 0).toFixed(2) }}</b></el-descriptions-item>
+          <el-descriptions-item label="创建时间" :span="2">{{ formatDate(currentOrder.createdAt ?? '') }}</el-descriptions-item>
           <el-descriptions-item v-if="currentOrder.remark" label="备注" :span="2">{{ currentOrder.remark }}</el-descriptions-item>
         </el-descriptions>
         <el-divider content-position="left">收货地址</el-divider>
@@ -121,7 +121,7 @@
           <el-descriptions-item label="订单项结构编码">{{ currentOrder.items?.[0]?.structureStandardCode || '-' }}</el-descriptions-item>
         </el-descriptions>
         <el-divider content-position="left">订单明细</el-divider>
-        <el-table :data="currentOrder.items || []" size="small" border>
+        <el-table :data="currentOrder.items ?? []" size="small" border>
           <el-table-column prop="productName" label="商品" />
           <el-table-column label="履行类型" width="90">
             <template #default="{ row }">
@@ -167,7 +167,7 @@
           <el-timeline-item v-for="log in currentOrder.logs || []" :key="log.logId" :timestamp="formatDate(log.createdAt)" placement="top">
             <el-card shadow="never" :body-style="{ padding: '8px 12px' }">
               <b>{{ log.action }}</b>
-              <span v-if="log.oldStatus"> {{ statusLabel(log.oldStatus) }} → {{ statusLabel(log.newStatus) }}</span>
+              <span v-if="log.oldStatus"> {{ statusLabel(log.oldStatus) }} → {{ statusLabel(log.newStatus ?? '') }}</span>
               <span v-if="log.remark" style="color: #999; margin-left: 8px">{{ log.remark }}</span>
             </el-card>
           </el-timeline-item>
@@ -186,7 +186,7 @@
         </el-form-item>
         <el-form-item label="结构标准">
           <el-select v-model="createForm.structureStandardCode" placeholder="选择结构标准" filterable style="width: 100%">
-            <el-option v-for="l in lensOptions" :key="l.structureId" :label="`${l.externalCode} - ${(l.surfaceTypes||[]).join(',')} ${(l.refractiveIndexes||[]).join(',')}`" :value="l.structureId" />
+            <el-option v-for="l in lensOptions" :key="l.structureId" :label="`${l.externalCode} - ${((l.surfaceTypes as string[])||[]).join(',')} ${((l.refractiveIndexes as number[])||[]).join(',')}`" :value="l.structureId" />
           </el-select>
         </el-form-item>
         <el-form-item label="订单类型">

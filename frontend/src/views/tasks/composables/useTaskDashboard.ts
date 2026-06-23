@@ -3,7 +3,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { AgentTask } from '@/api/task-engine'
 import { queryTasks, createTask, deleteTask } from '@/api/task-engine'
-import { getAgents } from '@/api/system'
+import { getAgents, type AgentItem } from '@/api/system'
 import type { AgentEntry } from '@/components/AgentSidebar.vue'
 import { useERASettings } from '@/composables/useERASettings'
 import { useTemplates } from '@/composables/useTemplates'
@@ -53,7 +53,7 @@ export function useTaskDashboard() {
   async function loadModels() {
     loadingModels.value = true
     try {
-      const res: any = await request.get('/system/llm/providers')
+      const res = await request.get('/system/llm/providers') as Record<string, unknown>
       if (res?.success && Array.isArray(res.providers)) {
         const models: Array<{ value: string; label: string; isDefault: boolean }> = []
         for (const p of res.providers) {
@@ -86,7 +86,7 @@ export function useTaskDashboard() {
     try {
       const agents = await getAgents()
       if (agents && agents.length > 0) {
-        agentList.value = agents.map((a: any) => ({
+        agentList.value = agents.map((a: AgentItem) => ({
           id: a.agentCode || a.agentId,
           agentCode: a.agentCode,
           agentName: a.agentName,
@@ -196,7 +196,7 @@ export function useTaskDashboard() {
         context: { description: text }, reportTo: 'rt-l1-product',
         createdBy: '', agentId: agentId || undefined,
       })
-      const taskId = (task as any).id || (task as any).taskId || ''
+      const taskId = String((task as unknown as Record<string, unknown>).id || (task as unknown as Record<string, unknown>).taskId || '')
       if (!taskId) { ElMessage.error('任务创建失败'); return }
 
       msg.needConfirm = false; msg.taskId = taskId
@@ -204,7 +204,7 @@ export function useTaskDashboard() {
       ElMessage.success('任务已创建')
       router.push('/chat/' + taskId)
     } catch (e: unknown) {
-      ElMessage.error('创建失败: ' + ((e as any)?.message || e))
+      ElMessage.error('创建失败: ' + ((e as Error)?.message || String(e)))
     } finally { creating.value = false }
   }
 
@@ -239,7 +239,7 @@ export function useTaskDashboard() {
       selectedIds.value = []
       loadTasks()
     } catch (e: unknown) {
-      ElMessage.error('删除失败: ' + ((e as any)?.message || e))
+      ElMessage.error('删除失败: ' + ((e as Error)?.message || String(e)))
     }
   }
 

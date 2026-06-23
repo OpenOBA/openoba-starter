@@ -8,6 +8,38 @@ import { getCustomerList, getCustomerLensSummary } from '@/api/customer'
 import { getStructureList } from '@/api/structure'
 import { useDict } from '@/composables/useDict'
 
+export interface OrderDetailData {
+  orderId?: string
+  orderNo?: string
+  status?: string
+  customerName?: string
+  customerPhone?: string
+  orderType?: string
+  paymentMethod?: string
+  totalAmount?: number
+  discountAmount?: number
+  shippingFee?: number
+  actualAmount?: number
+  createdAt?: string
+  remark?: string
+  address?: { receiverName: string; receiverPhone: string; province: string; city: string; district?: string; addressDetail: string }
+  structureStandardCode?: string
+  items?: Array<Record<string, unknown>>
+  payments?: Array<{ paymentNo: string; paymentMethod: string; amount: number; status: string; paidAt?: string }>
+  shipments?: Array<{ carrier: string; trackingNo: string; status: string; shippedAt?: string }>
+  logs?: Array<{ logId: string; createdAt: string; action: string; oldStatus?: string; newStatus?: string; remark?: string }>
+}
+
+interface OrderStats {
+  total: number
+  pending: number
+  paid: number
+  shipping: number
+  completed: number
+  cancelled: number
+  todaySales: string
+}
+
 const ORDER_STATUS = {
   pending: 'pending', confirmed: 'confirmed', paid: 'paid',
   shipped: 'shipped', delivered: 'delivered', completed: 'completed', cancelled: 'cancelled',
@@ -28,15 +60,15 @@ export function useOrders() {
 
   // State
   const loading = ref(false)
-  const tableData = ref<any[]>([])
+  const tableData = ref<Record<string, unknown>[]>([])
   const total = ref(0)
-  const selectedOrders = ref<any[]>([])
+  const selectedOrders = ref<Record<string, unknown>[]>([])
   const query = reactive({ keyword: '', status: '', paymentStatus: '', orderType: '', page: 1, pageSize: 20 })
 
   // Stats
-  const stats = ref<any>({ total: 0, pending: 0, paid: 0, shipping: 0, completed: 0, cancelled: 0, todaySales: '0' })
+  const stats = ref<OrderStats>({ total: 0, pending: 0, paid: 0, shipping: 0, completed: 0, cancelled: 0, todaySales: '0' })
 
-  function ensureStats(s: any) {
+  function ensureStats(s: OrderStats | null | undefined): OrderStats {
     return {
       total: s?.total ?? 0, pending: s?.pending ?? 0, paid: s?.paid ?? 0,
       shipping: s?.shipping ?? 0, completed: s?.completed ?? 0,
@@ -57,16 +89,18 @@ export function useOrders() {
   })
 
   const canConfirmSelected = computed(() =>
-    selectedOrders.value.length > 0 && selectedOrders.value.every((r: any) => r.status === ORDER_STATUS.pending)
+    selectedOrders.value.length > 0 && selectedOrders.value.every((r) => r.status === ORDER_STATUS.pending)
   )
+  const canShipStatuses: string[] = [ORDER_STATUS.paid, ORDER_STATUS.confirmed]
+  const canCancelExcludes: string[] = [ORDER_STATUS.completed, ORDER_STATUS.cancelled]
   const canShipSelected = computed(() =>
-    selectedOrders.value.length > 0 && selectedOrders.value.every((r: any) => [ORDER_STATUS.paid, ORDER_STATUS.confirmed].includes(r.status))
+    selectedOrders.value.length > 0 && selectedOrders.value.every((r) => canShipStatuses.includes(r.status as string))
   )
   const canCancelSelected = computed(() =>
-    selectedOrders.value.length > 0 && selectedOrders.value.every((r: any) => ![ORDER_STATUS.completed, ORDER_STATUS.cancelled].includes(r.status))
+    selectedOrders.value.length > 0 && selectedOrders.value.every((r) => !canCancelExcludes.includes(r.status as string))
   )
 
-  function onSelectionChange(rows: any[]) {
+  function onSelectionChange(rows: Record<string, unknown>[]) {
     selectedOrders.value = rows
   }
 
@@ -95,39 +129,63 @@ export function useOrders() {
 
   // Detail
   const detailVisible = ref(false)
-  const currentOrder = ref<any>(null)
+  const currentOrder = ref<OrderDetailData | null>(null)
 
   async function viewDetail(row: Record<string, unknown>) {
     const res = await getOrderDetail(String(row.orderId ?? ''))
-    currentOrder.value = res
+    currentOrder.value = res as unknown as OrderDetailData
     detailVisible.value = true
   }
 
   // Create
   const createVisible = ref(false)
   const submitting = ref(false)
-  const customerOptions = ref<any[]>([])
-  const createForm = reactive({
+  interface OrderItem {
+    productType: string
+    productId: string
+    productName: string
+    quantity: number
+    unitPrice: number
+    structureStandardCode: string
+    orderFulfillmentType: string
+    lensStatus: string
+  }
+  interface CreateOrderForm {
+    customerId: string
+    customerName: string
+    customerPhone: string
+    orderType: string
+    structureStandardCode: string
+    items: OrderItem[]
+    shippingFee: number
+    discountAmount: number
+    remark: string
+  }
+  const customerOptions = ref<Record<string, unknown>[]>([])
+  const createForm = reactive<CreateOrderForm>({
     customerId: '',
     customerName: '',
     customerPhone: '',
     orderType: 'retail',
     structureStandardCode: '',
-    items: [] as any[],
+    items: [],
     shippingFee: 0,
     discountAmount: 0,
     remark: '',
   })
-  const lensOptions = ref<any[]>([])
+  const lensOptions = ref<Record<string, unknown>[]>([])
   const historyLensNotice = ref('')
 
   function openCreateDialog() {
-    Object.assign(createForm, {
-      customerId: '', customerName: '', customerPhone: '', orderType: ORDER_TYPES.retail,
-      structureStandardCode: '',
-      items: [{ productType: 'sku', productId: '', productName: '', quantity: 1, unitPrice: 0, structureStandardCode: '', orderFulfillmentType: FULFILLMENT_TYPE.frame_only, lensStatus: LENS_STATUS.not_needed }],
-      shippingFee: 0, discountAmount: 0, remark: '',
-    })
+    createForm.customerId = ''
+    createForm.customerName = ''
+    createForm.customerPhone = ''
+    createForm.orderType = ORDER_TYPES.retail
+    createForm.structureStandardCode = ''
+    createForm.shippingFee = 0
+    createForm.discountAmount = 0
+    createForm.remark = ''
+    createForm.items = [{ productType: 'sku', productId: '', productName: '', quantity: 1, unitPrice: 0, structureStandardCode: '', orderFulfillmentType: FULFILLMENT_TYPE.frame_only, lensStatus: LENS_STATUS.not_needed }]
     historyLensNotice.value = ''
     createVisible.value = true
   }
@@ -154,21 +212,23 @@ export function useOrders() {
   async function onCustomerSelect(id: string) {
     const c = customerOptions.value.find(x => x.customerId === id)
     if (c) {
-      createForm.customerName = c.contactName
-      createForm.customerPhone = c.phone
+      createForm.customerName = c.contactName as string
+      createForm.customerPhone = c.phone as string
     }
     historyLensNotice.value = ''
     createForm.structureStandardCode = ''
     try {
       const res = await getCustomerLensSummary(id)
       if (res?.lenses?.length > 0) {
-        const activeLens = res.lenses.find((l: any) => l.status === 'active') || res.lenses[0]
-        const code = activeLens.lensStandardCode
-        const rx = activeLens.prescription as Record<string, string> | undefined
+        interface LensRecord { status: string; lensStandardCode: string; prescription?: Record<string, string>; externalCode?: string }
+        const lenses = (res.lenses as unknown as LensRecord[]) ?? []
+        const activeLens = lenses.find((l) => l.status === 'active') || lenses[0]
+        const code: string = activeLens.lensStandardCode
+        const rx = activeLens.prescription
         const rxInfo = rx ? `球镜: OD${rx.odSphere}/OS${rx.osSphere}` : ''
         historyLensNotice.value = `🔬 该客户历史镜片：${code}${rxInfo ? ' | ' + rxInfo : ''}`
         const matched = lensOptions.value.find(l => l.externalCode === code)
-        if (matched) createForm.structureStandardCode = matched.structureId
+        if (matched) createForm.structureStandardCode = matched.structureId as string
       }
     } catch { /* ignore */ }
   }
@@ -206,7 +266,7 @@ export function useOrders() {
 
   // Ship
   const shipVisible = ref(false)
-  const shipOrder = ref<any>(null)
+  const shipOrder = ref<Record<string, unknown> | null>(null)
   const shipForm = reactive({ carrier: 'sf', trackingNo: '' })
 
   function openShipDialog(row: Record<string, unknown>) {
@@ -219,7 +279,7 @@ export function useOrders() {
     if (!shipForm.trackingNo) return ElMessage.warning('请输入运单号')
     submitting.value = true
     try {
-      await createShipment({ orderId: shipOrder.value.orderId, ...shipForm })
+      await createShipment({ orderId: shipOrder.value?.orderId as string, ...shipForm })
       ElMessage.success('发货成功')
       shipVisible.value = false
       loadData()
@@ -234,8 +294,8 @@ export function useOrders() {
     loading.value = true
     try {
       const res = await getOrderList(query)
-      tableData.value = res?.items || []
-      total.value = res?.total || 0
+      tableData.value = (res?.items as unknown as Record<string, unknown>[]) || []
+      total.value = Number(res?.total) || 0
     } catch (e: unknown) {
       const err = e instanceof Error ? e.message : String(e)
       ElMessage.error(err || '加载订单失败')
@@ -247,7 +307,7 @@ export function useOrders() {
   async function loadStats() {
     try {
       const res = await getOrderStats()
-      stats.value = ensureStats(res)
+      stats.value = ensureStats(res as OrderStats | null)
     } catch (e: unknown) {
       const _err = e instanceof Error ? e.message : String(e)
       console.error('loadStats error:', _err)
@@ -257,14 +317,14 @@ export function useOrders() {
   async function loadCustomers() {
     try {
       const res = await getCustomerList({ page: 1, pageSize: 200 })
-      customerOptions.value = res?.items || []
+      customerOptions.value = (res?.items as unknown as Record<string, unknown>[]) || []
     } catch { /* ignore */ }
   }
 
   async function loadLensOptions() {
     try {
       const res = await getStructureList({ page: 1, pageSize: 200, status: 'active' })
-      lensOptions.value = res?.items || []
+      lensOptions.value = (res?.items as unknown as Record<string, unknown>[]) || []
     } catch { /* ignore */ }
   }
 
