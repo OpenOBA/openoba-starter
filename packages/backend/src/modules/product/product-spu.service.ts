@@ -84,7 +84,12 @@ export class ProductSpuService {
 
   async updateSpu(id: string, dto: Record<string, unknown>) {
     const item = await this.findOneSpu(id)
-    const { gender, structureStandardCode, categoryId, seriesCode, sceneTags, ...rest } = dto
+    const gender = dto.gender as string | undefined
+    const structureStandardCode = dto.structureStandardCode as string | undefined
+    const categoryId = dto.categoryId as string | undefined
+    const seriesCode = dto.seriesCode as string | undefined
+    const sceneTags = dto.sceneTags as string[] | undefined
+    const { ...rest } = dto
     if (gender && !VALID_GENDERS.includes(gender)) {
       throw new BadRequestException(`无效的性别值: ${gender}`)
     }

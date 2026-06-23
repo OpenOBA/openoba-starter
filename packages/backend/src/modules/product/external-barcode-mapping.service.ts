@@ -45,19 +45,19 @@ export class ExternalBarcodeMappingService {
   }
 
   async create(dto: Record<string, unknown>) {
-    const mappingId = dto.mappingId || `ebm-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`
+    const mappingId = (dto.mappingId as string) || `ebm-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`
     // 字段映射：请求用 barcode/skuId，Entity 用 externalBarcode/skuId
     const entity = this.repo.create({
       mappingId,
-      skuId: dto.skuId,
-      externalBarcode: dto.barcode || dto.externalBarcode,
-      externalBrand: dto.externalBrand || dto.brand,
-      externalProduct: dto.externalProduct || dto.product,
-      structureStandardCode: dto.structureStandardCode,
-      inventorySkuId: dto.inventorySkuId,
-      unitCost: dto.unitCost,
-      source: dto.source,
-      status: dto.status || STRUCT_STATUS[0], // @see STRUCT_STATUS
+      skuId: dto.skuId as string,
+      externalBarcode: (dto.barcode || dto.externalBarcode) as string,
+      externalBrand: (dto.externalBrand || dto.brand) as string,
+      externalProduct: (dto.externalProduct || dto.product) as string,
+      structureStandardCode: dto.structureStandardCode as string,
+      inventorySkuId: dto.inventorySkuId as string,
+      unitCost: dto.unitCost as number,
+      source: dto.source as string,
+      status: (dto.status as string) || STRUCT_STATUS[0],
     })
     return this.repo.save(entity)
   }

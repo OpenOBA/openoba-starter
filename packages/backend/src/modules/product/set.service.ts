@@ -34,7 +34,8 @@ export class SetService {
   }
 
   async createSet(dto: Record<string, unknown>) {
-    const { categoryId, ...rest } = dto
+    const categoryId = dto.categoryId as string | undefined
+    const { ...rest } = dto
     // 自动生成套装编码 SET + 6位序号
     if (!rest.setCode) {
       rest.setCode = await this.generateSetCode()
@@ -56,7 +57,8 @@ export class SetService {
 
   async updateSet(id: string, dto: Record<string, unknown>) {
     const item = await this.findOneSet(id)
-    const { categoryId, ...rest } = dto
+    const categoryId = dto.categoryId as string | undefined
+    const { ...rest } = dto
     Object.assign(item, rest)
     if (categoryId !== undefined) {
       item.category = categoryId ? ({ categoryId } as Partial<Category>) : null

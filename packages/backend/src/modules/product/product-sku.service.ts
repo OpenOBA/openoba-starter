@@ -133,7 +133,10 @@ export class ProductSkuService {
 
   async updateSku(id: string, dto: Record<string, unknown>) {
     const item = await this.findOneSku(id)
-    const { spuId, productTier: newTier, colorCode, ...rest } = dto
+    const spuId = dto.spuId as string | undefined
+    const newTier = dto.productTier as string | undefined
+    const colorCode = dto.colorCode as string | undefined
+    const { ...rest } = dto
     const typedItem = item as Partial<ProductSku> & { productTier?: string; spu?: { productTier?: string } }
     const resolvedTier = newTier || typedItem.productTier || typedItem.spu?.productTier || 'color'
 

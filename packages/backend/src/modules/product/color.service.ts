@@ -15,7 +15,11 @@ export class ColorService {
   ) {}
 
   async findColors(query: Record<string, unknown>) {
-    const { page = 1, pageSize = 20, keyword, colorFamily, colorType } = query
+    const page = (query.page as number) || 1
+    const pageSize = (query.pageSize as number) || 20
+    const keyword = query.keyword as string | undefined
+    const colorFamily = query.colorFamily as string | undefined
+    const colorType = query.colorType as string | undefined
     const qb = this.colorRepo.createQueryBuilder('c').where('1=1')
     if (keyword)
       qb.andWhere(

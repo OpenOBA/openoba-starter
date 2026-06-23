@@ -80,18 +80,20 @@ export class SpuService {
 
   async updateSpu(id: string, dto: Record<string, unknown>) {
     const item = await this.findOneSpu(id)
-    const { categoryId, gender, ...rest } = dto
+    const categoryId = dto.categoryId as string | undefined
+    const gender = dto.gender as string | undefined
+    const { ...rest } = dto
     if (gender && !VALID_GENDERS.includes(gender)) {
       throw new BadRequestException(`款式必须是以下值之一: ${VALID_GENDERS.join(', ')}`)
     }
 
     // V2.0: 如果结构标准变化，重新生成 spu_code
     if (rest.structureStandardCode && rest.structureStandardCode !== item.structureStandardCode) {
-      rest.spuCode = await this.generateSpuCode(rest.structureStandardCode)
+      rest.spuCode = await this.generateSpuCode(rest.structureStandardCode as string)
     }
     // V2.0: 如果结构标准或系列变化，重新生成展示名
     if (rest.structureStandardCode || rest.seriesCode !== undefined) {
-      rest.spuName = await this.generateSpuDisplayName({ ...item, ...rest })
+      rest.spuName = await this.generateSpuDisplayName({ ...item, ...rest } as Record<string, unknown>)
     }
 
     Object.assign(item, rest)
