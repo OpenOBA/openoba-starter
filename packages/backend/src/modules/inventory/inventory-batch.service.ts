@@ -1,7 +1,7 @@
 ﻿/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Repository, DataSource } from 'typeorm'
+import { Repository, DataSource, EntityManager } from 'typeorm'
 import { Inventory } from './entity/inventory.entity'
 import { InventoryTransaction, TransactionType } from './entity/inventory-transaction.entity'
 import { InventoryDocument } from './entity/inventory-document.entity'
@@ -219,8 +219,9 @@ export class InventoryBatchService {
    * 执行单据中的单个行项目
    */
   private async executeItem(manager: EntityManager, doc: InventoryDocument, item: Record<string, unknown>, operatorId?: string): Promise<void> {
+    const qty = item.quantity as number
     const sku = await manager.findOne(Inventory, {
-      where: { skuCode: item.skuCode, warehouseCode: item.warehouseCode || 'WH-MAIN' },
+      where: { skuCode: item.skuCode as string, warehouseCode: (item.warehouseCode as string) || 'WH-MAIN' },
       lock: { mode: 'pessimistic_write' },
     })
     if (!sku) throw new NotFoundException(`SKU ${item.skuCode} 无库存记录，请先初始化`)
@@ -234,16 +235,16 @@ export class InventoryBatchService {
           : TransactionType.ADJUST
 
     if (doc.docType === 'stock_in' || doc.docType === 'adjustment') {
-      sku.currentQuantity += item.quantity
-      sku.availableQuantity += item.quantity
+      sku.currentQuantity += qty
+      sku.availableQuantity += qty
     } else if (doc.docType === 'stock_out') {
-      if (sku.availableQuantity < item.quantity) {
+      if (sku.availableQuantity < qty) {
         throw new BadRequestException(
-          `${item.skuCode} 可用库存不足（可用${sku.availableQuantity}，需要${item.quantity}）`,
+          `${item.skuCode} 可用库存不足（可用${sku.availableQuantity}，需要${qty}）`,
         )
       }
-      sku.currentQuantity -= item.quantity
-      sku.availableQuantity -= item.quantity
+      sku.currentQuantity -= qty
+      sku.availableQuantity -= qty
     }
     sku.updatedAt = new Date()
     await manager.save(Inventory, sku)
@@ -254,7 +255,7 @@ export class InventoryBatchService {
       skuCode: sku.skuCode,
       warehouseCode: sku.warehouseCode,
       transactionType: txType,
-      quantity: doc.docType === 'stock_out' ? -item.quantity : item.quantity,
+      quantity: doc.docType === 'stock_out' ? -qty : qty,
       quantityBefore: before,
       quantityAfter: sku.currentQuantity,
       referenceType: 'document',
