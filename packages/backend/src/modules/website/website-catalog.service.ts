@@ -266,11 +266,11 @@ export class WebsiteCatalogService {
         ? `${sku.lensWidth}□${sku.bridgeWidth}-${sku.templeLength}`
         : ''
 
-    const mat = sku.frameMaterial ? (matMap.get(sku.frameMaterial) as Record<string, unknown> | undefined) : null
-    const ft = sku.frameType ? (typeMap.get(sku.frameType) as Record<string, unknown> | undefined) : null
-    const np = sku.nosePadType ? (noseMap.get(sku.nosePadType) as Record<string, unknown> | undefined) : null
-    const hg = sku.hingeType ? (hingeMap.get(sku.hingeType) as Record<string, unknown> | undefined) : null
-    const st = sku.surfaceTreatment ? (surfMap.get(sku.surfaceTreatment) as Record<string, unknown> | undefined) : null
+    const mat = sku.frameMaterial ? (matMap.get(sku.frameMaterial as string) as Record<string, unknown> | undefined) : null
+    const ft = sku.frameType ? (typeMap.get(sku.frameType as string) as Record<string, unknown> | undefined) : null
+    const np = sku.nosePadType ? (noseMap.get(sku.nosePadType as string) as Record<string, unknown> | undefined) : null
+    const hg = sku.hingeType ? (hingeMap.get(sku.hingeType as string) as Record<string, unknown> | undefined) : null
+    const st = sku.surfaceTreatment ? (surfMap.get(sku.surfaceTreatment as string) as Record<string, unknown> | undefined) : null
 
     const weight = sku.weightG as number | undefined
     const weightLabel =

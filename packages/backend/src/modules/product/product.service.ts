@@ -26,10 +26,10 @@ export class ProductService {
   async findOneColor(id: string): Promise<unknown> {
     return this.colorService.findOneColor(id)
   }
-  async createColor(dto: unknown): Promise<unknown> {
+  async createColor(dto: Record<string, unknown>): Promise<unknown> {
     return this.colorService.createColor(dto)
   }
-  async updateColor(id: string, dto: unknown): Promise<unknown> {
+  async updateColor(id: string, dto: Record<string, unknown>): Promise<unknown> {
     return this.colorService.updateColor(id, dto)
   }
   async deleteColor(id: string): Promise<unknown> {
@@ -55,16 +55,16 @@ export class ProductService {
 
   // ===== SKU =====
   async findSkus(query: QuerySkuDto): Promise<unknown> {
-    return this.skuService.findSkus(query)
+    return this.skuService.findSkus(query as unknown as Record<string, unknown>)
   }
   async findOneSku(id: string): Promise<unknown> {
     return this.skuService.findOneSku(id)
   }
   async createSku(dto: CreateSkuDto): Promise<unknown> {
-    return this.skuService.createSku(dto)
+    return this.skuService.createSku(dto as unknown as Record<string, unknown>)
   }
   async updateSku(id: string, dto: UpdateSkuDto): Promise<unknown> {
-    return this.skuService.updateSku(id, dto)
+    return this.skuService.updateSku(id, dto as unknown as Record<string, unknown>)
   }
   async deleteSku(id: string): Promise<unknown> {
     return this.skuService.deleteSku(id)
