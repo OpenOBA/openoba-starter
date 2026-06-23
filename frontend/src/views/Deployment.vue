@@ -176,11 +176,28 @@ import request from '@/api/request'
 
 const loading = ref(false)
 const syncing = ref(false)
-const status = ref<any>(null)
-const deltas = ref<any[]>([])
+interface EnvStatus {
+  version?: string
+  branch?: string
+  commit?: string
+  running?: boolean
+}
+interface DeploymentStatus {
+  synced?: boolean
+  running?: boolean
+  branch?: string
+  commit?: string
+  production?: EnvStatus
+  staging?: EnvStatus
+  pendingDeltas?: DeltaItem[]
+  [key: string]: unknown
+}
+interface DeltaItem { status: string; [key: string]: unknown }
+const status = ref<DeploymentStatus | null>(null)
+const deltas = ref<DeltaItem[]>([])
 
-const pendingCount = computed(() => deltas.value.filter((d: any) => d.status !== 'promoted' && d.status !== 'rolled_back').length)
-const rollbackHistory = computed(() => deltas.value.filter((d: any) => d.status === 'rolled_back'))
+const pendingCount = computed(() => deltas.value.filter((d) => d.status !== 'promoted' && d.status !== 'rolled_back').length)
+const rollbackHistory = computed(() => deltas.value.filter((d) => d.status === 'rolled_back'))
 const syncCardClass = computed(() => status.value?.synced ? '' : 'stat-card-warn')
 
 // ═══ 部署模式 ═══
@@ -195,15 +212,15 @@ const isDeveloperMode = computed(() => deployMode.mode !== 'operator')
 
 async function loadDeployMode() {
  try {
- const r: any = await request.get('/deployment/mode')
- const d = r?.data || r
+ const r = await request.get('/deployment/mode') as Record<string, unknown>
+ const d = (r?.data || r) as Record<string, unknown>
  if (d) {
- deployMode.mode = d.mode || 'operator'
- deployMode.label = d.label || '运营模式'
- deployMode.desc = d.desc || ''
- deployMode.restrictions = d.restrictions || []
+ deployMode.mode = (d.mode as string) || 'operator'
+ deployMode.label = (d.label as string) || '运营模式'
+ deployMode.desc = (d.desc as string) || ''
+ deployMode.restrictions = (d.restrictions as string[]) || []
  }
- } catch {}
+ } catch { /* ignore */ }
 }
 
 async function switchMode(mode: string) {
@@ -235,7 +252,7 @@ async function switchMode(mode: string) {
  try {
  await request.post('/deployment/sync', {})
  ElMessage.success('Staging 环境已自动启动')
- } catch {}
+ } catch { /* ignore */ }
  }
  // 切回 operator 时如果 staging 在跑，提醒可以停止
  if (mode === 'operator' && status.value?.staging?.running) {
@@ -243,7 +260,7 @@ async function switchMode(mode: string) {
  }
  await loadDeployMode()
  await loadStatus()
- } catch (e: any) { ElMessage.error(e.message || '切换失败') }
+ } catch (e: unknown) { ElMessage.error((e as Error).message || '切换失败') }
  finally { switchingMode.value = '' }
 }
 
@@ -268,9 +285,9 @@ function statusTagType(s: string) {
 async function loadStatus() {
  loading.value = true
  try {
- const r: any = await request.get('/deployment/status')
- status.value = r?.data || r
- deltas.value = status.value?.pendingDeltas || []
+ const r = await request.get('/deployment/status') as Record<string, unknown>
+ status.value = (r?.data || r) as DeploymentStatus
+ deltas.value = (status.value?.pendingDeltas || []) as DeltaItem[]
  } catch { /* ignore */ }
  finally { loading.value = false }
 }
@@ -281,7 +298,7 @@ async function handleSync() {
  await request.post('/deployment/sync', {})
  ElMessage.success('Staging 已与 Production 同步')
  await loadStatus()
- } catch (e: any) { ElMessage.error(e.message || '同步失败') }
+ } catch (e: unknown) { ElMessage.error((e as Error).message || '同步失败') }
  finally { syncing.value = false }
 }
 
@@ -290,7 +307,7 @@ async function deployStaging(id: string) {
  await request.post(`/deployment/deltas/${id}/deploy-staging`, {})
  ElMessage.success('已部署到 Staging')
  await loadStatus()
- } catch (e: any) { ElMessage.error(e.message || '部署失败') }
+ } catch (e: unknown) { ElMessage.error((e as Error).message || '部署失败') }
 }
 
 async function verifyStaging(id: string) {
@@ -298,7 +315,7 @@ async function verifyStaging(id: string) {
  await request.post(`/deployment/deltas/${id}/verify`, {})
  ElMessage.success('Staging 验收通过')
  await loadStatus()
- } catch (e: any) { ElMessage.error(e.message || '验收失败') }
+ } catch (e: unknown) { ElMessage.error((e as Error).message || '验收失败') }
 }
 
 async function promoteProduction(id: string) {
@@ -314,12 +331,12 @@ async function promoteProduction(id: string) {
 
 async function handleStartStaging() {
  try { await request.post('/deployment/sync', {}); ElMessage.success('Staging 已启动'); await loadStatus() }
- catch (e: any) { ElMessage.error(e.message || '启动失败') }
+ catch (e: unknown) { ElMessage.error((e as Error).message || '启动失败') }
 }
 
 async function handleRestartProduction() {
  try { await request.post('/deployment/sync', {}); ElMessage.success('Production 已重启'); await loadStatus() }
- catch (e: any) { ElMessage.error(e.message || '重启失败') }
+ catch (e: unknown) { ElMessage.error((e as Error).message || '重启失败') }
 }
 
 import { ElMessageBox } from 'element-plus'

@@ -237,26 +237,28 @@ import request from '@/api/request'
 // ============ 状态 ============
 const loading = ref(false)
 const saving = ref(false)
-const list = ref<any[]>([])
-const subSkuSelection = ref<any[]>([])
-const categoryTree = ref<any[]>([])
-const flatCategories = ref<any[]>([])
+const list = ref<Record<string, unknown>[]>([])
+const subSkuSelection = ref<Record<string, unknown>[]>([])
+const categoryTree = ref<Record<string, unknown>[]>([])
+const flatCategories = ref<Record<string, unknown>[]>([])
 const filterCategoryId = ref('')
 const searchKeyword = ref('')
-const structureStandards = ref<any[]>([])
+const structureStandards = ref<Record<string, unknown>[]>([])
 
-const dictOptions = reactive({
-  refractive_index: [] as any[],
-  lens_function: [] as any[],
-  lens_coating: [] as any[],
-  lens_material: [] as any[],
-  unit: [] as any[],
-  brand: [] as any[],
+interface DictOptionItem { code: string; name: string; display_name: string }
+const dictOptions = reactive<Record<string, DictOptionItem[]>>({
+  refractive_index: [],
+  lens_function: [],
+  lens_coating: [],
+  lens_material: [],
+  unit: [],
+  brand: [],
 })
 
 // ============ 分类对话框 ============
 const categoryDialogVisible = ref(false)
-const categoryForm = reactive<any>({ id: '', code: '', name: '', parentId: '', sortOrder: 0 })
+interface CategoryForm { id: string; code: string; name: string; parentId: string; sortOrder: number }
+const categoryForm = reactive<CategoryForm>({ id: '', code: '', name: '', parentId: '', sortOrder: 0 })
 
 const showCategoryDialog = (data?: Record<string, unknown>) => {
   if (data?.id) {
@@ -279,14 +281,13 @@ const saveCategory = async () => {
     categoryDialogVisible.value = false
     loadCategories()
   } catch (e: unknown) {
-    ElMessage.error((e as any)?.message || '操作失败')
+    ElMessage.error((e as Error)?.message || '操作失败')
   } finally { saving.value = false }
 }
 
 const deleteCategory = async (id: string) => {
   try {
-    // 检查是否有子分类（在扁平列表中查找 parentId 匹配）
-    const hasChildren = flatCategories.value.some((n: any) => n.parentId === id)
+    const hasChildren = flatCategories.value.some((n) => n.parentId === id)
     if (hasChildren) {
       ElMessage.warning('该分类下存在子分类，请先删除子分类')
       return
@@ -295,20 +296,21 @@ const deleteCategory = async (id: string) => {
     ElMessage.success('已删除')
     loadCategories()
   } catch (e: unknown) {
-    const msg = (e as any)?.message || '删除失败'
+    const msg = (e as Error)?.message || '删除失败'
     ElMessage.error(msg)
   }
 }
 
 // ============ S-SKU 对话框 ============
 const skuDialogVisible = ref(false)
-const skuForm = reactive<any>({
+interface SkuForm { id: string; code: string; name: string; brand: string; model: string; categoryId: string; specTemplateId: string; standardId: string; price: number; costPrice: number; unit: string; stock: number; sortOrder: number; isActive: boolean }
+const skuForm = reactive<SkuForm>({
   id: '', code: '', name: '', brand: '秒镜', model: '', categoryId: '',
   specTemplateId: '', standardId: '',
   price: 0, costPrice: 0, unit: '副', stock: 0,
   sortOrder: 0, isActive: true,
 })
-const specValues = reactive<any>({ refractive_index: '', lens_function: '', coating: '', material: '' })
+const specValues = reactive<Record<string, string>>({ refractive_index: '', lens_function: '', coating: '', material: '' })
 
 const onCategoryClick = (data: Record<string, unknown>) => {
   filterCategoryId.value = (data?.id as string) || ''
@@ -385,15 +387,15 @@ const saveSku = async () => {
     skuDialogVisible.value = false
     loadList()
   } catch (e: unknown) {
-    ElMessage.error((e as any)?.message || '操作失败')
+    ElMessage.error((e as Error)?.message || '操作失败')
   } finally { saving.value = false }
 }
 const batchEditSubSkus = () => { if(subSkuSelection.value.length===1) showSkuDialog(subSkuSelection.value[0]); else if(subSkuSelection.value.length>1) ElMessage.warning('暂仅支持单条编辑'); };
-const batchRemoveSubSkus = async () => { try { for(const r of subSkuSelection.value) await deleteSubSku(r.id); ElMessage.success(subSkuSelection.value.length+' 条已下架'); subSkuSelection.value=[]; loadList(); } catch { ElMessage.error('操作失败'); } };
+const batchRemoveSubSkus = async () => { try { for(const r of subSkuSelection.value) await deleteSubSku(r.id as string); ElMessage.success(subSkuSelection.value.length+' 条已下架'); subSkuSelection.value=[]; loadList(); } catch { ElMessage.error('操作失败'); } };
 
 // 下架
 
-const batchDeleteSubSkus = async () => { try { for(const r of subSkuSelection.value) await deleteSubSku(r.id); ElMessage.success(subSkuSelection.value.length+' 条已删除'); subSkuSelection.value=[]; loadList(); } catch { ElMessage.error('删除失败'); } };
+const batchDeleteSubSkus = async () => { try { for(const r of subSkuSelection.value) await deleteSubSku(r.id as string); ElMessage.success(subSkuSelection.value.length+' 条已删除'); subSkuSelection.value=[]; loadList(); } catch { ElMessage.error('删除失败'); } };
 
 // ============ 数据加载 ============
 const loadCategories = async () => {
@@ -435,12 +437,11 @@ const loadDicts = async () => {
     const [ri, fn, ct, mt, un, br] = await getSubSkuDicts()
     const results = [ri, fn, ct, mt, un, br]
     dictKeys.forEach((key, i) => {
-      (dictOptions as any)[key] = Array.isArray(results[i]) ? results[i] : []
+      dictOptions[key] = Array.isArray(results[i]) ? results[i] : []
     })
   } catch (e: unknown) {
-    // 降级：逐个请求，单个失败不影响其他
     console.warn('批量加载字典失败，尝试逐个加载...', e)
-    const fallbackLoaders: Record<string, () => Promise<any>> = {
+    const fallbackLoaders: Record<string, () => Promise<unknown>> = {
       refractive_index: () => request.get('/dict/dict_refractive_index'),
       lens_function: () => request.get('/dict/dict_lens_function'),
       lens_coating: () => request.get('/dict/dict_lens_coating'),
@@ -451,10 +452,10 @@ const loadDicts = async () => {
     for (const key of dictKeys) {
       try {
         const res = await fallbackLoaders[key]()
-        ;(dictOptions as any)[key] = Array.isArray(res) ? res : []
+        dictOptions[key] = Array.isArray(res) ? res as DictOptionItem[] : []
       } catch (err) {
         console.error(`字典 ${key} 加载失败`, err)
-        ;(dictOptions as any)[key] = []
+        dictOptions[key] = []
       }
     }
   }
