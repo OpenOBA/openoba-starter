@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+﻿import { Injectable } from '@nestjs/common'
 import { ColorService } from './color.service'
 import { SpuService } from './spu.service'
 import { SkuService } from './sku.service'
@@ -8,6 +8,8 @@ import type { CreateSetDto, UpdateSetDto } from './dto/product.dto'
 import type { SkuDisplayNameInput } from './interfaces/sku.interface'
 
 /** Product Facade Service — 委托调用 domain services */
+
+
 @Injectable()
 export class ProductService {
   constructor(

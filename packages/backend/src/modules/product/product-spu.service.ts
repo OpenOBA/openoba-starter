@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- TODO: 需要类型化 */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any -- TODO: 需要类型化 */
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, Like, DataSource } from 'typeorm'
@@ -10,6 +10,8 @@ import { NamingEngine, SpuNameInput } from './utils/naming-engine'
 
 const VALID_GENDERS = ['female', 'male', 'unisex', 'limited']
 
+
+
 @Injectable()
 export class ProductSpuService {
   constructor(
@@ -20,7 +22,15 @@ export class ProductSpuService {
   ) {}
 
   async findSpus(query: Record<string, unknown>) {
-    const { page = 1, pageSize = 20, keyword, categoryId, status, seriesCode, gender, sceneTag, productTier } = query
+    const page = (query.page as number) || 1
+    const pageSize = (query.pageSize as number) || 20
+    const keyword = query.keyword as string | undefined
+    const categoryId = query.categoryId as string | undefined
+    const status = query.status as string | undefined
+    const seriesCode = query.seriesCode as string | undefined
+    const gender = query.gender as string | undefined
+    const sceneTag = query.sceneTag as string | undefined
+    const productTier = query.productTier as string | undefined
     const qb = this.spuRepo
       .createQueryBuilder('s')
       .leftJoinAndSelect('s.category', 'cat')
@@ -47,7 +57,11 @@ export class ProductSpuService {
   }
 
   async createSpu(dto: Record<string, unknown>) {
-    const { gender, structureStandardCode, seriesCode, sceneTags, ...rest } = dto
+    const gender = dto.gender as string | undefined
+    const structureStandardCode = dto.structureStandardCode as string | undefined
+    const seriesCode = dto.seriesCode as string | undefined
+    const sceneTags = dto.sceneTags as string[] | undefined
+    const { ...rest } = dto
     if (gender && !VALID_GENDERS.includes(gender)) {
       throw new BadRequestException(`无效的性别值: ${gender}`)
     }

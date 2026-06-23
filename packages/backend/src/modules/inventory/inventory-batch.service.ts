@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, DataSource } from 'typeorm'
@@ -17,6 +17,8 @@ import { InventoryDocument } from './entity/inventory-document.entity'
  *   → 人工确认/自动确认 → confirmed
  *   → executeDocument() → stock_in/stock_out → executed
  */
+
+
 @Injectable()
 export class InventoryBatchService {
   private readonly logger = new Logger(InventoryBatchService.name)

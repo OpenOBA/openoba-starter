@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- TODO: 需要类型化 */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any -- TODO: 需要类型化 */
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, DataSource } from 'typeorm'
@@ -16,6 +16,8 @@ import { LENS_STATUS } from '../order/order.constants'
  * 会员系统子 Service
  * 负责：会员等级、积分、仪表盘、订单集成（populateCustomerLensFromOrder, updateMemberAssetsAfterPayment）
  */
+
+
 @Injectable()
 export class CustomerMemberService {
   constructor(

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- TODO: 需要类型化 */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any -- TODO: 需要类型化 */
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, Like, FindOptionsWhere, FindOperator } from 'typeorm'
@@ -25,6 +25,8 @@ interface StructWhere extends FindOptionsWhere<StructureStandard> {
   externalCode?: string
 }
 
+
+
 @Injectable()
 export class ProductSkuService {
   private readonly logger = new Logger(ProductSkuService.name)
@@ -50,7 +52,14 @@ export class ProductSkuService {
   ) {}
 
   async findSkus(query: Record<string, unknown>) {
-    const { page = 1, pageSize = 20, spuId, keyword, status, skuBarcode, ean13, productTier } = query
+    const page = (query.page as number) || 1
+    const pageSize = (query.pageSize as number) || 20
+    const spuId = query.spuId as string | undefined
+    const keyword = query.keyword as string | undefined
+    const status = query.status as string | undefined
+    const skuBarcode = query.skuBarcode as string | undefined
+    const ean13 = query.ean13 as string | undefined
+    const productTier = query.productTier as string | undefined
     const qb = this.skuRepo
       .createQueryBuilder('s')
       .leftJoinAndSelect('s.spu', 'spu')
@@ -79,7 +88,9 @@ export class ProductSkuService {
 
   async createSku(dto: Record<string, unknown>) {
     try {
-      const { spuId, colorCode, ...rest } = dto
+      const spuId = dto.spuId as string | undefined
+      const colorCode = dto.colorCode as string | undefined
+      const { ...rest } = dto
       if (!spuId) throw new BadRequestException('spuId 不能为空')
       // V3.0: colorCode 为必填字段
       if (!colorCode) throw new BadRequestException('SKU 色彩为必填项（V3.0）')

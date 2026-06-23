@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Repository, DataSource } from 'typeorm'
+import { Repository, DataSource, EntityManager } from 'typeorm'
 import { Inventory } from './entity/inventory.entity'
 import { InventoryTransaction, TransactionType } from './entity/inventory-transaction.entity'
 import { InventoryDocument } from './entity/inventory-document.entity'

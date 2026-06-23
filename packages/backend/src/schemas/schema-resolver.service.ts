@@ -32,12 +32,12 @@ export class SchemaResolver {
 
     // 替换 SPU 变量: {spu.key}
     for (const attr of schema.product.spuAttributes) {
-      name = name.replace(`{spu.${attr.key}}`, spu[attr.key] || '')
+      name = name.replace(`{spu.${attr.key}}`, (spu[attr.key] as string) || '')
     }
 
     // 替换 SKU 变量: {sku.key}
     for (const attr of schema.product.skuAttributes) {
-      name = name.replace(`{sku.${attr.key}}`, sku[attr.key] || '')
+      name = name.replace(`{sku.${attr.key}}`, (sku[attr.key] as string) || '')
     }
 
     return name
@@ -70,7 +70,7 @@ export class SchemaResolver {
   }
 
   /** 注册新行业 */
-  registerSchema(industry: string, schema: Record<string, unknown>): void {
+  registerSchema(industry: string, schema: IndustrySchema): void {
     registerSchema(industry, schema)
   }
 }

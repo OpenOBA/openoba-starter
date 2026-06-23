@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
-import { Injectable } from '@nestjs/common'
+﻿import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { ProductSpu } from '../product/entity/product-spu.entity'
@@ -26,6 +25,8 @@ import { PRODUCT_STATUS, SKU_STATUS } from '../product/product.constants'
 // 负责: 商品目录分页/筛选/排序、商品详情、搜索、兼容镜框数量
 // ============================================================
 
+
+
 @Injectable()
 export class WebsiteCatalogService {
   constructor(
@@ -39,18 +40,16 @@ export class WebsiteCatalogService {
     @InjectRepository(DictSurfaceTreatment) private surfaceTreatmentRepo: Repository<DictSurfaceTreatment>,
   ) {}
 
-  async getCatalog(query: Record<string, unknown>, helpers: CatalogHelpers): Promise<PaginatedResponse<SpuCardDto>> {
-    const {
-      page = 1,
-      pageSize = 20,
-      categoryId,
-      gender,
-      sceneTag,
-      productTier,
-      minPrice,
-      maxPrice,
-      sort = 'default',
-    } = query
+  async getCatalog(query: { [key: string]: unknown }, helpers: CatalogHelpers): Promise<PaginatedResponse<SpuCardDto>> {
+    const page = (query.page as number) || 1
+    const pageSize = (query.pageSize as number) || 20
+    const categoryId = query.categoryId as string | undefined
+    const gender = query.gender as string | undefined
+    const sceneTag = query.sceneTag as string | undefined
+    const productTier = query.productTier as string | undefined
+    const minPrice = query.minPrice as number | undefined
+    const maxPrice = query.maxPrice as number | undefined
+    const sort = (query.sort as string) || 'default'
 
     const qb = this.spuRepo
       .createQueryBuilder('s')
@@ -211,7 +210,9 @@ export class WebsiteCatalogService {
   }
 
   async search(query: Record<string, unknown>, helpers: SearchHelpers): Promise<SearchResultDto> {
-    const { keyword = '', page = 1, pageSize = 20 } = query
+    const keyword = (query.keyword as string) || ''
+    const page = (query.page as number) || 1
+    const pageSize = (query.pageSize as number) || 20
 
     if (!keyword.trim()) {
       return { products: [], suggestions: [], total: 0 }

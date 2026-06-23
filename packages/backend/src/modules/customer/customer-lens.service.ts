@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- TODO: 需要类型化 */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any -- TODO: 需要类型化 */
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, DataSource } from 'typeorm'
@@ -30,8 +30,8 @@ export class CustomerLensService {
         ...dto,
         prescriptionId: id,
         customerId,
-        prescriptionDate: dto.prescriptionDate ? new Date(dto.prescriptionDate) : null,
-        expireDate: dto.expireDate ? new Date(dto.expireDate) : null,
+        prescriptionDate: dto.prescriptionDate ? new Date(dto.prescriptionDate as string) : null,
+        expireDate: dto.expireDate ? new Date(dto.expireDate as string) : null,
         isDeleted: false,
         ocrVerified: false,
       }),
@@ -57,7 +57,7 @@ export class CustomerLensService {
         ...dto,
         customerLensId: id,
         customerId,
-        purchaseDate: dto.purchaseDate ? new Date(dto.purchaseDate) : null,
+        purchaseDate: dto.purchaseDate ? new Date(dto.purchaseDate as string) : null,
         status: CUSTOMER_STATUS[0],
         isDeleted: false,
       }),
@@ -132,7 +132,7 @@ export class CustomerLensService {
         ...dto,
         consumptionProfileId: id,
         customerLensId,
-        purchaseDate: dto.purchaseDate ? new Date(dto.purchaseDate) : null,
+        purchaseDate: dto.purchaseDate ? new Date(dto.purchaseDate as string) : null,
         useStatus: dto.useStatus || CUSTOMER_STATUS[0],
         isDeleted: false,
       }),

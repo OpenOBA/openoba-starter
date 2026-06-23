@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
@@ -27,6 +27,8 @@ const REVIEW_TAGS = [
 
 // 自动标签规则：评分 >= 4 自动打正面标签
 const AUTO_POSITIVE_TAGS = ['质量好', '舒适度高', '款式好看', '性价比高']
+
+
 
 @Injectable()
 export class ReviewService {

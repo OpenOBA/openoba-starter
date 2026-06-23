@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any -- 遗留 any，待 DTO 专项处理 */
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common'
 import * as crypto from 'crypto'
 import { InjectRepository } from '@nestjs/typeorm'
@@ -188,8 +188,8 @@ export class PricingService {
   async updatePromotion(id: string, dto: UpdatePromotionDto) {
     const existing = await this.promoRepo.findOne({ where: { promotionId: id } })
     if (!existing) throw new NotFoundException(`促销 ${id} 不存在`)
-    if (dto.startTime) existing.startTime = new Date(dto.startTime)
-    if (dto.endTime) existing.endTime = new Date(dto.endTime)
+    if (dto.startTime) existing.startTime = new Date(dto.startTime as string)
+    if (dto.endTime) existing.endTime = new Date(dto.endTime as string)
     Object.assign(existing, dto)
     return this.promoRepo.save(existing)
   }
@@ -260,8 +260,8 @@ export class PricingService {
   async updateMemberPricingRule(ruleId: string, dto: UpdateMemberPricingRuleDto) {
     const existing = await this.memberPricingRuleRepo.findOne({ where: { ruleId } })
     if (!existing) throw new NotFoundException(`定价规则 ${ruleId} 不存在`)
-    if (dto.startTime) existing.startTime = new Date(dto.startTime)
-    if (dto.endTime) existing.endTime = new Date(dto.endTime)
+    if (dto.startTime) existing.startTime = new Date(dto.startTime as string)
+    if (dto.endTime) existing.endTime = new Date(dto.endTime as string)
     Object.assign(existing, dto)
     return this.memberPricingRuleRepo.save(existing)
   }

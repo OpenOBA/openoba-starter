@@ -219,7 +219,7 @@ export class OrderCrudService {
     }
   }
 
-  async updateOrder(id: string, dto: UpdateOrderDto, ensureExistsFn: () => Promise<unknown>) {
+  async updateOrder(id: string, dto: UpdateOrderDto, ensureExistsFn: () => Promise<Record<string, unknown>>) {
     await ensureExistsFn()
     const allowedFields: Record<string, unknown> = {}
     if (dto.customerName !== undefined) allowedFields.customerName = dto.customerName
@@ -229,10 +229,10 @@ export class OrderCrudService {
     if (dto.paymentMethod !== undefined) allowedFields.paymentMethod = dto.paymentMethod
     if (dto.shippingFee !== undefined) allowedFields.shippingFee = dto.shippingFee
     if (dto.discountAmount !== undefined) allowedFields.discountAmount = dto.discountAmount
-    await this.orderRepo.update(id, allowedFields)
+    await this.orderRepo.update(id, allowedFields as unknown as Parameters<typeof this.orderRepo.update>[1])
   }
 
-  async updateOrderStatus(id: string, dto: UpdateOrderStatusDto, ensureExistsFn: () => Promise<unknown>) {
+  async updateOrderStatus(id: string, dto: UpdateOrderStatusDto, ensureExistsFn: () => Promise<Order>) {
     const order = await ensureExistsFn()
     const oldStatus = order.status
 
