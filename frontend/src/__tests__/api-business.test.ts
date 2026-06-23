@@ -8,15 +8,15 @@
  */
 import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest'
 
-const mockCalls: Array<{ method: string; url: string; data?: unknown; params?: unknown }> = []
+const mockCalls: Array<{ method: string; url: string; data?: Record<string, unknown>; params?: unknown }> = []
 const mockRequest: Record<string, Mock> = {
-  get: vi.fn((url?: string, config?: unknown) => { mockCalls.push({ method: 'GET', url: url ?? '', params: config?.params }); return Promise.resolve({}) }),
-  post: vi.fn((url?: string, data?: unknown) => { mockCalls.push({ method: 'POST', url: url ?? '', data }); return Promise.resolve({}) }),
-  put: vi.fn((url?: string, data?: unknown) => { mockCalls.push({ method: 'PUT', url: url ?? '', data }); return Promise.resolve({}) }),
+  get: vi.fn((url?: string, config?: Record<string, unknown>) => { mockCalls.push({ method: 'GET', url: url ?? '', params: config?.params }); return Promise.resolve({}) }),
+  post: vi.fn((url?: string, data?: unknown) => { mockCalls.push({ method: 'POST', url: url ?? '', data: data as Record<string, unknown> }); return Promise.resolve({}) }),
+  put: vi.fn((url?: string, data?: unknown) => { mockCalls.push({ method: 'PUT', url: url ?? '', data: data as Record<string, unknown> }); return Promise.resolve({}) }),
   delete: vi.fn((url?: string) => { mockCalls.push({ method: 'DELETE', url: url ?? '' }); return Promise.resolve({}) }),
 }
 
-function resetMocks() { mockCalls.length = 0; Object.values(mockRequest).forEach((f: unknown) => f.mockClear()) }
+function resetMocks() { mockCalls.length = 0; Object.values(mockRequest).forEach((f: Mock) => f.mockClear()) }
 
 // ═══════════════════════════════════════
 // Order API
@@ -44,9 +44,10 @@ describe('Order API', () => {
       items: [{ skuId: 'sku-001', quantity: 2 }],
     })
     const call = mockCalls[0]
-    expect(call.data.items).toHaveLength(1)
-    expect(call.data.items[0].quantity).toBe(2)
-    expect(call.data.customerType).toBe('retail')
+        const items = call.data!.items as Record<string, unknown>[]
+    expect(items).toHaveLength(1)
+    expect(items[0].quantity).toBe(2)
+    expect(call.data!.customerType).toBe('retail')
   })
 
   it('createPayment 含金额和支付方式', async () => {
@@ -55,8 +56,8 @@ describe('Order API', () => {
       amount: 199,
       paymentMethod: 'wechat',
     })
-    expect(mockCalls[0].data.amount).toBe(199)
-    expect(mockCalls[0].data.paymentMethod).toBe('wechat')
+    expect(mockCalls[0].data!.amount).toBe(199)
+    expect(mockCalls[0].data!.paymentMethod).toBe('wechat')
   })
 
   it('createShipment 含物流单号', async () => {
@@ -65,19 +66,19 @@ describe('Order API', () => {
       trackingNo: 'SF1234567890',
       carrier: '顺丰',
     })
-    expect(mockCalls[0].data.trackingNo).toBe('SF1234567890')
+    expect(mockCalls[0].data!.trackingNo).toBe('SF1234567890')
   })
 
   it('updateOrderStatus 状态转换（paid→shipped）', async () => {
     await orderApi.updateOrderStatus('order-abc', { status: 'shipped', operator: 'admin' })
     expect(mockCalls[0].url).toBe('/orders/order-abc/status')
-    expect(mockCalls[0].data.status).toBe('shipped')
+    expect(mockCalls[0].data!.status).toBe('shipped')
   })
 
   it('cancelOrder 传递取消原因', async () => {
     await orderApi.cancelOrder('order-abc', { remark: '客户要求取消', operator: 'admin' })
     expect(mockCalls[0].url).toBe('/orders/order-abc/cancel')
-    expect(mockCalls[0].data.remark).toBe('客户要求取消')
+    expect(mockCalls[0].data!.remark).toBe('客户要求取消')
   })
 
   it('getOrders 支持多条件筛选', async () => {
@@ -111,14 +112,14 @@ describe('Customer API', () => {
       contactName: '张三',
       customerType: 'retail',
     })
-    expect(mockCalls[0].data.phone).toBe('13800138000')
-    expect(mockCalls[0].data.contactName).toBe('张三')
+    expect(mockCalls[0].data!.phone).toBe('13800138000')
+    expect(mockCalls[0].data!.contactName).toBe('张三')
   })
 
   it('updateCustomer 更新会员等级', async () => {
     await customerApi.updateCustomer('cus-001', { customerLevel: 'vip' })
     expect(mockCalls[0].url).toBe('/customers/cus-001')
-    expect(mockCalls[0].data.customerLevel).toBe('vip')
+    expect(mockCalls[0].data!.customerLevel).toBe('vip')
   })
 
   it('getCustomers 支持按类型和等级筛选', async () => {
@@ -160,14 +161,14 @@ describe('Task Engine API', () => {
 
   it('createTask 指定类型和标题', async () => {
     await taskApi.createTask({ title: '新品上架', type: 'product_listing', priority: 'high' })
-    expect(mockCalls[0].data.type).toBe('product_listing')
-    expect(mockCalls[0].data.priority).toBe('high')
+    expect(mockCalls[0].data!.type).toBe('product_listing')
+    expect(mockCalls[0].data!.priority).toBe('high')
   })
 
   it('sendMessage 发送对话消息', async () => {
     await taskApi.sendMessage('task-001', '帮我把这3个SKU入库')
     expect(mockCalls[0].url).toBe('/eros/tasks/task-001/message')
-    expect(mockCalls[0].data.message).toBe('帮我把这3个SKU入库')
+    expect(mockCalls[0].data!.message).toBe('帮我把这3个SKU入库')
   })
 
   it('cancelTask 取消任务', async () => {

@@ -13,18 +13,18 @@ import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest'
 // ═══════════════════════════════════════
 // Mock request 实例
 // ═══════════════════════════════════════
-const mockCalls: Array<{ method: string; url: string; data?: unknown; params?: unknown; config?: unknown }> = []
+const mockCalls: Array<{ method: string; url: string; data?: Record<string, unknown>; params?: unknown; config?: unknown }> = []
 const mockRequest: Record<string, Mock> = {
-  get: vi.fn((url?: string, config?: unknown) => {
+  get: vi.fn((url?: string, config?: Record<string, unknown>) => {
     mockCalls.push({ method: 'GET', url: url ?? '', params: config?.params })
     return Promise.resolve([])
   }),
   post: vi.fn((url?: string, data?: unknown, config?: unknown) => {
-    mockCalls.push({ method: 'POST', url: url ?? '', data, config })
+    mockCalls.push({ method: 'POST', url: url ?? '', data: data as Record<string, unknown>, config })
     return Promise.resolve({})
   }),
   put: vi.fn((url?: string, data?: unknown) => {
-    mockCalls.push({ method: 'PUT', url: url ?? '', data })
+    mockCalls.push({ method: 'PUT', url: url ?? '', data: data as Record<string, unknown> })
     return Promise.resolve({})
   }),
   delete: vi.fn((url?: string) => {
@@ -94,7 +94,7 @@ describe('Product API — 颜色 CRUD', () => {
   it('createColor 传递颜色数据', async () => {
     await api.createColor({ colorCode: 'red', colorName: 'red' })
     expect(mockCalls[0].method).toBe('POST')
-    expect(mockCalls[0].data).toEqual({ colorCode: 'red', colorName: 'red' })
+    expect(mockCalls[0].data!).toEqual({ colorCode: 'red', colorName: 'red' })
   })
 
   it('deleteColor 路径包含颜色ID', async () => {
@@ -119,13 +119,13 @@ describe('Product API — SPU CRUD', () => {
       seriesCode: 'FSH',
     })
     expect(mockCalls[0].method).toBe('POST')
-    expect(mockCalls[0].data.structureStandardCode).toBe('S5447-RND')
+    expect(mockCalls[0].data!.structureStandardCode).toBe('S5447-RND')
   })
 
   it('updateSpu 路径含 spuId', async () => {
     await api.updateSpu('spu-abc', { spuName: '新名称' })
     expect(mockCalls[0].url).toBe('/products/spus/spu-abc')
-    expect(mockCalls[0].data).toEqual({ spuName: '新名称' })
+    expect(mockCalls[0].data!).toEqual({ spuName: '新名称' })
   })
 })
 
@@ -139,9 +139,9 @@ describe('Product API — SKU CRUD', () => {
       retailPrice: 199,
       skinToneEffect: '黄皮肤增白',
     })
-    expect(mockCalls[0].data.spuId).toBe('spu-001')
-    expect(mockCalls[0].data.colorCode).toBe('macaron_pink')
-    expect(mockCalls[0].data.retailPrice).toBe(199)
+    expect(mockCalls[0].data!.spuId).toBe('spu-001')
+    expect(mockCalls[0].data!.colorCode).toBe('macaron_pink')
+    expect(mockCalls[0].data!.retailPrice).toBe(199)
   })
 
   it('getSkus 支持按 spuId 筛选', async () => {
@@ -163,7 +163,7 @@ describe('Product API — 效果词 V3.0', () => {
   it('getEffectRecommend 传递 colorCode', async () => {
     await api.getEffectRecommend('macaron_pink')
     expect(mockCalls[0].method).toBe('POST')
-    expect(mockCalls[0].data).toEqual({ colorCode: 'macaron_pink' })
+    expect(mockCalls[0].data!).toEqual({ colorCode: 'macaron_pink' })
   })
 })
 
@@ -177,12 +177,12 @@ describe('Product API — SKU 图片', () => {
 
   it('batchCreateSkuImages 批量上传', async () => {
     await api.batchCreateSkuImages({ skuId: 'sku-001', images: [{ url: 'a.jpg' }, { url: 'b.jpg' }] })
-    expect(mockCalls[0].data.images).toHaveLength(2)
+    expect(mockCalls[0].data!.images).toHaveLength(2)
   })
 
   it('reorderSkuImages 拖拽排序', async () => {
     await api.reorderSkuImages({ skuId: 'sku-001', imageType: 'gallery', orderedIds: ['img-3', 'img-1', 'img-2'] })
-    expect(mockCalls[0].data.orderedIds).toEqual(['img-3', 'img-1', 'img-2'])
+    expect(mockCalls[0].data!.orderedIds).toEqual(['img-3', 'img-1', 'img-2'])
   })
 })
 
@@ -192,7 +192,7 @@ describe('Product API — 定价', () => {
   it('calculatePrice 计算价格', async () => {
     await api.calculatePrice({ skuId: 'sku-001', quantity: 2, customerId: 'cus-001' })
     expect(mockCalls[0].url).toBe('/pricing/calculate')
-    expect(mockCalls[0].data.quantity).toBe(2)
+    expect(mockCalls[0].data!.quantity).toBe(2)
   })
 
   it('scanMemberDowngrades POST 无需参数', async () => {
