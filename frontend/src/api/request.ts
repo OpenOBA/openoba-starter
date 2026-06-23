@@ -46,7 +46,7 @@ raw.interceptors.response.use(
       if (code === 0) {
         return data
       }
-      const errorMsg = Array.isArray(message) ? message.join('; ') : (message || '请求失败')
+      const errorMsg = Array.isArray(message) ? message.join('; ') : message || '请求失败'
       ElMessage.error(errorMsg)
       return Promise.reject(new Error(errorMsg))
     }
@@ -61,7 +61,7 @@ raw.interceptors.response.use(
       ElMessage.error('登录已过期，请重新登录')
     } else {
       const errMsg = error.response?.data?.message
-      const msg = Array.isArray(errMsg) ? errMsg.join('; ') : (errMsg || '网络异常')
+      const msg = Array.isArray(errMsg) ? errMsg.join('; ') : errMsg || '网络异常'
       ElMessage.error(msg)
     }
     return Promise.reject(error)

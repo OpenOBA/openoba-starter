@@ -26,7 +26,9 @@ export function useTaskList() {
       tasks.value = res.items
       total.value = res.total
       hasMore.value = total.value > displayLimit.value
-    } catch { /* ignore */ } finally {
+    } catch {
+      /* ignore */
+    } finally {
       loading.value = false
     }
   }
@@ -37,18 +39,32 @@ export function useTaskList() {
   }
 
   function statusLabel(s: TaskStatus): string {
-    return {
-      drafted: '草稿', proposed: '待审批', revised: '待修改',
-      executing: '执行中', delivered: '已交付', published: '已发布',
-      completed: '已完成', cancelled: '已取消', aborted: '已中止', escalated: '已升级',
-    }[s] || s
+    return (
+      {
+        drafted: '草稿',
+        proposed: '待审批',
+        revised: '待修改',
+        executing: '执行中',
+        delivered: '已交付',
+        published: '已发布',
+        completed: '已完成',
+        cancelled: '已取消',
+        aborted: '已中止',
+        escalated: '已升级',
+      }[s] || s
+    )
   }
 
   function statusTagType(s: TaskStatus): string {
     const m: Record<string, string> = {
-      drafted: 'info', proposed: 'warning', executing: 'primary',
-      delivered: 'success', published: 'success', completed: 'success',
-      cancelled: 'danger', escalated: 'danger',
+      drafted: 'info',
+      proposed: 'warning',
+      executing: 'primary',
+      delivered: 'success',
+      published: 'success',
+      completed: 'success',
+      cancelled: 'danger',
+      escalated: 'danger',
     }
     return m[s] || 'info'
   }
@@ -64,8 +80,19 @@ export function useTaskList() {
   }
 
   return {
-    loading, tasks, total, page, pageSize,
-    filterStatus, searchKeyword, displayLimit, hasMore,
-    loadTasks, loadMore, statusLabel, statusTagType, formatTaskTime,
+    loading,
+    tasks,
+    total,
+    page,
+    pageSize,
+    filterStatus,
+    searchKeyword,
+    displayLimit,
+    hasMore,
+    loadTasks,
+    loadMore,
+    statusLabel,
+    statusTagType,
+    formatTaskTime,
   }
 }

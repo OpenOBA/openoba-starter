@@ -6,7 +6,17 @@ import request from '@/api/request'
 
 // ── 类型定义 ──
 
-export type TaskStatus = 'drafted' | 'proposed' | 'revised' | 'executing' | 'delivered' | 'published' | 'completed' | 'cancelled' | 'aborted' | 'escalated'
+export type TaskStatus =
+  | 'drafted'
+  | 'proposed'
+  | 'revised'
+  | 'executing'
+  | 'delivered'
+  | 'published'
+  | 'completed'
+  | 'cancelled'
+  | 'aborted'
+  | 'escalated'
 export type TaskType = 'product_listing' | 'content_creation' | 'customer_service' | 'tech_support'
 export type ReportFrequency = 'every_step' | 'per_phase' | 'daily_digest' | 'on_exception'
 export type TargetLevel = 'L0' | 'L1' | 'L2'
@@ -139,12 +149,15 @@ export function getTask(id: string): Promise<AgentTask> {
   return request.get(`/eros/tasks/${id}`)
 }
 
-export function updateTask(id: string, data: {
-  title?: string
-  reportTo?: string
-  reportFrequency?: string
-  context?: Record<string, unknown>
-}): Promise<AgentTask> {
+export function updateTask(
+  id: string,
+  data: {
+    title?: string
+    reportTo?: string
+    reportFrequency?: string
+    context?: Record<string, unknown>
+  },
+): Promise<AgentTask> {
   return request.put(`/eros/tasks/${id}`, data)
 }
 
@@ -154,31 +167,40 @@ export function getTaskLogs(id: string): Promise<CognitiveLog[]> {
 
 // ── Task Report ──
 
-export function submitReport(id: string, data: {
-  content: string
-  attachments?: { name: string; url: string; type: string }[]
-  decisions?: string[]
-}): Promise<{ task: AgentTask; report: string }> {
+export function submitReport(
+  id: string,
+  data: {
+    content: string
+    attachments?: { name: string; url: string; type: string }[]
+    decisions?: string[]
+  },
+): Promise<{ task: AgentTask; report: string }> {
   return request.post(`/eros/tasks/${id}/report`, data)
 }
 
 // ── Human Approval ──
 
-export function approveTask(id: string, data: {
-  action: string
-  comment?: string
-  rejectReason?: string
-  suggestions?: string
-  additionalContext?: Record<string, unknown>
-}): Promise<AgentTask> {
+export function approveTask(
+  id: string,
+  data: {
+    action: string
+    comment?: string
+    rejectReason?: string
+    suggestions?: string
+    additionalContext?: Record<string, unknown>
+  },
+): Promise<AgentTask> {
   return request.post(`/eros/tasks/${id}/approve`, data)
 }
 
 // ── 交付 / 发布 / 完成 ──
 
-export function deliverTask(id: string, data: {
-  deliverables?: { type: string; url: string; status: string }[]
-}): Promise<AgentTask> {
+export function deliverTask(
+  id: string,
+  data: {
+    deliverables?: { type: string; url: string; status: string }[]
+  },
+): Promise<AgentTask> {
   return request.post(`/eros/tasks/${id}/deliver`, data)
 }
 
@@ -204,10 +226,13 @@ export function deleteTask(id: string): Promise<{ deleted: boolean }> {
   return request.delete(`/eros/tasks/${id}`)
 }
 
-export function escalateTask(id: string, data: {
-  reason?: string
-  escalateTo?: string
-}): Promise<AgentTask> {
+export function escalateTask(
+  id: string,
+  data: {
+    reason?: string
+    escalateTo?: string
+  },
+): Promise<AgentTask> {
   return request.post(`/eros/tasks/${id}/escalate`, data)
 }
 

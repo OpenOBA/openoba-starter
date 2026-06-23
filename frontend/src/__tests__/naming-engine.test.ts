@@ -9,34 +9,53 @@ import { describe, it, expect } from 'vitest'
 // NamingEngine 是纯函数类，无数据库依赖，可直接测试
 class NamingEngine {
   private static SHAPE_MAP: Record<string, string> = {
-    SQR: '方框', RND: '圆框', REC: '矩形框', OVL: '椭圆框',
-    WEL: '威灵顿框', CAT: '猫眼', AVT: '飞行员框', HEX: '六角框', BRC: '眉线框',
+    SQR: '方框',
+    RND: '圆框',
+    REC: '矩形框',
+    OVL: '椭圆框',
+    WEL: '威灵顿框',
+    CAT: '猫眼',
+    AVT: '飞行员框',
+    HEX: '六角框',
+    BRC: '眉线框',
   }
   private static SERIES_MAP: Record<string, string> = {
-    CLS: '经典', FSH: '时尚', BUS: '商务', SPT: '运动',
+    CLS: '经典',
+    FSH: '时尚',
+    BUS: '商务',
+    SPT: '运动',
   }
   private static GENDER_MAP: Record<string, string> = {
-    female: '女款', male: '男款', unisex: '中性', limited: '限量',
+    female: '女款',
+    male: '男款',
+    unisex: '中性',
+    limited: '限量',
   }
 
   static generateSkuName(input: {
-    spuName: string; externalCode: string; shapeName: string
-    seriesChineseName: string; gender?: string; colorName: string
-    skinToneEffect?: string; faceShapeEffect?: string
+    spuName: string
+    externalCode: string
+    shapeName: string
+    seriesChineseName: string
+    gender?: string
+    colorName: string
+    skinToneEffect?: string
+    faceShapeEffect?: string
   }): string {
     const effect = input.faceShapeEffect || input.skinToneEffect || '中性百搭'
     const colorName = input.colorName || '未知色'
     const shapeName = input.shapeName || ''
     const seriesName = input.seriesChineseName || ''
-    const genderLabel = input.gender
-      ? NamingEngine.GENDER_MAP[input.gender] || '中性'
-      : '中性'
+    const genderLabel = input.gender ? NamingEngine.GENDER_MAP[input.gender] || '中性' : '中性'
     return `${effect} · ${colorName} · ${shapeName}${seriesName}系列 · ${genderLabel}`
   }
 
   static generateSpuName(input: {
-    structureStandardCode: string; seriesCode?: string
-    externalCode: string; shapeCode?: string; seriesChineseName?: string
+    structureStandardCode: string
+    seriesCode?: string
+    externalCode: string
+    shapeCode?: string
+    seriesChineseName?: string
   }): string {
     const externalCode = input.externalCode || '???'
     const shapeName = NamingEngine.getShapeName(input.shapeCode)

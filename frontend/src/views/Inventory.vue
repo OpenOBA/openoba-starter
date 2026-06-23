@@ -38,13 +38,18 @@
       </el-form>
 
       <!-- 库存表格 -->
-      <el-table :data="tableData" v-loading="loading" stripe border>
+      <el-table v-loading="loading" :data="tableData" stripe border>
         <el-table-column prop="skuCode" label="SKU 编码" min-width="140" />
         <el-table-column prop="warehouseCode" label="仓库" width="100" />
         <el-table-column prop="currentQuantity" label="当前库存" width="100" align="right" />
         <el-table-column prop="availableQuantity" label="可用库存" width="100" align="right">
           <template #default="{ row }">
-            <span :style="{ color: row.availableQuantity <= row.warningQuantity ? '#e6a23c' : '#67c23a', fontWeight: 'bold' }">
+            <span
+              :style="{
+                color: row.availableQuantity <= row.warningQuantity ? '#e6a23c' : '#67c23a',
+                fontWeight: 'bold',
+              }"
+            >
               {{ row.availableQuantity }}
             </span>
           </template>
@@ -241,38 +246,102 @@ const stats = reactive({ total: 0, ok: 0, warning: 0, outOfStock: 0 })
 
 // 入库
 const inVisible = ref(false)
-const inForm = reactive({ skuId: '', quantity: 1, transactionType: 'purchase_in', referenceType: '', referenceId: '', remark: '' })
-function showInDialog() { inForm.skuId = ''; inForm.quantity = 1; inForm.remark = ''; inVisible.value = true }
+const inForm = reactive({
+  skuId: '',
+  quantity: 1,
+  transactionType: 'purchase_in',
+  referenceType: '',
+  referenceId: '',
+  remark: '',
+})
+function showInDialog() {
+  inForm.skuId = ''
+  inForm.quantity = 1
+  inForm.remark = ''
+  inVisible.value = true
+}
 async function doStockIn() {
-  try { await stockIn(inForm); ElMessage.success('入库成功'); inVisible.value = false; loadData() } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '入库失败') }
+  try {
+    await stockIn(inForm)
+    ElMessage.success('入库成功')
+    inVisible.value = false
+    loadData()
+  } catch (e: unknown) {
+    const err = e instanceof Error ? e.message : String(e)
+    ElMessage.error(err || '入库失败')
+  }
 }
 
 // 出库
 const outVisible = ref(false)
-const outForm = reactive({ skuId: '', quantity: 1, transactionType: 'sale_out', referenceType: '', referenceId: '', remark: '' })
-function showOutDialog() { outForm.skuId = ''; outForm.quantity = 1; outForm.remark = ''; outVisible.value = true }
+const outForm = reactive({
+  skuId: '',
+  quantity: 1,
+  transactionType: 'sale_out',
+  referenceType: '',
+  referenceId: '',
+  remark: '',
+})
+function showOutDialog() {
+  outForm.skuId = ''
+  outForm.quantity = 1
+  outForm.remark = ''
+  outVisible.value = true
+}
 async function doStockOut() {
-  try { await stockOut(outForm); ElMessage.success('出库成功'); outVisible.value = false; loadData() } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '出库失败') }
+  try {
+    await stockOut(outForm)
+    ElMessage.success('出库成功')
+    outVisible.value = false
+    loadData()
+  } catch (e: unknown) {
+    const err = e instanceof Error ? e.message : String(e)
+    ElMessage.error(err || '出库失败')
+  }
 }
 
 // 盘点调整
 const adjustVisible = ref(false)
 const adjustForm = reactive({ skuId: '', newQuantity: 0, remark: '' })
-function showAdjustDialog() { adjustForm.skuId = ''; adjustForm.newQuantity = 0; adjustForm.remark = ''; adjustVisible.value = true }
+function showAdjustDialog() {
+  adjustForm.skuId = ''
+  adjustForm.newQuantity = 0
+  adjustForm.remark = ''
+  adjustVisible.value = true
+}
 async function doAdjust() {
-  try { await adjustStock(adjustForm); ElMessage.success('调整成功'); adjustVisible.value = false; loadData() } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '调整失败') }
+  try {
+    await adjustStock(adjustForm)
+    ElMessage.success('调整成功')
+    adjustVisible.value = false
+    loadData()
+  } catch (e: unknown) {
+    const err = e instanceof Error ? e.message : String(e)
+    ElMessage.error(err || '调整失败')
+  }
 }
 
 // 编辑调整
 const editVisible = ref(false)
 const editForm = reactive({ id: '', skuCode: '', currentQuantity: 0, newQuantity: 0, remark: '' })
 function showEditDialog(row: Record<string, unknown>) {
-  editForm.id = String(row.id ?? ''); editForm.skuCode = String(row.skuCode ?? ''); editForm.currentQuantity = Number(row.currentQuantity ?? 0)
-  editForm.newQuantity = Number(row.currentQuantity ?? 0); editForm.remark = ''; editVisible.value = true
+  editForm.id = String(row.id ?? '')
+  editForm.skuCode = String(row.skuCode ?? '')
+  editForm.currentQuantity = Number(row.currentQuantity ?? 0)
+  editForm.newQuantity = Number(row.currentQuantity ?? 0)
+  editForm.remark = ''
+  editVisible.value = true
 }
 async function doEditAdjust() {
-  try { await adjustStock({ skuId: editForm.id, newQuantity: editForm.newQuantity, remark: editForm.remark })
-    ElMessage.success('调整成功'); editVisible.value = false; loadData() } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '调整失败') }
+  try {
+    await adjustStock({ skuId: editForm.id, newQuantity: editForm.newQuantity, remark: editForm.remark })
+    ElMessage.success('调整成功')
+    editVisible.value = false
+    loadData()
+  } catch (e: unknown) {
+    const err = e instanceof Error ? e.message : String(e)
+    ElMessage.error(err || '调整失败')
+  }
 }
 
 // 交易流水
@@ -281,17 +350,35 @@ const txData = ref<Record<string, unknown>[]>([])
 const txPage = ref(1)
 const txTotal = ref(0)
 const txSkuId = ref('')
-function viewTransactions(row: Record<string, unknown>) { txSkuId.value = String(row.skuId ?? ''); txPage.value = 1; txVisible.value = true; loadTransactions() }
+function viewTransactions(row: Record<string, unknown>) {
+  txSkuId.value = String(row.skuId ?? '')
+  txPage.value = 1
+  txVisible.value = true
+  loadTransactions()
+}
 async function loadTransactions() {
   try {
     const res = await getTransactions({ skuId: txSkuId.value, page: Number(txPage.value) || 1, pageSize: 10 })
     txData.value = res.items || []
     txTotal.value = res.total || 0
-  } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '加载流水失败') }
+  } catch (e: unknown) {
+    const err = e instanceof Error ? e.message : String(e)
+    ElMessage.error(err || '加载流水失败')
+  }
 }
 
 function txTypeLabel(type: string) {
-  const map: Record<string, string> = { purchase_in: '采购入库', sale_out: '销售出库', return_in: '退货入库', return_out: '退货出库', adjust: '盘点调整', transfer: '调拨', initial: '期初导入', lock: '锁定', unlock: '解锁' }
+  const map: Record<string, string> = {
+    purchase_in: '采购入库',
+    sale_out: '销售出库',
+    return_in: '退货入库',
+    return_out: '退货出库',
+    adjust: '盘点调整',
+    transfer: '调拨',
+    initial: '期初导入',
+    lock: '锁定',
+    unlock: '解锁',
+  }
   return map[type] || type
 }
 function txTypeTag(type: string) {
@@ -313,7 +400,12 @@ async function loadData() {
     const res = await getInventoryList(params)
     tableData.value = res.items || []
     total.value = res.total || 0
-  } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error(err || '加载库存失败') } finally { loading.value = false }
+  } catch (e: unknown) {
+    const err = e instanceof Error ? e.message : String(e)
+    ElMessage.error(err || '加载库存失败')
+  } finally {
+    loading.value = false
+  }
 }
 
 async function loadStats() {
@@ -323,22 +415,38 @@ async function loadStats() {
     stats.warning = Number(d?.warningCount ?? d?.warning ?? 0)
     stats.outOfStock = Number(d?.outOfStockCount ?? d?.outOfStock ?? 0)
     stats.ok = Math.max(0, stats.total - stats.warning - stats.outOfStock)
-  } catch (e: unknown) { console.error('加载库存统计失败', e) }
+  } catch (e: unknown) {
+    console.error('加载库存统计失败', e)
+  }
 }
 
 async function loadSkuList() {
   try {
     const res = await getSkus({ page: 1, pageSize: 500 })
     skuList.value = res.items || []
-  } catch (e: unknown) { console.error('加载 SKU 列表失败', e) }
+  } catch (e: unknown) {
+    console.error('加载 SKU 列表失败', e)
+  }
 }
 
-onMounted(() => { loadData(); loadStats(); loadSkuList() })
+onMounted(() => {
+  loadData()
+  loadStats()
+  loadSkuList()
+})
 </script>
 
 <style scoped>
-.page-container { padding: 0; }
-.stats-row { margin-bottom: 16px; }
-.mt-16 { margin-top: 16px; }
-.search-bar { margin-bottom: 16px; }
+.page-container {
+  padding: 0;
+}
+.stats-row {
+  margin-bottom: 16px;
+}
+.mt-16 {
+  margin-top: 16px;
+}
+.search-bar {
+  margin-bottom: 16px;
+}
 </style>

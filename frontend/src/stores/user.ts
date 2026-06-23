@@ -3,7 +3,12 @@ import { ref } from 'vue'
 
 function safeParseJson(raw: string | null): Record<string, unknown> | null {
   if (!raw) return null
-  try { return JSON.parse(raw) } catch (e) { console.warn('[userStore] JSON解析失败:', e instanceof Error ? e.message : String(e)); return null }
+  try {
+    return JSON.parse(raw)
+  } catch (e) {
+    console.warn('[userStore] JSON解析失败:', e instanceof Error ? e.message : String(e))
+    return null
+  }
 }
 
 export const useUserStore = defineStore('user', () => {

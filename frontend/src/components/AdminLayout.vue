@@ -105,7 +105,25 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Monitor, User, Goods, Notebook, Fold, Expand, View, ShoppingCart, Brush, Box, Service, ChatDotRound, Money, Collection, Setting, Reading, Medal } from '@element-plus/icons-vue'
+import {
+  Monitor,
+  User,
+  Goods,
+  Notebook,
+  Fold,
+  Expand,
+  View,
+  ShoppingCart,
+  Brush,
+  Box,
+  Service,
+  ChatDotRound,
+  Money,
+  Collection,
+  Setting,
+  Reading,
+  Medal,
+} from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 
 const route = useRoute()

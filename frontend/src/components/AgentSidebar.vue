@@ -14,7 +14,9 @@
         @click="selectAgent(agent)"
       >
         <span class="agent-avatar" :class="{ inactive: agent.status !== 'active' }">
-          <svg class="avatar-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use :href="'/lucide-sprite.svg#' + (agent.icon || 'bot')"/></svg>
+          <svg class="avatar-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <use :href="'/lucide-sprite.svg#' + (agent.icon || 'bot')" />
+          </svg>
         </span>
         <div class="agent-info">
           <div class="agent-name">{{ agent.displayName }}</div>
@@ -76,7 +78,11 @@ const latestVersion = ref('')
 
 async function loadVersion() {
   try {
-    const res = await request.get('/system/version/check', { params: { current: '1.4.0-alpha9' } }) as unknown as { currentVersion?: string; hasUpdate?: boolean; latestVersion?: string }
+    const res = (await request.get('/system/version/check', { params: { current: '1.4.0-alpha9' } })) as unknown as {
+      currentVersion?: string
+      hasUpdate?: boolean
+      latestVersion?: string
+    }
     versionText.value = res?.currentVersion || 'v1.4.0-alpha9'
     hasUpdate.value = res?.hasUpdate || false
     latestVersion.value = res?.latestVersion || ''
@@ -85,7 +91,9 @@ async function loadVersion() {
   }
 }
 
-onMounted(() => { loadVersion() })
+onMounted(() => {
+  loadVersion()
+})
 </script>
 
 <style scoped>

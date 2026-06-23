@@ -76,7 +76,7 @@
       <el-form-item label="描述">
         <el-input v-model="setForm.description" type="textarea" :rows="2" placeholder="套装描述、适合场景等" />
       </el-form-item>
-      <el-form-item label="主图 URL" v-if="setForm.mainImage || setForm.setId">
+      <el-form-item v-if="setForm.mainImage || setForm.setId" label="主图 URL">
         <el-input v-model="setForm.mainImage" placeholder="可选" />
       </el-form-item>
     </el-form>

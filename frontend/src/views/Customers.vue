@@ -11,17 +11,44 @@
       <!-- 筛选 -->
       <el-form :inline="true" :model="query" class="filter-form">
         <el-form-item label="关键词">
-          <el-input v-model="query.keyword" placeholder="客户编号/姓名/企业/电话" clearable style="width: 200px" @keyup.enter="loadData" />
+          <el-input
+            v-model="query.keyword"
+            placeholder="客户编号/姓名/企业/电话"
+            clearable
+            style="width: 200px"
+            @keyup.enter="loadData"
+          />
         </el-form-item>
         <el-form-item label="类型">
-          <el-select v-model="query.customerType" placeholder="全部" clearable style="width: 120px" :options="dictTypeOptions" @change="loadData" />
+          <el-select
+            v-model="query.customerType"
+            placeholder="全部"
+            clearable
+            style="width: 120px"
+            :options="dictTypeOptions"
+            @change="loadData"
+          />
         </el-form-item>
         <!-- ✅ F3: 等级筛选器改为字典动态渲染 -->
         <el-form-item label="等级">
-          <el-select v-model="query.customerLevel" placeholder="全部" clearable style="width: 100px" :options="dictLevelOptions" @change="loadData" />
+          <el-select
+            v-model="query.customerLevel"
+            placeholder="全部"
+            clearable
+            style="width: 100px"
+            :options="dictLevelOptions"
+            @change="loadData"
+          />
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="query.status" placeholder="全部" clearable style="width: 100px" :options="dictStatusOptions" @change="loadData" />
+          <el-select
+            v-model="query.status"
+            placeholder="全部"
+            clearable
+            style="width: 100px"
+            :options="dictStatusOptions"
+            @change="loadData"
+          />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="loadData">查询</el-button>
@@ -32,8 +59,10 @@
       <!-- 工具栏 -->
       <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px">
         <div>
-          <el-button type="primary" size="small" :disabled="selectedRows.length === 0" @click="batchEdit">编辑</el-button>
-          <el-popconfirm title="确认批量软删除所选客户？" @confirm="batchDelete" :disabled="selectedRows.length === 0">
+          <el-button type="primary" size="small" :disabled="selectedRows.length === 0" @click="batchEdit"
+            >编辑</el-button
+          >
+          <el-popconfirm title="确认批量软删除所选客户？" :disabled="selectedRows.length === 0" @confirm="batchDelete">
             <template #reference>
               <el-button type="danger" size="small" :disabled="selectedRows.length === 0">批量删除</el-button>
             </template>
@@ -46,8 +75,13 @@
 
       <!-- 表格 -->
       <el-table
-        :data="tableData" stripe border v-loading="loading" style="margin-top: 8px"
-        @row-dblclick="openDetail" :row-style="{ cursor: 'pointer' }"
+        v-loading="loading"
+        :data="tableData"
+        stripe
+        border
+        style="margin-top: 8px"
+        :row-style="{ cursor: 'pointer' }"
+        @row-dblclick="openDetail"
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="45" fixed />
@@ -61,7 +95,9 @@
         </el-table-column>
         <el-table-column label="等级" width="80">
           <template #default="{ row }">
-            <el-tag :type="levelTag(row.customerLevel)" size="small" effect="dark">{{ levelLabel(row.customerLevel) || 'NOR' }}</el-tag>
+            <el-tag :type="levelTag(row.customerLevel)" size="small" effect="dark">{{
+              levelLabel(row.customerLevel) || 'NOR'
+            }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="companyName" label="企业名称" width="150" show-overflow-tooltip />
@@ -93,7 +129,7 @@
 
     <!-- 新增/编辑弹窗 -->
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑客户' : '新增客户'" width="720px" destroy-on-close>
-      <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-row v-if="isEdit" :gutter="16">
           <el-col :span="12">
             <el-form-item label="客户编号">
@@ -105,7 +141,12 @@
         <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item label="客户类型" prop="customerType">
-              <el-select v-model="form.customerType" placeholder="选择类型" style="width: 100%" :options="dictTypeOptions" />
+              <el-select
+                v-model="form.customerType"
+                placeholder="选择类型"
+                style="width: 100%"
+                :options="dictTypeOptions"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -149,7 +190,13 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="来源渠道">
-              <el-select v-model="form.referralSource" placeholder="选择来源" clearable style="width: 100%" :options="dictReferralOptions" />
+              <el-select
+                v-model="form.referralSource"
+                placeholder="选择来源"
+                clearable
+                style="width: 100%"
+                :options="dictReferralOptions"
+              />
             </el-form-item>
           </el-col>
         </el-row>
@@ -181,7 +228,12 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="订阅状态">
-              <el-select v-model="form.subscriptionStatus" clearable style="width: 100%" :options="dictSubscriptionOptions" />
+              <el-select
+                v-model="form.subscriptionStatus"
+                clearable
+                style="width: 100%"
+                :options="dictSubscriptionOptions"
+              />
             </el-form-item>
           </el-col>
         </el-row>
@@ -212,9 +264,7 @@ import { ElMessage } from 'element-plus'
 import type { FormInstance } from 'element-plus'
 import { useDict } from '@/composables/useDict'
 import { useCustomerUtils } from '@/composables/useCustomerUtils'
-import {
-  getCustomerList, createCustomer, updateCustomer, deleteCustomer,
-} from '@/api/customer'
+import { getCustomerList, createCustomer, updateCustomer, deleteCustomer } from '@/api/customer'
 import CustomerDetailDrawer from '@/components/CustomerDetailDrawer.vue'
 
 // 字典：客户类型 / 客户等级 / 客户状态 / 来源渠道 / 订阅状态 / 联系人角色
@@ -227,26 +277,36 @@ const dictSubscription = useDict('dict_subscription_status')
 const { typeTag, typeLabel, levelTag, levelLabel, statusTag, statusLabel } = useCustomerUtils()
 
 // 构建 options 格式数组
-const dictTypeOptions = computed(() => dictType.items.value.map(d => ({ label: d.name, value: d.code })))
-const dictLevelOptions = computed(() => dictLevel.items.value.map(d => ({ label: d.name, value: d.code })))
-const dictStatusOptions = computed(() => dictStatus.items.value.map(d => ({ label: d.name, value: d.code })))
-const dictReferralOptions = computed(() => dictReferral.items.value.map(d => ({ label: d.name, value: d.code })))
-const dictSubscriptionOptions = computed(() => dictSubscription.items.value.map(d => ({ label: d.name, value: d.code })))
+const dictTypeOptions = computed(() => dictType.items.value.map((d) => ({ label: d.name, value: d.code })))
+const dictLevelOptions = computed(() => dictLevel.items.value.map((d) => ({ label: d.name, value: d.code })))
+const dictStatusOptions = computed(() => dictStatus.items.value.map((d) => ({ label: d.name, value: d.code })))
+const dictReferralOptions = computed(() => dictReferral.items.value.map((d) => ({ label: d.name, value: d.code })))
+const dictSubscriptionOptions = computed(() =>
+  dictSubscription.items.value.map((d) => ({ label: d.name, value: d.code })),
+)
 
 // 监控字典加载状态
-watch(() => dictType.error.value, (error) => {
-  if (error) {
-    console.error('[Customers] dict_customer_type 加载错误:', error)
-    ElMessage.warning('客户类型字典加载失败')
-  }
-}, { immediate: true })
+watch(
+  () => dictType.error.value,
+  (error) => {
+    if (error) {
+      console.error('[Customers] dict_customer_type 加载错误:', error)
+      ElMessage.warning('客户类型字典加载失败')
+    }
+  },
+  { immediate: true },
+)
 
-watch(() => dictLevel.error.value, (error) => {
-  if (error) {
-    console.error('[Customers] dict_customer_level 加载错误:', error)
-    ElMessage.warning('客户等级字典加载失败')
-  }
-}, { immediate: true })
+watch(
+  () => dictLevel.error.value,
+  (error) => {
+    if (error) {
+      console.error('[Customers] dict_customer_level 加载错误:', error)
+      ElMessage.warning('客户等级字典加载失败')
+    }
+  },
+  { immediate: true },
+)
 
 const loading = ref(false)
 const saving = ref(false)
@@ -260,26 +320,61 @@ const formRef = ref<FormInstance>()
 const isEdit = ref(false)
 const editId = ref('')
 const selectedRows = ref<Record<string, unknown>[]>([])
-const handleSelectionChange = (rows: Record<string, unknown>[]) => { selectedRows.value = rows }
+const handleSelectionChange = (rows: Record<string, unknown>[]) => {
+  selectedRows.value = rows
+}
 
 const query = reactive({ page: 1, pageSize: 20, keyword: '', customerType: '', customerLevel: '', status: '' })
 
-
 interface CustomerForm {
-  customerType: string; customerLevel: string; companyName: string
-  contactName: string; phone: string; email: string; wechatId: string
-  wechat: string; nickname: string; address: string; city: string
-  province: string; status: string; notes: string; referralSource: string
-  preferredStyle: string; subscriptionStatus: string; customerCode: string
-  avatarUrl: string; wholesaleTier: string; memberDiscountRate: string
-  pointsBalance: string; partnerServices: string
+  customerType: string
+  customerLevel: string
+  companyName: string
+  contactName: string
+  phone: string
+  email: string
+  wechatId: string
+  wechat: string
+  nickname: string
+  address: string
+  city: string
+  province: string
+  status: string
+  notes: string
+  referralSource: string
+  preferredStyle: string
+  subscriptionStatus: string
+  customerCode: string
+  avatarUrl: string
+  wholesaleTier: string
+  memberDiscountRate: string
+  pointsBalance: string
+  partnerServices: string
 }
 const form = reactive<CustomerForm>({
-  customerType: 'retail', customerLevel: 'normal', companyName: '', contactName: '',
-  phone: '', email: '', wechatId: '', nickname: '', address: '', city: '', province: '',
-  status: 'active', notes: '', referralSource: '', preferredStyle: '', subscriptionStatus: '',
-  customerCode: '', avatarUrl: '', wholesaleTier: '', wechat: '',
-  memberDiscountRate: '', pointsBalance: '', partnerServices: '',
+  customerType: 'retail',
+  customerLevel: 'normal',
+  companyName: '',
+  contactName: '',
+  phone: '',
+  email: '',
+  wechatId: '',
+  nickname: '',
+  address: '',
+  city: '',
+  province: '',
+  status: 'active',
+  notes: '',
+  referralSource: '',
+  preferredStyle: '',
+  subscriptionStatus: '',
+  customerCode: '',
+  avatarUrl: '',
+  wholesaleTier: '',
+  wechat: '',
+  memberDiscountRate: '',
+  pointsBalance: '',
+  partnerServices: '',
 })
 
 const rules = {
@@ -307,13 +402,30 @@ function resetQuery() {
 async function openDialog(row?: Record<string, unknown>) {
   // 强制刷新字典缓存，确保弹窗中下拉选项为最新数据
   await Promise.all([dictType.forceReload(), dictLevel.forceReload()])
-  
+
   isEdit.value = !!row
   editId.value = (row?.customerId as string) || ''
   if (row) {
     Object.assign(form, row)
   } else {
-    Object.assign(form, { customerType: 'retail', customerLevel: 'normal', companyName: '', contactName: '', phone: '', email: '', wechatId: '', nickname: '', address: '', city: '', province: '', status: 'active', notes: '', referralSource: '', preferredStyle: '', subscriptionStatus: '' })
+    Object.assign(form, {
+      customerType: 'retail',
+      customerLevel: 'normal',
+      companyName: '',
+      contactName: '',
+      phone: '',
+      email: '',
+      wechatId: '',
+      nickname: '',
+      address: '',
+      city: '',
+      province: '',
+      status: 'active',
+      notes: '',
+      referralSource: '',
+      preferredStyle: '',
+      subscriptionStatus: '',
+    })
   }
   dialogVisible.value = true
 }
@@ -365,13 +477,22 @@ async function handleSave() {
 }
 
 async function batchEdit() {
-  if (selectedRows.value.length === 0) { ElMessage.warning('请先勾选客户'); return }
-  if (selectedRows.value.length > 1) { ElMessage.warning('暂仅支持单条编辑，请只勾选一个客户'); return }
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请先勾选客户')
+    return
+  }
+  if (selectedRows.value.length > 1) {
+    ElMessage.warning('暂仅支持单条编辑，请只勾选一个客户')
+    return
+  }
   openDialog(selectedRows.value[0])
 }
 
 async function batchDelete() {
-  if (selectedRows.value.length === 0) { ElMessage.warning('请先勾选客户'); return }
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请先勾选客户')
+    return
+  }
   for (const row of selectedRows.value) {
     await deleteCustomer(row.customerId as string)
   }
@@ -389,17 +510,36 @@ onMounted(loadData)
 </script>
 
 <style scoped>
-.customer-page { padding: 0; }
-.filter-form { margin-bottom: 0; }
+.customer-page {
+  padding: 0;
+}
+.filter-form {
+  margin-bottom: 0;
+}
 
 /* 输入框宽度修复 */
 .el-dialog .el-input,
 .el-dialog .el-select,
-.el-dialog .el-date-editor { width: 100% !important; }
-.el-dialog .el-input-number { width: 100% !important; }
+.el-dialog .el-date-editor {
+  width: 100% !important;
+}
+.el-dialog .el-input-number {
+  width: 100% !important;
+}
 
 /* 会员卡片样式 */
-.member-stat { text-align: center; padding: 8px 0; }
-.member-stat-value { font-size: 20px; font-weight: 600; color: #303133; }
-.member-stat-label { font-size: 12px; color: #909399; margin-top: 4px; }
+.member-stat {
+  text-align: center;
+  padding: 8px 0;
+}
+.member-stat-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: #303133;
+}
+.member-stat-label {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 4px;
+}
 </style>

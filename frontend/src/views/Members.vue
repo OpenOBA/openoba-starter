@@ -60,11 +60,11 @@
         <el-option label="注册时间↓" value="createdAt" />
       </el-select>
       <el-button type="primary" @click="loadList">查询</el-button>
-      <el-button type="warning" size="small" @click="handleDowngradeScan" :loading="downgradeScanning">🔍 降级扫描</el-button>
+      <el-button type="warning" size="small" :loading="downgradeScanning" @click="handleDowngradeScan">🔍 降级扫描</el-button>
     </div>
 
     <!-- 会员分析表格 -->
-    <el-table :data="list" v-loading="loading" stripe @row-dblclick="openCustomerDetail" highlight-current-row>
+    <el-table v-loading="loading" :data="list" stripe highlight-current-row @row-dblclick="openCustomerDetail">
       <el-table-column label="活跃状态" width="90">
         <template #default="{ row }">
           <el-tag :type="row.activityStatus === 'active' ? 'success' : row.activityStatus === 'dormant' ? 'warning' : 'danger'" size="small">
@@ -125,9 +125,9 @@
       :total="total"
       :page-sizes="[20, 50, 100]"
       layout="total, sizes, prev, pager, next"
+      style="margin-top: 16px; justify-content: flex-end"
       @current-change="loadList"
       @size-change="loadList"
-      style="margin-top: 16px; justify-content: flex-end"
     />
 
     <!-- 降级扫描结果 -->

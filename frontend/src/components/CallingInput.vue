@@ -2,21 +2,15 @@
   <div class="calling-input">
     <!-- 已选 Agent 标签 -->
     <div v-if="selectedAgents.length > 0 || attachedFiles.length > 0" class="selected-tags">
-      <el-tag
-        v-for="ag in selectedAgents"
-        :key="'ag-'+ag.id"
-        closable
-        size="small"
-        @close="removeAgent(ag)"
-      >
+      <el-tag v-for="ag in selectedAgents" :key="'ag-' + ag.id" closable size="small" @close="removeAgent(ag)">
         @{{ ag.displayName }}
-        <span v-if="eraSettings.agent.defaultModel" style="font-size:10px;color:#909399;margin-left:4px">
+        <span v-if="eraSettings.agent.defaultModel" style="font-size: 10px; color: #909399; margin-left: 4px">
           {{ eraSettings.agent.defaultModel }}
         </span>
       </el-tag>
       <el-tag
         v-for="(f, i) in attachedFiles"
-        :key="'f-'+i"
+        :key="'f-' + i"
         closable
         size="small"
         type="success"
@@ -46,13 +40,9 @@
           <el-button link size="small">@Agent</el-button>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item
-                v-for="a in agents"
-                :key="a.id"
-                :command="a"
-              >
+              <el-dropdown-item v-for="a in agents" :key="a.id" :command="a">
                 {{ a.displayName }}
-                <span style="color:#909399;font-size:10px;margin-left:6px">{{ a.description }}</span>
+                <span style="color: #909399; font-size: 10px; margin-left: 6px">{{ a.description }}</span>
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>
@@ -63,19 +53,13 @@
           type="file"
           multiple
           accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.csv"
-          style="display:none"
+          style="display: none"
           @change="handleFileChange"
         />
       </div>
       <div class="footer-right">
         <span class="input-hint">Enter 发送</span>
-        <el-button
-          class="send-btn"
-          size="small"
-          :disabled="!canSend"
-          :loading="sending"
-          @click="handleSend"
-        >
+        <el-button class="send-btn" size="small" :disabled="!canSend" :loading="sending" @click="handleSend">
           发送
         </el-button>
       </div>
@@ -87,14 +71,17 @@
 import { ref, computed } from 'vue'
 import type { AgentEntry } from './AgentSidebar.vue'
 
-const props = withDefaults(defineProps<{
-  agents: AgentEntry[]
-  sending?: boolean
-  rows?: number
-}>(), {
-  sending: false,
-  rows: 2,
-})
+const props = withDefaults(
+  defineProps<{
+    agents: AgentEntry[]
+    sending?: boolean
+    rows?: number
+  }>(),
+  {
+    sending: false,
+    rows: 2,
+  },
+)
 
 const emit = defineEmits<{
   (e: 'send', payload: { text: string; agentIds: string[]; files?: File[]; modelCode?: string }): void
@@ -106,7 +93,7 @@ const selectedAgents = ref<AgentEntry[]>([])
 const attachedFiles = ref<File[]>([])
 // bound in <template ref="inputRef">, noUnusedLocals suppressed via void
 const inputRef = ref()
-void inputRef
+void inputRef.value
 // 模型来源：首页 Header 的 eraSettings.agent.defaultModel
 import { useERASettings } from '@/composables/useERASettings'
 const { settings: eraSettings } = useERASettings()
@@ -124,13 +111,13 @@ const placeholder = computed(() => {
 const canSend = computed(() => text.value.trim().length > 0 && !props.sending)
 
 function selectAgent(agent: AgentEntry) {
-  if (!selectedAgents.value.find(a => a.id === agent.id)) {
+  if (!selectedAgents.value.find((a) => a.id === agent.id)) {
     selectedAgents.value.push(agent)
   }
 }
 
 function removeAgent(agent: AgentEntry) {
-  selectedAgents.value = selectedAgents.value.filter(a => a.id !== agent.id)
+  selectedAgents.value = selectedAgents.value.filter((a) => a.id !== agent.id)
 }
 
 function handleAgentCmd(agent: AgentEntry) {
@@ -139,7 +126,7 @@ function handleAgentCmd(agent: AgentEntry) {
 
 async function handleSend() {
   if (!canSend.value) return
-  const agentIds = selectedAgents.value.map(a => a.id)
+  const agentIds = selectedAgents.value.map((a) => a.id)
   const files = attachedFiles.value.length > 0 ? [...attachedFiles.value] : undefined
   const modelCode = eraSettings.agent.defaultModel || undefined
   emit('send', { text: text.value.trim(), agentIds, files, modelCode })
@@ -188,14 +175,16 @@ defineExpose({ selectAgent })
   border-radius: 12px;
   font-size: 14px;
   line-height: 1.6;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
   background: #fafbfc;
   padding: 10px 14px;
   resize: none;
 }
 .input-row :deep(.el-textarea__inner:focus) {
   border-color: #409eff;
-  box-shadow: 0 0 0 3px rgba(64,158,255,0.1);
+  box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.1);
   background: #fff;
 }
 .input-footer {

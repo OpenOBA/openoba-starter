@@ -43,7 +43,7 @@ export function useTaskProposals(
     agreeing.value = true
     try {
       await approveTask(taskId.value, { action: 'approved' })
-      for (const msg of (messages.value ?? [])) {
+      for (const msg of messages.value ?? []) {
         if (msg.role === 'proposal' && msg.status !== 'accepted') msg.status = 'accepted'
       }
       const t = await getTask(taskId.value)
@@ -54,10 +54,12 @@ export function useTaskProposals(
       let fileUrl = ''
       let fileName = ''
       try {
-        const json = await request.post(`/eros/tasks/${taskId.value}/export-md`) as unknown as Record<string, unknown>
+        const json = (await request.post(`/eros/tasks/${taskId.value}/export-md`)) as unknown as Record<string, unknown>
         fileUrl = (json?.url as string) || ''
         fileName = (json?.fileName as string) || ''
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
 
       insertSummary(t as unknown as Record<string, unknown>, fileUrl, fileName)
       saveCache()
@@ -83,7 +85,7 @@ export function useTaskProposals(
       lines.push(`**版本**：V${last.version}`)
     }
     const allTools: string[] = []
-    for (const m of (messages.value ?? [])) {
+    for (const m of messages.value ?? []) {
       if (m.role === 'agent' && m.toolCalls) {
         const toolCalls = m.toolCalls as unknown as Array<{ name: string }>
         for (const tc of toolCalls) {

@@ -5,13 +5,13 @@
  <el-button type="primary" size="small" :loading="refreshing" @click="handleRefresh"> 重新扫描</el-button>
  </div>
 
- <div class="stats-bar" v-if="skills.length > 0">
+ <div v-if="skills.length > 0" class="stats-bar">
  <el-tag v-for="cat in categories" :key="cat.name" :type="cat.active ? 'primary' : 'info'" size="small" style="margin:2px;cursor:pointer" @click="filterCat = filterCat === cat.name ? '' : cat.name">
  {{ cat.label }} {{ cat.count }}
  </el-tag>
  </div>
 
- <el-table :data="filteredSkills" stripe border size="small" v-loading="loading">
+ <el-table v-loading="loading" :data="filteredSkills" stripe border size="small">
  <el-table-column prop="displayName" label="名称" min-width="160">
  <template #default="{ row }">
  <span>{{ row.displayName }}</span>
@@ -46,7 +46,7 @@
 
  <!-- Key 管理对话框 -->
  <el-dialog v-model="showKeyDialog" :title="` ${currentSkill?.displayName} · API Key`" width="500px" destroy-on-close>
- <el-table :data="skillKeys" stripe border size="small" v-if="skillKeys.length > 0">
+ <el-table v-if="skillKeys.length > 0" :data="skillKeys" stripe border size="small">
  <el-table-column prop="keyLabel" label="名称" width="160" />
  <el-table-column prop="keyName" label="变量名" width="160" />
  <el-table-column label="必填" width="60">

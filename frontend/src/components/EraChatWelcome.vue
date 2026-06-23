@@ -6,43 +6,59 @@
 <template>
   <div class="content-area">
     <!-- 对话区 -->
-    <div class="chat-area" ref="chatAreaRef">
+    <div ref="chatAreaRef" class="chat-area">
       <div v-if="messages.length === 0" class="chat-empty">
         <div class="empty-brand">
-          <img src="@/assets/logos/openoba-logo.svg" alt="OpenOBA" class="empty-logo-img">
+          <img src="@/assets/logos/openoba-logo.svg" alt="OpenOBA" class="empty-logo-img" />
         </div>
         <div class="empty-title">选择 Agent 或直接描述任务</div>
         <div class="empty-hint">
-          <svg class="hint-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="/lucide-sprite.svg#bot"/></svg>
+          <svg class="hint-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <use href="/lucide-sprite.svg#bot" />
+          </svg>
           不指定 Agent 由 MainAgent 自动分派
         </div>
         <div class="empty-hint">
-          <svg class="hint-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="/lucide-sprite.svg#users"/></svg>
+          <svg class="hint-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <use href="/lucide-sprite.svg#users" />
+          </svg>
           @多个 Agent 启动议会模式
         </div>
         <div class="quick-actions">
           <el-button size="small" round @click="$emit('quickTask', 'product')">
-            <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="/lucide-sprite.svg#package"/></svg>
+            <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <use href="/lucide-sprite.svg#package" />
+            </svg>
             商品上架
           </el-button>
           <el-button size="small" round @click="$emit('quickTask', 'content')">
-            <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="/lucide-sprite.svg#pen-line"/></svg>
+            <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <use href="/lucide-sprite.svg#pen-line" />
+            </svg>
             内容创作
           </el-button>
           <el-button size="small" round @click="$emit('quickTask', 'data')">
-            <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="/lucide-sprite.svg#chart-bar"/></svg>
+            <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <use href="/lucide-sprite.svg#chart-bar" />
+            </svg>
             数据分析
           </el-button>
           <el-button size="small" round @click="$emit('quickTask', 'service')">
-            <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="/lucide-sprite.svg#headphones"/></svg>
+            <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <use href="/lucide-sprite.svg#headphones" />
+            </svg>
             AI客服
           </el-button>
           <el-button size="small" round @click="$emit('quickTask', 'code')">
-            <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="/lucide-sprite.svg#code-xml"/></svg>
+            <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <use href="/lucide-sprite.svg#code-xml" />
+            </svg>
             代码修改
           </el-button>
           <el-button size="small" round @click="$emit('quickTask', 'custom')">
-            <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="/lucide-sprite.svg#wand-sparkles"/></svg>
+            <svg class="qa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <use href="/lucide-sprite.svg#wand-sparkles" />
+            </svg>
             功能自定
           </el-button>
         </div>
@@ -55,19 +71,19 @@
         </div>
         <div class="msg-content">{{ msg.content }}</div>
         <div v-if="msg.data && msg.data.length" class="msg-data">
-          <el-tag size="small" type="info" v-for="(item, di) in msg.data" :key="di">{{ item }}</el-tag>
+          <el-tag v-for="(item, di) in msg.data" :key="di" size="small" type="info">{{ item }}</el-tag>
         </div>
         <div v-if="msg.role === 'agent' && msg.needConfirm && !taskDone" class="confirm-panel">
           <div class="confirm-body">{{ msg.confirmText }}</div>
           <div class="confirm-btns">
             <el-button size="small" @click="$emit('cancelConfirm', i)">取消</el-button>
-            <el-button size="small" type="primary" :loading="creating" @click="$emit('executeConfirm', i)">立即执行</el-button>
+            <el-button size="small" type="primary" :loading="creating" @click="$emit('executeConfirm', i)"
+              >立即执行</el-button
+            >
           </div>
         </div>
         <div v-if="msg.taskId" class="msg-task-link">
-          <el-button link type="primary" size="small" @click="$emit('goToTask', msg.taskId)">
-            进入任务详情
-          </el-button>
+          <el-button link type="primary" size="small" @click="$emit('goToTask', msg.taskId)"> 进入任务详情 </el-button>
         </div>
       </div>
     </div>
@@ -75,13 +91,7 @@
     <!-- 常用语模板区 -->
     <div class="template-bar">
       <span class="template-label">常用语</span>
-      <el-popover
-        v-for="(tpl, i) in templates"
-        :key="i"
-        trigger="contextmenu"
-        :width="120"
-        placement="top"
-      >
+      <el-popover v-for="(tpl, i) in templates" :key="i" trigger="contextmenu" :width="120" placement="top">
         <template #reference>
           <el-button size="small" text @click="$emit('templateApply', tpl)">{{ tpl.text }}</el-button>
         </template>
@@ -90,13 +100,13 @@
           <el-button link size="small" type="danger" @click="$emit('templateRemove', i)">删除</el-button>
         </div>
       </el-popover>
-      <el-button size="small" text @click="$emit('templateAdd')" class="tpl-add">+</el-button>
-      <el-button size="small" text @click="$emit('templateReset')" class="tpl-reset">重置</el-button>
+      <el-button size="small" text class="tpl-add" @click="$emit('templateAdd')">+</el-button>
+      <el-button size="small" text class="tpl-reset" @click="$emit('templateReset')">重置</el-button>
     </div>
 
     <CallingInput
       ref="callingInputRef"
-      :agents="(agentList as unknown as AgentEntry[])"
+      :agents="agentList as unknown as AgentEntry[]"
       :sending="creating"
       :rows="2"
       @send="$emit('send', $event)"
@@ -125,12 +135,25 @@ import { ref, reactive } from 'vue'
 import CallingInput from '@/components/CallingInput.vue'
 import type { AgentEntry } from '@/components/AgentSidebar.vue'
 
-interface TemplateItem { icon: string; text: string; fill: string }
+interface TemplateItem {
+  icon: string
+  text: string
+  fill: string
+}
 
 const props = defineProps<{
   agentList: unknown[]
   creating: boolean
-  messages: Array<{ role: string; sender: string; time: string; content: string; data?: string[]; needConfirm?: boolean; confirmText?: string; taskId?: string }>
+  messages: Array<{
+    role: string
+    sender: string
+    time: string
+    content: string
+    data?: string[]
+    needConfirm?: boolean
+    confirmText?: string
+    taskId?: string
+  }>
   taskDone: boolean
   templates: TemplateItem[]
 }>()
@@ -159,7 +182,9 @@ const editingTemplate = reactive<TemplateItem>({ icon: '', text: '', fill: '' })
 const editingIndex = ref(-1)
 
 function openAddTemplate() {
-  editingTemplate.icon = ''; editingTemplate.text = ''; editingTemplate.fill = ''
+  editingTemplate.icon = ''
+  editingTemplate.text = ''
+  editingTemplate.fill = ''
   editingIndex.value = -1
   showTemplateDialog.value = true
 }
@@ -167,7 +192,9 @@ function openAddTemplate() {
 function editTemplate(index: number) {
   const tpl = props.templates[index]
   if (!tpl) return
-  editingTemplate.icon = tpl.icon; editingTemplate.text = tpl.text; editingTemplate.fill = tpl.fill
+  editingTemplate.icon = tpl.icon
+  editingTemplate.text = tpl.text
+  editingTemplate.fill = tpl.fill
   editingIndex.value = index
   showTemplateDialog.value = true
 }
@@ -193,35 +220,157 @@ defineExpose({ chatAreaRef, callingInputRef, openAddTemplate, editTemplate })
 </script>
 
 <style scoped>
-.content-area { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 0; }
-.chat-area { flex: 1; overflow-y: auto; padding: 20px 24px 12px; }
+.content-area {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  gap: 0;
+}
+.chat-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px 12px;
+}
 
-.chat-empty { text-align: center; padding: 60px 20px 40px; }
-.empty-brand { margin-bottom: 20px; }
-.empty-logo-img { height: 80px; width: auto; border-radius: 8px; }
-.empty-title { font-size: 18px; font-weight: 600; color: #1e293b; margin-bottom: 12px; }
-.empty-hint { font-size: 13px; color: #64748b; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 6px; }
-.hint-icon { width: 16px; height: 16px; color: #94a3b8; }
-.quick-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 20px; }
-.qa-icon { width: 14px; height: 14px; }
+.chat-empty {
+  text-align: center;
+  padding: 60px 20px 40px;
+}
+.empty-brand {
+  margin-bottom: 20px;
+}
+.empty-logo-img {
+  height: 80px;
+  width: auto;
+  border-radius: 8px;
+}
+.empty-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 12px;
+}
+.empty-hint {
+  font-size: 13px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.hint-icon {
+  width: 16px;
+  height: 16px;
+  color: #94a3b8;
+}
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 20px;
+}
+.qa-icon {
+  width: 14px;
+  height: 14px;
+}
 
-.chat-msg { margin-bottom: 12px; padding: 10px 14px; border-radius: 12px; max-width: 80%; }
-.chat-msg.human { background: linear-gradient(135deg, #e8f4fd, #dceefb); margin-left: auto; border-bottom-right-radius: 4px; }
-.chat-msg.agent { background: #f8fafc; border: 1px solid #e2e8f0; border-bottom-left-radius: 4px; }
-.chat-msg.system { text-align: center; max-width: 100%; font-size: 12px; color: #94a3b8; background: transparent; }
-.msg-meta { display: flex; gap: 8px; margin-bottom: 4px; font-size: 11px; }
-.msg-sender { font-weight: 600; color: #475569; }
-.msg-time { color: #94a3b8; }
-.msg-content { font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
-.msg-data { margin-top: 4px; display: flex; gap: 4px; flex-wrap: wrap; }
-.msg-task-link { margin-top: 6px; }
+.chat-msg {
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  max-width: 80%;
+}
+.chat-msg.human {
+  background: linear-gradient(135deg, #e8f4fd, #dceefb);
+  margin-left: auto;
+  border-bottom-right-radius: 4px;
+}
+.chat-msg.agent {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-bottom-left-radius: 4px;
+}
+.chat-msg.system {
+  text-align: center;
+  max-width: 100%;
+  font-size: 12px;
+  color: #94a3b8;
+  background: transparent;
+}
+.msg-meta {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+.msg-sender {
+  font-weight: 600;
+  color: #475569;
+}
+.msg-time {
+  color: #94a3b8;
+}
+.msg-content {
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.msg-data {
+  margin-top: 4px;
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.msg-task-link {
+  margin-top: 6px;
+}
 
-.confirm-panel { margin-top: 8px; padding: 10px 12px; background: #fef7e0; border-radius: 8px; border: 1px solid #fde68a; }
-.confirm-body { font-size: 12px; color: #92400e; margin-bottom: 8px; }
-.confirm-btns { display: flex; gap: 8px; justify-content: flex-end; }
+.confirm-panel {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: #fef7e0;
+  border-radius: 8px;
+  border: 1px solid #fde68a;
+}
+.confirm-body {
+  font-size: 12px;
+  color: #92400e;
+  margin-bottom: 8px;
+}
+.confirm-btns {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
 
-.template-bar { display: flex; align-items: center; gap: 4px; padding: 6px 12px; border-top: 1px solid #f0f0f0; background: #fafafa; overflow-x: auto; }
-.template-label { font-size: 11px; color: #94a3b8; margin-right: 4px; flex-shrink: 0; }
-.tpl-add, .tpl-reset { font-size: 16px; font-weight: 700; color: #94a3b8; }
-.tpl-menu { display: flex; flex-direction: column; gap: 4px; }
+.template-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-top: 1px solid #f0f0f0;
+  background: #fafafa;
+  overflow-x: auto;
+}
+.template-label {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+.tpl-add,
+.tpl-reset {
+  font-size: 16px;
+  font-weight: 700;
+  color: #94a3b8;
+}
+.tpl-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
 </style>

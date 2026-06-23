@@ -4,7 +4,13 @@ import { createOrder } from '@/api/order'
 import { getCustomerLensSummary } from '@/api/customer'
 
 const FULFILLMENT_TYPE = { frame_only: 'frame_only', lens_and_frame: 'lens_and_frame', lens_only: 'lens_only' } as const
-const LENS_STATUS = { not_needed: 'not_needed', pending: 'pending', processing: 'processing', completed: 'completed', self_supplied: 'self_supplied' } as const
+const LENS_STATUS = {
+  not_needed: 'not_needed',
+  pending: 'pending',
+  processing: 'processing',
+  completed: 'completed',
+  self_supplied: 'self_supplied',
+} as const
 
 export function useOrderCreate() {
   const createVisible = ref(false)
@@ -26,10 +32,26 @@ export function useOrderCreate() {
 
   function openCreateDialog() {
     Object.assign(createForm, {
-      customerId: '', customerName: '', customerPhone: '',
-      orderType: 'retail', structureStandardCode: '',
-      items: [{ productType: 'sku', productId: '', productName: '', quantity: 1, unitPrice: 0, structureStandardCode: '', orderFulfillmentType: FULFILLMENT_TYPE.frame_only, lensStatus: LENS_STATUS.not_needed }],
-      shippingFee: 0, discountAmount: 0, remark: '',
+      customerId: '',
+      customerName: '',
+      customerPhone: '',
+      orderType: 'retail',
+      structureStandardCode: '',
+      items: [
+        {
+          productType: 'sku',
+          productId: '',
+          productName: '',
+          quantity: 1,
+          unitPrice: 0,
+          structureStandardCode: '',
+          orderFulfillmentType: FULFILLMENT_TYPE.frame_only,
+          lensStatus: LENS_STATUS.not_needed,
+        },
+      ],
+      shippingFee: 0,
+      discountAmount: 0,
+      remark: '',
     })
     historyLensNotice.value = ''
     createVisible.value = true
@@ -37,7 +59,11 @@ export function useOrderCreate() {
 
   function addOrderItem() {
     createForm.items.push({
-      productType: 'sku', productId: '', productName: '', quantity: 1, unitPrice: 0,
+      productType: 'sku',
+      productId: '',
+      productName: '',
+      quantity: 1,
+      unitPrice: 0,
       structureStandardCode: createForm.structureStandardCode || '',
       orderFulfillmentType: FULFILLMENT_TYPE.frame_only,
       lensStatus: LENS_STATUS.not_needed,
@@ -65,16 +91,18 @@ export function useOrderCreate() {
     try {
       const res = await getCustomerLensSummary(id)
       if (res?.lenses?.length > 0) {
-        const lenses = (res.lenses as unknown as Record<string, unknown>[]) ?? [];
+        const lenses = (res.lenses as unknown as Record<string, unknown>[]) ?? []
         const activeLens = lenses.find((l) => l.status === 'active') || lenses[0]
-        const code = activeLens?.lensStandardCode as string;
-        const rx = activeLens?.prescription as Record<string, string> | undefined;
-        const rxInfo = rx ? `球镜: OD${rx.odSphere}/OS${rx.osSphere}` : '';
+        const code = activeLens?.lensStandardCode as string
+        const rx = activeLens?.prescription as Record<string, string> | undefined
+        const rxInfo = rx ? `球镜: OD${rx.odSphere}/OS${rx.osSphere}` : ''
         historyLensNotice.value = `🔩 该客户历史镜片：${code}${rxInfo ? ' | ' + rxInfo : ''}`
         const matched = lensOptions.value.find((l) => l.externalCode === code)
         if (matched) createForm.structureStandardCode = matched.structureId as string
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   function calcActual(): string {
@@ -103,7 +131,17 @@ export function useOrderCreate() {
   }
 
   return {
-    createVisible, submitting, customerOptions, lensOptions, historyLensNotice, createForm,
-    openCreateDialog, addOrderItem, onFulfillmentTypeChange, onCustomerSelect, calcActual, submitCreate,
+    createVisible,
+    submitting,
+    customerOptions,
+    lensOptions,
+    historyLensNotice,
+    createForm,
+    openCreateDialog,
+    addOrderItem,
+    onFulfillmentTypeChange,
+    onCustomerSelect,
+    calcActual,
+    submitCreate,
   }
 }

@@ -2,7 +2,13 @@
 import { ref, reactive, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
-  getOrderList, getOrderDetail, createOrder, updateOrderStatus, cancelOrder, createShipment, getOrderStats,
+  getOrderList,
+  getOrderDetail,
+  createOrder,
+  updateOrderStatus,
+  cancelOrder,
+  createShipment,
+  getOrderStats,
 } from '@/api/order'
 import { getCustomerList, getCustomerLensSummary } from '@/api/customer'
 import { getStructureList } from '@/api/structure'
@@ -22,12 +28,26 @@ export interface OrderDetailData {
   actualAmount?: number
   createdAt?: string
   remark?: string
-  address?: { receiverName: string; receiverPhone: string; province: string; city: string; district?: string; addressDetail: string }
+  address?: {
+    receiverName: string
+    receiverPhone: string
+    province: string
+    city: string
+    district?: string
+    addressDetail: string
+  }
   structureStandardCode?: string
   items?: Array<Record<string, unknown>>
   payments?: Array<{ paymentNo: string; paymentMethod: string; amount: number; status: string; paidAt?: string }>
   shipments?: Array<{ carrier: string; trackingNo: string; status: string; shippedAt?: string }>
-  logs?: Array<{ logId: string; createdAt: string; action: string; oldStatus?: string; newStatus?: string; remark?: string }>
+  logs?: Array<{
+    logId: string
+    createdAt: string
+    action: string
+    oldStatus?: string
+    newStatus?: string
+    remark?: string
+  }>
 }
 
 interface OrderStats {
@@ -41,12 +61,23 @@ interface OrderStats {
 }
 
 const ORDER_STATUS = {
-  pending: 'pending', confirmed: 'confirmed', paid: 'paid',
-  shipped: 'shipped', delivered: 'delivered', completed: 'completed', cancelled: 'cancelled',
+  pending: 'pending',
+  confirmed: 'confirmed',
+  paid: 'paid',
+  shipped: 'shipped',
+  delivered: 'delivered',
+  completed: 'completed',
+  cancelled: 'cancelled',
 } as const
 const ORDER_TYPES = { retail: 'retail', wholesale: 'wholesale', set: 'set' } as const
 const FULFILLMENT_TYPE = { frame_only: 'frame_only', lens_and_frame: 'lens_and_frame', lens_only: 'lens_only' } as const
-const LENS_STATUS = { not_needed: 'not_needed', pending: 'pending', processing: 'processing', completed: 'completed', self_supplied: 'self_supplied' } as const
+const LENS_STATUS = {
+  not_needed: 'not_needed',
+  pending: 'pending',
+  processing: 'processing',
+  completed: 'completed',
+  self_supplied: 'self_supplied',
+} as const
 
 export function useOrders() {
   // Dicts
@@ -66,13 +97,25 @@ export function useOrders() {
   const query = reactive({ keyword: '', status: '', paymentStatus: '', orderType: '', page: 1, pageSize: 20 })
 
   // Stats
-  const stats = ref<OrderStats>({ total: 0, pending: 0, paid: 0, shipping: 0, completed: 0, cancelled: 0, todaySales: '0' })
+  const stats = ref<OrderStats>({
+    total: 0,
+    pending: 0,
+    paid: 0,
+    shipping: 0,
+    completed: 0,
+    cancelled: 0,
+    todaySales: '0',
+  })
 
   function ensureStats(s: OrderStats | null | undefined): OrderStats {
     return {
-      total: s?.total ?? 0, pending: s?.pending ?? 0, paid: s?.paid ?? 0,
-      shipping: s?.shipping ?? 0, completed: s?.completed ?? 0,
-      cancelled: s?.cancelled ?? 0, todaySales: s?.todaySales ?? '0',
+      total: s?.total ?? 0,
+      pending: s?.pending ?? 0,
+      paid: s?.paid ?? 0,
+      shipping: s?.shipping ?? 0,
+      completed: s?.completed ?? 0,
+      cancelled: s?.cancelled ?? 0,
+      todaySales: s?.todaySales ?? '0',
     }
   }
 
@@ -88,16 +131,20 @@ export function useOrders() {
     ]
   })
 
-  const canConfirmSelected = computed(() =>
-    selectedOrders.value.length > 0 && selectedOrders.value.every((r) => r.status === ORDER_STATUS.pending)
+  const canConfirmSelected = computed(
+    () => selectedOrders.value.length > 0 && selectedOrders.value.every((r) => r.status === ORDER_STATUS.pending),
   )
   const canShipStatuses: string[] = [ORDER_STATUS.paid, ORDER_STATUS.confirmed]
   const canCancelExcludes: string[] = [ORDER_STATUS.completed, ORDER_STATUS.cancelled]
-  const canShipSelected = computed(() =>
-    selectedOrders.value.length > 0 && selectedOrders.value.every((r) => canShipStatuses.includes(r.status as string))
+  const canShipSelected = computed(
+    () =>
+      selectedOrders.value.length > 0 &&
+      selectedOrders.value.every((r) => canShipStatuses.includes(r.status as string)),
   )
-  const canCancelSelected = computed(() =>
-    selectedOrders.value.length > 0 && selectedOrders.value.every((r) => !canCancelExcludes.includes(r.status as string))
+  const canCancelSelected = computed(
+    () =>
+      selectedOrders.value.length > 0 &&
+      selectedOrders.value.every((r) => !canCancelExcludes.includes(r.status as string)),
   )
 
   function onSelectionChange(rows: Record<string, unknown>[]) {
@@ -185,14 +232,29 @@ export function useOrders() {
     createForm.shippingFee = 0
     createForm.discountAmount = 0
     createForm.remark = ''
-    createForm.items = [{ productType: 'sku', productId: '', productName: '', quantity: 1, unitPrice: 0, structureStandardCode: '', orderFulfillmentType: FULFILLMENT_TYPE.frame_only, lensStatus: LENS_STATUS.not_needed }]
+    createForm.items = [
+      {
+        productType: 'sku',
+        productId: '',
+        productName: '',
+        quantity: 1,
+        unitPrice: 0,
+        structureStandardCode: '',
+        orderFulfillmentType: FULFILLMENT_TYPE.frame_only,
+        lensStatus: LENS_STATUS.not_needed,
+      },
+    ]
     historyLensNotice.value = ''
     createVisible.value = true
   }
 
   function addOrderItem() {
     createForm.items.push({
-      productType: 'sku', productId: '', productName: '', quantity: 1, unitPrice: 0,
+      productType: 'sku',
+      productId: '',
+      productName: '',
+      quantity: 1,
+      unitPrice: 0,
       structureStandardCode: createForm.structureStandardCode || '',
       orderFulfillmentType: FULFILLMENT_TYPE.frame_only,
       lensStatus: LENS_STATUS.not_needed,
@@ -210,7 +272,7 @@ export function useOrders() {
   }
 
   async function onCustomerSelect(id: string) {
-    const c = customerOptions.value.find(x => x.customerId === id)
+    const c = customerOptions.value.find((x) => x.customerId === id)
     if (c) {
       createForm.customerName = c.contactName as string
       createForm.customerPhone = c.phone as string
@@ -220,17 +282,24 @@ export function useOrders() {
     try {
       const res = await getCustomerLensSummary(id)
       if (res?.lenses?.length > 0) {
-        interface LensRecord { status: string; lensStandardCode: string; prescription?: Record<string, string>; externalCode?: string }
+        interface LensRecord {
+          status: string
+          lensStandardCode: string
+          prescription?: Record<string, string>
+          externalCode?: string
+        }
         const lenses = (res.lenses as unknown as LensRecord[]) ?? []
         const activeLens = lenses.find((l) => l.status === 'active') || lenses[0]
         const code: string = activeLens.lensStandardCode
         const rx = activeLens.prescription
         const rxInfo = rx ? `球镜: OD${rx.odSphere}/OS${rx.osSphere}` : ''
         historyLensNotice.value = `🔬 该客户历史镜片：${code}${rxInfo ? ' | ' + rxInfo : ''}`
-        const matched = lensOptions.value.find(l => l.externalCode === code)
+        const matched = lensOptions.value.find((l) => l.externalCode === code)
         if (matched) createForm.structureStandardCode = matched.structureId as string
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   function calcActual() {
@@ -254,7 +323,9 @@ export function useOrders() {
     } catch (e: unknown) {
       const err = e instanceof Error ? e.message : String(e)
       ElMessage.error(err || '创建失败')
-    } finally { submitting.value = false }
+    } finally {
+      submitting.value = false
+    }
   }
 
   // Status ops
@@ -286,7 +357,9 @@ export function useOrders() {
     } catch (e: unknown) {
       const err = e instanceof Error ? e.message : String(e)
       ElMessage.error(err || '发货失败')
-    } finally { submitting.value = false }
+    } finally {
+      submitting.value = false
+    }
   }
 
   // Data loading
@@ -301,7 +374,9 @@ export function useOrders() {
       ElMessage.error(err || '加载订单失败')
       tableData.value = []
       total.value = 0
-    } finally { loading.value = false }
+    } finally {
+      loading.value = false
+    }
   }
 
   async function loadStats() {
@@ -318,14 +393,18 @@ export function useOrders() {
     try {
       const res = await getCustomerList({ page: 1, pageSize: 200 })
       customerOptions.value = (res?.items as unknown as Record<string, unknown>[]) || []
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   async function loadLensOptions() {
     try {
       const res = await getStructureList({ page: 1, pageSize: 200, status: 'active' })
       lensOptions.value = (res?.items as unknown as Record<string, unknown>[]) || []
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   function resetQuery() {
@@ -336,15 +415,40 @@ export function useOrders() {
   // Tool functions
   function statusTag(s: string) {
     if (orderStatusDict.labels.value[s]) {
-      const m: Record<string, string> = { pending: 'info', confirmed: 'primary', paid: 'success', shipped: 'warning', completed: '', cancelled: 'danger' }
+      const m: Record<string, string> = {
+        pending: 'info',
+        confirmed: 'primary',
+        paid: 'success',
+        shipped: 'warning',
+        completed: '',
+        cancelled: 'danger',
+      }
       return m[s] || ''
     }
-    const m: Record<string, string> = { pending: 'info', confirmed: 'primary', paid: 'success', shipped: 'warning', completed: '', cancelled: 'danger' }
+    const m: Record<string, string> = {
+      pending: 'info',
+      confirmed: 'primary',
+      paid: 'success',
+      shipped: 'warning',
+      completed: '',
+      cancelled: 'danger',
+    }
     return m[s] || ''
   }
 
   function statusLabel(s: string) {
-    return orderStatusDict.labels.value[s] || { pending: '待处理', confirmed: '已确认', paid: '已支付', shipped: '已发货', completed: '已完成', cancelled: '已取消' }[s] || s
+    return (
+      orderStatusDict.labels.value[s] ||
+      {
+        pending: '待处理',
+        confirmed: '已确认',
+        paid: '已支付',
+        shipped: '已发货',
+        completed: '已完成',
+        cancelled: '已取消',
+      }[s] ||
+      s
+    )
   }
 
   function orderTypeLabel(t: string) {
@@ -366,12 +470,24 @@ export function useOrders() {
   }
 
   function lensStatusTag(s: string) {
-    const m: Record<string, string> = { not_needed: 'info', pending: 'warning', processing: '', completed: 'success', self_supplied: 'info' }
+    const m: Record<string, string> = {
+      not_needed: 'info',
+      pending: 'warning',
+      processing: '',
+      completed: 'success',
+      self_supplied: 'info',
+    }
     return m[s] || ''
   }
 
   function lensStatusLabel(s: string) {
-    const m: Record<string, string> = { not_needed: '不需要', pending: '待处方', processing: '加工中', completed: '已完成', self_supplied: '客户自配' }
+    const m: Record<string, string> = {
+      not_needed: '不需要',
+      pending: '待处方',
+      processing: '加工中',
+      completed: '已完成',
+      self_supplied: '客户自配',
+    }
     return m[s] || s
   }
 
@@ -390,25 +506,63 @@ export function useOrders() {
 
   return {
     // Dicts
-    orderStatusItems, paymentStatusItems, customerTypeItems,
+    orderStatusItems,
+    paymentStatusItems,
+    customerTypeItems,
     // State
-    loading, tableData, total, query, selectedOrders,
-    statCards, canConfirmSelected, canShipSelected, canCancelSelected,
-    onSelectionChange, batchConfirm, batchShip, batchCancel,
+    loading,
+    tableData,
+    total,
+    query,
+    selectedOrders,
+    statCards,
+    canConfirmSelected,
+    canShipSelected,
+    canCancelSelected,
+    onSelectionChange,
+    batchConfirm,
+    batchShip,
+    batchCancel,
     // Detail
-    detailVisible, currentOrder, viewDetail,
+    detailVisible,
+    currentOrder,
+    viewDetail,
     // Create
-    createVisible, submitting, customerOptions, createForm,
-    lensOptions, historyLensNotice,
-    openCreateDialog, addOrderItem, onFulfillmentTypeChange, onCustomerSelect,
-    calcActual, submitCreate,
+    createVisible,
+    submitting,
+    customerOptions,
+    createForm,
+    lensOptions,
+    historyLensNotice,
+    openCreateDialog,
+    addOrderItem,
+    onFulfillmentTypeChange,
+    onCustomerSelect,
+    calcActual,
+    submitCreate,
     // Status/Ship
-    confirmOrder, shipVisible, shipOrder, shipForm, openShipDialog, submitShip,
+    confirmOrder,
+    shipVisible,
+    shipOrder,
+    shipForm,
+    openShipDialog,
+    submitShip,
     // Data
-    loadData, loadStats, loadCustomers, loadLensOptions, resetQuery,
+    loadData,
+    loadStats,
+    loadCustomers,
+    loadLensOptions,
+    resetQuery,
     // Labels
-    statusTag, statusLabel, orderTypeLabel, payLabel,
-    fulfillmentTag, fulfillmentLabel, lensStatusTag, lensStatusLabel, formatDate,
+    statusTag,
+    statusLabel,
+    orderTypeLabel,
+    payLabel,
+    fulfillmentTag,
+    fulfillmentLabel,
+    lensStatusTag,
+    lensStatusLabel,
+    formatDate,
     // Init
     init,
   }

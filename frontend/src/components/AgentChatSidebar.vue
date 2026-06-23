@@ -5,14 +5,24 @@
   Emits: switchTask
 -->
 <template>
-  <div class="chat-left" v-if="taskInfo">
+  <div v-if="taskInfo" class="chat-left">
     <div class="left-card">
       <div class="left-title">任务信息</div>
-      <div class="left-row" v-if="taskInfo.taskNo"><span class="left-k">编号</span><span class="left-v">{{ taskInfo.taskNo }}</span></div>
-      <div class="left-row"><span class="left-k">类型</span><span class="left-v">{{ typeLabel(taskInfo.type as string) }}</span></div>
-      <div class="left-row"><span class="left-k">状态</span><span class="left-v">{{ statusLabel(taskInfo.status as string) }}</span></div>
-      <div class="left-row" v-if="taskInfo.createdBy"><span class="left-k">创建人</span><span class="left-v">{{ taskInfo.createdBy }}</span></div>
-      <div class="left-row" v-if="taskInfo.agentId"><span class="left-k">Agent</span><span class="left-v">{{ agentLabel(taskInfo.agentId as string) }}</span></div>
+      <div v-if="taskInfo.taskNo" class="left-row">
+        <span class="left-k">编号</span><span class="left-v">{{ taskInfo.taskNo }}</span>
+      </div>
+      <div class="left-row">
+        <span class="left-k">类型</span><span class="left-v">{{ typeLabel(taskInfo.type as string) }}</span>
+      </div>
+      <div class="left-row">
+        <span class="left-k">状态</span><span class="left-v">{{ statusLabel(taskInfo.status as string) }}</span>
+      </div>
+      <div v-if="taskInfo.createdBy" class="left-row">
+        <span class="left-k">创建人</span><span class="left-v">{{ taskInfo.createdBy }}</span>
+      </div>
+      <div v-if="taskInfo.agentId" class="left-row">
+        <span class="left-k">Agent</span><span class="left-v">{{ agentLabel(taskInfo.agentId as string) }}</span>
+      </div>
     </div>
     <div class="left-divider"></div>
 
@@ -22,14 +32,16 @@
       <div v-if="historyLoading" class="history-loading">加载中...</div>
       <div v-else-if="historyTasks.length === 0" class="history-empty">暂无历史任务</div>
       <div
-        v-else
         v-for="t in historyTasks"
+        v-else
         :key="t.id"
         class="history-item"
         :class="{ current: t.id === taskId }"
         @click="emit('switchTask', t.id)"
       >
-        <div class="history-title">{{ (t.title || '').substring(0, 30) }}{{ (t.title || '').length > 30 ? '...' : '' }}</div>
+        <div class="history-title">
+          {{ (t.title || '').substring(0, 30) }}{{ (t.title || '').length > 30 ? '...' : '' }}
+        </div>
         <div class="history-meta">
           <el-tag :type="historyStatusType(t.status)" size="small">{{ historyStatusLabel(t.status) }}</el-tag>
           <span class="history-time">{{ formatHistoryTime(t.createdAt) }}</span>
@@ -38,12 +50,12 @@
     </div>
 
     <!-- 认知日志（侧边栏底部折叠） -->
-    <div class="log-panel" v-if="logs && logs.length > 0">
+    <div v-if="logs && logs.length > 0" class="log-panel">
       <div class="log-header" @click="logCollapsed = !logCollapsed">
         <span class="log-title">认知日志 ({{ logs.length }})</span>
         <el-icon><ArrowDown v-if="!logCollapsed" /><ArrowRight v-else /></el-icon>
       </div>
-      <div class="log-list" v-if="!logCollapsed">
+      <div v-if="!logCollapsed" class="log-list">
         <div v-for="log in logs" :key="log.id" class="log-line">
           <span class="log-dot" :style="{ background: logColor(log.type) }"></span>
           <span class="log-actor">{{ log.actor }}</span>
@@ -76,34 +88,80 @@ const emit = defineEmits<{
 const logCollapsed = ref(true)
 
 function logColor(type: string): string {
-  const m: Record<string, string> = { thought: '#7c3aed', tool: '#0ea5e9', action: '#f59e0b', error: '#ef4444', info: '#64748b' }
+  const m: Record<string, string> = {
+    thought: '#7c3aed',
+    tool: '#0ea5e9',
+    action: '#f59e0b',
+    error: '#ef4444',
+    info: '#64748b',
+  }
   return m[type] || '#94a3b8'
 }
 
-const statusLabel = (s: string) => ({
-  drafted: '草稿', proposed: '待同意', revised: '修订中', executing: '执行中',
-  delivered: '已交付', published: '已发布', completed: '已完成', cancelled: '已取消',
-  aborted: '已中止', escalated: '已升级',
-}[s] || s)
+const statusLabel = (s: string) =>
+  ({
+    drafted: '草稿',
+    proposed: '待同意',
+    revised: '修订中',
+    executing: '执行中',
+    delivered: '已交付',
+    published: '已发布',
+    completed: '已完成',
+    cancelled: '已取消',
+    aborted: '已中止',
+    escalated: '已升级',
+  })[s] || s
 
-const typeLabel = (t: string) => ({
-  product_listing: '商品上架', content_creation: '内容创作', customer_service: '客服',
-  tech_support: '技术支持', data_analysis: '数据分析', market_research: '市场调研',
-  code_generation: '代码生成', document_writing: '文档撰写', translation: '翻译',
-  general: '通用任务',
-}[t] || t)
+const typeLabel = (t: string) =>
+  ({
+    product_listing: '商品上架',
+    content_creation: '内容创作',
+    customer_service: '客服',
+    tech_support: '技术支持',
+    data_analysis: '数据分析',
+    market_research: '市场调研',
+    code_generation: '代码生成',
+    document_writing: '文档撰写',
+    translation: '翻译',
+    general: '通用任务',
+  })[t] || t
 
 // Agent ID → 可读名
-const agentLabel = (id: string) => ({
-  agent: 'AI 执行官', 'main-agent': 'AI 执行官', 'OpenOBA': 'AI 执行官',
-}[id] || id)
+const agentLabel = (id: string) =>
+  ({
+    agent: 'AI 执行官',
+    'main-agent': 'AI 执行官',
+    OpenOBA: 'AI 执行官',
+  })[id] || id
 
 function historyStatusType(s: string): string {
-  const m: Record<string, string> = { drafted: 'info', executing: 'primary', completed: 'success', proposed: 'warning', revised: 'info', delivered: 'success', published: 'success', cancelled: 'danger', aborted: 'danger', escalated: 'warning' }
+  const m: Record<string, string> = {
+    drafted: 'info',
+    executing: 'primary',
+    completed: 'success',
+    proposed: 'warning',
+    revised: 'info',
+    delivered: 'success',
+    published: 'success',
+    cancelled: 'danger',
+    aborted: 'danger',
+    escalated: 'warning',
+  }
   return m[s] || 'info'
 }
 function historyStatusLabel(s: string): string {
-  const m: Record<string, string> = { drafted: '草稿', executing: '执行中', completed: '已完成', proposed: '待审批', revised: '修订中', delivered: '已交付', published: '已发布', cancelled: '已取消', aborted: '已中止', escalated: '已升级' }
+  const m: Record<string, string> = {
+    drafted: '草稿',
+    executing: '执行中',
+    completed: '已完成',
+    proposed: '待审批',
+    revised: '修订中',
+    delivered: '已交付',
+    published: '已发布',
+    cancelled: '已取消',
+    aborted: '已中止',
+    escalated: '已升级',
+  }
   return m[s] || s
 }
 function formatHistoryTime(t: string): string {
@@ -118,32 +176,155 @@ function formatHistoryTime(t: string): string {
 </script>
 
 <style scoped>
-.chat-left { width: 180px; border-right: 1px solid rgba(3,105,161,0.08); overflow-y: auto; flex-shrink: 0; background: rgba(255,255,255,0.7); backdrop-filter: blur(8px); position: fixed; top: 0; left: 0; height: 100vh; z-index: 220; box-shadow: 1px 0 12px rgba(15,23,42,0.04); display: flex; flex-direction: column; }
-.left-card { padding: 12px; padding-top: 60px; }
-.left-title { font-size: 12px; font-weight: 600; margin-bottom: 8px; color: #303133; }
-.left-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 11px; border-bottom: 1px solid #f0f2f5; }
-.left-divider { border-top: 1px solid #ebeef5; margin: 6px 0; }
+.chat-left {
+  width: 180px;
+  border-right: 1px solid rgba(3, 105, 161, 0.08);
+  overflow-y: auto;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 220;
+  box-shadow: 1px 0 12px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+}
+.left-card {
+  padding: 12px;
+  padding-top: 60px;
+}
+.left-title {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #303133;
+}
+.left-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 11px;
+  border-bottom: 1px solid #f0f2f5;
+}
+.left-divider {
+  border-top: 1px solid #ebeef5;
+  margin: 6px 0;
+}
 
-.history-tasks { padding: 0 12px 12px; overflow-y: auto; flex: 1; }
-.history-item { padding: 8px; border-radius: 8px; cursor: pointer; margin-bottom: 4px; transition: all 0.15s; border: 1px solid transparent; }
-.history-item:hover { background: rgba(3,105,161,0.04); border-color: rgba(3,105,161,0.1); }
-.history-item.current { background: rgba(3,105,161,0.08); border-color: rgba(3,105,161,0.15); }
-.history-title { font-size: 12px; font-weight: 500; color: #303133; line-height: 1.4; margin-bottom: 4px; }
-.history-meta { display: flex; align-items: center; gap: 8px; }
-.history-time { font-size: 10px; color: #c0c4cc; }
-.history-loading, .history-empty { text-align: center; font-size: 11px; color: #c0c4cc; padding: 12px 0; }
-.left-k { color: #909399; }
-.left-v { font-weight: 500; text-align: right; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.history-tasks {
+  padding: 0 12px 12px;
+  overflow-y: auto;
+  flex: 1;
+}
+.history-item {
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 4px;
+  transition: all 0.15s;
+  border: 1px solid transparent;
+}
+.history-item:hover {
+  background: rgba(3, 105, 161, 0.04);
+  border-color: rgba(3, 105, 161, 0.1);
+}
+.history-item.current {
+  background: rgba(3, 105, 161, 0.08);
+  border-color: rgba(3, 105, 161, 0.15);
+}
+.history-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: #303133;
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+.history-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.history-time {
+  font-size: 10px;
+  color: #c0c4cc;
+}
+.history-loading,
+.history-empty {
+  text-align: center;
+  font-size: 11px;
+  color: #c0c4cc;
+  padding: 12px 0;
+}
+.left-k {
+  color: #909399;
+}
+.left-v {
+  font-weight: 500;
+  text-align: right;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* 认知日志面板（侧边栏底部折叠） */
-.log-panel { border-top: 1px solid #ebeef5; margin-top: auto; }
-.log-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; cursor: pointer; font-size: 11px; color: #606266; user-select: none; }
-.log-header:hover { background: rgba(3,105,161,0.03); }
-.log-header .log-title { font-weight: 600; }
-.log-list { padding: 4px 8px; max-height: 160px; overflow-y: auto; }
-.log-line { display: flex; align-items: center; gap: 4px; padding: 2px 4px; font-size: 10px; border-bottom: 1px solid #f5f5f5; }
-.log-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
-.log-actor { font-weight: 500; min-width: 28px; color: #606266; }
-.log-title-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #303133; }
-.log-time { color: #c0c4cc; font-size: 9px; flex-shrink: 0; }
+.log-panel {
+  border-top: 1px solid #ebeef5;
+  margin-top: auto;
+}
+.log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 11px;
+  color: #606266;
+  user-select: none;
+}
+.log-header:hover {
+  background: rgba(3, 105, 161, 0.03);
+}
+.log-header .log-title {
+  font-weight: 600;
+}
+.log-list {
+  padding: 4px 8px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+.log-line {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px;
+  font-size: 10px;
+  border-bottom: 1px solid #f5f5f5;
+}
+.log-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.log-actor {
+  font-weight: 500;
+  min-width: 28px;
+  color: #606266;
+}
+.log-title-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #303133;
+}
+.log-time {
+  color: #c0c4cc;
+  font-size: 9px;
+  flex-shrink: 0;
+}
 </style>

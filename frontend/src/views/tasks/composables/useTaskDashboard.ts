@@ -24,14 +24,26 @@ interface ChatMessage {
 
 const AGENT_STORAGE_KEY = 'eros_agents'
 const defaultAgents: AgentEntry[] = [
-  { id: 'main-agent', agentCode: 'main-agent', agentName: 'OpenOBA Main', displayName: 'MainAgent', icon: '', description: '总管 · L4', agentType: 'main', securityClearance: 'L4', status: 'active' },
+  {
+    id: 'main-agent',
+    agentCode: 'main-agent',
+    agentName: 'OpenOBA Main',
+    displayName: 'MainAgent',
+    icon: '',
+    description: '总管 · L4',
+    agentType: 'main',
+    securityClearance: 'L4',
+    status: 'active',
+  },
 ]
 
 function loadAgentsFromLocalStorage(): AgentEntry[] {
   try {
     const raw = localStorage.getItem(AGENT_STORAGE_KEY)
     if (raw) return JSON.parse(raw)
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return [...defaultAgents]
 }
 
@@ -53,11 +65,11 @@ export function useTaskDashboard() {
   async function loadModels() {
     loadingModels.value = true
     try {
-      const res = await request.get('/system/llm/providers') as Record<string, unknown>
+      const res = (await request.get('/system/llm/providers')) as Record<string, unknown>
       if (res?.success && Array.isArray(res.providers)) {
         const models: Array<{ value: string; label: string; isDefault: boolean }> = []
         for (const p of res.providers) {
-          for (const m of (p.models || [])) {
+          for (const m of p.models || []) {
             models.push({
               value: m.modelCode || m.id,
               label: `${p.providerName || p.name} · ${m.modelName || m.name}${m.isDefault ? ' ★' : ''}`,
@@ -67,12 +79,15 @@ export function useTaskDashboard() {
         }
         availableModels.value = models
         if (!selectedModel.value && models.length > 0) {
-          const defModel = models.find(m => m.isDefault)
+          const defModel = models.find((m) => m.isDefault)
           selectedModel.value = eraSettings.agent.defaultModel || defModel?.value || models[0].value
         }
       }
-    } catch { /* silent */ }
-    finally { loadingModels.value = false }
+    } catch {
+      /* silent */
+    } finally {
+      loadingModels.value = false
+    }
   }
 
   function onModelChange(val: string) {
@@ -129,7 +144,9 @@ export function useTaskDashboard() {
   const chatAreaRef = ref<HTMLElement>()
   const callingInputRef = ref()
 
-  function now() { return new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) }
+  function now() {
+    return new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+  }
 
   function scrollToBottom() {
     nextTick(() => {
@@ -160,19 +177,39 @@ export function useTaskDashboard() {
     handleCallingSend({ text: task.text, agentIds: [], taskType: task.type })
   }
 
-  async function handleCallingSend({ text, agentIds, taskType }: { text: string; agentIds: string[]; files?: File[]; taskType?: string }) {
+  async function handleCallingSend({
+    text,
+    agentIds,
+    taskType,
+  }: {
+    text: string
+    agentIds: string[]
+    files?: File[]
+    taskType?: string
+  }) {
     const t = now()
-    const msgData = agentIds.length > 0 ? agentIds.map(id => '@' + (agentList.value.find(a => a.id === id)?.displayName || id)) : undefined
+    const msgData =
+      agentIds.length > 0
+        ? agentIds.map((id) => '@' + (agentList.value.find((a) => a.id === id)?.displayName || id))
+        : undefined
 
     messages.value.push({
-      role: 'human', sender: loginUsername.value as string, content: text, time: t, data: msgData,
+      role: 'human',
+      sender: loginUsername.value as string,
+      content: text,
+      time: t,
+      data: msgData,
     })
     scrollToBottom()
 
     const confirmLines = ['收到：' + text, '', '你还有什么要补充的吗？']
     messages.value.push({
-      role: 'agent', sender: 'Agent', content: confirmLines.join('\n'), time: now(),
-      needConfirm: true, confirmText: '确认以上任务内容无误后，点击「立即执行」开始',
+      role: 'agent',
+      sender: 'Agent',
+      content: confirmLines.join('\n'),
+      time: now(),
+      needConfirm: true,
+      confirmText: '确认以上任务内容无误后，点击「立即执行」开始',
       confirmPayload: { text, agentIds, taskType: taskType || 'product_listing' },
     })
     scrollToBottom()
@@ -192,34 +229,51 @@ export function useTaskDashboard() {
       const title = text.substring(0, 80)
       const agentId = agentIds.length === 1 ? agentIds[0] : agentIds.length > 1 ? 'main-agent' : ''
       const task = await createTask({
-        title, type: taskType || 'product_listing',
-        context: { description: text }, reportTo: 'rt-l1-product',
-        createdBy: '', agentId: agentId || undefined,
+        title,
+        type: taskType || 'product_listing',
+        context: { description: text },
+        reportTo: 'rt-l1-product',
+        createdBy: '',
+        agentId: agentId || undefined,
       })
-      const taskId = String((task as unknown as Record<string, unknown>).id || (task as unknown as Record<string, unknown>).taskId || '')
-      if (!taskId) { ElMessage.error('任务创建失败'); return }
+      const taskId = String(
+        (task as unknown as Record<string, unknown>).id || (task as unknown as Record<string, unknown>).taskId || '',
+      )
+      if (!taskId) {
+        ElMessage.error('任务创建失败')
+        return
+      }
 
-      msg.needConfirm = false; msg.taskId = taskId
+      msg.needConfirm = false
+      msg.taskId = taskId
       msg.content = '收到：' + text + '\n\n任务已创建，正在进入执行...'
       ElMessage.success('任务已创建')
       router.push('/chat/' + taskId)
     } catch (e: unknown) {
       ElMessage.error('创建失败: ' + ((e as Error)?.message || String(e)))
-    } finally { creating.value = false }
+    } finally {
+      creating.value = false
+    }
   }
 
   async function loadTasks() {
     loading.value = true
     try {
       const params: Record<string, number | string> = {
-        page: 1, pageSize: searchKeyword.value ? 50 : pageSize.value,
+        page: 1,
+        pageSize: searchKeyword.value ? 50 : pageSize.value,
       }
       if (filterStatus.value) params.status = filterStatus.value
       if (searchKeyword.value) params.search = searchKeyword.value
       const res = await queryTasks(params)
-      tasks.value = res.items; total.value = res.total
+      tasks.value = res.items
+      total.value = res.total
       hasMore.value = total.value > displayLimit.value
-    } catch { /* ignore */ } finally { loading.value = false }
+    } catch {
+      /* ignore */
+    } finally {
+      loading.value = false
+    }
   }
 
   function loadMore() {
@@ -228,7 +282,7 @@ export function useTaskDashboard() {
   }
 
   function handleSelectionChange(rows: AgentTask[]) {
-    selectedIds.value = rows.map(r => r.id)
+    selectedIds.value = rows.map((r) => r.id)
   }
 
   async function batchDelete() {
@@ -243,22 +297,61 @@ export function useTaskDashboard() {
     }
   }
 
-  function goDetail(task: AgentTask) { router.push(`/chat/${task.id}`) }
-  function goToTask(taskId: string) { router.push('/chat/' + taskId) }
+  function goDetail(task: AgentTask) {
+    router.push(`/chat/${task.id}`)
+  }
+  function goToTask(taskId: string) {
+    router.push('/chat/' + taskId)
+  }
 
-  onMounted(() => { loadAgentList(); loadTasks(); loadModels() })
+  onMounted(() => {
+    loadAgentList()
+    loadTasks()
+    loadModels()
+  })
 
   return {
     // refs
-    selectedModel, availableModels, loadingModels,
-    agentList, loading, creating, tasks, total, page, pageSize, filterStatus, searchKeyword,
-    displayLimit, hasMore, selectedIds, messages, chatAreaRef, callingInputRef,
+    selectedModel,
+    availableModels,
+    loadingModels,
+    agentList,
+    loading,
+    creating,
+    tasks,
+    total,
+    page,
+    pageSize,
+    filterStatus,
+    searchKeyword,
+    displayLimit,
+    hasMore,
+    selectedIds,
+    messages,
+    chatAreaRef,
+    callingInputRef,
     // template composable
-    templates, applyTemplate, removeTemplate, resetTemplates,
+    templates,
+    applyTemplate,
+    removeTemplate,
+    resetTemplates,
     // methods
-    onModelChange, loadModels, loadAgentList, saveAgents, goToAgentManagement,
-    onAgentsUpdate, onAgentSelect, quickTask, handleCallingSend, cancelConfirm,
-    executeConfirm, loadTasks, loadMore, handleSelectionChange, batchDelete,
-    goDetail, goToTask,
+    onModelChange,
+    loadModels,
+    loadAgentList,
+    saveAgents,
+    goToAgentManagement,
+    onAgentsUpdate,
+    onAgentSelect,
+    quickTask,
+    handleCallingSend,
+    cancelConfirm,
+    executeConfirm,
+    loadTasks,
+    loadMore,
+    handleSelectionChange,
+    batchDelete,
+    goDetail,
+    goToTask,
   }
 }

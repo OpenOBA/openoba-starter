@@ -107,12 +107,27 @@ export function useAgentChat(
   async function loadHistoryTasks() {
     historyLoading.value = true
     try {
-      const res = await queryTasks({ pageSize: 20 }) as unknown as { items?: Record<string, unknown>[]; data?: { items?: Record<string, unknown>[] } }
+      const res = (await queryTasks({ pageSize: 20 })) as unknown as {
+        items?: Record<string, unknown>[]
+        data?: { items?: Record<string, unknown>[] }
+      }
       const items = res?.items || res?.data?.items || []
-      const statuses: string[] = ['drafted', 'proposed', 'executing', 'completed', 'delivered', 'published', 'cancelled', 'aborted']
+      const statuses: string[] = [
+        'drafted',
+        'proposed',
+        'executing',
+        'completed',
+        'delivered',
+        'published',
+        'cancelled',
+        'aborted',
+      ]
       historyTasks.value = items.filter((t) => statuses.includes(t.status as string))
-    } catch { /* skip load errors */ }
-    finally { historyLoading.value = false }
+    } catch {
+      /* skip load errors */
+    } finally {
+      historyLoading.value = false
+    }
   }
 
   function switchToTask(newId: string) {
@@ -133,34 +148,58 @@ export function useAgentChat(
       taskTitle.value = t.title
       taskInfo.value = t as unknown as Record<string, unknown>
       taskDone.value = ['completed', 'cancelled', 'aborted'].includes(t.status)
-      getTaskLogs(taskId.value).then(l => logs.value = l as unknown as Record<string, unknown>[]).catch(() => {})
+      getTaskLogs(taskId.value)
+        .then((l) => (logs.value = l as unknown as Record<string, unknown>[]))
+        .catch(() => {})
 
       const cached = localStorage.getItem(LS_KEY.value)
       if (cached) {
         try {
           const parsed = JSON.parse(cached)
           if (Array.isArray(parsed) && parsed.length > 0) {
-            const arr = parsed as unknown as Array<Record<string, unknown>>;
-            messages.value = arr.map((m): ChatMsg => ({
-              role: (m.role as ChatMsg['role']) || 'agent',
-              content: (m.content as string) || '',
-              time: m.time as string || '',
-              agentFooter: m.agentFooter as ChatMsg['agentFooter'] || undefined,
-              reactTimeline: m.reactTimeline as TimelineItem[] || (m.thoughts || m.toolCalls || m.observations
-                ? [
-                    ...((m.thoughts as TimelineItem[]) || []).map((t) => ({ kind: 'thought' as const, text: t.text, ts: Date.now() })),
-                    ...((m.toolCalls as TimelineItem[]) || []).map((t) => ({ kind: 'tool' as const, name: t.name, args: t.args, status: t.status, result: t.result, _expanded: false, ts: Date.now() })),
-                    ...((m.observations as TimelineItem[]) || []).map((o) => ({ kind: 'observation' as const, text: o.text, ts: Date.now() })),
-                  ]
-                : undefined),
-              streaming: false,
-            }))
+            const arr = parsed as unknown as Array<Record<string, unknown>>
+            messages.value = arr.map(
+              (m): ChatMsg => ({
+                role: (m.role as ChatMsg['role']) || 'agent',
+                content: (m.content as string) || '',
+                time: (m.time as string) || '',
+                agentFooter: (m.agentFooter as ChatMsg['agentFooter']) || undefined,
+                reactTimeline:
+                  (m.reactTimeline as TimelineItem[]) ||
+                  (m.thoughts || m.toolCalls || m.observations
+                    ? [
+                        ...((m.thoughts as TimelineItem[]) || []).map((t) => ({
+                          kind: 'thought' as const,
+                          text: t.text,
+                          ts: Date.now(),
+                        })),
+                        ...((m.toolCalls as TimelineItem[]) || []).map((t) => ({
+                          kind: 'tool' as const,
+                          name: t.name,
+                          args: t.args,
+                          status: t.status,
+                          result: t.result,
+                          _expanded: false,
+                          ts: Date.now(),
+                        })),
+                        ...((m.observations as TimelineItem[]) || []).map((o) => ({
+                          kind: 'observation' as const,
+                          text: o.text,
+                          ts: Date.now(),
+                        })),
+                      ]
+                    : undefined),
+                streaming: false,
+              }),
+            )
             syncProposals(t.proposals || [])
             console.log('🔍 AgentChat: 从 localStorage 恢复 ' + parsed.length + ' 条消息（含 ReAct 状态）')
             onScrollBottom()
             return
           }
-        } catch { /* 缓存损坏 */ }
+        } catch {
+          /* 缓存损坏 */
+        }
       }
 
       const ctx = (t.context || {}) as Record<string, unknown>
@@ -169,14 +208,21 @@ export function useAgentChat(
 
       if (proposals.length > 0) {
         const initMsg = String(ctx['任务主体'] || t.title)
-        const built: ChatMsg[] = [{
-          role: 'human' as const, content: initMsg, time: formatTime(t.createdAt),
-        }]
+        const built: ChatMsg[] = [
+          {
+            role: 'human' as const,
+            content: initMsg,
+            time: formatTime(t.createdAt),
+          },
+        ]
         for (const p of proposals) {
           if (p.content) {
             built.push({
-              role: 'proposal' as const, content: p.content as string, version: p.version as number,
-              status: (p.status as string) || 'submitted', feedback: p.feedback as Record<string, unknown>,
+              role: 'proposal' as const,
+              content: p.content as string,
+              version: p.version as number,
+              status: (p.status as string) || 'submitted',
+              feedback: p.feedback as Record<string, unknown>,
               time: p.timestamp ? formatTime(p.timestamp as string) : '',
             })
           }
@@ -194,10 +240,14 @@ export function useAgentChat(
         if (t.status === 'drafted') await sendMsg(initMsg)
       }
       onScrollBottom()
-    } catch { ElMessage.error('加载任务失败') }
+    } catch {
+      ElMessage.error('加载任务失败')
+    }
   }
 
-  function syncProposalsLocal(_proposals: Array<{ version: number; content: string; timestamp: string; status: string }>) {
+  function syncProposalsLocal(
+    _proposals: Array<{ version: number; content: string; timestamp: string; status: string }>,
+  ) {
     // proposals 只在 TaskDetail 历史档案中查看
   }
 
@@ -215,16 +265,21 @@ export function useAgentChat(
       let fileUrl = ''
       let fileName = ''
       try {
-        const json = await request.post(`/eros/tasks/${taskId.value}/export-md`) as unknown as Record<string, unknown>
+        const json = (await request.post(`/eros/tasks/${taskId.value}/export-md`)) as unknown as Record<string, unknown>
         fileUrl = (json?.url as string) || ''
         fileName = (json?.fileName as string) || ''
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
       insertSummary(t, fileUrl, fileName)
       saveCache()
       triggerRef(messages)
       ElMessage.success('已同意方案')
-    } catch { ElMessage.error('操作失败') }
-    finally { agreeing.value = false }
+    } catch {
+      ElMessage.error('操作失败')
+    } finally {
+      agreeing.value = false
+    }
   }
 
   const pendingSendKeys = new Set<string>()
@@ -300,7 +355,7 @@ export function useAgentChat(
       })
 
       sock.on('chat.error', (payload: WsPayload) => {
-        messages.value[msgIdx].content = (payload.message || '会话失败')
+        messages.value[msgIdx].content = payload.message || '会话失败'
         messages.value[msgIdx].streaming = false
         isStreaming.value = false
         isLoading.value = false
@@ -310,7 +365,13 @@ export function useAgentChat(
 
       const msgs = messages.value as unknown as ChatMsg[]
       const history = msgs.slice(0, -2).map((m) => ({ role: m.role, content: m.content }))
-      ws.send('chat.send', { sessionKey: taskId.value, message: text, history, idempotencyKey, model: eraSettings.agent.defaultModel })
+      ws.send('chat.send', {
+        sessionKey: taskId.value,
+        message: text,
+        history,
+        idempotencyKey,
+        model: eraSettings.agent.defaultModel,
+      })
       agentLoading.value = true
       return
     }
@@ -325,15 +386,21 @@ export function useAgentChat(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token,
+          Authorization: 'Bearer ' + token,
         },
-        body: JSON.stringify({ message: text, history: sseHistory, idempotencyKey, model: eraSettings.agent.defaultModel }),
+        body: JSON.stringify({
+          message: text,
+          history: sseHistory,
+          idempotencyKey,
+          model: eraSettings.agent.defaultModel,
+        }),
       })
 
       if (!streamRes.ok) {
         messages.value[msgIdx].content = '⚠️ 流连接失败 (' + streamRes.status + ')'
         messages.value[msgIdx].streaming = false
-        isStreaming.value = false; isLoading.value = false
+        isStreaming.value = false
+        isLoading.value = false
         agentLoading.value = false
         saveCache()
         return
@@ -356,88 +423,99 @@ export function useAgentChat(
         }
       }, 5000)
 
-      const read = () => { reader.read().then(({ done, value }) => {
-          lastEventTime = Date.now()
-          if (done) {
+      const read = () => {
+        reader
+          .read()
+          .then(({ done, value }) => {
+            lastEventTime = Date.now()
+            if (done) {
+              messages.value[msgIdx].streaming = false
+              isStreaming.value = false
+              isLoading.value = false
+              agentLoading.value = false
+              if (heartbeatTimer) clearInterval(heartbeatTimer)
+              saveCache()
+              onScrollBottom()
+              return
+            }
+            const decoded = decoder.decode(value, { stream: true })
+            const replacementCount = decoded.split('\uFFFD').length - 1
+            if (replacementCount > 0) {
+              decodeErrors += replacementCount
+              console.warn('[SSE] UTF-8 解码替换 #' + decodeErrors + ': ' + replacementCount + ' 个 U+FFFD')
+            }
+            buffer += decoded
+            const lines = buffer.split('\n')
+            buffer = lines.pop() || ''
+
+            for (const line of lines) {
+              if (!line.startsWith('data: ')) continue
+              try {
+                const json = JSON.parse(line.slice(6))
+                if (json.type === 'ack') {
+                  messages.value[msgIdx].statusHint = 'Agent 正在思考...'
+                } else if (json.type === 'model') {
+                  usedModel.value = json.model || ''
+                } else if (json.type === 'done') {
+                  messages.value[msgIdx].agentFooter = {
+                    name: json.agentName || 'AI 执行官',
+                    model: json.model || usedModel.value || chatModel.value || '',
+                    ts: formatFooterTime(),
+                  }
+                  messages.value[msgIdx].streaming = false
+                  isStreaming.value = false
+                  isLoading.value = false
+                  agentLoading.value = false
+                  if (heartbeatTimer) clearInterval(heartbeatTimer)
+                  onSaveReActCache()
+                  getTask(taskId.value)
+                    .then((t) => {
+                      taskInfo.value = t as unknown as Record<string, unknown>
+                      taskDone.value = ['completed', 'cancelled', 'aborted'].includes(t.status)
+                      syncProposalsLocal(t.proposals || [])
+                    })
+                    .catch(() => {})
+                } else if (json.type === 'aborted') {
+                  if (json.partialContent) messages.value[msgIdx].content = json.partialContent
+                  messages.value[msgIdx].content += '\n\n*[已中止]*'
+                  messages.value[msgIdx].streaming = false
+                  isStreaming.value = false
+                  isLoading.value = false
+                  agentLoading.value = false
+                  if (heartbeatTimer) clearInterval(heartbeatTimer)
+                  saveCache()
+                } else if (json.type === 'error') {
+                  messages.value[msgIdx].content = '⚠️ ' + json.message
+                  messages.value[msgIdx].streaming = false
+                  isStreaming.value = false
+                  isLoading.value = false
+                  agentLoading.value = false
+                  if (heartbeatTimer) clearInterval(heartbeatTimer)
+                  onSaveReActCache()
+                } else {
+                  onEvent(json, msgIdx)
+                }
+              } catch {
+                /* skip malformed */
+              }
+            }
+            if (messages.value[msgIdx]?.streaming !== false) read()
+          })
+          .catch(() => {
             messages.value[msgIdx].streaming = false
-            isStreaming.value = false; isLoading.value = false
+            isStreaming.value = false
+            isLoading.value = false
             agentLoading.value = false
             if (heartbeatTimer) clearInterval(heartbeatTimer)
             saveCache()
-            onScrollBottom()
-            return
-          }
-          const decoded = decoder.decode(value, { stream: true })
-          const replacementCount = decoded.split('\uFFFD').length - 1
-          if (replacementCount > 0) {
-            decodeErrors += replacementCount
-            console.warn('[SSE] UTF-8 解码替换 #' + decodeErrors + ': ' + replacementCount + ' 个 U+FFFD')
-          }
-          buffer += decoded
-          const lines = buffer.split('\n')
-          buffer = lines.pop() || ''
-
-          for (const line of lines) {
-            if (!line.startsWith('data: ')) continue
-            try {
-              const json = JSON.parse(line.slice(6))
-              if (json.type === 'ack') {
-                messages.value[msgIdx].statusHint = 'Agent 正在思考...'
-              } else if (json.type === 'model') {
-                usedModel.value = json.model || ''
-              } else if (json.type === 'done') {
-                messages.value[msgIdx].agentFooter = {
-                  name: json.agentName || 'AI 执行官',
-                  model: json.model || usedModel.value || chatModel.value || '',
-                  ts: formatFooterTime(),
-                }
-                messages.value[msgIdx].streaming = false
-                isStreaming.value = false
-                isLoading.value = false
-                agentLoading.value = false
-                if (heartbeatTimer) clearInterval(heartbeatTimer)
-                onSaveReActCache()
-                getTask(taskId.value).then(t => {
-                  taskInfo.value = t as unknown as Record<string, unknown>
-                  taskDone.value = ['completed', 'cancelled', 'aborted'].includes(t.status)
-                  syncProposalsLocal(t.proposals || [])
-                }).catch(() => {})
-              } else if (json.type === 'aborted') {
-                if (json.partialContent) messages.value[msgIdx].content = json.partialContent
-                messages.value[msgIdx].content += '\n\n*[已中止]*'
-                messages.value[msgIdx].streaming = false
-                isStreaming.value = false
-                isLoading.value = false
-                agentLoading.value = false
-                if (heartbeatTimer) clearInterval(heartbeatTimer)
-                saveCache()
-              } else if (json.type === 'error') {
-                messages.value[msgIdx].content = '⚠️ ' + json.message
-                messages.value[msgIdx].streaming = false
-                isStreaming.value = false
-                isLoading.value = false
-                agentLoading.value = false
-                if (heartbeatTimer) clearInterval(heartbeatTimer)
-                onSaveReActCache()
-              } else {
-                onEvent(json, msgIdx)
-              }
-            } catch { /* skip malformed */ }
-          }
-          if (messages.value[msgIdx]?.streaming !== false) read()
-        }).catch(() => {
-          messages.value[msgIdx].streaming = false
-          isStreaming.value = false; isLoading.value = false
-          agentLoading.value = false
-          if (heartbeatTimer) clearInterval(heartbeatTimer)
-          saveCache()
-        })
+          })
       }
       read()
     } catch {
       messages.value[msgIdx].content = '⚠️ 发送失败'
       messages.value[msgIdx].streaming = false
-      isStreaming.value = false; isLoading.value = false
+      isStreaming.value = false
+      isLoading.value = false
       agentLoading.value = false
       saveCache()
     }
@@ -453,14 +531,15 @@ export function useAgentChat(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token,
+          Authorization: 'Bearer ' + token,
         },
         body: JSON.stringify({ sessionKey: taskId.value }),
       })
       if (res.ok) {
         lastMsg.streaming = false
         lastMsg.content += '\n\n*[已中止]*'
-        isStreaming.value = false; isLoading.value = false
+        isStreaming.value = false
+        isLoading.value = false
         agentLoading.value = false
         saveCache()
         triggerRef(messages)
@@ -475,10 +554,27 @@ export function useAgentChat(
   }
 
   return {
-    taskId, taskTitle, taskDone, taskInfo, logs, inputText, agentLoading,
-    isLoading, isStreaming, agreeing, showAgreeBtn, chatBodyRef,
-    historyTasks, historyLoading,
-    loadTask, loadHistoryTasks, switchToTask, handleSend, handleAbort, handleAgree,
-    saveCache, ws,
+    taskId,
+    taskTitle,
+    taskDone,
+    taskInfo,
+    logs,
+    inputText,
+    agentLoading,
+    isLoading,
+    isStreaming,
+    agreeing,
+    showAgreeBtn,
+    chatBodyRef,
+    historyTasks,
+    historyLoading,
+    loadTask,
+    loadHistoryTasks,
+    switchToTask,
+    handleSend,
+    handleAbort,
+    handleAgree,
+    saveCache,
+    ws,
   }
 }

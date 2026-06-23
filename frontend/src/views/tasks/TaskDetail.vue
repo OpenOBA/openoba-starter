@@ -1,5 +1,5 @@
 <template>
-  <div class="task-detail" v-loading="loading">
+  <div v-loading="loading" class="task-detail">
     <div class="detail-header">
       <el-button link type="primary" @click="$router.push('/tasks')">
         <el-icon><ArrowLeft /></el-icon> 返回
@@ -17,17 +17,29 @@
 
     <div v-if="task" class="detail-body">
       <!-- 提案时间线 -->
-      <div class="timeline-area" ref="chatAreaRef">
+      <div ref="chatAreaRef" class="timeline-area">
         <div v-if="proposals.length === 0" class="empty-hint">暂无提案记录</div>
 
         <div v-for="(item, i) in timeline" :key="i">
-          <div v-if="item.type === 'round-sep'" class="round-sep"><span>第 {{ item.round }} 轮</span></div>
+          <div v-if="item.type === 'round-sep'" class="round-sep">
+            <span>第 {{ item.round }} 轮</span>
+          </div>
 
-          <div v-else-if="item.type === 'proposal'" class="proposal-block"
-            :class="{ submitted: item.status === 'submitted', accepted: item.status === 'accepted', rejected: item.status === 'rejected' }">
+          <div
+            v-else-if="item.type === 'proposal'"
+            class="proposal-block"
+            :class="{
+              submitted: item.status === 'submitted',
+              accepted: item.status === 'accepted',
+              rejected: item.status === 'rejected',
+            }"
+          >
             <div class="proposal-head">
               <el-tag size="small">V{{ item.version }}</el-tag>
-              <el-tag size="small" :type="item.status === 'submitted' ? 'warning' : item.status === 'accepted' ? 'success' : 'danger'">
+              <el-tag
+                size="small"
+                :type="item.status === 'submitted' ? 'warning' : item.status === 'accepted' ? 'success' : 'danger'"
+              >
                 {{ item.status === 'submitted' ? '待同意' : item.status === 'accepted' ? '已同意' : '已驳回' }}
               </el-tag>
               <span class="proposal-time">{{ item.time }}</span>
@@ -40,7 +52,9 @@
           </div>
 
           <div v-else-if="item.type === 'human'" class="chat-bubble human">
-            <div class="bubble-meta"><span>需求</span><span>{{ item.time }}</span></div>
+            <div class="bubble-meta">
+              <span>需求</span><span>{{ item.time }}</span>
+            </div>
             <div class="bubble-text">{{ item.text }}</div>
           </div>
         </div>
@@ -51,19 +65,38 @@
         <el-card shadow="hover" class="side-card" size="small">
           <template #header><span class="card-title">任务信息</span></template>
           <div class="info-grid">
-            <div class="info-item"><span class="info-k">编号</span><span class="info-v">{{ task.taskNo }}</span></div>
-            <div class="info-item"><span class="info-k">类型</span><span class="info-v">{{ typeLabel(task.type) }}</span></div>
-            <div class="info-item"><span class="info-k">创建人</span><span class="info-v">{{ task.createdBy }}</span></div>
-            <div class="info-item"><span class="info-k">Agent</span><span class="info-v">{{ task.agentId || '未分配' }}</span></div>
-            <div class="info-item"><span class="info-k">汇报</span><span class="info-v">{{ task.reportTo }}</span></div>
-            <div class="info-item"><span class="info-k">阶段</span><span class="info-v">{{ task.currentPhase }}/{{ task.totalPhases }}</span></div>
+            <div class="info-item">
+              <span class="info-k">编号</span><span class="info-v">{{ task.taskNo }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-k">类型</span><span class="info-v">{{ typeLabel(task.type) }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-k">创建人</span><span class="info-v">{{ task.createdBy }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-k">Agent</span><span class="info-v">{{ task.agentId || '未分配' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-k">汇报</span><span class="info-v">{{ task.reportTo }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-k">阶段</span><span class="info-v">{{ task.currentPhase }}/{{ task.totalPhases }}</span>
+            </div>
           </div>
         </el-card>
         <el-card shadow="hover" class="side-card" size="small">
-          <template #header><span class="card-title">认知日志 ({{ logs.length }})</span></template>
-          <div class="log-compact" v-if="logs.length > 0">
+          <template #header
+            ><span class="card-title">认知日志 ({{ logs.length }})</span></template
+          >
+          <div v-if="logs.length > 0" class="log-compact">
             <div v-for="log in logs" :key="log.id" class="log-line">
-              <span class="log-dot" :style="{ background: log.level === 'error' ? '#f56c6c' : log.level === 'warn' ? '#e6a23c' : '#409eff' }"></span>
+              <span
+                class="log-dot"
+                :style="{
+                  background: log.level === 'error' ? '#f56c6c' : log.level === 'warn' ? '#e6a23c' : '#409eff',
+                }"
+              ></span>
               <span class="log-actor">{{ log.actor }}</span>
               <span class="log-title" :title="log.title">{{ log.title }}</span>
               <span class="log-time">{{ formatTimeMs(log.createdAt) }}</span>
@@ -93,8 +126,14 @@ const logs = ref<CognitiveLog[]>([])
 // 时间线
 interface TimelineItem {
   type: 'human' | 'proposal' | 'system' | 'round-sep'
-  sender?: string; text?: string; time: string; round?: number
-  version?: number; content?: string; status?: string; feedback?: Record<string, unknown>
+  sender?: string
+  text?: string
+  time: string
+  round?: number
+  version?: number
+  content?: string
+  status?: string
+  feedback?: Record<string, unknown>
 }
 const timeline = computed<TimelineItem[]>(() => {
   if (!task.value) return []
@@ -106,31 +145,63 @@ const timeline = computed<TimelineItem[]>(() => {
   const proposals = task.value.proposals || []
   for (let i = 0; i < proposals.length; i++) {
     const p = proposals[i] as unknown as Record<string, unknown>
-    items.push({ type: 'proposal' as const, version: p.version as number, content: p.content as string, status: (p.status as string) || 'submitted', feedback: p.feedback as unknown as Record<string, unknown>, time: formatTime(p.timestamp as string) })
+    items.push({
+      type: 'proposal' as const,
+      version: p.version as number,
+      content: p.content as string,
+      status: (p.status as string) || 'submitted',
+      feedback: p.feedback as unknown as Record<string, unknown>,
+      time: formatTime(p.timestamp as string),
+    })
   }
   return items
 })
 const proposals = computed(() => task.value?.proposals || [])
 
-const statusLabel = (s: TaskStatus) => ({
-  drafted: '草稿', proposed: '待同意', revised: '修订中', executing: '执行中',
-  delivered: '已交付', published: '已发布', completed: '已完成',
-  cancelled: '已取消', aborted: '已中止', escalated: '已升级',
-}[s] || s) as string
+const statusLabel = (s: TaskStatus) =>
+  (({
+    drafted: '草稿',
+    proposed: '待同意',
+    revised: '修订中',
+    executing: '执行中',
+    delivered: '已交付',
+    published: '已发布',
+    completed: '已完成',
+    cancelled: '已取消',
+    aborted: '已中止',
+    escalated: '已升级',
+  })[s] || s) as string
 const statusTagType = (s: TaskStatus) => {
-  const m: Record<string, string> = { drafted: 'info', proposed: 'warning', executing: 'primary', delivered: 'success', completed: 'success', cancelled: 'danger', aborted: 'danger' }
+  const m: Record<string, string> = {
+    drafted: 'info',
+    proposed: 'warning',
+    executing: 'primary',
+    delivered: 'success',
+    completed: 'success',
+    cancelled: 'danger',
+    aborted: 'danger',
+  }
   return m[s] || 'info'
 }
-const typeLabel = (t: string) => ({ product_listing: '商品上架', content_creation: '内容创作', customer_service: '客服', tech_support: '技术' }[t] || t)
-const formatTime = (t: string) => t ? new Date(t).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : '-'
-const formatTimeMs = (t: string) => t ? new Date(Number(t)).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : '-'
+const typeLabel = (t: string) =>
+  ({ product_listing: '商品上架', content_creation: '内容创作', customer_service: '客服', tech_support: '技术' })[t] ||
+  t
+const formatTime = (t: string) =>
+  t ? new Date(t).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : '-'
+const formatTimeMs = (t: string) =>
+  t ? new Date(Number(t)).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : '-'
 
 async function loadTask() {
   loading.value = true
   try {
     const [t, l] = await Promise.all([getTask(route.params.id as string), getTaskLogs(route.params.id as string)])
-    task.value = t; logs.value = l
-  } catch { ElMessage.error('加载失败') } finally { loading.value = false }
+    task.value = t
+    logs.value = l
+  } catch {
+    ElMessage.error('加载失败')
+  } finally {
+    loading.value = false
+  }
 }
 
 onMounted(loadTask)
@@ -153,7 +224,9 @@ onMounted(loadTask)
   flex-shrink: 0;
   background: #fff;
 }
-.header-info { flex: 1; }
+.header-info {
+  flex: 1;
+}
 .header-info h3 {
   margin: 0;
   font-size: 15px;
@@ -196,7 +269,7 @@ onMounted(loadTask)
   border-radius: 10px;
   max-width: 85%;
   font-size: 13px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 .chat-bubble.human {
   background: #e8f4fd;
@@ -218,11 +291,19 @@ onMounted(loadTask)
   border: 1px solid #e4e7ed;
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
-.proposal-block.submitted { border-color: #e6a23c; }
-.proposal-block.accepted { border-color: #67c23a; background: #f6ffed; }
-.proposal-block.rejected { border-color: #f56c6c; opacity: 0.7; }
+.proposal-block.submitted {
+  border-color: #e6a23c;
+}
+.proposal-block.accepted {
+  border-color: #67c23a;
+  background: #f6ffed;
+}
+.proposal-block.rejected {
+  border-color: #f56c6c;
+  opacity: 0.7;
+}
 .proposal-head {
   display: flex;
   align-items: center;
@@ -286,9 +367,16 @@ onMounted(loadTask)
   display: flex;
   justify-content: space-between;
 }
-.info-k { color: #909399; }
-.info-v { font-weight: 500; color: #303133; }
-.log-compact { font-size: 11px; }
+.info-k {
+  color: #909399;
+}
+.info-v {
+  font-weight: 500;
+  color: #303133;
+}
+.log-compact {
+  font-size: 11px;
+}
 .log-line {
   display: flex;
   align-items: center;
@@ -302,8 +390,26 @@ onMounted(loadTask)
   border-radius: 50%;
   flex-shrink: 0;
 }
-.log-actor { font-weight: 500; min-width: 36px; color: #606266; }
-.log-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #303133; }
-.log-time { color: #c0c4cc; font-size: 10px; }
-.empty-hint { text-align: center; color: #c0c4cc; padding: 40px; font-size: 13px; }
+.log-actor {
+  font-weight: 500;
+  min-width: 36px;
+  color: #606266;
+}
+.log-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #303133;
+}
+.log-time {
+  color: #c0c4cc;
+  font-size: 10px;
+}
+.empty-hint {
+  text-align: center;
+  color: #c0c4cc;
+  padding: 40px;
+  font-size: 13px;
+}
 </style>

@@ -64,7 +64,7 @@
           </el-form>
 
           <div class="detail-actions">
-            <el-button type="primary" @click="handleSave" :disabled="!form.categoryName">
+            <el-button type="primary" :disabled="!form.categoryName" @click="handleSave">
               {{ isNewNode ? '创建' : '保存' }}
             </el-button>
             <el-button v-if="isNewNode" @click="handleCancelNew">取消</el-button>
@@ -99,12 +99,7 @@
 import { ref, reactive, onMounted, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { ElTree } from 'element-plus'
-import {
-  getCategoriesTree,
-  createCategory,
-  updateCategory,
-  deleteCategory,
-} from '@/api/category'
+import { getCategoriesTree, createCategory, updateCategory, deleteCategory } from '@/api/category'
 
 interface CategoryNode {
   categoryId: string
@@ -145,7 +140,7 @@ const form = reactive({
 async function loadTree() {
   try {
     const data = await getCategoriesTree()
-    treeData.value = Array.isArray(data) ? data as CategoryNode[] : []
+    treeData.value = Array.isArray(data) ? (data as CategoryNode[]) : []
   } catch (e: unknown) {
     const err = e instanceof Error ? e.message : String(e)
     ElMessage.error(err)
@@ -248,7 +243,7 @@ async function handleSave() {
       await updateCategory(form.categoryId, payload)
       ElMessage.success('分类已更新')
     } else {
-      const result = await createCategory(payload) as Record<string, unknown>
+      const result = (await createCategory(payload)) as Record<string, unknown>
       ElMessage.success('分类已创建')
       if (result?.categoryId) {
         selectedId.value = String(result.categoryId ?? '')

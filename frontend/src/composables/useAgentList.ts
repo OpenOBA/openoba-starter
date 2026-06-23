@@ -6,14 +6,26 @@ import type { AgentEntry } from '@/components/AgentSidebar.vue'
 const AGENT_STORAGE_KEY = 'eros_agents'
 
 const defaultAgents: AgentEntry[] = [
-  { id: 'main-agent', agentCode: 'main-agent', agentName: 'OpenOBA Main', displayName: 'MainAgent', icon: '', description: '鎬荤 路 L4', agentType: 'main', securityClearance: 'L4', status: 'active' },
+  {
+    id: 'main-agent',
+    agentCode: 'main-agent',
+    agentName: 'OpenOBA Main',
+    displayName: 'MainAgent',
+    icon: '',
+    description: '鎬荤 路 L4',
+    agentType: 'main',
+    securityClearance: 'L4',
+    status: 'active',
+  },
 ]
 
 function loadAgentsFromLocalStorage(): AgentEntry[] {
   try {
     const raw = localStorage.getItem(AGENT_STORAGE_KEY)
     if (raw) return JSON.parse(raw)
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return [...defaultAgents]
 }
 

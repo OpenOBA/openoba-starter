@@ -1,8 +1,15 @@
 import { ref, computed } from 'vue'
 import {
-  getCustomerDetail, getContacts, getAddresses,
-  getTierPricings, getPrescriptions, getCustomerLenses, getCustomerLensSummary,
-  getMemberLevelLogs, getPointsTransactions, getCustomerOrders,
+  getCustomerDetail,
+  getContacts,
+  getAddresses,
+  getTierPricings,
+  getPrescriptions,
+  getCustomerLenses,
+  getCustomerLensSummary,
+  getMemberLevelLogs,
+  getPointsTransactions,
+  getCustomerOrders,
 } from '@/api/customer'
 
 /**
@@ -54,12 +61,36 @@ export function useCustomerDetail() {
     detail.value = await getCustomerDetail(cid)
     contacts.value = await getContacts(cid)
     addresses.value = await getAddresses(cid)
-    try { tierPricings.value = await getTierPricings(cid) } catch { tierPricings.value = [] }
-    try { prescriptions.value = await getPrescriptions(cid) } catch { prescriptions.value = [] }
-    try { customerLenses.value = await getCustomerLenses(cid) } catch { customerLenses.value = [] }
-    try { lensSummary.value = await getCustomerLensSummary(cid) } catch { lensSummary.value = null }
-    try { memberLevelLogs.value = await getMemberLevelLogs(cid) } catch { memberLevelLogs.value = [] }
-    try { pointsTransactions.value = await getPointsTransactions(cid) } catch { pointsTransactions.value = [] }
+    try {
+      tierPricings.value = await getTierPricings(cid)
+    } catch {
+      tierPricings.value = []
+    }
+    try {
+      prescriptions.value = await getPrescriptions(cid)
+    } catch {
+      prescriptions.value = []
+    }
+    try {
+      customerLenses.value = await getCustomerLenses(cid)
+    } catch {
+      customerLenses.value = []
+    }
+    try {
+      lensSummary.value = await getCustomerLensSummary(cid)
+    } catch {
+      lensSummary.value = null
+    }
+    try {
+      memberLevelLogs.value = await getMemberLevelLogs(cid)
+    } catch {
+      memberLevelLogs.value = []
+    }
+    try {
+      pointsTransactions.value = await getPointsTransactions(cid)
+    } catch {
+      pointsTransactions.value = []
+    }
     loadCustomerOrders(1)
   }
 
@@ -67,18 +98,34 @@ export function useCustomerDetail() {
     ordersLoading.value = true
     try {
       const res = await getCustomerOrders(detail.value?.customerId as string, page, 10)
-      customerOrders.value = (res as Record<string, unknown>).items as Record<string, unknown>[] || []
+      customerOrders.value = ((res as Record<string, unknown>).items as Record<string, unknown>[]) || []
       orderTotal.value = Number((res as Record<string, unknown>).total ?? 0)
       orderPage.value = page
-    } catch { customerOrders.value = [] }
-    finally { ordersLoading.value = false }
+    } catch {
+      customerOrders.value = []
+    } finally {
+      ordersLoading.value = false
+    }
   }
 
   return {
-    detail, contacts, addresses, tierPricings, prescriptions, customerLenses, lensSummary,
-    customerOrders, orderTotal, orderPage, ordersLoading,
-    memberLevelLogs, pointsTransactions, activeTab,
-    upgradeProgress, nextLevelInfo,
-    openDetail, loadCustomerOrders,
+    detail,
+    contacts,
+    addresses,
+    tierPricings,
+    prescriptions,
+    customerLenses,
+    lensSummary,
+    customerOrders,
+    orderTotal,
+    orderPage,
+    ordersLoading,
+    memberLevelLogs,
+    pointsTransactions,
+    activeTab,
+    upgradeProgress,
+    nextLevelInfo,
+    openDetail,
+    loadCustomerOrders,
   }
 }

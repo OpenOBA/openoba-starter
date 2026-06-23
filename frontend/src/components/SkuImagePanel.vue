@@ -8,12 +8,26 @@
 <template>
   <div class="tab-content">
     <div class="toolbar">
-      <el-select v-model="imageSearch.skuId" placeholder="选择 SKU" clearable filterable style="width: 280px" @change="loadSkuImages" :loading="skuSelectLoading" :disabled="skuSelectLoading">
-        <el-option v-for="s in skuListForSelect" :key="s.skuId" :label="`${s.skuCode} - ${s.skuName || '-'}`" :value="s.skuId" />
+      <el-select
+        v-model="imageSearch.skuId"
+        placeholder="选择 SKU"
+        clearable
+        filterable
+        style="width: 280px"
+        :loading="skuSelectLoading"
+        :disabled="skuSelectLoading"
+        @change="loadSkuImages"
+      >
+        <el-option
+          v-for="s in skuListForSelect"
+          :key="s.skuId"
+          :label="`${s.skuCode} - ${s.skuName || '-'}`"
+          :value="s.skuId"
+        />
       </el-select>
       <el-button type="primary" @click="loadSkuImages">刷新</el-button>
-      <el-button type="success" @click="openImageDialog()" :disabled="!imageSearch.skuId">+ 新增</el-button>
-      <el-button type="warning" @click="openBatchDialog()" :disabled="!imageSearch.skuId">批量上传</el-button>
+      <el-button type="success" :disabled="!imageSearch.skuId" @click="openImageDialog()">+ 新增</el-button>
+      <el-button type="warning" :disabled="!imageSearch.skuId" @click="openBatchDialog()">批量上传</el-button>
     </div>
 
     <div class="image-type-tabs">
@@ -28,7 +42,7 @@
       </el-radio-group>
     </div>
 
-    <el-table :data="sortedImageList" v-loading="imageLoading" stripe row-key="imageId">
+    <el-table v-loading="imageLoading" :data="sortedImageList" stripe row-key="imageId">
       <el-table-column label="" width="40">
         <template #default>
           <el-icon class="drag-handle" style="cursor: grab; color: #909399"><Rank /></el-icon>
@@ -36,7 +50,12 @@
       </el-table-column>
       <el-table-column label="预览" width="100">
         <template #default="{ row }">
-          <el-image :src="row.imageUrl" fit="cover" style="width: 60px; height: 60px; border-radius: 4px; cursor: pointer" @click="previewImage(row.imageUrl)" />
+          <el-image
+            :src="row.imageUrl"
+            fit="cover"
+            style="width: 60px; height: 60px; border-radius: 4px; cursor: pointer"
+            @click="previewImage(row.imageUrl)"
+          />
         </template>
       </el-table-column>
       <el-table-column prop="imageUrl" label="URL" min-width="200" show-overflow-tooltip />
@@ -51,13 +70,27 @@
         <template #default="{ row }"><el-tag v-if="row.isPrimary" type="danger" size="small">&nbsp;</el-tag></template>
       </el-table-column>
       <el-table-column label="状态" width="70">
-        <template #default="{ row }"><el-tag :type="row.isActive ? 'success' : 'danger'" size="small">{{ row.isActive ? '启用' : '禁用' }}</el-tag></template>
+        <template #default="{ row }"
+          ><el-tag :type="row.isActive ? 'success' : 'danger'" size="small">{{
+            row.isActive ? '启用' : '禁用'
+          }}</el-tag></template
+        >
       </el-table-column>
       <el-table-column prop="altText" label="替代文本" min-width="120" show-overflow-tooltip />
       <el-table-column label="操作" width="220" fixed="right">
         <template #default="{ row, $index }">
-          <el-button link type="info" size="small" @click="moveImage($index, -1)" :disabled="$index === 0" title="上移">↑</el-button>
-          <el-button link type="info" size="small" @click="moveImage($index, 1)" :disabled="$index === sortedImageList.length - 1" title="下移">↓</el-button>
+          <el-button link type="info" size="small" :disabled="$index === 0" title="上移" @click="moveImage($index, -1)"
+            >↑</el-button
+          >
+          <el-button
+            link
+            type="info"
+            size="small"
+            :disabled="$index === sortedImageList.length - 1"
+            title="下移"
+            @click="moveImage($index, 1)"
+            >↓</el-button
+          >
           <el-button link type="primary" @click="openImageDialog(row)">编辑</el-button>
           <el-popconfirm title="确认删除？" @confirm="handleDeleteImage(row.imageId)">
             <template #reference><el-button link type="danger">删除</el-button></template>
@@ -72,12 +105,25 @@
     </div>
 
     <!-- 图片预览全屏层 -->
-    <div v-if="previewVisible" class="fullscreen-preview" @click="previewVisible=false" @wheel.prevent="onPreviewWheel">
+    <div
+      v-if="previewVisible"
+      class="fullscreen-preview"
+      @click="previewVisible = false"
+      @wheel.prevent="onPreviewWheel"
+    >
       <div class="preview-toolbar">
         <span class="preview-zoom">{{ Math.round(previewScale * 100) }}%</span>
-        <el-button circle size="small" @click.stop="previewScale=Math.min(3, previewScale+0.25)">+</el-button>
-        <el-button circle size="small" @click.stop="previewScale=Math.max(0.25, previewScale-0.25)">−</el-button>
-        <el-button circle size="small" @click.stop="previewScale=1; previewVisible=false">✕</el-button>
+        <el-button circle size="small" @click.stop="previewScale = Math.min(3, previewScale + 0.25)">+</el-button>
+        <el-button circle size="small" @click.stop="previewScale = Math.max(0.25, previewScale - 0.25)">−</el-button>
+        <el-button
+          circle
+          size="small"
+          @click.stop="
+            previewScale = 1
+            previewVisible = false
+          "
+          >✕</el-button
+        >
       </div>
       <img :src="previewSrc" :style="{ transform: `scale(${previewScale})` }" @click.stop />
     </div>
@@ -86,17 +132,38 @@
     <el-dialog v-model="batchDialogVisible" title="批量上传图片" width="640px" destroy-on-close>
       <el-tabs v-model="batchTab">
         <el-tab-pane label="URL 输入" name="url">
-          <el-alert title="每行一个图片 URL，格式：URL | 类型 | 排序 | 主图(Y/N) | 替代文本" type="info" :closable="false" style="margin-bottom: 12px" />
-          <el-input v-model="batchText" type="textarea" :rows="10" placeholder="示例：
+          <el-alert
+            title="每行一个图片 URL，格式：URL | 类型 | 排序 | 主图(Y/N) | 替代文本"
+            type="info"
+            :closable="false"
+            style="margin-bottom: 12px"
+          />
+          <el-input
+            v-model="batchText"
+            type="textarea"
+            :rows="10"
+            placeholder="示例：
 https://cdn.example.com/img1.jpg | main | 0 | Y | 马卡龙粉主图
-https://cdn.example.com/img2.jpg | gallery | 1 | N | 侧面展示" />
+https://cdn.example.com/img2.jpg | gallery | 1 | N | 侧面展示"
+          />
         </el-tab-pane>
         <el-tab-pane label="本地上传" name="local">
-          <input type="file" ref="batchFileInput" accept="image/*" multiple style="display: none" @change="onBatchFileSelect" />
+          <input
+            ref="batchFileInput"
+            type="file"
+            accept="image/*"
+            multiple
+            style="display: none"
+            @change="onBatchFileSelect"
+          />
           <div style="margin-bottom: 12px">
             <el-button @click="triggerBatchFileSelect">选择多张图片</el-button>
-            <span v-if="batchUploading" style="color: #409eff; margin-left: 12px">上传中... {{ batchUploadedCount }}/{{ batchFileList.length }}</span>
-            <span v-else-if="batchUploadedCount > 0" style="color: #67c23a; margin-left: 12px">已上传 {{ batchUploadedCount }} 张</span>
+            <span v-if="batchUploading" style="color: #409eff; margin-left: 12px"
+              >上传中... {{ batchUploadedCount }}/{{ batchFileList.length }}</span
+            >
+            <span v-else-if="batchUploadedCount > 0" style="color: #67c23a; margin-left: 12px"
+              >已上传 {{ batchUploadedCount }} 张</span
+            >
           </div>
           <div v-if="batchFileList.length > 0" class="batch-file-list">
             <div v-for="(f, i) in batchFileList" :key="i" class="batch-file-item">
@@ -111,22 +178,36 @@ https://cdn.example.com/img2.jpg | gallery | 1 | N | 侧面展示" />
       <template #footer>
         <el-button @click="batchDialogVisible = false">取消</el-button>
         <el-button v-if="batchTab === 'url'" type="primary" @click="handleBatchUpload">📤 开始上传</el-button>
-        <el-button v-if="batchTab === 'local' && batchFileList.length > 0 && !batchUploading" type="primary" @click="startBatchFileUpload">📤 开始上传 ({{ batchFileList.length }} 张)</el-button>
+        <el-button
+          v-if="batchTab === 'local' && batchFileList.length > 0 && !batchUploading"
+          type="primary"
+          @click="startBatchFileUpload"
+          >📤 开始上传 ({{ batchFileList.length }} 张)</el-button
+        >
       </template>
     </el-dialog>
 
     <!-- 图片编辑 Dialog -->
-    <el-dialog v-model="imageDialogVisible" :title="imageForm.imageId ? '编辑图片' : '新增图片'" width="560px" destroy-on-close>
+    <el-dialog
+      v-model="imageDialogVisible"
+      :title="imageForm.imageId ? '编辑图片' : '新增图片'"
+      width="560px"
+      destroy-on-close
+    >
       <el-form :model="imageForm" label-width="100px">
         <el-form-item label="上传图片">
-          <input type="file" ref="imageFileInput" accept="image/*" style="display: none" @change="onImageFileSelect" />
+          <input ref="imageFileInput" type="file" accept="image/*" style="display: none" @change="onImageFileSelect" />
           <div style="display: flex; gap: 12px; align-items: center">
             <el-button @click="triggerImageFileSelect">📁 选择图片</el-button>
             <span v-if="imageUploading" style="color: #409eff">⏳ 上传中...</span>
             <span v-else-if="imageForm.imageUrl" style="color: #67c23a">✅ 已选择</span>
           </div>
           <div v-if="imageForm.imageUrl" style="margin-top: 8px">
-            <el-image :src="imageForm.imageUrl" fit="contain" style="max-width: 200px; max-height: 150px; border-radius: 4px" />
+            <el-image
+              :src="imageForm.imageUrl"
+              fit="contain"
+              style="max-width: 200px; max-height: 150px; border-radius: 4px"
+            />
           </div>
         </el-form-item>
         <el-form-item label="图片 URL">
@@ -145,9 +226,14 @@ https://cdn.example.com/img2.jpg | gallery | 1 | N | 侧面展示" />
         <el-form-item label="排序"><el-input-number v-model="imageForm.sortOrder" :min="0" /></el-form-item>
         <el-form-item label="设为主图"><el-switch v-model="imageForm.isPrimary" /></el-form-item>
         <el-form-item label="启用"><el-switch v-model="imageForm.isActive" /></el-form-item>
-        <el-form-item label="替代文本"><el-input v-model="imageForm.altText" placeholder="SEO/无障碍描述" /></el-form-item>
+        <el-form-item label="替代文本"
+          ><el-input v-model="imageForm.altText" placeholder="SEO/无障碍描述"
+        /></el-form-item>
       </el-form>
-      <template #footer><el-button @click="imageDialogVisible = false">取消</el-button><el-button type="primary" @click="handleSaveImage">保存</el-button></template>
+      <template #footer
+        ><el-button @click="imageDialogVisible = false">取消</el-button
+        ><el-button type="primary" @click="handleSaveImage">保存</el-button></template
+      >
     </el-dialog>
   </div>
 </template>
@@ -157,8 +243,13 @@ import { ref, reactive, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Rank } from '@element-plus/icons-vue'
 import {
-  getSkuImages, createSkuImage, batchCreateSkuImages, updateSkuImage,
-  deleteSkuImage, reorderSkuImages, uploadImage,
+  getSkuImages,
+  createSkuImage,
+  batchCreateSkuImages,
+  updateSkuImage,
+  deleteSkuImage,
+  reorderSkuImages,
+  uploadImage,
 } from '@/api/product'
 
 const props = defineProps<{
@@ -166,8 +257,22 @@ const props = defineProps<{
   skuSelectLoading: boolean
 }>()
 
-const typeColorMap: Record<string, string> = { main: 'danger', gallery: 'primary', detail: 'info', lifestyle: 'success', '360view': 'warning', website_banner: 'warning' }
-const typeLabelMap: Record<string, string> = { main: '主图', gallery: '图集', detail: '详情', lifestyle: '场景', '360view': '360°', website_banner: '横幅' }
+const typeColorMap: Record<string, string> = {
+  main: 'danger',
+  gallery: 'primary',
+  detail: 'info',
+  lifestyle: 'success',
+  '360view': 'warning',
+  website_banner: 'warning',
+}
+const typeLabelMap: Record<string, string> = {
+  main: '主图',
+  gallery: '图集',
+  detail: '详情',
+  lifestyle: '场景',
+  '360view': '360°',
+  website_banner: '横幅',
+}
 
 const emit = defineEmits<{
   refresh: []
@@ -187,35 +292,80 @@ const sortedImageList = computed(() => {
 })
 
 async function loadSkuImages() {
-  if (!imageSearch.skuId) { skuImageList.value = []; return }
+  if (!imageSearch.skuId) {
+    skuImageList.value = []
+    return
+  }
   imageLoading.value = true
   try {
     const res = await getSkuImages({ skuId: imageSearch.skuId, imageType: imageSearch.imageType || undefined })
-    skuImageList.value = Array.isArray(res) ? res : (res as unknown as Record<string, unknown>)?.items as Record<string, unknown>[] || []
+    skuImageList.value = Array.isArray(res)
+      ? res
+      : ((res as unknown as Record<string, unknown>)?.items as Record<string, unknown>[]) || []
     originalOrder.value = [...skuImageList.value]
     hasReordered.value = false
-  } catch { skuImageList.value = [] }
-  finally { imageLoading.value = false }
+  } catch {
+    skuImageList.value = []
+  } finally {
+    imageLoading.value = false
+  }
 }
 
 // ===== 单张图片 Dialog =====
-interface ImageForm { imageId: string; skuId: string; imageUrl: string; imageType: string; sortOrder: number; isPrimary: boolean; isActive: boolean; altText: string; fileSize?: number; width?: number; height?: number }
+interface ImageForm {
+  imageId: string
+  skuId: string
+  imageUrl: string
+  imageType: string
+  sortOrder: number
+  isPrimary: boolean
+  isActive: boolean
+  altText: string
+  fileSize?: number
+  width?: number
+  height?: number
+}
 const imageDialogVisible = ref(false)
-const imageForm = reactive<ImageForm>({ imageId: '', skuId: '', imageUrl: '', imageType: 'gallery', sortOrder: 0, isPrimary: false, isActive: true, altText: '' })
+const imageForm = reactive<ImageForm>({
+  imageId: '',
+  skuId: '',
+  imageUrl: '',
+  imageType: 'gallery',
+  sortOrder: 0,
+  isPrimary: false,
+  isActive: true,
+  altText: '',
+})
 const imageFileInput = ref<HTMLInputElement | null>(null)
 const imageUploading = ref(false)
 
-function triggerImageFileSelect() { imageFileInput.value?.click() }
+function triggerImageFileSelect() {
+  imageFileInput.value?.click()
+}
 
 function openImageDialog(row?: Record<string, unknown>) {
   if (row) {
     Object.assign(imageForm, {
-      imageId: row.imageId as string, skuId: row.skuId as string, imageUrl: (row.imageUrl as string) || '',
-      imageType: (row.imageType as string) || 'gallery', sortOrder: (row.sortOrder as number) ?? 0,
-      isPrimary: (row.isPrimary as boolean) ?? false, isActive: (row.isActive as boolean) ?? true, altText: (row.altText as string) || '',
+      imageId: row.imageId as string,
+      skuId: row.skuId as string,
+      imageUrl: (row.imageUrl as string) || '',
+      imageType: (row.imageType as string) || 'gallery',
+      sortOrder: (row.sortOrder as number) ?? 0,
+      isPrimary: (row.isPrimary as boolean) ?? false,
+      isActive: (row.isActive as boolean) ?? true,
+      altText: (row.altText as string) || '',
     })
   } else {
-    Object.assign(imageForm, { imageId: '', skuId: imageSearch.skuId, imageUrl: '', imageType: 'gallery', sortOrder: 0, isPrimary: false, isActive: true, altText: '' })
+    Object.assign(imageForm, {
+      imageId: '',
+      skuId: imageSearch.skuId,
+      imageUrl: '',
+      imageType: 'gallery',
+      sortOrder: 0,
+      isPrimary: false,
+      isActive: true,
+      altText: '',
+    })
   }
   imageDialogVisible.value = true
 }
@@ -225,14 +375,17 @@ async function onImageFileSelect(e: Event) {
   if (!file) return
   imageUploading.value = true
   try {
-    const res = await uploadImage(file) as unknown as Record<string, unknown>
+    const res = (await uploadImage(file)) as unknown as Record<string, unknown>
     const result = (res?.data || res) as Record<string, unknown>
     imageForm.imageUrl = (result?.url as string) || ''
     if (result?.size) imageForm.fileSize = result.size as number
     if (result?.width) imageForm.width = result.width as number
     if (result?.height) imageForm.height = result.height as number
-  } catch (err: unknown) { ElMessage.error((err as Error)?.message || '上传失败') }
-  finally { imageUploading.value = false }
+  } catch (err: unknown) {
+    ElMessage.error((err as Error)?.message || '上传失败')
+  } finally {
+    imageUploading.value = false
+  }
 }
 
 async function handleSaveImage() {
@@ -259,12 +412,20 @@ async function handleSaveImage() {
     imageDialogVisible.value = false
     loadSkuImages()
     emit('refresh')
-  } catch (e: unknown) { ElMessage.error((e as Error)?.message || '保存失败') }
+  } catch (e: unknown) {
+    ElMessage.error((e as Error)?.message || '保存失败')
+  }
 }
 
 async function handleDeleteImage(id: string) {
-  try { await deleteSkuImage(id); ElMessage.success('已删除'); loadSkuImages(); emit('refresh') }
-  catch (e: unknown) { ElMessage.error((e as Error)?.message || '删除失败') }
+  try {
+    await deleteSkuImage(id)
+    ElMessage.success('已删除')
+    loadSkuImages()
+    emit('refresh')
+  } catch (e: unknown) {
+    ElMessage.error((e as Error)?.message || '删除失败')
+  }
 }
 
 // ===== 图片预览 =====
@@ -272,31 +433,45 @@ const previewSrc = ref('')
 const previewVisible = ref(false)
 const previewScale = ref(1)
 
-function previewImage(url: string) { previewSrc.value = url; previewVisible.value = true; previewScale.value = 1 }
-function onPreviewWheel(e: WheelEvent) { previewScale.value = Math.min(3, Math.max(0.25, previewScale.value - e.deltaY * 0.005)) }
+function previewImage(url: string) {
+  previewSrc.value = url
+  previewVisible.value = true
+  previewScale.value = 1
+}
+function onPreviewWheel(e: WheelEvent) {
+  previewScale.value = Math.min(3, Math.max(0.25, previewScale.value - e.deltaY * 0.005))
+}
 
 // ===== 排序 =====
 async function handleSaveOrder() {
   try {
-    const ids = sortedImageList.value.map(i => i.imageId as string)
+    const ids = sortedImageList.value.map((i) => i.imageId as string)
     await reorderSkuImages({ skuId: imageSearch.skuId, imageType: imageSearch.imageType || '', orderedIds: ids })
     ElMessage.success('排序已保存')
     hasReordered.value = false
     originalOrder.value = [...skuImageList.value]
-  } catch (e: unknown) { ElMessage.error((e as Error)?.message || '保存失败') }
+  } catch (e: unknown) {
+    ElMessage.error((e as Error)?.message || '保存失败')
+  }
 }
 
-function cancelReorder() { hasReordered.value = false; skuImageList.value = [...originalOrder.value] }
+function cancelReorder() {
+  hasReordered.value = false
+  skuImageList.value = [...originalOrder.value]
+}
 
 function moveImage(index: number, direction: number) {
   const list = [...skuImageList.value]
   const newIndex = index + direction
-  if (newIndex < 0 || newIndex >= list.length) return;
-  [list[index], list[newIndex]] = [list[newIndex], list[index]]
+  if (newIndex < 0 || newIndex >= list.length) return
+  ;[list[index], list[newIndex]] = [list[newIndex], list[index]]
   list[index].sortOrder = index
   list[newIndex].sortOrder = newIndex
   skuImageList.value = list
-  if (!hasReordered.value) { originalOrder.value = [...originalOrder.value]; hasReordered.value = true }
+  if (!hasReordered.value) {
+    originalOrder.value = [...originalOrder.value]
+    hasReordered.value = true
+  }
 }
 
 // ===== 批量上传 Dialog =====
@@ -308,16 +483,22 @@ const batchFileList = ref<{ name: string; file: File; status: string }[]>([])
 const batchUploading = ref(false)
 const batchUploadedCount = ref(0)
 
-function openBatchDialog() { batchText.value = ''; batchTab.value = 'url'; batchFileList.value = []; batchUploadedCount.value = 0; batchDialogVisible.value = true }
+function openBatchDialog() {
+  batchText.value = ''
+  batchTab.value = 'url'
+  batchFileList.value = []
+  batchUploadedCount.value = 0
+  batchDialogVisible.value = true
+}
 
 async function handleBatchUpload() {
-  const lines = batchText.value.split('\n').filter(l => l.trim())
+  const lines = batchText.value.split('\n').filter((l) => l.trim())
   if (!lines.length) return ElMessage.warning('请输入图片 URL')
   batchUploading.value = true
   batchUploadedCount.value = 0
   try {
-    const items = lines.map(line => {
-      const parts = line.split('|').map(p => p.trim())
+    const items = lines.map((line) => {
+      const parts = line.split('|').map((p) => p.trim())
       return {
         skuId: imageSearch.skuId,
         imageUrl: parts[0],
@@ -333,16 +514,21 @@ async function handleBatchUpload() {
     batchDialogVisible.value = false
     loadSkuImages()
     emit('refresh')
-  } catch (e: unknown) { ElMessage.error((e as Error)?.message || '批量上传失败') }
-  finally { batchUploading.value = false }
+  } catch (e: unknown) {
+    ElMessage.error((e as Error)?.message || '批量上传失败')
+  } finally {
+    batchUploading.value = false
+  }
 }
 
-function triggerBatchFileSelect() { batchFileInput.value?.click() }
+function triggerBatchFileSelect() {
+  batchFileInput.value?.click()
+}
 
 function onBatchFileSelect(e: Event) {
   const files = (e.target as HTMLInputElement).files
   if (!files) return
-  batchFileList.value = Array.from(files).map(f => ({ name: f.name, file: f, status: 'pending' }))
+  batchFileList.value = Array.from(files).map((f) => ({ name: f.name, file: f, status: 'pending' }))
 }
 
 async function startBatchFileUpload() {
@@ -351,7 +537,7 @@ async function startBatchFileUpload() {
   for (const item of batchFileList.value) {
     item.status = 'uploading'
     try {
-      const res = await uploadImage(item.file) as unknown as Record<string, unknown>
+      const res = (await uploadImage(item.file)) as unknown as Record<string, unknown>
       await createSkuImage({
         skuId: imageSearch.skuId,
         imageUrl: (res?.url || (res?.data as Record<string, unknown>)?.url || '') as string,
@@ -362,7 +548,9 @@ async function startBatchFileUpload() {
       })
       item.status = 'success'
       batchUploadedCount.value++
-    } catch { item.status = 'error' }
+    } catch {
+      item.status = 'error'
+    }
   }
   batchUploading.value = false
   loadSkuImages()
@@ -372,20 +560,61 @@ async function startBatchFileUpload() {
 </script>
 
 <style scoped>
-.image-type-tabs { margin-bottom: 12px; }
+.image-type-tabs {
+  margin-bottom: 12px;
+}
 .fullscreen-preview {
-  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-  background: rgba(0,0,0,0.9); z-index: 9999;
-  display: flex; align-items: center; justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
 }
-.fullscreen-preview img { max-width: 90vw; max-height: 90vh; object-fit: contain; transition: transform 0.1s; }
-.preview-toolbar {
-  position: absolute; top: 16px; right: 24px; display: flex; gap: 8px; align-items: center;
-  background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 8px;
+.fullscreen-preview img {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  transition: transform 0.1s;
 }
-.preview-zoom { color: #fff; font-size: 14px; margin-right: 8px; }
-.save-order-bar { display: flex; gap: 8px; margin-top: 12px; padding: 12px; background: #fdf6ec; border-radius: 4px; }
-.batch-file-list { max-height: 200px; overflow-y: auto; }
-.batch-file-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #f0f0f0; }
+.preview-toolbar {
+  position: absolute;
+  top: 16px;
+  right: 24px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+.preview-zoom {
+  color: #fff;
+  font-size: 14px;
+  margin-right: 8px;
+}
+.save-order-bar {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+  background: #fdf6ec;
+  border-radius: 4px;
+}
+.batch-file-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+.batch-file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
 </style>

@@ -19,35 +19,55 @@ import { describe, it, expect } from 'vitest'
 // ═══════════════════════════════════════
 
 function computeDisplayName(opts: {
-  spuId: string; colorCode: string; spuList: Record<string, unknown>[]; structureStandards: Record<string, unknown>[]
+  spuId: string
+  colorCode: string
+  spuList: Record<string, unknown>[]
+  structureStandards: Record<string, unknown>[]
   form: { skinToneEffect?: string; faceShapeEffect?: string; structureStandardCode?: string }
-  colorList: Record<string, unknown>[]; schemaConfig?: Record<string, unknown>
+  colorList: Record<string, unknown>[]
+  schemaConfig?: Record<string, unknown>
 }): string {
   const { spuId, colorCode, spuList, structureStandards, form, colorList, schemaConfig } = opts
   if (!spuId || !colorCode) return ''
-  const spu = spuList.find(s => s.spuId === spuId)
+  const spu = spuList.find((s) => s.spuId === spuId)
   if (!spu) return ''
   const struct = structureStandards.find(
-    l => l.internalCode === (form.structureStandardCode || spu.structureStandardCode)
+    (l) => l.internalCode === (form.structureStandardCode || spu.structureStandardCode),
   )
   if (!struct) return ''
-  const color = colorList.find(c => c.colorCode === colorCode)
+  const color = colorList.find((c) => c.colorCode === colorCode)
   const shapeM: Record<string, string> = (schemaConfig?.shapeLabels as Record<string, string>) || {}
   const seriesM: Record<string, string> = (schemaConfig?.seriesLabels as Record<string, string>) || {}
   const genderM: Record<string, string> = schemaConfig?.genderOptions
-    ? Object.fromEntries((schemaConfig.genderOptions as unknown as Record<string, string>[]).map((o) => [o.value, o.label]))
+    ? Object.fromEntries(
+        (schemaConfig.genderOptions as unknown as Record<string, string>[]).map((o) => [o.value, o.label]),
+      )
     : { female: '女款', male: '男款', unisex: '中性', limited: '限量' }
   const shapeName = shapeM[struct.shapeCode as string] || struct.shapeCode || ''
   const seriesName = seriesM[spu.seriesCode as string] || ''
-  const colorName = (color as Record<string, unknown>)?.colorName as string || '未知色'
+  const colorName = ((color as Record<string, unknown>)?.colorName as string) || '未知色'
   const effect = form.faceShapeEffect || form.skinToneEffect || '中性百搭'
   const genderLabel = genderM[spu.gender as string] || '中性'
   return `${effect} · ${colorName} · ${shapeName}${seriesName}系列 · ${genderLabel}`
 }
 
 const mockSpuList = [
-  { spuId: 'spu-001', spuCode: 'S5440-GEN-0001', spuName: '通用', gender: 'female', seriesCode: 'FSH', structureStandardCode: 'S5440-GEN' },
-  { spuId: 'spu-002', spuCode: 'S5248-WEL-0001', spuName: '威灵顿', gender: 'male', seriesCode: 'BUS', structureStandardCode: 'S5248-WEL' },
+  {
+    spuId: 'spu-001',
+    spuCode: 'S5440-GEN-0001',
+    spuName: '通用',
+    gender: 'female',
+    seriesCode: 'FSH',
+    structureStandardCode: 'S5440-GEN',
+  },
+  {
+    spuId: 'spu-002',
+    spuCode: 'S5248-WEL-0001',
+    spuName: '威灵顿',
+    gender: 'male',
+    seriesCode: 'BUS',
+    structureStandardCode: 'S5248-WEL',
+  },
 ]
 const mockStructures = [
   { internalCode: 'S5440-GEN', externalCode: 'S5440-GEN', shapeCode: 'WEL' },
@@ -71,10 +91,13 @@ const mockSchemaConfig = {
 
 describe('SkuDialog — 展示名预览 (displayName computed)', () => {
   const baseOpts = {
-    spuId: 'spu-001', colorCode: 'macaron_pink',
-    spuList: mockSpuList, structureStandards: mockStructures,
+    spuId: 'spu-001',
+    colorCode: 'macaron_pink',
+    spuList: mockSpuList,
+    structureStandards: mockStructures,
     form: { skinToneEffect: '黄皮肤增白', faceShapeEffect: '' },
-    colorList: mockColors, schemaConfig: mockSchemaConfig,
+    colorList: mockColors,
+    schemaConfig: mockSchemaConfig,
   }
 
   it('标准 V3.0 四段式：效果 · 色彩 · 造型系列 · 款式', () => {
@@ -103,10 +126,13 @@ describe('SkuDialog — 展示名预览 (displayName computed)', () => {
 
   it('男款+深色调+商务系列', () => {
     const name = computeDisplayName({
-      spuId: 'spu-002', colorCode: 'gunmetal',
-      spuList: mockSpuList, structureStandards: mockStructures,
+      spuId: 'spu-002',
+      colorCode: 'gunmetal',
+      spuList: mockSpuList,
+      structureStandards: mockStructures,
       form: { skinToneEffect: '中性百搭', faceShapeEffect: '' },
-      colorList: mockColors, schemaConfig: mockSchemaConfig,
+      colorList: mockColors,
+      schemaConfig: mockSchemaConfig,
     })
     expect(name).toBe('中性百搭 · 枪灰色 · 威灵顿框商务系列 · 男款')
   })
@@ -144,16 +170,12 @@ describe('SKU 编码生成', () => {
   })
 
   it('已有2个 SKU → -003', () => {
-    const code = simulateSkuCodeGeneration('S5440-GEN-0001', [
-      'S5440-GEN-0001-001', 'S5440-GEN-0001-002',
-    ])
+    const code = simulateSkuCodeGeneration('S5440-GEN-0001', ['S5440-GEN-0001-001', 'S5440-GEN-0001-002'])
     expect(code).toBe('S5440-GEN-0001-003')
   })
 
   it('不同 SPU 前缀不干扰', () => {
-    const code = simulateSkuCodeGeneration('S5440-GEN-0001', [
-      'S5248-WEL-0001-001', 'S5440-GEN-0001-001',
-    ])
+    const code = simulateSkuCodeGeneration('S5440-GEN-0001', ['S5248-WEL-0001-001', 'S5440-GEN-0001-001'])
     expect(code).toBe('S5440-GEN-0001-002')
   })
 })

@@ -94,7 +94,12 @@ export interface AuditLogItem {
 // 用户管理 API
 // ============================================
 
-export function getUsers(params: { page?: number; pageSize?: number; keyword?: string; status?: string }): Promise<{ items: UserItem[]; total: number }> {
+export function getUsers(params: {
+  page?: number
+  pageSize?: number
+  keyword?: string
+  status?: string
+}): Promise<{ items: UserItem[]; total: number }> {
   return request.get('/system/users', { params })
 }
 
@@ -142,11 +147,19 @@ export function getRolePermissions(id: string): Promise<PermissionItem[]> {
   return request.get(`/system/roles/${id}/permissions`)
 }
 
-export function createRole(data: { roleCode: string; roleName: string; description?: string; permissionIds?: string[] }) {
+export function createRole(data: {
+  roleCode: string
+  roleName: string
+  description?: string
+  permissionIds?: string[]
+}) {
   return request.post('/system/roles', data)
 }
 
-export function updateRole(id: string, data: { roleName?: string; description?: string; status?: string; permissionIds?: string[] }) {
+export function updateRole(
+  id: string,
+  data: { roleName?: string; description?: string; status?: string; permissionIds?: string[] },
+) {
   return request.put(`/system/roles/${id}`, data)
 }
 
@@ -275,10 +288,7 @@ export function saveProviderKey(data: {
   return request.post('/system/llm/config', data)
 }
 
-export function testProviderKey(data: {
-  provider: string
-  apiKey?: string
-}) {
+export function testProviderKey(data: { provider: string; apiKey?: string }) {
   return request.post('/system/llm/test', data)
 }
 

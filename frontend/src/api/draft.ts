@@ -111,17 +111,20 @@ export function getDraft(id: string): Promise<DraftItem> {
   return request.get(`/drafts/${id}`)
 }
 
-export function updateDraft(id: string, data: {
-  title?: string
-  draftType?: string
-  bodyText?: string
-  bodyJson?: Record<string, unknown>
-  blocks?: ContentBlock[]
-  attachments?: DraftAttachment[]
-  tags?: string[]
-  deliveryChannel?: string
-  localBasePath?: string
-}): Promise<DraftItem> {
+export function updateDraft(
+  id: string,
+  data: {
+    title?: string
+    draftType?: string
+    bodyText?: string
+    bodyJson?: Record<string, unknown>
+    blocks?: ContentBlock[]
+    attachments?: DraftAttachment[]
+    tags?: string[]
+    deliveryChannel?: string
+    localBasePath?: string
+  },
+): Promise<DraftItem> {
   return request.put(`/drafts/${id}`, data)
 }
 
@@ -129,11 +132,14 @@ export function updateDraftStatus(id: string, status: string): Promise<DraftItem
   return request.patch(`/drafts/${id}/status`, { status })
 }
 
-export function publishDraft(id: string, data: {
-  action: string
-  entity: string
-  targets?: Array<{ id?: string; type: string; name: string }>
-}): Promise<DraftItem> {
+export function publishDraft(
+  id: string,
+  data: {
+    action: string
+    entity: string
+    targets?: Array<{ id?: string; type: string; name: string }>
+  },
+): Promise<DraftItem> {
   return request.post(`/drafts/${id}/publish`, data)
 }
 

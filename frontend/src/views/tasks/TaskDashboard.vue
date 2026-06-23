@@ -12,23 +12,23 @@
           v-model="selectedModel"
           size="small"
           :loading="loadingModels"
-          style="width:240px"
+          style="width: 240px"
           placeholder="选择默认模型"
           @change="onModelChange"
         >
-          <el-option
-            v-for="m in availableModels"
-            :key="m.value"
-            :label="m.label"
-            :value="m.value"
-          />
+          <el-option v-for="m in availableModels" :key="m.value" :label="m.label" :value="m.value" />
         </el-select>
       </div>
     </div>
 
     <!-- 对话区 -->
     <div class="main-area">
-      <AgentSidebar :agents="agentList" @select="onAgentSelect" @create="goToAgentManagement" @update:agents="onAgentsUpdate" />
+      <AgentSidebar
+        :agents="agentList"
+        @select="onAgentSelect"
+        @create="goToAgentManagement"
+        @update:agents="onAgentsUpdate"
+      />
 
       <EraChatWelcome
         ref="eraChatWelcomeRef"
@@ -62,18 +62,32 @@
         :page-size="pageSize"
         :has-more="hasMore"
         :selected-ids="selectedIds"
-        @update:search-keyword="(val: string) => { searchKeyword = val; loadTasks() }"
-        @update:filter-status="(val: string) => { filterStatus = val; loadTasks() }"
+        @update:search-keyword="
+          (val: string) => {
+            searchKeyword = val
+            loadTasks()
+          }
+        "
+        @update:filter-status="
+          (val: string) => {
+            filterStatus = val
+            loadTasks()
+          }
+        "
         @load-tasks="loadTasks"
         @load-more="loadMore"
-        @page-change="(val: number) => { page = val; loadTasks() }"
+        @page-change="
+          (val: number) => {
+            page = val
+            loadTasks()
+          }
+        "
         @selection-change="handleSelectionChange"
         @batch-delete="batchDelete"
         @go-detail="goDetail"
       />
     </div>
   </div>
-
 </template>
 
 <script setup lang="ts">
@@ -87,14 +101,40 @@ import { useTaskDashboard } from './composables/useTaskDashboard'
 const eraChatWelcomeRef = ref<InstanceType<typeof EraChatWelcome>>()
 
 const {
-  templates, applyTemplate, removeTemplate, resetTemplates,
-  selectedModel, availableModels, loadingModels, agentList,
-  loading, creating, tasks, total, page, pageSize, filterStatus,
-  searchKeyword, displayLimit, hasMore, selectedIds, messages,
-  onModelChange, onAgentsUpdate, onAgentSelect, quickTask,
-  handleCallingSend, cancelConfirm, executeConfirm,
-  loadTasks, loadMore, handleSelectionChange, batchDelete,
-  goDetail, goToTask, goToAgentManagement,
+  templates,
+  applyTemplate,
+  removeTemplate,
+  resetTemplates,
+  selectedModel,
+  availableModels,
+  loadingModels,
+  agentList,
+  loading,
+  creating,
+  tasks,
+  total,
+  page,
+  pageSize,
+  filterStatus,
+  searchKeyword,
+  displayLimit,
+  hasMore,
+  selectedIds,
+  messages,
+  onModelChange,
+  onAgentsUpdate,
+  onAgentSelect,
+  quickTask,
+  handleCallingSend,
+  cancelConfirm,
+  executeConfirm,
+  loadTasks,
+  loadMore,
+  handleSelectionChange,
+  batchDelete,
+  goDetail,
+  goToTask,
+  goToAgentManagement,
 } = useTaskDashboard()
 
 function onTemplatesSaved(items: { icon: string; text: string; fill: string }[]) {
@@ -120,15 +160,41 @@ function handleTemplateEdit(index: number) {
 
 /* 首页 Header：标题 + 模型选择 */
 .dash-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 20px; border-bottom: 1px solid rgba(3,105,161,0.08);
-  background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(3, 105, 161, 0.08);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  flex-shrink: 0;
 }
-.dash-brand { display: flex; align-items: center; gap: 10px; }
-.dash-logo { height: 48px; width: auto; flex-shrink: 0; }
-.dash-title { margin: 0; font-size: 18px; font-weight: 700; color: #1e293b; }
-.dash-model-select { display: flex; align-items: center; gap: 8px; }
-.dash-model-label { font-size: 12px; color: #909399; font-weight: 500; }
+.dash-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.dash-logo {
+  height: 48px;
+  width: auto;
+  flex-shrink: 0;
+}
+.dash-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+}
+.dash-model-select {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dash-model-label {
+  font-size: 12px;
+  color: #909399;
+  font-weight: 500;
+}
 
 .page-header {
   height: 48px;
@@ -136,9 +202,9 @@ function handleTemplateEdit(index: number) {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(3,105,161,0.08);
+  border-bottom: 1px solid rgba(3, 105, 161, 0.08);
   flex-shrink: 0;
-  background: rgba(255,255,255,0.85);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(12px);
 }
 .page-header h2 {
@@ -195,7 +261,7 @@ function handleTemplateEdit(index: number) {
 }
 .empty-subtitle {
   font-size: 11px;
-  color: #7C8DB5;
+  color: #7c8db5;
   letter-spacing: 2px;
   margin-top: 4px;
 }
@@ -206,7 +272,7 @@ function handleTemplateEdit(index: number) {
   margin-bottom: 6px;
 }
 .empty-hint {
-  color: #7C8DB5;
+  color: #7c8db5;
   font-size: 13px;
   margin-bottom: 3px;
   line-height: 1.6;
@@ -239,19 +305,19 @@ function handleTemplateEdit(index: number) {
   padding: 14px 18px;
   border-radius: 16px;
   max-width: 85%;
-  box-shadow: 0 2px 8px rgba(15,23,42,0.04);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
 }
 .chat-msg.human {
   background: linear-gradient(135deg, #e8f4fd 0%, #dceefb 100%);
   margin-left: auto;
   border-bottom-right-radius: 6px;
-  border: 1px solid rgba(3,105,161,0.08);
+  border: 1px solid rgba(3, 105, 161, 0.08);
 }
 .chat-msg.agent {
   background: #ffffff;
   border-bottom-left-radius: 6px;
-  border: 1px solid rgba(83,74,183,0.06);
-  box-shadow: 0 2px 12px rgba(83,74,183,0.04);
+  border: 1px solid rgba(83, 74, 183, 0.06);
+  box-shadow: 0 2px 12px rgba(83, 74, 183, 0.04);
 }
 .chat-msg.system {
   background: linear-gradient(135deg, #fef7e0 0%, #fdf4d0 100%);
@@ -295,9 +361,9 @@ function handleTemplateEdit(index: number) {
 /* 常用语模板 */
 .template-bar {
   padding: 6px 16px;
-  background: rgba(255,255,255,0.6);
+  background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(8px);
-  border-top: 1px solid rgba(3,105,161,0.06);
+  border-top: 1px solid rgba(3, 105, 161, 0.06);
   display: flex;
   align-items: center;
   gap: 2px;
@@ -338,10 +404,10 @@ function handleTemplateEdit(index: number) {
 .confirm-panel {
   margin-top: 12px;
   padding: 14px 16px;
-  background: rgba(255,255,255,0.8);
-  border: 1px solid rgba(3,105,161,0.1);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(3, 105, 161, 0.1);
   border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(3,105,161,0.04);
+  box-shadow: 0 2px 12px rgba(3, 105, 161, 0.04);
 }
 .confirm-body {
   font-size: 12px;
@@ -356,9 +422,9 @@ function handleTemplateEdit(index: number) {
 }
 /* 任务列表折叠 */
 .task-collapse {
-  border-top: 1px solid rgba(3,105,161,0.06);
+  border-top: 1px solid rgba(3, 105, 161, 0.06);
   flex-shrink: 0;
-  background: rgba(255,255,255,0.7);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(8px);
   position: relative;
   z-index: 230;
@@ -406,5 +472,4 @@ function handleTemplateEdit(index: number) {
 :deep(.clickable-row) {
   cursor: pointer;
 }
-
 </style>

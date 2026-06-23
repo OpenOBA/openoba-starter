@@ -10,7 +10,7 @@
               <template #reference><el-button type="danger" :disabled="!selectedTiers.length">删除</el-button></template>
             </el-popconfirm>
           </div>
-          <el-table :data="tierList" v-loading="tierLoading" stripe @selection-change="(rows: Record<string, unknown>[]) => selectedTiers = rows" @row-dblclick="(row: Record<string, unknown>) => openTierDialog(row)" highlight-current-row>
+          <el-table v-loading="tierLoading" :data="tierList" stripe highlight-current-row @selection-change="(rows: Record<string, unknown>[]) => selectedTiers = rows" @row-dblclick="(row: Record<string, unknown>) => openTierDialog(row)">
             <el-table-column type="selection" width="45" />
             <el-table-column prop="tierCode" label="分级 Code" width="140" />
             <el-table-column prop="tierName" label="分级名称" width="120" />
@@ -30,7 +30,7 @@
               <template #reference><el-button type="danger" :disabled="!selectedWholesales.length">删除</el-button></template>
             </el-popconfirm>
           </div>
-          <el-table :data="wholesaleList" v-loading="wholesaleLoading" stripe @selection-change="(rows: Record<string, unknown>[]) => selectedWholesales = rows" @row-dblclick="(row: Record<string, unknown>) => openWholesaleDialog(row)" highlight-current-row>
+          <el-table v-loading="wholesaleLoading" :data="wholesaleList" stripe highlight-current-row @selection-change="(rows: Record<string, unknown>[]) => selectedWholesales = rows" @row-dblclick="(row: Record<string, unknown>) => openWholesaleDialog(row)">
             <el-table-column type="selection" width="45" />
             <el-table-column prop="tierCode" label="阶梯 Code" width="120" />
             <el-table-column prop="tierName" label="阶梯名称" width="120" />
@@ -49,10 +49,10 @@
             <el-select v-model="agreementFilter.customerId" placeholder="选择 B 端客户" clearable style="width: 320px" filterable @change="onAgreementCustomerChange">
               <el-option v-for="c in businessCustomerOptions" :key="c.customerId" :label="c.contactName + (c.companyName ? ' (' + c.companyName + ')' : '') + ' (' + c.customerType + ')'" :value="c.customerId" />
             </el-select>
-            <el-button type="success" @click="openAgreementDialog()" :disabled="!agreementFilter.customerId">新增协议价</el-button>
+            <el-button type="success" :disabled="!agreementFilter.customerId" @click="openAgreementDialog()">新增协议价</el-button>
           </div>
           <el-alert v-if="!agreementFilter.customerId" title="请先选择 B 端客户" type="info" :closable="false" style="margin-bottom: 16px" />
-          <el-table :data="agreementList" v-loading="agreementLoading" stripe>
+          <el-table v-loading="agreementLoading" :data="agreementList" stripe>
             <el-table-column label="模式" width="100"><template #default="{ row }"><el-tag :type="row.pricingMode === 'fixed' ? 'danger' : 'primary'" size="small">{{ row.pricingMode === 'fixed' ? '固定价' : '折扣率' }}</el-tag></template></el-table-column>
             <el-table-column label="价格/折扣" width="120"><template #default="{ row }"><span v-if="row.pricingMode === 'fixed' && row.fixedPrice">¥{{ Number(row.fixedPrice).toFixed(2) }}</span><span v-else-if="row.discountRate">{{ (row.discountRate * 10).toFixed(1) }}折</span><span v-else>-</span></template></el-table-column>
             <el-table-column label="适用 SKU" width="180"><template #default="{ row }">{{ row.productSkuId ? (skuNameMap[row.productSkuId] || row.productSkuId) : '全部 SKU' }}</template></el-table-column>
@@ -76,7 +76,7 @@
             </el-select>
             <el-button type="primary" @click="loadHistory">查询</el-button>
           </div>
-          <el-table :data="historyList" v-loading="historyLoading" stripe @row-dblclick="showHistoryDetail" highlight-current-row style="cursor: pointer">
+          <el-table v-loading="historyLoading" :data="historyList" stripe highlight-current-row style="cursor: pointer" @row-dblclick="showHistoryDetail">
             <el-table-column label="SKU" min-width="220"><template #default="{ row }"><div><strong>{{ row.skuCode || row.skuId }}</strong><span v-if="row.skuName" style="color: #909399; margin-left: 6px">{{ row.skuName }}</span><div v-if="row.skuBarcode" style="color: #999; font-size: 11px">条码: {{ row.skuBarcode }}</div></div></template></el-table-column>
             <el-table-column label="价格类型" width="120"><template #default="{ row }"><el-tag :type="({ cost: 'warning', retail: 'success', min: 'info' } as Record<string, string>)[row.priceType] || 'info'" size="small">{{ ({ cost: '成本价', retail: '统一零售价', min: '最低售价' } as Record<string, string>)[row.priceType] || row.priceType }}</el-tag></template></el-table-column>
             <el-table-column prop="oldValue" label="原值" width="100"><template #default="{ row }">{{ row.oldValue !== null ? '¥' + Number(row.oldValue).toFixed(2) : '-' }}</template></el-table-column>
@@ -93,7 +93,7 @@
           <div class="toolbar">
             <el-button type="success" @click="openPromoDialog()">新增促销</el-button>
           </div>
-          <el-table :data="promoList" v-loading="promoLoading" stripe>
+          <el-table v-loading="promoLoading" :data="promoList" stripe>
             <el-table-column prop="promotionCode" label="编码" width="120" />
             <el-table-column prop="name" label="名称" min-width="160" />
             <el-table-column label="类型" width="100"><template #default="{ row }"><el-tag size="small">{{ ({ discount: '折扣', flash_sale: '秒杀', bundle: '捆绑', coupon: '优惠券', member_exclusive: '会员专享' } as Record<string, string>)[row.type] || row.type }}</el-tag></template></el-table-column>
@@ -120,7 +120,7 @@
             <el-button type="primary" @click="loadMemberPricingRules">查询</el-button>
             <el-button type="success" @click="openMemberPricingRuleDialog()">新增规则</el-button>
           </div>
-          <el-table :data="memberPricingRules" v-loading="memberRulesLoading" stripe @row-dblclick="(row: Record<string, unknown>) => openMemberPricingRuleDialog(row)" highlight-current-row>
+          <el-table v-loading="memberRulesLoading" :data="memberPricingRules" stripe highlight-current-row @row-dblclick="(row: Record<string, unknown>) => openMemberPricingRuleDialog(row)">
             <el-table-column prop="memberLevel?.levelName" label="等级" width="80" />
             <el-table-column prop="skuId" label="SKU" width="200" show-overflow-tooltip />
             <el-table-column label="规则类型" width="120"><template #default="{ row }"><el-tag :type="({ discount: '', fixed_price: 'danger', extra_discount: 'success' } as Record<string, string>)[row.ruleType] || 'info'" size="small">{{ ({ discount: '折扣率', fixed_price: '固定价', extra_discount: '额外折扣' } as Record<string, string>)[row.ruleType] }}</el-tag></template></el-table-column>

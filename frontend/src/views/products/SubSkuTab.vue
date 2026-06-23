@@ -36,18 +36,40 @@
         <el-select v-model="filterCategoryId" placeholder="全部分类" clearable style="width: 200px" @change="loadList">
           <el-option v-for="cat in flatCategories" :key="cat.id" :label="cat.name" :value="cat.id" />
         </el-select>
-        <el-input v-model="searchKeyword" placeholder="搜索名称/编码" clearable style="width: 220px; margin-left: 8px" @input="onSearchInput" />
+        <el-input
+          v-model="searchKeyword"
+          placeholder="搜索名称/编码"
+          clearable
+          style="width: 220px; margin-left: 8px"
+          @input="onSearchInput"
+        />
         <el-button type="success" @click="showSkuDialog()">新增副品</el-button>
-        <el-button type="primary" :disabled="subSkuSelection.length===0" @click="batchEditSubSkus()">编辑</el-button>
-        <el-popconfirm title="确认批量下架？" @confirm="batchRemoveSubSkus" :disabled="subSkuSelection.length===0">
-          <template #reference><el-button type="danger" :disabled="subSkuSelection.length===0">下架</el-button></template>
+        <el-button type="primary" :disabled="subSkuSelection.length === 0" @click="batchEditSubSkus()">编辑</el-button>
+        <el-popconfirm title="确认批量下架？" :disabled="subSkuSelection.length === 0" @confirm="batchRemoveSubSkus">
+          <template #reference
+            ><el-button type="danger" :disabled="subSkuSelection.length === 0">下架</el-button></template
+          >
         </el-popconfirm>
-        <el-popconfirm title="确认批量删除？此操作不可恢复" @confirm="batchDeleteSubSkus" :disabled="subSkuSelection.length===0">
-          <template #reference><el-button type="danger" plain :disabled="subSkuSelection.length===0">删除</el-button></template>
+        <el-popconfirm
+          title="确认批量删除？此操作不可恢复"
+          :disabled="subSkuSelection.length === 0"
+          @confirm="batchDeleteSubSkus"
+        >
+          <template #reference
+            ><el-button type="danger" plain :disabled="subSkuSelection.length === 0">删除</el-button></template
+          >
         </el-popconfirm>
       </div>
 
-      <el-table :data="list" stripe border style="width: 100%; margin-top: 12px" v-loading="loading" @selection-change="subSkuSelection=$event" @row-dblclick="showSkuDialog">
+      <el-table
+        v-loading="loading"
+        :data="list"
+        stripe
+        border
+        style="width: 100%; margin-top: 12px"
+        @selection-change="subSkuSelection = $event"
+        @row-dblclick="showSkuDialog"
+      >
         <el-table-column type="selection" width="50" />
         <el-table-column prop="code" label="编码" width="170" />
         <el-table-column label="品牌" width="80">
@@ -86,7 +108,15 @@
           <el-input v-model="categoryForm.name" placeholder="如 单光镜片" />
         </el-form-item>
         <el-form-item label="父级分类">
-          <el-tree-select v-model="categoryForm.parentId" :data="categoryTree" :props="{ children: 'children', label: 'name', value: 'id' }" placeholder="无（一级分类）" clearable check-strictly style="width: 100%" />
+          <el-tree-select
+            v-model="categoryForm.parentId"
+            :data="categoryTree"
+            :props="{ children: 'children', label: 'name', value: 'id' }"
+            placeholder="无（一级分类）"
+            clearable
+            check-strictly
+            style="width: 100%"
+          />
         </el-form-item>
         <el-form-item label="排序">
           <el-input-number v-model="categoryForm.sortOrder" :min="0" />
@@ -117,7 +147,14 @@
           </el-col>
           <el-col :span="8">
             <el-form-item label="分类" required>
-              <el-tree-select v-model="skuForm.categoryId" :data="categoryTree" :props="{ children: 'children', label: 'name', value: 'id' }" placeholder="选择分类" check-strictly style="width: 100%" />
+              <el-tree-select
+                v-model="skuForm.categoryId"
+                :data="categoryTree"
+                :props="{ children: 'children', label: 'name', value: 'id' }"
+                placeholder="选择分类"
+                check-strictly
+                style="width: 100%"
+              />
             </el-form-item>
           </el-col>
         </el-row>
@@ -127,22 +164,52 @@
         <el-row :gutter="16">
           <el-col :span="8">
             <el-form-item label="折射率">
-              <el-select v-model="specValues.refractive_index" placeholder="选择" style="width: 100%" @change="updateDisplayName">
-                <el-option v-for="ri in dictOptions.refractive_index" :key="ri.code" :label="ri.display_name" :value="ri.code" />
+              <el-select
+                v-model="specValues.refractive_index"
+                placeholder="选择"
+                style="width: 100%"
+                @change="updateDisplayName"
+              >
+                <el-option
+                  v-for="ri in dictOptions.refractive_index"
+                  :key="ri.code"
+                  :label="ri.display_name"
+                  :value="ri.code"
+                />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="功能">
-              <el-select v-model="specValues.lens_function" placeholder="选择" style="width: 100%" @change="updateDisplayName">
-                <el-option v-for="fn in dictOptions.lens_function" :key="fn.code" :label="fn.display_name" :value="fn.code" />
+              <el-select
+                v-model="specValues.lens_function"
+                placeholder="选择"
+                style="width: 100%"
+                @change="updateDisplayName"
+              >
+                <el-option
+                  v-for="fn in dictOptions.lens_function"
+                  :key="fn.code"
+                  :label="fn.display_name"
+                  :value="fn.code"
+                />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="膜层">
-              <el-select v-model="specValues.coating" placeholder="选择" style="width: 100%" @change="updateDisplayName">
-                <el-option v-for="ct in dictOptions.lens_coating" :key="ct.code" :label="ct.display_name" :value="ct.code" />
+              <el-select
+                v-model="specValues.coating"
+                placeholder="选择"
+                style="width: 100%"
+                @change="updateDisplayName"
+              >
+                <el-option
+                  v-for="ct in dictOptions.lens_coating"
+                  :key="ct.code"
+                  :label="ct.display_name"
+                  :value="ct.code"
+                />
               </el-select>
             </el-form-item>
           </el-col>
@@ -151,15 +218,30 @@
         <el-row :gutter="16">
           <el-col :span="8">
             <el-form-item label="材质">
-              <el-select v-model="specValues.material" placeholder="选择" style="width: 100%" @change="updateDisplayName">
-                <el-option v-for="mt in dictOptions.lens_material" :key="mt.code" :label="mt.display_name" :value="mt.code" />
+              <el-select
+                v-model="specValues.material"
+                placeholder="选择"
+                style="width: 100%"
+                @change="updateDisplayName"
+              >
+                <el-option
+                  v-for="mt in dictOptions.lens_material"
+                  :key="mt.code"
+                  :label="mt.display_name"
+                  :value="mt.code"
+                />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="结构标准">
               <el-select v-model="skuForm.standardId" placeholder="可选" clearable style="width: 100%">
-                <el-option v-for="st in structureStandards" :key="st.structureId" :label="st.externalCode + ' - ' + st.internalCode" :value="st.structureId" />
+                <el-option
+                  v-for="st in structureStandards"
+                  :key="st.structureId"
+                  :label="st.externalCode + ' - ' + st.internalCode"
+                  :value="st.structureId"
+                />
               </el-select>
             </el-form-item>
           </el-col>
@@ -190,7 +272,13 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="成本价" label-width="80px">
-              <el-input-number v-model="skuForm.costPrice" :min="0" :precision="2" :controls="false" style="width: 100%" />
+              <el-input-number
+                v-model="skuForm.costPrice"
+                :min="0"
+                :precision="2"
+                :controls="false"
+                style="width: 100%"
+              />
             </el-form-item>
           </el-col>
         </el-row>
@@ -217,7 +305,7 @@
       </el-form>
       <template #footer>
         <el-button @click="skuDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveSku" :loading="saving">保存</el-button>
+        <el-button type="primary" :loading="saving" @click="saveSku">保存</el-button>
       </template>
     </el-dialog>
   </div>
@@ -227,8 +315,15 @@
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
-  getSubSkus, createSubSku, updateSubSku, deleteSubSku,
-  getSubSkuCategories, getSubSkuCategoryTree, createSubSkuCategory, updateSubSkuCategory, deleteSubSkuCategory,
+  getSubSkus,
+  createSubSku,
+  updateSubSku,
+  deleteSubSku,
+  getSubSkuCategories,
+  getSubSkuCategoryTree,
+  createSubSkuCategory,
+  updateSubSkuCategory,
+  deleteSubSkuCategory,
   getSubSkuDicts,
 } from '@/api/product'
 import { getStructureList } from '@/api/structure'
@@ -245,7 +340,11 @@ const filterCategoryId = ref('')
 const searchKeyword = ref('')
 const structureStandards = ref<Record<string, unknown>[]>([])
 
-interface DictOptionItem { code: string; name: string; display_name: string }
+interface DictOptionItem {
+  code: string
+  name: string
+  display_name: string
+}
 const dictOptions = reactive<Record<string, DictOptionItem[]>>({
   refractive_index: [],
   lens_function: [],
@@ -257,12 +356,24 @@ const dictOptions = reactive<Record<string, DictOptionItem[]>>({
 
 // ============ 分类对话框 ============
 const categoryDialogVisible = ref(false)
-interface CategoryForm { id: string; code: string; name: string; parentId: string; sortOrder: number }
+interface CategoryForm {
+  id: string
+  code: string
+  name: string
+  parentId: string
+  sortOrder: number
+}
 const categoryForm = reactive<CategoryForm>({ id: '', code: '', name: '', parentId: '', sortOrder: 0 })
 
 const showCategoryDialog = (data?: Record<string, unknown>) => {
   if (data?.id) {
-    Object.assign(categoryForm, { id: data.id, code: data.code, name: data.name, parentId: data.parentId || '', sortOrder: data.sortOrder || 0 })
+    Object.assign(categoryForm, {
+      id: data.id,
+      code: data.code,
+      name: data.name,
+      parentId: data.parentId || '',
+      sortOrder: data.sortOrder || 0,
+    })
   } else {
     Object.assign(categoryForm, { id: '', code: '', name: '', parentId: '', sortOrder: 0 })
   }
@@ -273,16 +384,28 @@ const saveCategory = async () => {
   saving.value = true
   try {
     if (categoryForm.id) {
-      await updateSubSkuCategory(categoryForm.id, { code: categoryForm.code, name: categoryForm.name, parentId: categoryForm.parentId || undefined, sortOrder: categoryForm.sortOrder })
+      await updateSubSkuCategory(categoryForm.id, {
+        code: categoryForm.code,
+        name: categoryForm.name,
+        parentId: categoryForm.parentId || undefined,
+        sortOrder: categoryForm.sortOrder,
+      })
     } else {
-      await createSubSkuCategory({ code: categoryForm.code, name: categoryForm.name, parentId: categoryForm.parentId || undefined, sortOrder: categoryForm.sortOrder })
+      await createSubSkuCategory({
+        code: categoryForm.code,
+        name: categoryForm.name,
+        parentId: categoryForm.parentId || undefined,
+        sortOrder: categoryForm.sortOrder,
+      })
     }
     ElMessage.success('保存成功')
     categoryDialogVisible.value = false
     loadCategories()
   } catch (e: unknown) {
     ElMessage.error((e as Error)?.message || '操作失败')
-  } finally { saving.value = false }
+  } finally {
+    saving.value = false
+  }
 }
 
 const deleteCategory = async (id: string) => {
@@ -303,14 +426,44 @@ const deleteCategory = async (id: string) => {
 
 // ============ S-SKU 对话框 ============
 const skuDialogVisible = ref(false)
-interface SkuForm { id: string; code: string; name: string; brand: string; model: string; categoryId: string; specTemplateId: string; standardId: string; price: number; costPrice: number; unit: string; stock: number; sortOrder: number; isActive: boolean }
+interface SkuForm {
+  id: string
+  code: string
+  name: string
+  brand: string
+  model: string
+  categoryId: string
+  specTemplateId: string
+  standardId: string
+  price: number
+  costPrice: number
+  unit: string
+  stock: number
+  sortOrder: number
+  isActive: boolean
+}
 const skuForm = reactive<SkuForm>({
-  id: '', code: '', name: '', brand: '秒镜', model: '', categoryId: '',
-  specTemplateId: '', standardId: '',
-  price: 0, costPrice: 0, unit: '副', stock: 0,
-  sortOrder: 0, isActive: true,
+  id: '',
+  code: '',
+  name: '',
+  brand: '秒镜',
+  model: '',
+  categoryId: '',
+  specTemplateId: '',
+  standardId: '',
+  price: 0,
+  costPrice: 0,
+  unit: '副',
+  stock: 0,
+  sortOrder: 0,
+  isActive: true,
 })
-const specValues = reactive<Record<string, string>>({ refractive_index: '', lens_function: '', coating: '', material: '' })
+const specValues = reactive<Record<string, string>>({
+  refractive_index: '',
+  lens_function: '',
+  coating: '',
+  material: '',
+})
 
 const onCategoryClick = (data: Record<string, unknown>) => {
   filterCategoryId.value = (data?.id as string) || ''
@@ -321,17 +474,44 @@ const showSkuDialog = (row?: Record<string, unknown>) => {
   if (row?.id) {
     const sv = (row.specValues || {}) as Record<string, string>
     Object.assign(skuForm, {
-      id: row.id, code: row.code, name: row.name,
-      brand: (sv.brand || row.brand || '秒镜') as string, model: (sv.model || row.model || '') as string,
-      categoryId: row.categoryId, specTemplateId: row.specTemplateId || '',
+      id: row.id,
+      code: row.code,
+      name: row.name,
+      brand: (sv.brand || row.brand || '秒镜') as string,
+      model: (sv.model || row.model || '') as string,
+      categoryId: row.categoryId,
+      specTemplateId: row.specTemplateId || '',
       standardId: row.standardId || '',
-      price: Number(row.price) || 0, costPrice: Number(row.costPrice) || 0,
-      unit: row.unit || '副', stock: row.stock || 0,
-      sortOrder: row.sortOrder || 0, isActive: row.isActive !== false,
+      price: Number(row.price) || 0,
+      costPrice: Number(row.costPrice) || 0,
+      unit: row.unit || '副',
+      stock: row.stock || 0,
+      sortOrder: row.sortOrder || 0,
+      isActive: row.isActive !== false,
     })
-    Object.assign(specValues, { refractive_index: sv.refractive_index || '', lens_function: sv.lens_function || '', coating: sv.coating || '', material: sv.material || '' })
+    Object.assign(specValues, {
+      refractive_index: sv.refractive_index || '',
+      lens_function: sv.lens_function || '',
+      coating: sv.coating || '',
+      material: sv.material || '',
+    })
   } else {
-    Object.assign(skuForm, { id: '', code: '', name: '', brand: '秒镜', model: '', categoryId: '', specTemplateId: '', standardId: '', price: 0, costPrice: 0, unit: '副', stock: 0, sortOrder: 0, isActive: true })
+    Object.assign(skuForm, {
+      id: '',
+      code: '',
+      name: '',
+      brand: '秒镜',
+      model: '',
+      categoryId: '',
+      specTemplateId: '',
+      standardId: '',
+      price: 0,
+      costPrice: 0,
+      unit: '副',
+      stock: 0,
+      sortOrder: 0,
+      isActive: true,
+    })
     Object.assign(specValues, { refractive_index: '', lens_function: '', coating: '', material: '' })
   }
   skuDialogVisible.value = true
@@ -339,9 +519,9 @@ const showSkuDialog = (row?: Record<string, unknown>) => {
 
 const updateDisplayName = () => {
   const brand = skuForm.brand || '秒镜'
-  const fn = dictOptions.lens_function.find(d => d.code === specValues.lens_function)
-  const ct = dictOptions.lens_coating.find(d => d.code === specValues.coating)
-  const ri = dictOptions.refractive_index.find(d => d.code === specValues.refractive_index)
+  const fn = dictOptions.lens_function.find((d) => d.code === specValues.lens_function)
+  const ct = dictOptions.lens_coating.find((d) => d.code === specValues.coating)
+  const ri = dictOptions.refractive_index.find((d) => d.code === specValues.refractive_index)
   const parts = [brand]
   if (fn) parts.push(fn.display_name)
   if (ct) parts.push(ct.display_name)
@@ -356,7 +536,11 @@ const getSpecLabel = (row: Record<string, unknown>, field: string): string => {
   if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
     sv = raw as Record<string, unknown>
   } else if (typeof raw === 'string') {
-    try { sv = JSON.parse(raw) } catch { sv = null }
+    try {
+      sv = JSON.parse(raw)
+    } catch {
+      sv = null
+    }
   }
   if (field === 'brand') return (sv?.brand as string) || (row.brand as string) || '秒镜'
   if (field === 'model') return (sv?.model as string) || (row.model as string) || ''
@@ -368,15 +552,20 @@ const saveSku = async () => {
   try {
     const sv = { ...specValues, brand: skuForm.brand, model: skuForm.model }
     const payload: Record<string, unknown> = {
-      code: skuForm.code, name: skuForm.name,
-      brand: skuForm.brand, model: skuForm.model,
+      code: skuForm.code,
+      name: skuForm.name,
+      brand: skuForm.brand,
+      model: skuForm.model,
       categoryId: skuForm.categoryId,
       specTemplateId: skuForm.specTemplateId || undefined,
       specValues: sv,
       standardId: skuForm.standardId || undefined,
-      price: skuForm.price, costPrice: skuForm.costPrice,
-      unit: skuForm.unit, stock: skuForm.stock,
-      sortOrder: skuForm.sortOrder, isActive: skuForm.isActive,
+      price: skuForm.price,
+      costPrice: skuForm.costPrice,
+      unit: skuForm.unit,
+      stock: skuForm.stock,
+      sortOrder: skuForm.sortOrder,
+      isActive: skuForm.isActive,
     }
     if (skuForm.id) {
       await updateSubSku(skuForm.id, payload)
@@ -388,22 +577,42 @@ const saveSku = async () => {
     loadList()
   } catch (e: unknown) {
     ElMessage.error((e as Error)?.message || '操作失败')
-  } finally { saving.value = false }
+  } finally {
+    saving.value = false
+  }
 }
-const batchEditSubSkus = () => { if(subSkuSelection.value.length===1) showSkuDialog(subSkuSelection.value[0]); else if(subSkuSelection.value.length>1) ElMessage.warning('暂仅支持单条编辑'); };
-const batchRemoveSubSkus = async () => { try { for(const r of subSkuSelection.value) await deleteSubSku(r.id as string); ElMessage.success(subSkuSelection.value.length+' 条已下架'); subSkuSelection.value=[]; loadList(); } catch { ElMessage.error('操作失败'); } };
+const batchEditSubSkus = () => {
+  if (subSkuSelection.value.length === 1) showSkuDialog(subSkuSelection.value[0])
+  else if (subSkuSelection.value.length > 1) ElMessage.warning('暂仅支持单条编辑')
+}
+const batchRemoveSubSkus = async () => {
+  try {
+    for (const r of subSkuSelection.value) await deleteSubSku(r.id as string)
+    ElMessage.success(subSkuSelection.value.length + ' 条已下架')
+    subSkuSelection.value = []
+    loadList()
+  } catch {
+    ElMessage.error('操作失败')
+  }
+}
 
 // 下架
 
-const batchDeleteSubSkus = async () => { try { for(const r of subSkuSelection.value) await deleteSubSku(r.id as string); ElMessage.success(subSkuSelection.value.length+' 条已删除'); subSkuSelection.value=[]; loadList(); } catch { ElMessage.error('删除失败'); } };
+const batchDeleteSubSkus = async () => {
+  try {
+    for (const r of subSkuSelection.value) await deleteSubSku(r.id as string)
+    ElMessage.success(subSkuSelection.value.length + ' 条已删除')
+    subSkuSelection.value = []
+    loadList()
+  } catch {
+    ElMessage.error('删除失败')
+  }
+}
 
 // ============ 数据加载 ============
 const loadCategories = async () => {
   try {
-    const [treeRes, flatRes] = await Promise.all([
-      getSubSkuCategoryTree(),
-      getSubSkuCategories(),
-    ])
+    const [treeRes, flatRes] = await Promise.all([getSubSkuCategoryTree(), getSubSkuCategories()])
     categoryTree.value = Array.isArray(treeRes) ? treeRes : []
     flatCategories.value = Array.isArray(flatRes) ? flatRes.filter((c: Record<string, unknown>) => c.isActive) : []
   } catch (e: unknown) {
@@ -428,7 +637,9 @@ const loadList = async () => {
   } catch (e: unknown) {
     console.error('加载列表失败', e)
     list.value = []
-  } finally { loading.value = false }
+  } finally {
+    loading.value = false
+  }
 }
 
 const loadDicts = async () => {
@@ -452,7 +663,7 @@ const loadDicts = async () => {
     for (const key of dictKeys) {
       try {
         const res = await fallbackLoaders[key]()
-        dictOptions[key] = Array.isArray(res) ? res as DictOptionItem[] : []
+        dictOptions[key] = Array.isArray(res) ? (res as DictOptionItem[]) : []
       } catch (err) {
         console.error(`字典 ${key} 加载失败`, err)
         dictOptions[key] = []
@@ -464,7 +675,9 @@ const loadDicts = async () => {
 const loadStructureStandards = async () => {
   try {
     const res = await getStructureList({ page: 1, pageSize: 500 })
-    structureStandards.value = Array.isArray(res) ? res.filter((s: Record<string, unknown>) => s.status === 'active') : []
+    structureStandards.value = Array.isArray(res)
+      ? res.filter((s: Record<string, unknown>) => s.status === 'active')
+      : []
   } catch (e: unknown) {
     console.error('加载结构标准失败', e)
   }
@@ -488,24 +701,49 @@ onUnmounted(() => {
   gap: 16px;
 }
 .left-panel {
-  width: 260px; min-width: 260px;
-  border: 1px solid #e4e7ed; border-radius: 6px;
-  padding: 12px; overflow-y: auto; background: #fff;
+  width: 260px;
+  min-width: 260px;
+  border: 1px solid #e4e7ed;
+  border-radius: 6px;
+  padding: 12px;
+  overflow-y: auto;
+  background: #fff;
 }
 .panel-header {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 12px; font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-weight: 600;
 }
-.right-panel { flex: 1; overflow-y: auto; }
-.toolbar { display: flex; align-items: center; }
+.right-panel {
+  flex: 1;
+  overflow-y: auto;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+}
 .tree-node {
-  display: flex; justify-content: space-between; align-items: center;
-  width: 100%; padding-right: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding-right: 4px;
 }
-.tree-actions { opacity: 0; transition: opacity .2s; }
-.tree-node:hover .tree-actions { opacity: 1; }
+.tree-actions {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.tree-node:hover .tree-actions {
+  opacity: 1;
+}
 
 /* 价格/库存输入框拉宽 */
-:deep(.el-input-number) { width: 100% !important; }
-:deep(.el-input-number .el-input__inner) { text-align: left; }
+:deep(.el-input-number) {
+  width: 100% !important;
+}
+:deep(.el-input-number .el-input__inner) {
+  text-align: left;
+}
 </style>

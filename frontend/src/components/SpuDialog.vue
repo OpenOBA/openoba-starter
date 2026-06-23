@@ -4,13 +4,8 @@
   字段由 Schema 驱动（config.genderOptions / config.statusOptions / config.tierLabels）
 -->
 <template>
-  <el-dialog
-    v-model="internalVisible"
-    :title="isEdit ? '编辑 SPU' : '新增 SPU'"
-    width="640px"
-    @close="handleClose"
-  >
-    <el-form ref="formRef" :model="form" :rules="formRules" label-width="90px" v-loading="saving">
+  <el-dialog v-model="internalVisible" :title="isEdit ? '编辑 SPU' : '新增 SPU'" width="640px" @close="handleClose">
+    <el-form ref="formRef" v-loading="saving" :model="form" :rules="formRules" label-width="90px">
       <el-row :gutter="16">
         <el-col :span="12">
           <el-form-item label="SPU 编码">
@@ -21,7 +16,7 @@
           <el-form-item label="SPU 名称">
             <el-input v-model="form.spuName" placeholder="输入 SPU 名称">
               <template #append>
-                <el-button @click="fillSpuName" :disabled="!generatedName">✨ 建议</el-button>
+                <el-button :disabled="!generatedName" @click="fillSpuName">✨ 建议</el-button>
               </template>
             </el-input>
           </el-form-item>
@@ -34,7 +29,16 @@
             <el-select v-model="form.productTier" clearable>
               <el-option v-for="t in effectiveTierList" :key="t.tier_code" :label="t.tier_name" :value="t.tier_code">
                 <span>{{ t.tier_name }}</span>
-                <span :style="{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', background: t.icon_color as string, marginLeft: '6px' }"></span>
+                <span
+                  :style="{
+                    display: 'inline-block',
+                    width: '10px',
+                    height: '10px',
+                    borderRadius: '50%',
+                    background: t.icon_color as string,
+                    marginLeft: '6px',
+                  }"
+                ></span>
               </el-option>
             </el-select>
           </el-form-item>
@@ -51,7 +55,7 @@
       <el-row :gutter="16">
         <el-col :span="12">
           <el-form-item label="商品品类">
-            <el-select v-model="form.categoryId" placeholder="选择品类" clearable filterable style="width:100%">
+            <el-select v-model="form.categoryId" placeholder="选择品类" clearable filterable style="width: 100%">
               <el-option v-for="c in categoryList" :key="c.categoryId" :label="c.categoryName" :value="c.categoryId" />
             </el-select>
           </el-form-item>
@@ -59,7 +63,12 @@
         <el-col :span="12">
           <el-form-item label="结构标准">
             <el-select v-model="form.structureStandardCode" filterable placeholder="选择结构标准" clearable>
-          <el-option v-for="l in structureStandards" :key="l.structureId" :label="`${l.internalCode} - ${l.shapeCode}`" :value="l.internalCode" />
+              <el-option
+                v-for="l in structureStandards"
+                :key="l.structureId"
+                :label="`${l.internalCode} - ${l.shapeCode}`"
+                :value="l.internalCode"
+              />
             </el-select>
           </el-form-item>
         </el-col>
@@ -96,13 +105,15 @@
       <div v-if="generatedName" class="name-preview">
         <el-tag type="success" size="small">展示名</el-tag>
         <span class="preview-text">{{ generatedName }}</span>
-        <el-tooltip content="复制展示名"><el-button link type="primary" size="small" @click="copyName">📋 复制</el-button></el-tooltip>
+        <el-tooltip content="复制展示名"
+          ><el-button link type="primary" size="small" @click="copyName">📋 复制</el-button></el-tooltip
+        >
       </div>
     </el-form>
 
     <template #footer>
       <el-button @click="internalVisible = false">取消</el-button>
-      <el-button type="primary" @click="handleSave" :loading="saving">保存</el-button>
+      <el-button type="primary" :loading="saving" @click="handleSave">保存</el-button>
     </template>
   </el-dialog>
 </template>
@@ -150,7 +161,7 @@ const TIER_DEFAULT_MAP: Record<string, { name: string; color: string }> = {
   luxury: { name: '奢华级', color: '#1a1a1a' },
 }
 const configTierMap = computed(() => props.schemaConfig?.tierLabels || {})
-const activeTierMap = computed(() => Object.keys(configTierMap.value).length ? configTierMap.value : TIER_DEFAULT_MAP)
+const activeTierMap = computed(() => (Object.keys(configTierMap.value).length ? configTierMap.value : TIER_DEFAULT_MAP))
 const effectiveTierList = computed(() => {
   if (props.tierList.length) return props.tierList
   return Object.entries(activeTierMap.value).map(([code, info]) => ({
@@ -184,7 +195,7 @@ const formRules: FormRules = {
 // Schema 驱动的展示名（含性别）
 const generatedName = computed(() => {
   if (!form.structureStandardCode) return ''
-  const struct = props.structureStandards.find(l => l.internalCode === form.structureStandardCode)
+  const struct = props.structureStandards.find((l) => l.internalCode === form.structureStandardCode)
   if (!struct) return ''
   const extCode = struct.externalCode || '???'
   const shapeM: Record<string, string> = props.schemaConfig?.shapeLabels || {}
@@ -192,7 +203,7 @@ const generatedName = computed(() => {
   const shape = shapeM[(struct.shapeCode as string) || ''] || (struct.shapeCode as string) || ''
   const series = seriesM[form.seriesCode as string] || ''
   const genderLabel = form.gender
-    ? (props.genderOptions as unknown as Record<string, unknown>[]).find(o => o.value === form.gender)?.label || ''
+    ? (props.genderOptions as unknown as Record<string, unknown>[]).find((o) => o.value === form.gender)?.label || ''
     : ''
   const genderPart = genderLabel ? ` · ${genderLabel}` : ''
   return `秒镜 S${extCode} · ${shape}${series}系列${genderPart}`
@@ -231,24 +242,28 @@ function resetForm() {
   formRef.value?.resetFields()
 }
 
-watch(() => props.row, (row) => {
-  if (row) {
-    Object.assign(form, {
-      spuCode: row.spuCode || '',
-      spuName: row.spuName || '',
-      productTier: row.productTier || '',
-      gender: row.gender || '',
-      categoryId: row.categoryId || '',
-      structureStandardCode: row.structureStandardCode || '',
-      seriesCode: row.seriesCode || '',
-      status: row.status || 'draft',
-      sceneTags: row.sceneTags || [],
-      description: row.description || '',
-    })
-  } else {
-    resetForm()
-  }
-}, { immediate: true })
+watch(
+  () => props.row,
+  (row) => {
+    if (row) {
+      Object.assign(form, {
+        spuCode: row.spuCode || '',
+        spuName: row.spuName || '',
+        productTier: row.productTier || '',
+        gender: row.gender || '',
+        categoryId: row.categoryId || '',
+        structureStandardCode: row.structureStandardCode || '',
+        seriesCode: row.seriesCode || '',
+        status: row.status || 'draft',
+        sceneTags: row.sceneTags || [],
+        description: row.description || '',
+      })
+    } else {
+      resetForm()
+    }
+  },
+  { immediate: true },
+)
 
 async function handleSave() {
   // 先做表单校验
@@ -257,7 +272,18 @@ async function handleSave() {
 
   saving.value = true
   try {
-    const allowedFields = ['spuCode', 'spuName', 'productTier', 'gender', 'categoryId', 'structureStandardCode', 'seriesCode', 'status', 'sceneTags', 'description']
+    const allowedFields = [
+      'spuCode',
+      'spuName',
+      'productTier',
+      'gender',
+      'categoryId',
+      'structureStandardCode',
+      'seriesCode',
+      'status',
+      'sceneTags',
+      'description',
+    ]
     const payload: Record<string, unknown> = {}
     for (const key of allowedFields) {
       if (form[key] !== undefined && form[key] !== null && form[key] !== '') {
@@ -265,7 +291,8 @@ async function handleSave() {
       }
     }
     if (isEdit.value) {
-      if (!props.row) return; await updateSpu(props.row.spuId as string, payload)
+      if (!props.row) return
+      await updateSpu(props.row.spuId as string, payload)
       ElMessage.success('SPU 已更新')
     } else {
       await createSpu(payload)

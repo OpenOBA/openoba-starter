@@ -1,10 +1,5 @@
 <template>
-  <el-dialog
-    v-model="dialogVisible"
-    title="🤖 AI 智能推荐镜框"
-    width="640px"
-    :close-on-click-modal="false"
-  >
+  <el-dialog v-model="dialogVisible" title="🤖 AI 智能推荐镜框" width="640px" :close-on-click-modal="false">
     <el-form :model="form" label-width="100px">
       <el-form-item label="脸型">
         <el-select v-model="form.faceShape" placeholder="选择你的脸型" clearable style="width: 100%">
@@ -40,9 +35,7 @@
     </el-form>
 
     <div class="action-bar">
-      <el-button type="primary" @click="getRecommend" :loading="loading" size="large">
-        🤖 获取推荐
-      </el-button>
+      <el-button type="primary" :loading="loading" size="large" @click="getRecommend"> 🤖 获取推荐 </el-button>
     </div>
 
     <!-- 推荐结果 -->

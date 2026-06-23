@@ -16,8 +16,12 @@ import { describe, it, expect, beforeEach } from 'vitest'
 const store: Record<string, string> = {}
 const mockLS = {
   getItem: (k: string) => store[k] ?? null,
-  setItem: (k: string, v: string) => { store[k] = v },
-  removeItem: (k: string) => { delete store[k] },
+  setItem: (k: string, v: string) => {
+    store[k] = v
+  },
+  removeItem: (k: string) => {
+    delete store[k]
+  },
 }
 
 // ═══════════════════════════════════════
@@ -50,13 +54,13 @@ function simulateResponseInterceptor(responseData: unknown, status: number) {
   // 标准解包 { code, message, data }
   const { code, message, data } = (responseData as Record<string, unknown>) || {}
   if (code === 0) return data
-  const errMsg = Array.isArray(message) ? (message as string[]).join('; ') : ((message as string) || '请求失败')
+  const errMsg = Array.isArray(message) ? (message as string[]).join('; ') : (message as string) || '请求失败'
   return Promise.reject(new Error(errMsg))
 }
 
 describe('Request 拦截器 — Token 注入', () => {
   beforeEach(() => {
-    Object.keys(store).forEach(k => delete store[k])
+    Object.keys(store).forEach((k) => delete store[k])
     didRedirect = false
     didClearStorage = false
   })
@@ -107,14 +111,12 @@ describe('Response 拦截器 — 成功响应', () => {
 
 describe('Response 拦截器 — 错误处理', () => {
   it('业务错误 code≠0', async () => {
-    await expect(
-      simulateResponseInterceptor({ code: 1, message: '商品不存在' }, 200)
-    ).rejects.toThrow('商品不存在')
+    await expect(simulateResponseInterceptor({ code: 1, message: '商品不存在' }, 200)).rejects.toThrow('商品不存在')
   })
 
   it('验证错误 message 为数组时用分号拼接', async () => {
     await expect(
-      simulateResponseInterceptor({ code: 400, message: ['name 不能为空', 'price 必须大于0'] }, 400)
+      simulateResponseInterceptor({ code: 400, message: ['name 不能为空', 'price 必须大于0'] }, 400),
     ).rejects.toThrow('name 不能为空; price 必须大于0')
   })
 
@@ -123,25 +125,22 @@ describe('Response 拦截器 — 错误处理', () => {
     mockLS.setItem('user_info', '{"name":"test"}')
     try {
       await simulateResponseInterceptor({ code: 401 }, 401)
-    } catch { /* expected */ }
+    } catch {
+      /* expected */
+    }
     expect(didClearStorage).toBe(true)
     expect(didRedirect).toBe(true)
   })
 
   it('无 message 时兜底请求失败', async () => {
-    await expect(
-      simulateResponseInterceptor({ code: 500 }, 500)
-    ).rejects.toThrow('请求失败')
+    await expect(simulateResponseInterceptor({ code: 500 }, 500)).rejects.toThrow('请求失败')
   })
 })
 
 describe('Response 拦截器 — 边界情况', () => {
   it('data 为数组但外层包装在对象中', () => {
     // { code:0, data: [...] } → 不是数组顶层，走解包逻辑
-    const result = simulateResponseInterceptor(
-      { code: 0, message: 'ok', data: [{ id: 1 }, { id: 2 }] },
-      200,
-    )
+    const result = simulateResponseInterceptor({ code: 0, message: 'ok', data: [{ id: 1 }, { id: 2 }] }, 200)
     expect(result).toEqual([{ id: 1 }, { id: 2 }])
   })
 
@@ -152,8 +151,6 @@ describe('Response 拦截器 — 边界情况', () => {
 
   it('null response data 返回 rejected Promise', async () => {
     // 模拟后端返回 null body —— null 无 code 属性，走到 throw new Error('请求失败')
-    await expect(
-      simulateResponseInterceptor(null, 200)
-    ).rejects.toThrow('请求失败')
+    await expect(simulateResponseInterceptor(null, 200)).rejects.toThrow('请求失败')
   })
 })

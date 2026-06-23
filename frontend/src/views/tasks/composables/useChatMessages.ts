@@ -20,7 +20,7 @@ export function useChatMessages(taskId: { value: string }) {
 
   function formatFooterTime(): string {
     const now = new Date()
-    return `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
+    return `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
   }
 
   function saveReActCache() {
@@ -30,10 +30,12 @@ export function useChatMessages(taskId: { value: string }) {
         content: m.content || '',
         time: m.time || '',
         agentFooter: m.agentFooter || undefined,
-        reactTimeline: m.reactTimeline ? m.reactTimeline.slice(-40).map((item: TimelineItem) => ({
-          ...item,
-          result: item.result ? item.result.substring(0, 500) : '',
-        })) : undefined,
+        reactTimeline: m.reactTimeline
+          ? m.reactTimeline.slice(-40).map((item: TimelineItem) => ({
+              ...item,
+              result: item.result ? item.result.substring(0, 500) : '',
+            }))
+          : undefined,
       }))
       const trimmed = clean.slice(-50)
       localStorage.setItem(LS_KEY.value, JSON.stringify(trimmed))

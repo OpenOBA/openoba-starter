@@ -1,7 +1,14 @@
+<!-- eslint-disable vue/no-mutating-props -->
 <template>
   <el-form :inline="true" :model="query" class="filter-form">
     <el-form-item label="关键词">
-      <el-input v-model="query.keyword" placeholder="订单号/客户名" clearable style="width: 160px" @keyup.enter="$emit('search')" />
+      <el-input
+        v-model="query.keyword"
+        placeholder="订单号/客户名"
+        clearable
+        style="width: 160px"
+        @keyup.enter="$emit('search')"
+      />
     </el-form-item>
     <el-form-item label="状态">
       <el-select v-model="query.status" placeholder="全部" clearable style="width: 120px" @change="$emit('search')">
@@ -9,7 +16,13 @@
       </el-select>
     </el-form-item>
     <el-form-item label="支付状态">
-      <el-select v-model="query.paymentStatus" placeholder="全部" clearable style="width: 110px" @change="$emit('search')">
+      <el-select
+        v-model="query.paymentStatus"
+        placeholder="全部"
+        clearable
+        style="width: 110px"
+        @change="$emit('search')"
+      >
         <el-option v-for="d in paymentStatusItems" :key="d.code" :label="d.name" :value="d.code" />
       </el-select>
     </el-form-item>

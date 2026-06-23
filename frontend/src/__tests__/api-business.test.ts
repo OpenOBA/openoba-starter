@@ -10,13 +10,28 @@ import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest'
 
 const mockCalls: Array<{ method: string; url: string; data?: Record<string, unknown>; params?: unknown }> = []
 const mockRequest: Record<string, Mock> = {
-  get: vi.fn((url?: string, config?: Record<string, unknown>) => { mockCalls.push({ method: 'GET', url: url ?? '', params: config?.params }); return Promise.resolve({}) }),
-  post: vi.fn((url?: string, data?: unknown) => { mockCalls.push({ method: 'POST', url: url ?? '', data: data as Record<string, unknown> }); return Promise.resolve({}) }),
-  put: vi.fn((url?: string, data?: unknown) => { mockCalls.push({ method: 'PUT', url: url ?? '', data: data as Record<string, unknown> }); return Promise.resolve({}) }),
-  delete: vi.fn((url?: string) => { mockCalls.push({ method: 'DELETE', url: url ?? '' }); return Promise.resolve({}) }),
+  get: vi.fn((url?: string, config?: Record<string, unknown>) => {
+    mockCalls.push({ method: 'GET', url: url ?? '', params: config?.params })
+    return Promise.resolve({})
+  }),
+  post: vi.fn((url?: string, data?: unknown) => {
+    mockCalls.push({ method: 'POST', url: url ?? '', data: data as Record<string, unknown> })
+    return Promise.resolve({})
+  }),
+  put: vi.fn((url?: string, data?: unknown) => {
+    mockCalls.push({ method: 'PUT', url: url ?? '', data: data as Record<string, unknown> })
+    return Promise.resolve({})
+  }),
+  delete: vi.fn((url?: string) => {
+    mockCalls.push({ method: 'DELETE', url: url ?? '' })
+    return Promise.resolve({})
+  }),
 }
 
-function resetMocks() { mockCalls.length = 0; Object.values(mockRequest).forEach((f: Mock) => f.mockClear()) }
+function resetMocks() {
+  mockCalls.length = 0
+  Object.values(mockRequest).forEach((f: Mock) => f.mockClear())
+}
 
 // ═══════════════════════════════════════
 // Order API
@@ -44,7 +59,7 @@ describe('Order API', () => {
       items: [{ skuId: 'sku-001', quantity: 2 }],
     })
     const call = mockCalls[0]
-        const items = call.data!.items as Record<string, unknown>[]
+    const items = call.data!.items as Record<string, unknown>[]
     expect(items).toHaveLength(1)
     expect(items[0].quantity).toBe(2)
     expect(call.data!.customerType).toBe('retail')
@@ -138,7 +153,7 @@ describe('Customer API', () => {
 
   it('客户类型枚举校验', async () => {
     const validTypes = ['retail', 'business', 'partner']
-    validTypes.forEach(t => {
+    validTypes.forEach((t) => {
       expect(['retail', 'business', 'partner']).toContain(t)
     })
   })

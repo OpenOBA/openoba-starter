@@ -2,8 +2,24 @@ import { ref, computed } from 'vue'
 import { getOrderStats } from '@/api/order'
 
 export function useOrderStats() {
-  interface OrderStats { total: number; pending: number; paid: number; shipping: number; completed: number; cancelled: number; todaySales: string }
-  const stats = ref<OrderStats>({ total: 0, pending: 0, paid: 0, shipping: 0, completed: 0, cancelled: 0, todaySales: '0' })
+  interface OrderStats {
+    total: number
+    pending: number
+    paid: number
+    shipping: number
+    completed: number
+    cancelled: number
+    todaySales: string
+  }
+  const stats = ref<OrderStats>({
+    total: 0,
+    pending: 0,
+    paid: 0,
+    shipping: 0,
+    completed: 0,
+    cancelled: 0,
+    todaySales: '0',
+  })
 
   function ensureStats(s: OrderStats | null | undefined): OrderStats {
     return {

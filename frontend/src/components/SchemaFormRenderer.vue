@@ -3,6 +3,7 @@
   根据行业 Schema 属性定义动态渲染表单字段
   支持类型: dict → el-select, enum → el-select, computed → readonly el-input
 -->
+<!-- eslint-disable vue/no-mutating-props -->
 <template>
   <div class="schema-form-renderer">
     <el-row v-for="attr in visibleAttrs" :key="attr.key" :gutter="gutter">
@@ -19,12 +20,7 @@
             style="width: 100%"
             @change="handleChange(attr.key, $event)"
           >
-            <el-option
-              v-for="opt in getDictOptions(attr)"
-              :key="opt.value"
-              :label="opt.label"
-              :value="opt.value"
-            />
+            <el-option v-for="opt in getDictOptions(attr)" :key="opt.value" :label="opt.label" :value="opt.value" />
           </el-select>
 
           <!-- enum 类型 → el-select (固定选项) -->
@@ -37,18 +33,13 @@
             style="width: 100%"
             @change="handleChange(attr.key, $event)"
           >
-            <el-option
-              v-for="v in (attr.values || [])"
-              :key="v"
-              :label="v"
-              :value="v"
-            />
+            <el-option v-for="v in attr.values || []" :key="v" :label="v" :value="v" />
           </el-select>
 
           <!-- computed 类型 → readonly el-input (由系统计算) -->
           <el-input
             v-else-if="attr.type === 'computed'"
-            :model-value="(computedValues as Record<string,unknown>)[attr.key] || '(自动计算)'"
+            :model-value="(computedValues as Record<string, unknown>)[attr.key] || '(自动计算)'"
             readonly
             disabled
           />
@@ -70,19 +61,10 @@
           />
 
           <!-- boolean 类型 → el-switch -->
-          <el-switch
-            v-else-if="attr.type === 'boolean'"
-            v-model="model[attr.key]"
-            :disabled="disabled"
-          />
+          <el-switch v-else-if="attr.type === 'boolean'" v-model="model[attr.key]" :disabled="disabled" />
 
           <!-- fallback → el-input -->
-          <el-input
-            v-else
-            v-model="model[attr.key]"
-            :placeholder="`输入${attr.label}`"
-            :disabled="disabled"
-          />
+          <el-input v-else v-model="model[attr.key]" :placeholder="`输入${attr.label}`" :disabled="disabled" />
         </el-form-item>
       </el-col>
     </el-row>
@@ -117,7 +99,7 @@ const dictCache = ref<Record<string, { label: string; value: string }[]>>({})
 
 const visibleAttrs = computed(() => {
   const hidden = new Set(props.hiddenKeys || [])
-  return props.attributes.filter(a => !hidden.has(a.key))
+  return props.attributes.filter((a) => !hidden.has(a.key))
 })
 
 /** 获取字典选项 */
@@ -137,13 +119,16 @@ function getDictOptions(attr: SchemaAttribute): { label: string; value: string }
 async function loadDicts() {
   const dictTables = new Set(
     props.attributes
-      .filter(a => a.type === 'dict' && a.dictTable && !props.dictOverrides?.[a.key])
-      .map(a => a.dictTable!)
+      .filter((a) => a.type === 'dict' && a.dictTable && !props.dictOverrides?.[a.key])
+      .map((a) => a.dictTable!),
   )
 
   for (const table of dictTables) {
     try {
-      const res = await request.get(`/dict/${table}`) as unknown as { items?: Record<string, unknown>[]; data?: { items?: Record<string, unknown>[] } }
+      const res = (await request.get(`/dict/${table}`)) as unknown as {
+        items?: Record<string, unknown>[]
+        data?: { items?: Record<string, unknown>[] }
+      }
       const items = (res.items || res.data?.items || []) as Record<string, unknown>[]
       dictCache.value[table] = items.map((item: Record<string, unknown>) => ({
         label: (item.name || item.label || item.code || '') as string,
@@ -160,7 +145,9 @@ function handleChange(key: string, value: unknown) {
   props.onChange?.(key, value)
 }
 
-onMounted(() => { loadDicts() })
+onMounted(() => {
+  loadDicts()
+})
 </script>
 
 <style scoped>

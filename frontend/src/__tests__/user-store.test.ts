@@ -10,8 +10,12 @@ import { ref } from 'vue'
 const store: Record<string, string> = {}
 const mockLocalStorage = {
   getItem: (key: string) => store[key] ?? null,
-  setItem: (key: string, value: string) => { store[key] = value },
-  removeItem: (key: string) => { delete store[key] },
+  setItem: (key: string, value: string) => {
+    store[key] = value
+  },
+  removeItem: (key: string) => {
+    delete store[key]
+  },
 }
 
 // Pinia store 定义（等同于 src/stores/user.ts）
@@ -42,7 +46,7 @@ const useUserStore = defineStore('user', () => {
 describe('User Store', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
-    Object.keys(store).forEach(k => delete store[k])
+    Object.keys(store).forEach((k) => delete store[k])
   })
 
   it('初始状态：无token时为空字符串', () => {

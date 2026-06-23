@@ -8,7 +8,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 export interface AgentEvent {
-  type: string           // 'product:created' | 'product:updated' | 'order:created' | ...
+  type: string // 'product:created' | 'product:updated' | 'order:created' | ...
   payload: Record<string, unknown>
   timestamp: number
 }

@@ -41,7 +41,15 @@ export function useReactTimeline(
     } else if (json.type === 'tool_start') {
       const lastThought = msg.reactTimeline[msg.reactTimeline.length - 1]
       if (lastThought?.kind === 'thought') lastThought._streaming = false
-      const entry = { kind: 'tool' as const, name: json.tool || '', args: json.args, status: 'running' as const, result: '', _expanded: false, ts: Date.now() }
+      const entry = {
+        kind: 'tool' as const,
+        name: json.tool || '',
+        args: json.args,
+        status: 'running' as const,
+        result: '',
+        _expanded: false,
+        ts: Date.now(),
+      }
       msg.reactTimeline.push(entry)
       msg.statusHint = `正在执行: ${json.tool || ''}...`
       triggerMessages()

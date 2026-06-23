@@ -3,199 +3,308 @@
  *
  * Tier/Wholesale/Agreement CRUD
  */
-import { ref, reactive } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ref, reactive } from 'vue'
+import { ElMessage } from 'element-plus'
 import {
-  getTierPricings, createTierPricing, updateTierPricing, deleteTierPricing,
-  getWholesaleTiers, createWholesaleTier, updateWholesaleTier, deleteWholesaleTier,
-} from '@/api/product';
-import { getCustomerList, getTierPricings as getCustomerPricings, addTierPricing, updateTierPricing as updateCustomerPricing, deleteTierPricing as deleteCustomerPricing } from '@/api/customer';
+  getTierPricings,
+  createTierPricing,
+  updateTierPricing,
+  deleteTierPricing,
+  getWholesaleTiers,
+  createWholesaleTier,
+  updateWholesaleTier,
+  deleteWholesaleTier,
+} from '@/api/product'
+import {
+  getCustomerList,
+  getTierPricings as getCustomerPricings,
+  addTierPricing,
+  updateTierPricing as updateCustomerPricing,
+  deleteTierPricing as deleteCustomerPricing,
+} from '@/api/customer'
 
 export function usePricingTiers() {
   // ===== 分级定义 =====
-  const tierList = ref<Record<string, unknown>[]>([]);
-  const tierLoading = ref(false);
-  const tierDialogVisible = ref(false);
-  const tierForm = reactive<Record<string, unknown>>({ tierId: '', tierCode: '', tierName: '', positioning: '', sortOrder: 0 });
+  const tierList = ref<Record<string, unknown>[]>([])
+  const tierLoading = ref(false)
+  const tierDialogVisible = ref(false)
+  const tierForm = reactive<Record<string, unknown>>({
+    tierId: '',
+    tierCode: '',
+    tierName: '',
+    positioning: '',
+    sortOrder: 0,
+  })
 
   const loadTiers = async () => {
-    tierLoading.value = true;
+    tierLoading.value = true
     try {
-      const res = await getTierPricings();
-      tierList.value = res || [];
-    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
-      ElMessage.error('加载分级失败: ' + (err));
+      const res = await getTierPricings()
+      tierList.value = res || []
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e.message : String(e)
+      ElMessage.error('加载分级失败: ' + err)
     } finally {
-      tierLoading.value = false;
+      tierLoading.value = false
     }
-  };
+  }
 
   const openTierDialog = (row?: Record<string, unknown>) => {
     if (row) {
-      Object.assign(tierForm, { tierId: row.tierId, tierCode: row.tierCode, tierName: row.tierName, positioning: row.positioning || '', sortOrder: row.sortOrder });
+      Object.assign(tierForm, {
+        tierId: row.tierId,
+        tierCode: row.tierCode,
+        tierName: row.tierName,
+        positioning: row.positioning || '',
+        sortOrder: row.sortOrder,
+      })
     } else {
-      Object.assign(tierForm, { tierId: '', tierCode: '', tierName: '', positioning: '', sortOrder: tierList.value.length + 1 });
+      Object.assign(tierForm, {
+        tierId: '',
+        tierCode: '',
+        tierName: '',
+        positioning: '',
+        sortOrder: tierList.value.length + 1,
+      })
     }
-    tierDialogVisible.value = true;
-  };
+    tierDialogVisible.value = true
+  }
 
   const handleSaveTier = async () => {
     try {
       if (tierForm.tierId) {
-        await updateTierPricing(tierForm.tierId as string, { tierName: tierForm.tierName as string, positioning: tierForm.positioning as string, sortOrder: tierForm.sortOrder as number });
-        ElMessage.success('更新成功');
+        await updateTierPricing(tierForm.tierId as string, {
+          tierName: tierForm.tierName as string,
+          positioning: tierForm.positioning as string,
+          sortOrder: tierForm.sortOrder as number,
+        })
+        ElMessage.success('更新成功')
       } else {
-        tierForm.tierId = `tier-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
-        await createTierPricing({ ...tierForm as Record<string, unknown>, isActive: true });
-        ElMessage.success('创建成功');
+        tierForm.tierId = `tier-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`
+        await createTierPricing({ ...(tierForm as Record<string, unknown>), isActive: true })
+        ElMessage.success('创建成功')
       }
-      tierDialogVisible.value = false;
-      await loadTiers();
-    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
-      ElMessage.error('保存失败: ' + (err));
+      tierDialogVisible.value = false
+      await loadTiers()
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e.message : String(e)
+      ElMessage.error('保存失败: ' + err)
     }
-  };
+  }
 
   const handleDeleteTier = async (id: string) => {
     try {
-      await deleteTierPricing(id);
-      ElMessage.success('删除成功');
-      await loadTiers();
-    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
-      ElMessage.error('删除失败: ' + (err));
+      await deleteTierPricing(id)
+      ElMessage.success('删除成功')
+      await loadTiers()
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e.message : String(e)
+      ElMessage.error('删除失败: ' + err)
     }
-  };
+  }
 
   // ===== 阶梯定价 =====
-  const wholesaleList = ref<Record<string, unknown>[]>([]);
-  const wholesaleLoading = ref(false);
-  const wholesaleDialogVisible = ref(false);
-  const wholesaleForm = reactive<Record<string, unknown>>({ tierId: '', tierName: '', minQty: 1, maxQty: 99, discountRate: 1 });
+  const wholesaleList = ref<Record<string, unknown>[]>([])
+  const wholesaleLoading = ref(false)
+  const wholesaleDialogVisible = ref(false)
+  const wholesaleForm = reactive<Record<string, unknown>>({
+    tierId: '',
+    tierName: '',
+    minQty: 1,
+    maxQty: 99,
+    discountRate: 1,
+  })
 
   const loadWholesaleTiers = async () => {
-    wholesaleLoading.value = true;
+    wholesaleLoading.value = true
     try {
-      const res = await getWholesaleTiers();
-      wholesaleList.value = res || [];
-    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
-      ElMessage.error('加载阶梯定价失败: ' + (err));
+      const res = await getWholesaleTiers()
+      wholesaleList.value = res || []
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e.message : String(e)
+      ElMessage.error('加载阶梯定价失败: ' + err)
     } finally {
-      wholesaleLoading.value = false;
+      wholesaleLoading.value = false
     }
-  };
+  }
 
   const openWholesaleDialog = (row?: Record<string, unknown>) => {
     if (row) {
-      Object.assign(wholesaleForm, { tierId: row.tierId, tierName: row.tierName, minQty: row.minQty, maxQty: row.maxQty, discountRate: row.discountRate });
+      Object.assign(wholesaleForm, {
+        tierId: row.tierId,
+        tierName: row.tierName,
+        minQty: row.minQty,
+        maxQty: row.maxQty,
+        discountRate: row.discountRate,
+      })
     } else {
-      Object.assign(wholesaleForm, { tierId: '', tierName: '', minQty: 1, maxQty: 99, discountRate: 1 });
+      Object.assign(wholesaleForm, { tierId: '', tierName: '', minQty: 1, maxQty: 99, discountRate: 1 })
     }
-    wholesaleDialogVisible.value = true;
-  };
+    wholesaleDialogVisible.value = true
+  }
 
   const handleSaveWholesale = async () => {
     try {
       if (wholesaleForm.tierId) {
-        await updateWholesaleTier(wholesaleForm.tierId as string, { tierName: wholesaleForm.tierName as string, minQty: wholesaleForm.minQty as number, maxQty: wholesaleForm.maxQty as number, discountRate: wholesaleForm.discountRate as number });
-        ElMessage.success('更新成功');
+        await updateWholesaleTier(wholesaleForm.tierId as string, {
+          tierName: wholesaleForm.tierName as string,
+          minQty: wholesaleForm.minQty as number,
+          maxQty: wholesaleForm.maxQty as number,
+          discountRate: wholesaleForm.discountRate as number,
+        })
+        ElMessage.success('更新成功')
       } else {
-        await createWholesaleTier(wholesaleForm as Record<string, unknown>);
-        ElMessage.success('创建成功');
+        await createWholesaleTier(wholesaleForm as Record<string, unknown>)
+        ElMessage.success('创建成功')
       }
-      wholesaleDialogVisible.value = false;
-      await loadWholesaleTiers();
-    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
-      ElMessage.error('保存失败: ' + (err));
+      wholesaleDialogVisible.value = false
+      await loadWholesaleTiers()
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e.message : String(e)
+      ElMessage.error('保存失败: ' + err)
     }
-  };
+  }
 
   const handleDeleteWholesale = async (id: string) => {
     try {
-      await deleteWholesaleTier(id);
-      ElMessage.success('删除成功');
-      await loadWholesaleTiers();
-    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
-      ElMessage.error('删除失败: ' + (err));
+      await deleteWholesaleTier(id)
+      ElMessage.success('删除成功')
+      await loadWholesaleTiers()
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e.message : String(e)
+      ElMessage.error('删除失败: ' + err)
     }
-  };
+  }
 
   // ===== 协议价管理 =====
-  const agreementList = ref<Record<string, unknown>[]>([]);
-  const agreementLoading = ref(false);
-  const agreementDialogVisible = ref(false);
-  const agreementForm = reactive<Record<string, unknown>>({ pricingId: '', customerId: '', customerName: '', tierId: '', fixedPrice: null, discountRate: null, priceMode: 'discount' });
-  const agreementCustomers = ref<Record<string, unknown>[]>([]);
-  const agreementSearch = reactive({ keyword: '', page: 1, pageSize: 20 });
-  const agreementSearchTotal = ref(0);
+  const agreementList = ref<Record<string, unknown>[]>([])
+  const agreementLoading = ref(false)
+  const agreementDialogVisible = ref(false)
+  const agreementForm = reactive<Record<string, unknown>>({
+    pricingId: '',
+    customerId: '',
+    customerName: '',
+    tierId: '',
+    fixedPrice: null,
+    discountRate: null,
+    priceMode: 'discount',
+  })
+  const agreementCustomers = ref<Record<string, unknown>[]>([])
+  const agreementSearch = reactive({ keyword: '', page: 1, pageSize: 20 })
+  const agreementSearchTotal = ref(0)
 
   const loadAgreements = async () => {
-    agreementLoading.value = true;
+    agreementLoading.value = true
     try {
-      const res = await getCustomerPricings();
-      agreementList.value = res || [];
-    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
-      ElMessage.error('加载协议价失败: ' + (err));
+      const res = await getCustomerPricings()
+      agreementList.value = res || []
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e.message : String(e)
+      ElMessage.error('加载协议价失败: ' + err)
     } finally {
-      agreementLoading.value = false;
+      agreementLoading.value = false
     }
-  };
+  }
 
   const openAgreementDialog = (row?: Record<string, unknown>) => {
     if (row) {
-      Object.assign(agreementForm, { pricingId: row.pricingId, customerId: row.customerId, customerName: row.customerName, tierId: row.tierId, fixedPrice: row.fixedPrice, discountRate: row.discountRate, priceMode: row.priceMode || 'discount' });
+      Object.assign(agreementForm, {
+        pricingId: row.pricingId,
+        customerId: row.customerId,
+        customerName: row.customerName,
+        tierId: row.tierId,
+        fixedPrice: row.fixedPrice,
+        discountRate: row.discountRate,
+        priceMode: row.priceMode || 'discount',
+      })
     } else {
-      Object.assign(agreementForm, { pricingId: '', customerId: '', customerName: '', tierId: '', fixedPrice: null, discountRate: null, priceMode: 'discount' });
+      Object.assign(agreementForm, {
+        pricingId: '',
+        customerId: '',
+        customerName: '',
+        tierId: '',
+        fixedPrice: null,
+        discountRate: null,
+        priceMode: 'discount',
+      })
     }
-    agreementDialogVisible.value = true;
-  };
+    agreementDialogVisible.value = true
+  }
 
   const handleSaveAgreement = async () => {
     try {
-      const payload: Record<string, unknown> = { customerId: agreementForm.customerId, tierId: agreementForm.tierId, priceMode: agreementForm.priceMode };
-      if (agreementForm.priceMode === 'fixed') payload.fixedPrice = agreementForm.fixedPrice;
-      else payload.discountRate = agreementForm.discountRate;
-      if (agreementForm.pricingId) {
-        await updateCustomerPricing(agreementForm.pricingId as string, payload);
-        ElMessage.success('更新成功');
-      } else {
-        await addTierPricing(payload);
-        ElMessage.success('创建成功');
+      const payload: Record<string, unknown> = {
+        customerId: agreementForm.customerId,
+        tierId: agreementForm.tierId,
+        priceMode: agreementForm.priceMode,
       }
-      agreementDialogVisible.value = false;
-      await loadAgreements();
-    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
-      ElMessage.error('保存失败: ' + (err));
+      if (agreementForm.priceMode === 'fixed') payload.fixedPrice = agreementForm.fixedPrice
+      else payload.discountRate = agreementForm.discountRate
+      if (agreementForm.pricingId) {
+        await updateCustomerPricing(agreementForm.pricingId as string, payload)
+        ElMessage.success('更新成功')
+      } else {
+        await addTierPricing(payload)
+        ElMessage.success('创建成功')
+      }
+      agreementDialogVisible.value = false
+      await loadAgreements()
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e.message : String(e)
+      ElMessage.error('保存失败: ' + err)
     }
-  };
+  }
 
   const handleDeleteAgreement = async (id: string) => {
     try {
-      await deleteCustomerPricing(id);
-      ElMessage.success('删除成功');
-      await loadAgreements();
-    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
-      ElMessage.error('删除失败: ' + (err));
+      await deleteCustomerPricing(id)
+      ElMessage.success('删除成功')
+      await loadAgreements()
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e.message : String(e)
+      ElMessage.error('删除失败: ' + err)
     }
-  };
+  }
 
   const searchAgreementCustomers = async () => {
     try {
-      const res = await getCustomerList(agreementSearch);
-      agreementCustomers.value = (Array.isArray(res.items) ? res.items : []) as unknown as Record<string, unknown>[];
-      agreementSearchTotal.value = res.total || 0;
-    } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e);
-      ElMessage.error('搜索客户失败: ' + (err));
+      const res = await getCustomerList(agreementSearch)
+      agreementCustomers.value = (Array.isArray(res.items) ? res.items : []) as unknown as Record<string, unknown>[]
+      agreementSearchTotal.value = res.total || 0
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e.message : String(e)
+      ElMessage.error('搜索客户失败: ' + err)
     }
-  };
+  }
 
   return {
-    tierList, tierLoading, tierDialogVisible, tierForm,
-    loadTiers, openTierDialog, handleSaveTier, handleDeleteTier,
-    wholesaleList, wholesaleLoading, wholesaleDialogVisible, wholesaleForm,
-    loadWholesaleTiers, openWholesaleDialog, handleSaveWholesale, handleDeleteWholesale,
-    agreementList, agreementLoading, agreementDialogVisible, agreementForm,
-    agreementCustomers, agreementSearch, agreementSearchTotal,
-    loadAgreements, openAgreementDialog, handleSaveAgreement, handleDeleteAgreement,
+    tierList,
+    tierLoading,
+    tierDialogVisible,
+    tierForm,
+    loadTiers,
+    openTierDialog,
+    handleSaveTier,
+    handleDeleteTier,
+    wholesaleList,
+    wholesaleLoading,
+    wholesaleDialogVisible,
+    wholesaleForm,
+    loadWholesaleTiers,
+    openWholesaleDialog,
+    handleSaveWholesale,
+    handleDeleteWholesale,
+    agreementList,
+    agreementLoading,
+    agreementDialogVisible,
+    agreementForm,
+    agreementCustomers,
+    agreementSearch,
+    agreementSearchTotal,
+    loadAgreements,
+    openAgreementDialog,
+    handleSaveAgreement,
+    handleDeleteAgreement,
     searchAgreementCustomers,
-  };
+  }
 }

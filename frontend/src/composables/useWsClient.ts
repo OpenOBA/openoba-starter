@@ -30,7 +30,7 @@ export function useWsClient(options: WsClientOptions = {}) {
     const sock = io(url, {
       path: '/eros/ws',
       auth: { token },
-      transports: ['websocket'],  // WS 优先
+      transports: ['websocket'], // WS 优先
       reconnection: options.autoReconnect ?? true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 10000,
@@ -98,7 +98,7 @@ export function useWsClient(options: WsClientOptions = {}) {
     isConnected,
     isReconnecting,
     error,
-    socket: socketRef,     // 暴露为 ref，给 useAgentChat 直接注册事件
+    socket: socketRef, // 暴露为 ref，给 useAgentChat 直接注册事件
     connect,
     send,
     on,

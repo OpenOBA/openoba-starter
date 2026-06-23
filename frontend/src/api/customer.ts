@@ -71,7 +71,14 @@ const cleanParams = (p: Record<string, unknown>) => {
   return cleaned
 }
 
-export const getCustomerList = (params: { page?: number; pageSize?: number; keyword?: string; customerType?: string; customerLevel?: string; status?: string }): Promise<{ items: Customer[]; total: number; page: number; pageSize: number }> =>
+export const getCustomerList = (params: {
+  page?: number
+  pageSize?: number
+  keyword?: string
+  customerType?: string
+  customerLevel?: string
+  status?: string
+}): Promise<{ items: Customer[]; total: number; page: number; pageSize: number }> =>
   request.get('/customers', { params: cleanParams(params) })
 
 export const getCustomerDetail = (id: string): Promise<Record<string, unknown>> =>
@@ -83,47 +90,40 @@ export const createCustomer = (data: CreateUpdateData): Promise<Record<string, u
 export const updateCustomer = (id: string, data: CreateUpdateData): Promise<Record<string, unknown>> =>
   request.put(`/customers/${id}`, data) as Promise<Record<string, unknown>>
 
-export const deleteCustomer = (id: string) =>
-  request.delete(`/customers/${id}`)
+export const deleteCustomer = (id: string) => request.delete(`/customers/${id}`)
 
 // ===== Contacts =====
 export const getContacts = (customerId: string): Promise<Record<string, unknown>[]> =>
   request.get(`/customers/${customerId}/contacts`) as Promise<Record<string, unknown>[]>
 
-export const addContact = (data: CreateUpdateData) =>
-  request.post<Contact>('/customers/contacts', data)
+export const addContact = (data: CreateUpdateData) => request.post<Contact>('/customers/contacts', data)
 
 export const updateContact = (id: string, data: CreateUpdateData) =>
   request.put<Contact>(`/customers/contacts/${id}`, data)
 
-export const deleteContact = (id: string) =>
-  request.delete(`/customers/contacts/${id}`)
+export const deleteContact = (id: string) => request.delete(`/customers/contacts/${id}`)
 
 // ===== Addresses =====
 export const getAddresses = (customerId: string): Promise<Record<string, unknown>[]> =>
   request.get(`/customers/${customerId}/addresses`) as Promise<Record<string, unknown>[]>
 
-export const addAddress = (data: CreateUpdateData) =>
-  request.post<Address>('/customers/addresses', data)
+export const addAddress = (data: CreateUpdateData) => request.post<Address>('/customers/addresses', data)
 
 export const updateAddress = (id: string, data: CreateUpdateData) =>
   request.put<Address>(`/customers/addresses/${id}`, data)
 
-export const deleteAddress = (id: string) =>
-  request.delete(`/customers/addresses/${id}`)
+export const deleteAddress = (id: string) => request.delete(`/customers/addresses/${id}`)
 
 // ===== Tier Pricings =====
 export const getTierPricings = (customerId?: string): Promise<Record<string, unknown>[]> =>
   request.get(`/customers/${customerId}/pricings`) as Promise<Record<string, unknown>[]>
 
-export const addTierPricing = (data: CreateUpdateData) =>
-  request.post<TierPricing>('/customers/pricings', data)
+export const addTierPricing = (data: CreateUpdateData) => request.post<TierPricing>('/customers/pricings', data)
 
 export const updateTierPricing = (id: string, data: CreateUpdateData) =>
   request.put<TierPricing>(`/customers/pricings/${id}`, data)
 
-export const deleteTierPricing = (id: string) =>
-  request.delete(`/customers/pricings/${id}`)
+export const deleteTierPricing = (id: string) => request.delete(`/customers/pricings/${id}`)
 
 // ===== 处方 =====
 export const getPrescriptions = (customerId: string): Promise<Record<string, unknown>[]> =>
@@ -132,8 +132,7 @@ export const getPrescriptions = (customerId: string): Promise<Record<string, unk
 export const addPrescription = (data: CreateUpdateData) =>
   request.post<Record<string, unknown>>('/customers/prescriptions', data)
 
-export const deletePrescription = (id: string) =>
-  request.delete(`/customers/prescriptions/${id}`)
+export const deletePrescription = (id: string) => request.delete(`/customers/prescriptions/${id}`)
 
 // ===== 客户镜片 =====
 export const getCustomerLenses = (customerId: string): Promise<Record<string, unknown>[]> =>
@@ -145,8 +144,7 @@ export const getCustomerLensSummary = (customerId: string): Promise<{ lenses: Ar
 export const addCustomerLens = (data: CreateUpdateData) =>
   request.post<Record<string, unknown>>('/customers/lenses', data)
 
-export const deleteCustomerLens = (id: string) =>
-  request.delete(`/customers/lenses/${id}`)
+export const deleteCustomerLens = (id: string) => request.delete(`/customers/lenses/${id}`)
 
 // ===== 客户镜框 =====
 export const getCustomerFrames = (lensId: string): Promise<Record<string, unknown>[]> =>
@@ -155,46 +153,37 @@ export const getCustomerFrames = (lensId: string): Promise<Record<string, unknow
 export const addCustomerFrame = (data: CreateUpdateData) =>
   request.post<Record<string, unknown>>('/customers/frames', data)
 
-export const deleteCustomerFrame = (id: string) =>
-  request.delete(`/customers/frames/${id}`)
+export const deleteCustomerFrame = (id: string) => request.delete(`/customers/frames/${id}`)
 
 // ===== TASK-010: 会员管理 =====
-export const getMemberLevels = () =>
-  request.get<Record<string, unknown>[]>('/pricing/members/levels')
+export const getMemberLevels = () => request.get<Record<string, unknown>[]>('/pricing/members/levels')
 
-export const createMemberLevel = (data: Record<string, unknown>) =>
-  request.post('/pricing/members/levels', data)
+export const createMemberLevel = (data: Record<string, unknown>) => request.post('/pricing/members/levels', data)
 
 export const updateMemberLevel = (levelCode: string, data: Record<string, unknown>) =>
   request.put(`/pricing/members/levels/${levelCode}`, data)
 
-export const deleteMemberLevel = (levelCode: string) =>
-  request.delete(`/pricing/members/levels/${levelCode}`)
+export const deleteMemberLevel = (levelCode: string) => request.delete(`/pricing/members/levels/${levelCode}`)
 
 export const getMemberPricingRules = (params?: Record<string, string>) =>
   request.get<Record<string, unknown>[]>('/pricing/members/rules', { params })
 
-export const createMemberPricingRule = (data: Record<string, unknown>) =>
-  request.post('/pricing/members/rules', data)
+export const createMemberPricingRule = (data: Record<string, unknown>) => request.post('/pricing/members/rules', data)
 
 export const updateMemberPricingRule = (ruleId: string, data: Record<string, unknown>) =>
   request.put(`/pricing/members/rules/${ruleId}`, data)
 
-export const deleteMemberPricingRule = (ruleId: string) =>
-  request.delete(`/pricing/members/rules/${ruleId}`)
+export const deleteMemberPricingRule = (ruleId: string) => request.delete(`/pricing/members/rules/${ruleId}`)
 
-export const scanMemberDowngrades = () =>
-  request.post<Record<string, unknown>>('/pricing/members/downgrade-scan')
+export const scanMemberDowngrades = () => request.post<Record<string, unknown>>('/pricing/members/downgrade-scan')
 
 // ===== 会员仪表盘 =====
-export const getMemberDashboard = () =>
-  request.get<Record<string, unknown>>('/customers/member-dashboard')
+export const getMemberDashboard = () => request.get<Record<string, unknown>>('/customers/member-dashboard')
 
 export const getMemberAnalytics = (params?: Record<string, string | number>) =>
   request.get<Record<string, unknown>>('/customers/member-analytics', { params })
 
-export const scanMemberDowngradesNew = () =>
-  request.post<Record<string, unknown>>('/customers/member-downgrade-scan')
+export const scanMemberDowngradesNew = () => request.post<Record<string, unknown>>('/customers/member-downgrade-scan')
 
 // ===== P1+ 客户管理重构 =====
 export const getMemberLevelLogs = (customerId: string): Promise<Record<string, unknown>[]> =>
@@ -248,11 +237,19 @@ export interface LoginLog {
 export const getWebsiteAccount = (customerId: string): Promise<Record<string, unknown>> =>
   request.get(`/customer-auth-admin/${customerId}`) as Promise<Record<string, unknown>>
 
-export const getLoginLogs = (customerId: string, limit = 20): Promise<{ total: number; logs: Record<string, unknown>[] }> =>
-  request.get(`/customer-auth-admin/${customerId}/login-logs`, { params: { limit } }) as Promise<{ total: number; logs: Record<string, unknown>[] }>
+export const getLoginLogs = (
+  customerId: string,
+  limit = 20,
+): Promise<{ total: number; logs: Record<string, unknown>[] }> =>
+  request.get(`/customer-auth-admin/${customerId}/login-logs`, { params: { limit } }) as Promise<{
+    total: number
+    logs: Record<string, unknown>[]
+  }>
 
 export const registerWebsiteAccount = (customerId: string): Promise<{ message: string }> =>
-  request.post<{ message: string; phone: string; initialPassword: string }>(`/customer-auth-admin/${customerId}/register`)
+  request.post<{ message: string; phone: string; initialPassword: string }>(
+    `/customer-auth-admin/${customerId}/register`,
+  )
 
 export const resetPassword = (customerId: string): Promise<{ message: string }> =>
   request.post<{ message: string; newPin: string }>(`/customer-auth-admin/${customerId}/reset-password`)
@@ -262,4 +259,3 @@ export const toggleAccountStatus = (customerId: string, status: string): Promise
 
 export const sendLoginCode = (customerId: string): Promise<{ message: string }> =>
   request.post<{ message: string }>(`/customer-auth-admin/${customerId}/send-login-code`)
-

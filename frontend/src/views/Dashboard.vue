@@ -64,7 +64,7 @@
         <el-card shadow="hover" class="section-card meta-mirror-card">
           <template #header>
             <span>元镜引擎（Meta-Mirror Engine）</span>
-            <el-tag size="small" type="success" style="margin-left:8px">{{ mirrorStatus }}</el-tag>
+            <el-tag size="small" type="success" style="margin-left: 8px">{{ mirrorStatus }}</el-tag>
           </template>
           <el-descriptions :column="2" border size="small">
             <el-descriptions-item label="扫描实体">{{ mirrorStats.entities }}</el-descriptions-item>
@@ -83,7 +83,7 @@
         <el-card shadow="hover" class="section-card">
           <template #header>
             <span>ERDL 注册中心</span>
-            <el-tag size="small" type="success" style="margin-left:8px">运行中</el-tag>
+            <el-tag size="small" type="success" style="margin-left: 8px">运行中</el-tag>
           </template>
           <el-descriptions :column="2" border size="small">
             <el-descriptions-item label="Entity 定义">{{ erdlStats.entities }}</el-descriptions-item>
@@ -107,7 +107,7 @@
         <el-card shadow="hover" class="section-card">
           <template #header>
             <span>Live-ERDL · 今日热词</span>
-            <el-tag size="small" type="warning" style="margin-left:8px">实时</el-tag>
+            <el-tag size="small" type="warning" style="margin-left: 8px">实时</el-tag>
           </template>
           <div v-if="hotwords.length === 0" class="empty-hint">等待 Agent 执行中捕获热词...</div>
           <el-timeline v-else>
@@ -125,7 +125,7 @@
                 </el-tag>
                 <span class="hotword-source">{{ hw.source }}</span>
               </div>
-              <div class="hotword-mapped" v-if="hw.mappedTo">
+              <div v-if="hw.mappedTo" class="hotword-mapped">
                 已映射: <el-tag size="small" type="success">{{ hw.mappedTo }}</el-tag>
               </div>
             </el-timeline-item>
@@ -212,24 +212,64 @@ const mirrorStats = reactive({
 const mirrorStatus = ref('待重启')
 const llmStatus = ref('检测中...')
 
-const hotwords = ref<Array<{
-  word: string; time: string; trend: 'up' | 'new' | 'stable'; source: string; mappedTo?: string
-}>>([])
+const hotwords = ref<
+  Array<{
+    word: string
+    time: string
+    trend: 'up' | 'new' | 'stable'
+    source: string
+    mappedTo?: string
+  }>
+>([])
 
 async function loadStats() {
-  try { const r = await getCustomerList({ page: 1, pageSize: 1 }) as unknown as { total?: number; data?: { total?: number } }; stats.totalCustomers = r.total || r.data?.total || 0 } catch { /* ignore */ }
-  try { const r = await getOrderStats() as unknown as { data?: { pendingCount?: number; pending?: number }; pendingCount?: number; pending?: number }; const d = r.data || r; stats.pendingOrders = d.pendingCount || d.pending || 0 } catch { /* ignore */ }
-  try { const r = await getSpus({ page: 1, pageSize: 1 }) as unknown as { total?: number; data?: { total?: number } }; stats.totalProducts = r.total || r.data?.total || 0 } catch { /* ignore */ }
-  try { const r = await getAfterSalesStats() as unknown as { data?: { pending?: number }; pending?: number }; const d = r.data || r; stats.pendingAfterSales = d.pending || 0 } catch { /* ignore */ }
+  try {
+    const r = (await getCustomerList({ page: 1, pageSize: 1 })) as unknown as {
+      total?: number
+      data?: { total?: number }
+    }
+    stats.totalCustomers = r.total || r.data?.total || 0
+  } catch {
+    /* ignore */
+  }
+  try {
+    const r = (await getOrderStats()) as unknown as {
+      data?: { pendingCount?: number; pending?: number }
+      pendingCount?: number
+      pending?: number
+    }
+    const d = r.data || r
+    stats.pendingOrders = d.pendingCount || d.pending || 0
+  } catch {
+    /* ignore */
+  }
+  try {
+    const r = (await getSpus({ page: 1, pageSize: 1 })) as unknown as { total?: number; data?: { total?: number } }
+    stats.totalProducts = r.total || r.data?.total || 0
+  } catch {
+    /* ignore */
+  }
+  try {
+    const r = (await getAfterSalesStats()) as unknown as { data?: { pending?: number }; pending?: number }
+    const d = r.data || r
+    stats.pendingAfterSales = d.pending || 0
+  } catch {
+    /* ignore */
+  }
 }
 
 async function loadErosStats() {
-  try { const r = await getTaskStats(); Object.assign(erosStats, r) } catch { /* fallback */ }
+  try {
+    const r = await getTaskStats()
+    Object.assign(erosStats, r)
+  } catch {
+    /* fallback */
+  }
 }
 
 async function loadERDLStats() {
   try {
-    const data = await request.get('/erdl/stats') as Record<string, number>
+    const data = (await request.get('/erdl/stats')) as Record<string, number>
     if (data && typeof data === 'object') {
       erdlStats.entities = data.entities || 0
       erdlStats.rules = data.rules || 0
@@ -238,12 +278,14 @@ async function loadERDLStats() {
       erdlStats.syncPolicies = data.syncPolicies || 0
       erdlStats.files = data.files || 0
     }
-  } catch { /* fallback */ }
+  } catch {
+    /* fallback */
+  }
 }
 
 async function loadMirrorStats() {
   try {
-    const manifest = await request.get('/meta-mirror/manifest') as Record<string, unknown>
+    const manifest = (await request.get('/meta-mirror/manifest')) as Record<string, unknown>
     if (manifest) {
       mirrorStats.entities = (manifest.entityCount as number) || 0
       mirrorStats.apis = (manifest.apiCount as number) || 0
@@ -271,8 +313,13 @@ async function loadHotwords() {
 async function checkLLM() {
   try {
     const res = await request.get('/eros/agent-tools')
-    llmStatus.value = (res && (Array.isArray(res) || Array.isArray((res as unknown as { items?: unknown[] })?.items))) ? '已连接' : '未配置'
-  } catch { llmStatus.value = '未配置' }
+    llmStatus.value =
+      res && (Array.isArray(res) || Array.isArray((res as unknown as { items?: unknown[] })?.items))
+        ? '已连接'
+        : '未配置'
+  } catch {
+    llmStatus.value = '未配置'
+  }
 }
 
 onMounted(() => {
@@ -286,24 +333,88 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.dashboard h2 { margin: 0 0 20px; color: #303133; }
-.stats-row { margin-bottom: 20px; }
-.stat-card { text-align: center; cursor: default; }
-.stat-live { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
-.stat-live:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-.stat-value { font-size: 32px; font-weight: bold; color: #409eff; margin: 10px 0; }
-.stat-label { color: #909399; font-size: 14px; }
-.live-pending { color: #e6a23c; }
-.live-executing { color: #409eff; }
-.live-completed { color: #67c23a; }
-.live-escalated { color: #f56c6c; }
-.section-card { min-height: 220px; }
-.empty-hint { color: #909399; text-align: center; padding: 40px 0; }
-.hotword-item { display: flex; align-items: center; gap: 8px; }
-.hotword-tag { font-weight: 600; color: #303133; font-size: 15px; }
-.hotword-source { color: #909399; font-size: 12px; }
-.hotword-mapped { margin-top: 4px; font-size: 12px; color: #606266; }
-.erdl-status-bar { margin-top: 12px; display: flex; align-items: center; gap: 6px; color: #67c23a; font-size: 13px; }
-.meta-mirror-card { border-left: 3px solid #7c3aed; }
-.mirror-bar { color: #7c3aed; }
+.dashboard h2 {
+  margin: 0 0 20px;
+  color: #303133;
+}
+.stats-row {
+  margin-bottom: 20px;
+}
+.stat-card {
+  text-align: center;
+  cursor: default;
+}
+.stat-live {
+  cursor: pointer;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+.stat-live:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.stat-value {
+  font-size: 32px;
+  font-weight: bold;
+  color: #409eff;
+  margin: 10px 0;
+}
+.stat-label {
+  color: #909399;
+  font-size: 14px;
+}
+.live-pending {
+  color: #e6a23c;
+}
+.live-executing {
+  color: #409eff;
+}
+.live-completed {
+  color: #67c23a;
+}
+.live-escalated {
+  color: #f56c6c;
+}
+.section-card {
+  min-height: 220px;
+}
+.empty-hint {
+  color: #909399;
+  text-align: center;
+  padding: 40px 0;
+}
+.hotword-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hotword-tag {
+  font-weight: 600;
+  color: #303133;
+  font-size: 15px;
+}
+.hotword-source {
+  color: #909399;
+  font-size: 12px;
+}
+.hotword-mapped {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #606266;
+}
+.erdl-status-bar {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #67c23a;
+  font-size: 13px;
+}
+.meta-mirror-card {
+  border-left: 3px solid #7c3aed;
+}
+.mirror-bar {
+  color: #7c3aed;
+}
 </style>

@@ -2,12 +2,20 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
-  getSpus, deleteSpu,
-  getSkus, deleteSku,
+  getSpus,
+  deleteSpu,
+  getSkus,
+  deleteSku,
   getTierPricings,
-  getSets, deleteSet,
-  getFrameMaterials, getFrameTypes, getNosePads, getHinges, getSurfaceTreatments,
-  getSeriesList, getEffectTags,
+  getSets,
+  deleteSet,
+  getFrameMaterials,
+  getFrameTypes,
+  getNosePads,
+  getHinges,
+  getSurfaceTreatments,
+  getSeriesList,
+  getEffectTags,
 } from '@/api/product'
 import { getCategoriesFlat } from '@/api/category'
 import { getStructureList } from '@/api/structure'
@@ -43,18 +51,38 @@ export function useProducts() {
   }
 
   const schemaConfig = computed(() => schemaData.value?.config)
-  const sceneTagOptions = computed(() => schemaConfig.value?.sceneTags || ['通勤', '职场', '约会', '拍照', '运动', '旅行', '休闲', '派对'])
-  const genderOptions = computed(() => schemaConfig.value?.genderOptions || [{ value: 'female', label: '女款' }, { value: 'male', label: '男款' }, { value: 'unisex', label: '中性' }, { value: 'limited', label: '限量' }])
-  const statusOptions = computed(() => schemaConfig.value?.statusOptions || [{ value: 'on_sale', label: '在售' }, { value: 'draft', label: '草稿' }, { value: 'off_sale', label: '下架' }])
+  const sceneTagOptions = computed(
+    () => schemaConfig.value?.sceneTags || ['通勤', '职场', '约会', '拍照', '运动', '旅行', '休闲', '派对'],
+  )
+  const genderOptions = computed(
+    () =>
+      schemaConfig.value?.genderOptions || [
+        { value: 'female', label: '女款' },
+        { value: 'male', label: '男款' },
+        { value: 'unisex', label: '中性' },
+        { value: 'limited', label: '限量' },
+      ],
+  )
+  const statusOptions = computed(
+    () =>
+      schemaConfig.value?.statusOptions || [
+        { value: 'on_sale', label: '在售' },
+        { value: 'draft', label: '草稿' },
+        { value: 'off_sale', label: '下架' },
+      ],
+  )
   const tierLabelsConfig = computed(() => schemaConfig.value?.tierLabels || {})
 
-  const genderTagTypes: Record<string, string> = { female: 'danger', male: 'primary', unisex: 'info', limited: 'warning' }
+  const genderTagTypes: Record<string, string> = {
+    female: 'danger',
+    male: 'primary',
+    unisex: 'info',
+    limited: 'warning',
+  }
   const genderLabels: Record<string, string> = { female: '女款', male: '男款', unisex: '通用', limited: '限量' }
 
   const activeTierMap = computed(() =>
-    tierLabelsConfig.value && Object.keys(tierLabelsConfig.value).length
-      ? tierLabelsConfig.value
-      : TIER_MAP
+    tierLabelsConfig.value && Object.keys(tierLabelsConfig.value).length ? tierLabelsConfig.value : TIER_MAP,
   )
 
   function getTierName(code: string): string {
@@ -99,8 +127,12 @@ export function useProducts() {
   function getFaceShapeLabel(code: string): string {
     if (!code) return '-'
     const map: Record<string, string> = {
-      round: '圆脸', oval: '椭圆脸', square: '方脸',
-      diamond: '菱形脸', heart: '心形脸', oblong: '长脸',
+      round: '圆脸',
+      oval: '椭圆脸',
+      square: '方脸',
+      diamond: '菱形脸',
+      heart: '心形脸',
+      oblong: '长脸',
     }
     return map[code] || code
   }
@@ -116,7 +148,9 @@ export function useProducts() {
       const [skin, face] = await Promise.all([getEffectTags('skin_tone'), getEffectTags('face_shape')])
       skinToneEffects.value = Array.isArray(skin) ? skin : []
       faceShapeEffects.value = Array.isArray(face) ? face : []
-    } catch (e) { /* ignore */ }
+    } catch (e) {
+      /* ignore */
+    }
   }
 
   // Tiers
@@ -138,7 +172,12 @@ export function useProducts() {
   const loadTechDicts = async () => {
     try {
       const [fm, ft, np, hg, st, sl] = await Promise.all([
-        getFrameMaterials(), getFrameTypes(), getNosePads(), getHinges(), getSurfaceTreatments(), getSeriesList(),
+        getFrameMaterials(),
+        getFrameTypes(),
+        getNosePads(),
+        getHinges(),
+        getSurfaceTreatments(),
+        getSeriesList(),
       ])
       seriesList.value = sl
       frameMaterials.value = fm
@@ -157,7 +196,9 @@ export function useProducts() {
     try {
       const res = await getStructureList({ page: 1, pageSize: 500 })
       structureStandardList.value = res.items
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   // Category
@@ -207,8 +248,12 @@ export function useProducts() {
   const loadSpusAll = async () => {
     try {
       const res = await getSpus({ pageSize: 9999 })
-      spuListAll.value = Array.isArray(res) ? res : ((res as unknown) as PaginatedData<Record<string, unknown>>)?.items || []
-    } catch { /* ignore */ }
+      spuListAll.value = Array.isArray(res)
+        ? res
+        : (res as unknown as PaginatedData<Record<string, unknown>>)?.items || []
+    } catch {
+      /* ignore */
+    }
   }
 
   const openSpuDialog = (row?: Record<string, unknown>) => {
@@ -252,7 +297,9 @@ export function useProducts() {
   const loadSkus = async () => {
     skuLoading.value = true
     try {
-      const cleanSearch = Object.fromEntries(Object.entries(skuSearch).filter(([_, v]) => v !== undefined && v !== null && v !== ''))
+      const cleanSearch = Object.fromEntries(
+        Object.entries(skuSearch).filter(([_, v]) => v !== undefined && v !== null && v !== ''),
+      )
       const res = await getSkus({ page: skuPage.value, pageSize: skuPageSize.value, ...cleanSearch })
       if (Array.isArray(res)) {
         skuList.value = res
@@ -344,8 +391,12 @@ export function useProducts() {
   const loadSkusAll = async () => {
     try {
       const res = await getSkus({ pageSize: 9999 })
-      skuListForSelect.value = Array.isArray(res) ? res : ((res as unknown) as PaginatedData<Record<string, unknown>>)?.items || []
-    } catch { /* ignore */ }
+      skuListForSelect.value = Array.isArray(res)
+        ? res
+        : (res as unknown as PaginatedData<Record<string, unknown>>)?.items || []
+    } catch {
+      /* ignore */
+    }
   }
 
   // Active tab
@@ -375,34 +426,83 @@ export function useProducts() {
   watch(activeTab, (tab) => {
     const loaders = TAB_LOADERS[tab]
     if (loaders) {
-      loaders.forEach(fn => fn())
+      loaders.forEach((fn) => fn())
     }
   })
 
   return {
     // Schema & options
-    schemaData, sceneTagOptions, genderOptions, statusOptions,
-    tierList, genderTagTypes, genderLabels,
-    getTierName, getTierColor, getDictName, getFaceShapeLabel,
+    schemaData,
+    sceneTagOptions,
+    genderOptions,
+    statusOptions,
+    tierList,
+    genderTagTypes,
+    genderLabels,
+    getTierName,
+    getTierColor,
+    getDictName,
+    getFaceShapeLabel,
     // Tech dicts
-    frameMaterials, frameTypes, nosePads, hinges, surfaceTreatments,
-    seriesList, computedSeriesList, techDictsData,
-    skinEffectTags, faceEffectTags,
+    frameMaterials,
+    frameTypes,
+    nosePads,
+    hinges,
+    surfaceTreatments,
+    seriesList,
+    computedSeriesList,
+    techDictsData,
+    skinEffectTags,
+    faceEffectTags,
     // SPU
-    spuList, spuSelection, spuListAll, spuLoading, spuPage, spuPageSize, spuTotal,
-    spuSearch, spuDialogVisible, spuEditRow,
-    loadSpus, loadSpusAll, openSpuDialog, onSpuDialogSaved, batchEditSpus, batchDeleteSpus,
+    spuList,
+    spuSelection,
+    spuListAll,
+    spuLoading,
+    spuPage,
+    spuPageSize,
+    spuTotal,
+    spuSearch,
+    spuDialogVisible,
+    spuEditRow,
+    loadSpus,
+    loadSpusAll,
+    openSpuDialog,
+    onSpuDialogSaved,
+    batchEditSpus,
+    batchDeleteSpus,
     // SKU
-    skuList, skuSelection, skuLoading, skuPage, skuPageSize, skuTotal,
-    skuSearch, skuDialogVisible, skuEditRow,
-    loadSkus, openSkuDialog, onSkuDialogSaved, batchEditSkus, batchDeleteSkus,
+    skuList,
+    skuSelection,
+    skuLoading,
+    skuPage,
+    skuPageSize,
+    skuTotal,
+    skuSearch,
+    skuDialogVisible,
+    skuEditRow,
+    loadSkus,
+    openSkuDialog,
+    onSkuDialogSaved,
+    batchEditSkus,
+    batchDeleteSkus,
     // Sets
-    setSelection, setList, setLoading, setDialogVisible, setEditRow,
-    loadSets, openSetDialog, batchEditSets, batchDeleteSets,
+    setSelection,
+    setList,
+    setLoading,
+    setDialogVisible,
+    setEditRow,
+    loadSets,
+    openSetDialog,
+    batchEditSets,
+    batchDeleteSets,
     // SKU for select
-    skuListForSelect, skuSelectLoading, loadSkusAll,
+    skuListForSelect,
+    skuSelectLoading,
+    loadSkusAll,
     // Structure & Category
-    structureStandardList, categoryList,
+    structureStandardList,
+    categoryList,
     // Tab
     activeTab,
     // Init

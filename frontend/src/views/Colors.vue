@@ -15,12 +15,12 @@
             </el-popconfirm>
           </div>
           <el-table
-            :data="colorList"
             v-loading="colorLoading"
+            :data="colorList"
             stripe
+            highlight-current-row
             @selection-change="(rows: Record<string, unknown>[]) => selectedColors = rows"
             @row-dblclick="(row: Record<string, unknown>) => openColorDialog(row)"
-            highlight-current-row
           >
             <el-table-column type="selection" width="45" />
             <el-table-column prop="colorCode" label="编码" width="130" />
@@ -68,12 +68,12 @@
             </el-popconfirm>
           </div>
           <el-table
-            :data="mappingList"
             v-loading="mappingLoading"
+            :data="mappingList"
             stripe
+            highlight-current-row
             @selection-change="(rows: Record<string, unknown>[]) => selectedMappings = rows"
             @row-dblclick="(row: Record<string, unknown>) => openMappingDialog(row)"
-            highlight-current-row
           >
             <el-table-column type="selection" width="45" />
             <el-table-column prop="materialCode" label="材质" width="120">
@@ -138,12 +138,12 @@
             </el-popconfirm>
           </div>
           <el-table
-            :data="paletteList"
             v-loading="paletteLoading"
+            :data="paletteList"
             stripe
+            highlight-current-row
             @selection-change="(rows: Record<string, unknown>[]) => selectedPalettes = rows"
             @row-dblclick="(row: Record<string, unknown>) => openPaletteDialog(row)"
-            highlight-current-row
           >
             <el-table-column type="selection" width="45" />
             <el-table-column prop="season" label="季节" width="80" />
@@ -197,12 +197,12 @@
             </el-popconfirm>
           </div>
           <el-table
-            :data="projectList"
             v-loading="projectLoading"
+            :data="projectList"
             stripe
+            highlight-current-row
             @selection-change="(rows: Record<string, unknown>[]) => selectedProjects = rows"
             @row-dblclick="(row: Record<string, unknown>) => openProjectDialog(row)"
-            highlight-current-row
           >
             <el-table-column type="selection" width="45" />
             <el-table-column prop="projectCode" label="项目编号" width="150" />

@@ -10,7 +10,7 @@
 
       <!-- 统计卡片 -->
       <el-row :gutter="12" style="margin-bottom: 16px">
-        <el-col :span="4" v-for="card in statCards" :key="card.label">
+        <el-col v-for="card in statCards" :key="card.label" :span="4">
           <el-card shadow="hover" :body-style="{ padding: '12px', textAlign: 'center' }">
             <div style="font-size: 24px; font-weight: bold; color: var(--el-color-primary)">{{ card.value }}</div>
             <div style="font-size: 12px; color: #999; margin-top: 4px">{{ card.label }}</div>
@@ -29,13 +29,25 @@
       />
 
       <!-- 表格 -->
-      <el-table :data="tableData" stripe border v-loading="loading" style="margin-top: 12px" row-key="orderId" @selection-change="onSelectionChange" @row-dblclick="viewDetail">
+      <el-table
+        v-loading="loading"
+        :data="tableData"
+        stripe
+        border
+        style="margin-top: 12px"
+        row-key="orderId"
+        @selection-change="onSelectionChange"
+        @row-dblclick="viewDetail"
+      >
         <el-table-column type="selection" width="40" fixed />
         <el-table-column prop="orderNo" label="订单号" width="180" fixed />
         <el-table-column prop="customerName" label="客户" width="120" />
         <el-table-column label="类型" width="80">
           <template #default="{ row }">
-            <el-tag :type="row.orderType === 'wholesale' ? 'warning' : row.orderType === 'set' ? 'success' : ''" size="small">
+            <el-tag
+              :type="row.orderType === 'wholesale' ? 'warning' : row.orderType === 'set' ? 'success' : ''"
+              size="small"
+            >
               {{ orderTypeLabel(row.orderType) }}
             </el-tag>
           </template>
@@ -47,7 +59,10 @@
         </el-table-column>
         <el-table-column label="支付" width="80">
           <template #default="{ row }">
-            <el-tag :type="row.paymentStatus === 'paid' ? 'success' : row.paymentStatus === 'partial' ? 'warning' : 'info'" size="small">
+            <el-tag
+              :type="row.paymentStatus === 'paid' ? 'success' : row.paymentStatus === 'partial' ? 'warning' : 'info'"
+              size="small"
+            >
               {{ payLabel(row.paymentStatus) }}
             </el-tag>
           </template>
@@ -96,36 +111,61 @@
         <el-descriptions :column="2" border>
           <el-descriptions-item label="订单号">{{ currentOrder.orderNo }}</el-descriptions-item>
           <el-descriptions-item label="状态">
-            <el-tag :type="statusTag(currentOrder.status ?? '')" effect="dark">{{ statusLabel(currentOrder.status ?? '') }}</el-tag>
+            <el-tag :type="statusTag(currentOrder.status ?? '')" effect="dark">{{
+              statusLabel(currentOrder.status ?? '')
+            }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="客户">{{ currentOrder.customerName }}</el-descriptions-item>
           <el-descriptions-item label="电话">{{ currentOrder.customerPhone || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="订单类型">{{ orderTypeLabel(currentOrder.orderType ?? '') }}</el-descriptions-item>
+          <el-descriptions-item label="订单类型">{{
+            orderTypeLabel(currentOrder.orderType ?? '')
+          }}</el-descriptions-item>
           <el-descriptions-item label="支付方式">{{ currentOrder.paymentMethod || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="订单总额">¥{{ (currentOrder.totalAmount ?? 0).toFixed(2) }}</el-descriptions-item>
-          <el-descriptions-item label="优惠金额">-¥{{ (currentOrder.discountAmount ?? 0).toFixed(2) }}</el-descriptions-item>
+          <el-descriptions-item label="订单总额"
+            >¥{{ (currentOrder.totalAmount ?? 0).toFixed(2) }}</el-descriptions-item
+          >
+          <el-descriptions-item label="优惠金额"
+            >-¥{{ (currentOrder.discountAmount ?? 0).toFixed(2) }}</el-descriptions-item
+          >
           <el-descriptions-item label="运费">+¥{{ (currentOrder.shippingFee ?? 0).toFixed(2) }}</el-descriptions-item>
-          <el-descriptions-item label="实付金额"><b>¥{{ (currentOrder.actualAmount ?? 0).toFixed(2) }}</b></el-descriptions-item>
-          <el-descriptions-item label="创建时间" :span="2">{{ formatDate(currentOrder.createdAt ?? '') }}</el-descriptions-item>
-          <el-descriptions-item v-if="currentOrder.remark" label="备注" :span="2">{{ currentOrder.remark }}</el-descriptions-item>
+          <el-descriptions-item label="实付金额"
+            ><b>¥{{ (currentOrder.actualAmount ?? 0).toFixed(2) }}</b></el-descriptions-item
+          >
+          <el-descriptions-item label="创建时间" :span="2">{{
+            formatDate(currentOrder.createdAt ?? '')
+          }}</el-descriptions-item>
+          <el-descriptions-item v-if="currentOrder.remark" label="备注" :span="2">{{
+            currentOrder.remark
+          }}</el-descriptions-item>
         </el-descriptions>
         <el-divider content-position="left">收货地址</el-divider>
         <div v-if="currentOrder.address">
-          <p><b>{{ currentOrder.address.receiverName }}</b> {{ currentOrder.address.receiverPhone }}</p>
-          <p>{{ currentOrder.address.province }} {{ currentOrder.address.city }} {{ currentOrder.address.district || '' }} {{ currentOrder.address.addressDetail }}</p>
+          <p>
+            <b>{{ currentOrder.address.receiverName }}</b> {{ currentOrder.address.receiverPhone }}
+          </p>
+          <p>
+            {{ currentOrder.address.province }} {{ currentOrder.address.city }}
+            {{ currentOrder.address.district || '' }} {{ currentOrder.address.addressDetail }}
+          </p>
         </div>
         <el-empty v-else description="无收货地址" :image-size="40" />
         <el-divider content-position="left">结构锚点</el-divider>
         <el-descriptions :column="2" border size="small">
-          <el-descriptions-item label="结构标准编码">{{ currentOrder.structureStandardCode || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="订单项结构编码">{{ currentOrder.items?.[0]?.structureStandardCode || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="结构标准编码">{{
+            currentOrder.structureStandardCode || '-'
+          }}</el-descriptions-item>
+          <el-descriptions-item label="订单项结构编码">{{
+            currentOrder.items?.[0]?.structureStandardCode || '-'
+          }}</el-descriptions-item>
         </el-descriptions>
         <el-divider content-position="left">订单明细</el-divider>
         <el-table :data="currentOrder.items ?? []" size="small" border>
           <el-table-column prop="productName" label="商品" />
           <el-table-column label="履行类型" width="90">
             <template #default="{ row }">
-              <el-tag :type="fulfillmentTag(row.orderFulfillmentType)" size="small">{{ fulfillmentLabel(row.orderFulfillmentType) }}</el-tag>
+              <el-tag :type="fulfillmentTag(row.orderFulfillmentType)" size="small">{{
+                fulfillmentLabel(row.orderFulfillmentType)
+              }}</el-tag>
             </template>
           </el-table-column>
           <el-table-column label="镜片状态" width="80">
@@ -164,10 +204,17 @@
         </el-table>
         <el-divider content-position="left">操作日志</el-divider>
         <el-timeline>
-          <el-timeline-item v-for="log in currentOrder.logs || []" :key="log.logId" :timestamp="formatDate(log.createdAt)" placement="top">
+          <el-timeline-item
+            v-for="log in currentOrder.logs || []"
+            :key="log.logId"
+            :timestamp="formatDate(log.createdAt)"
+            placement="top"
+          >
             <el-card shadow="never" :body-style="{ padding: '8px 12px' }">
               <b>{{ log.action }}</b>
-              <span v-if="log.oldStatus"> {{ statusLabel(log.oldStatus) }} → {{ statusLabel(log.newStatus ?? '') }}</span>
+              <span v-if="log.oldStatus">
+                {{ statusLabel(log.oldStatus) }} → {{ statusLabel(log.newStatus ?? '') }}</span
+              >
               <span v-if="log.remark" style="color: #999; margin-left: 8px">{{ log.remark }}</span>
             </el-card>
           </el-timeline-item>
@@ -179,14 +226,42 @@
     <el-dialog v-model="createVisible" title="新建订单" width="700px" :close-on-click-modal="false">
       <el-form :model="createForm" label-width="90px">
         <el-form-item label="客户">
-          <el-select v-model="createForm.customerId" placeholder="选择客户" filterable style="width: 100%" @change="onCustomerSelect">
-            <el-option v-for="c in customerOptions" :key="c.customerId" :label="`${c.contactName} (${c.phone})`" :value="c.customerId" />
+          <el-select
+            v-model="createForm.customerId"
+            placeholder="选择客户"
+            filterable
+            style="width: 100%"
+            @change="onCustomerSelect"
+          >
+            <el-option
+              v-for="c in customerOptions"
+              :key="c.customerId"
+              :label="`${c.contactName} (${c.phone})`"
+              :value="c.customerId"
+            />
           </el-select>
-          <el-alert v-if="historyLensNotice" :title="historyLensNotice" type="info" :closable="false" show-icon style="margin-top: 8px" />
+          <el-alert
+            v-if="historyLensNotice"
+            :title="historyLensNotice"
+            type="info"
+            :closable="false"
+            show-icon
+            style="margin-top: 8px"
+          />
         </el-form-item>
         <el-form-item label="结构标准">
-          <el-select v-model="createForm.structureStandardCode" placeholder="选择结构标准" filterable style="width: 100%">
-            <el-option v-for="l in lensOptions" :key="l.structureId" :label="`${l.externalCode} - ${((l.surfaceTypes as string[])||[]).join(',')} ${((l.refractiveIndexes as number[])||[]).join(',')}`" :value="l.structureId" />
+          <el-select
+            v-model="createForm.structureStandardCode"
+            placeholder="选择结构标准"
+            filterable
+            style="width: 100%"
+          >
+            <el-option
+              v-for="l in lensOptions"
+              :key="l.structureId"
+              :label="`${l.externalCode} - ${((l.surfaceTypes as string[]) || []).join(',')} ${((l.refractiveIndexes as number[]) || []).join(',')}`"
+              :value="l.structureId"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="订单类型">
@@ -265,7 +340,7 @@
       </el-form>
       <template #footer>
         <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitCreate" :loading="submitting">创建订单</el-button>
+        <el-button type="primary" :loading="submitting" @click="submitCreate">创建订单</el-button>
       </template>
     </el-dialog>
 
@@ -288,7 +363,7 @@
       </el-form>
       <template #footer>
         <el-button @click="shipVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitShip" :loading="submitting">确认发货</el-button>
+        <el-button type="primary" :loading="submitting" @click="submitShip">确认发货</el-button>
       </template>
     </el-dialog>
   </div>
@@ -302,29 +377,75 @@ import OrderFilters from './components/order/OrderFilters.vue'
 const orders = useOrders()
 
 const {
-  orderStatusItems, paymentStatusItems, customerTypeItems,
-  loading, tableData, total, query, selectedOrders,
-  statCards, canConfirmSelected, canShipSelected, canCancelSelected,
-  onSelectionChange, batchConfirm, batchShip, batchCancel,
-  detailVisible, currentOrder, viewDetail,
-  createVisible, submitting, customerOptions, createForm,
-  lensOptions, historyLensNotice,
-  openCreateDialog, addOrderItem, onFulfillmentTypeChange, onCustomerSelect,
-  calcActual, submitCreate,
-  shipVisible, shipForm, submitShip,
-  loadData, resetQuery,
-  statusTag, statusLabel, orderTypeLabel, payLabel,
-  fulfillmentTag, fulfillmentLabel, lensStatusTag, lensStatusLabel, formatDate,
+  orderStatusItems,
+  paymentStatusItems,
+  customerTypeItems,
+  loading,
+  tableData,
+  total,
+  query,
+  selectedOrders,
+  statCards,
+  canConfirmSelected,
+  canShipSelected,
+  canCancelSelected,
+  onSelectionChange,
+  batchConfirm,
+  batchShip,
+  batchCancel,
+  detailVisible,
+  currentOrder,
+  viewDetail,
+  createVisible,
+  submitting,
+  customerOptions,
+  createForm,
+  lensOptions,
+  historyLensNotice,
+  openCreateDialog,
+  addOrderItem,
+  onFulfillmentTypeChange,
+  onCustomerSelect,
+  calcActual,
+  submitCreate,
+  shipVisible,
+  shipForm,
+  submitShip,
+  loadData,
+  resetQuery,
+  statusTag,
+  statusLabel,
+  orderTypeLabel,
+  payLabel,
+  fulfillmentTag,
+  fulfillmentLabel,
+  lensStatusTag,
+  lensStatusLabel,
+  formatDate,
   init,
 } = orders
 
-onMounted(() => { init() })
+onMounted(() => {
+  init()
+})
 </script>
 
 <style scoped>
-.order-page { padding: 0; }
-.detail-content { line-height: 1.8; }
-.detail-content p { margin: 4px 0; }
-.el-dialog .el-input, .el-dialog .el-select, .el-dialog .el-date-editor { width: 100% !important; }
-.el-dialog .el-input-number { width: 100% !important; }
+.order-page {
+  padding: 0;
+}
+.detail-content {
+  line-height: 1.8;
+}
+.detail-content p {
+  margin: 4px 0;
+}
+.el-dialog .el-input,
+.el-dialog .el-select,
+.el-dialog .el-date-editor {
+  width: 100% !important;
+}
+.el-dialog .el-input-number {
+  width: 100% !important;
+}
 </style>

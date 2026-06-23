@@ -9,7 +9,7 @@
         </div>
       </template>
 
-      <el-form :model="form" :rules="rules" ref="formRef" @keyup.enter="handleLogin">
+      <el-form ref="formRef" :model="form" :rules="rules" @keyup.enter="handleLogin">
         <el-form-item prop="username">
           <el-input v-model="form.username" placeholder="请输入用户名" size="large" prefix-icon="User" />
         </el-form-item>

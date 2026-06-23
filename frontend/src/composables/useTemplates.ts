@@ -1,6 +1,10 @@
 import { ref, reactive } from 'vue'
 
-interface TemplateItem { icon: string; text: string; fill: string }
+interface TemplateItem {
+  icon: string
+  text: string
+  fill: string
+}
 
 const TPL_STORAGE_KEY = 'eros_templates'
 
@@ -8,7 +12,9 @@ function loadTemplates(): TemplateItem[] {
   try {
     const raw = localStorage.getItem(TPL_STORAGE_KEY)
     return raw ? JSON.parse(raw) : []
-  } catch { return [] }
+  } catch {
+    return []
+  }
 }
 
 function saveTemplates(items: TemplateItem[]) {
@@ -78,7 +84,15 @@ export function useTemplates() {
   }
 
   return {
-    templates, showTemplateDialog, editingTemplate, editingIndex,
-    applyTemplate, openAddTemplate, editTemplate, removeTemplate, saveTemplate, resetTemplates,
+    templates,
+    showTemplateDialog,
+    editingTemplate,
+    editingIndex,
+    applyTemplate,
+    openAddTemplate,
+    editTemplate,
+    removeTemplate,
+    saveTemplate,
+    resetTemplates,
   }
 }

@@ -1,15 +1,8 @@
 <template>
   <el-form :model="formData" label-width="140px" size="default">
     <el-row :gutter="16">
-      <el-col
-        v-for="field in schema.fields"
-        :key="field.field"
-        :span="field.type === 'textarea' ? 24 : 12"
-      >
-        <el-form-item
-          :label="field.label"
-          :required="field.required"
-        >
+      <el-col v-for="field in schema.fields" :key="field.field" :span="field.type === 'textarea' ? 24 : 12">
+        <el-form-item :label="field.label" :required="field.required">
           <!-- 文本输入 -->
           <el-input
             v-if="field.type === 'text'"
@@ -48,12 +41,7 @@
             clearable
             style="width: 100%"
           >
-            <el-option
-              v-for="opt in field.options"
-              :key="opt.value"
-              :label="opt.label"
-              :value="opt.value"
-            />
+            <el-option v-for="opt in field.options" :key="opt.value" :label="opt.label" :value="opt.value" />
           </el-select>
 
           <!-- 多行文本 -->

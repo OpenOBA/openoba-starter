@@ -13,7 +13,13 @@ import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest'
 // ═══════════════════════════════════════
 // Mock request 实例
 // ═══════════════════════════════════════
-const mockCalls: Array<{ method: string; url: string; data?: Record<string, unknown>; params?: unknown; config?: unknown }> = []
+const mockCalls: Array<{
+  method: string
+  url: string
+  data?: Record<string, unknown>
+  params?: unknown
+  config?: unknown
+}> = []
 const mockRequest: Record<string, Mock> = {
   get: vi.fn((url?: string, config?: Record<string, unknown>) => {
     mockCalls.push({ method: 'GET', url: url ?? '', params: config?.params })
@@ -61,7 +67,8 @@ const api = {
   getEffectTags: (type: 'skin_tone' | 'face_shape') => mockRequest.get(`/products/effects/${type}`),
   getEffectRecommend: (colorCode: string) => mockRequest.post('/products/effects/recommend', { colorCode }),
   getSkuImagesGrouped: (skuId: string) => mockRequest.get(`/products/sku-images-grouped/${skuId}`),
-  batchCreateSkuImages: (data: { skuId: string; images: unknown[] }) => mockRequest.post('/products/sku-images/batch', data),
+  batchCreateSkuImages: (data: { skuId: string; images: unknown[] }) =>
+    mockRequest.post('/products/sku-images/batch', data),
   reorderSkuImages: (data: { skuId: string; imageType: string; orderedIds: string[] }) =>
     mockRequest.post('/products/sku-images/reorder', data),
   calculatePrice: (data: unknown) => mockRequest.post('/pricing/calculate', data),

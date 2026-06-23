@@ -130,9 +130,14 @@ function load(): ERASettings {
     if (raw) {
       const parsed = JSON.parse(raw)
       // 深度合并默认值（确保新增字段有默认值）
-      return deepMerge(defaults() as unknown as Record<string, unknown>, parsed as Record<string, unknown>) as unknown as ERASettings
+      return deepMerge(
+        defaults() as unknown as Record<string, unknown>,
+        parsed as Record<string, unknown>,
+      ) as unknown as ERASettings
     }
-  } catch (e) { console.warn('[useERASettings] 解析配置失败:', e instanceof Error ? e.message : String(e)) }
+  } catch (e) {
+    console.warn('[useERASettings] 解析配置失败:', e instanceof Error ? e.message : String(e))
+  }
   return defaults()
 }
 
