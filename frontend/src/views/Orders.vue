@@ -114,17 +114,17 @@
         <el-descriptions :column="2" border>
           <el-descriptions-item label="订单号">{{ currentOrder.orderNo }}</el-descriptions-item>
           <el-descriptions-item label="状态">
-            <el-tag :type="statusTag(currentOrder.status)" effect="dark">{{ statusLabel(currentOrder.status) }}</el-tag>
+            <el-tag :type="statusTag(currentOrder.status ?? '')" effect="dark">{{ statusLabel(currentOrder.status ?? '') }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="客户">{{ currentOrder.customerName }}</el-descriptions-item>
           <el-descriptions-item label="电话">{{ currentOrder.customerPhone || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="订单类型">{{ orderTypeLabel(currentOrder.orderType) }}</el-descriptions-item>
+          <el-descriptions-item label="订单类型">{{ orderTypeLabel(currentOrder.orderType ?? '') }}</el-descriptions-item>
           <el-descriptions-item label="支付方式">{{ currentOrder.paymentMethod || '-' }}</el-descriptions-item>
           <el-descriptions-item label="订单总额">¥{{ Number(currentOrder.totalAmount).toFixed(2) }}</el-descriptions-item>
           <el-descriptions-item label="优惠金额">-¥{{ Number(currentOrder.discountAmount).toFixed(2) }}</el-descriptions-item>
           <el-descriptions-item label="运费">+¥{{ Number(currentOrder.shippingFee).toFixed(2) }}</el-descriptions-item>
           <el-descriptions-item label="实付金额"><b>¥{{ Number(currentOrder.actualAmount).toFixed(2) }}</b></el-descriptions-item>
-          <el-descriptions-item label="创建时间" :span="2">{{ formatDate(currentOrder.createdAt) }}</el-descriptions-item>
+          <el-descriptions-item label="创建时间" :span="2">{{ formatDate(currentOrder.createdAt ?? '') }}</el-descriptions-item>
           <el-descriptions-item v-if="currentOrder.remark" label="备注" :span="2">{{ currentOrder.remark }}</el-descriptions-item>
         </el-descriptions>
 
@@ -197,7 +197,7 @@
           <el-timeline-item v-for="log in currentOrder.logs || []" :key="log.logId" :timestamp="formatDate(log.createdAt)" placement="top">
             <el-card shadow="never" :body-style="{ padding: '8px 12px' }">
               <b>{{ log.action }}</b>
-              <span v-if="log.oldStatus"> {{ statusLabel(log.oldStatus) }} → {{ statusLabel(log.newStatus) }}</span>
+              <span v-if="log.oldStatus"> {{ statusLabel(log.oldStatus) }} → {{ statusLabel(log.newStatus ?? '') }}</span>
               <span v-if="log.remark" style="color: #999; margin-left: 8px">{{ log.remark }}</span>
             </el-card>
           </el-timeline-item>
@@ -216,7 +216,7 @@
         </el-form-item>
         <el-form-item label="结构标准">
           <el-select v-model="createForm.structureStandardCode" placeholder="选择结构标准" filterable style="width: 100%">
-            <el-option v-for="l in lensOptions" :key="l.structureId" :label="`${l.externalCode} - ${(l.surfaceTypes||[]).join(',')} ${(l.refractiveIndexes||[]).join(',')}`" :value="l.structureId" />
+            <el-option v-for="l in lensOptions" :key="l.structureId" :label="`${l.externalCode} - ${((l.surfaceTypes as string[])||[]).join(',')} ${((l.refractiveIndexes as number[])||[]).join(',')}`" :value="l.structureId" />
           </el-select>
         </el-form-item>
         <el-form-item label="订单类型">
@@ -357,20 +357,22 @@ const customerTypeItems = computed(() => customerTypeDict.items.value);
 
 // ===== 状态 =====
 const loading = ref(false);
-const selectedOrders = ref<any[]>([]);
+const selectedOrders = ref<Record<string, unknown>[]>([]);
 
-function onSelectionChange(rows: any[]) {
+function onSelectionChange(rows: Record<string, unknown>[]) {
   selectedOrders.value = rows;
 }
 
+const canShipStatuses: string[] = [ORDER_STATUS.paid, ORDER_STATUS.confirmed]
+const canCancelExcludes: string[] = [ORDER_STATUS.completed, ORDER_STATUS.cancelled]
 const canConfirmSelected = computed(() =>
-  selectedOrders.value.length > 0 && selectedOrders.value.every((r: any) => r.status === ORDER_STATUS.pending)
+  selectedOrders.value.length > 0 && selectedOrders.value.every((r) => r.status === ORDER_STATUS.pending)
 );
 const canShipSelected = computed(() =>
-  selectedOrders.value.length > 0 && selectedOrders.value.every((r: any) => [ORDER_STATUS.paid, ORDER_STATUS.confirmed].includes(r.status))
+  selectedOrders.value.length > 0 && selectedOrders.value.every((r) => canShipStatuses.includes(r.status as string))
 );
 const canCancelSelected = computed(() =>
-  selectedOrders.value.length > 0 && selectedOrders.value.every((r: any) => ![ORDER_STATUS.completed, ORDER_STATUS.cancelled].includes(r.status))
+  selectedOrders.value.length > 0 && selectedOrders.value.every((r) => !canCancelExcludes.includes(r.status as string))
 );
 
 async function batchConfirm() {
@@ -396,13 +398,14 @@ async function batchCancel() {
   loadData();
 }
 
-const tableData = ref<any[]>([]);
+const tableData = ref<Record<string, unknown>[]>([]);
 const total = ref(0);
 const query = reactive({ keyword: '', status: '', paymentStatus: '', orderType: '', page: 1, pageSize: 20 });
 
-const stats = ref<any>({ total: 0, pending: 0, paid: 0, shipping: 0, completed: 0, cancelled: 0, todaySales: '0' });
+interface OrderStats { total: number; pending: number; paid: number; shipping: number; completed: number; cancelled: number; todaySales: string }
+const stats = ref<OrderStats>({ total: 0, pending: 0, paid: 0, shipping: 0, completed: 0, cancelled: 0, todaySales: '0' });
 
-function ensureStats(s: any) {
+function ensureStats(s: OrderStats | null | undefined): OrderStats {
   return {
     total: s?.total ?? 0,
     pending: s?.pending ?? 0,
@@ -428,31 +431,34 @@ const statCards = computed(() => {
 
 // ===== 详情 =====
 const detailVisible = ref(false);
-const currentOrder = ref<any>(null);
+interface LogItem { logId: string; createdAt: string; action: string; oldStatus?: string; newStatus?: string; remark?: string }
+interface CurrentOrderData { orderId?: string; orderNo?: string; status?: string; customerName?: string; customerPhone?: string; orderType?: string; paymentMethod?: string; totalAmount?: number; discountAmount?: number; shippingFee?: number; actualAmount?: number; createdAt?: string; remark?: string; address?: Record<string,string>; structureStandardCode?: string; items?: Record<string,unknown>[]; payments?: Record<string,unknown>[]; shipments?: Record<string,unknown>[]; logs?: LogItem[] }
+const currentOrder = ref<CurrentOrderData | null>(null);
 
 async function viewDetail(row: Record<string, unknown>) {
   const res = await getOrderDetail(String(row.orderId ?? ''));
   // axios 拦截器已解包 data
-  currentOrder.value = res;
+  currentOrder.value = res as unknown as CurrentOrderData;
   detailVisible.value = true;
 }
 
 // ===== 创建 =====
 const createVisible = ref(false);
 const submitting = ref(false);
-const customerOptions = ref<any[]>([]);
+interface OrderItem { productType: string; productId: string; productName: string; quantity: number; unitPrice: number; structureStandardCode: string; orderFulfillmentType: string; lensStatus: string }
+const customerOptions = ref<Record<string, unknown>[]>([]);
 const createForm = reactive({
   customerId: '',
   customerName: '',
   customerPhone: '',
   orderType: 'retail',
   structureStandardCode: '',
-  items: [] as any[],
+  items: [] as OrderItem[],
   shippingFee: 0,
   discountAmount: 0,
   remark: '',
 });
-const lensOptions = ref<any[]>([]);
+const lensOptions = ref<Record<string, unknown>[]>([]);
 const historyLensNotice = ref('');
 
 function openCreateDialog() {
@@ -478,8 +484,8 @@ function onFulfillmentTypeChange(row: Record<string, unknown>) {
 async function onCustomerSelect(id: string) {
   const c = customerOptions.value.find(x => x.customerId === id);
   if (c) {
-    createForm.customerName = c.contactName;
-    createForm.customerPhone = c.phone;
+    createForm.customerName = c.contactName as string;
+    createForm.customerPhone = c.phone as string;
   }
   // 复购：加载历史镜片
   historyLensNotice.value = '';
@@ -488,15 +494,16 @@ async function onCustomerSelect(id: string) {
     const res = await getCustomerLensSummary(id);
     // axios 拦截器已解包 data
     if (res?.lenses?.length > 0) {
-      const activeLens = res.lenses.find((l: any) => l.status === 'active') || res.lenses[0];
+      const lenses = (res?.lenses as unknown as Record<string, unknown>[]) ?? [];
+      const activeLens = lenses.find((l) => l.status === 'active') || lenses[0];
       const code = activeLens.lensStandardCode;
       const rx = activeLens.prescription as Record<string, string> | undefined;
       const rxInfo = rx ? `球镜: OD${rx.odSphere}/OS${rx.osSphere}` : '';
       historyLensNotice.value = `🔬 该客户历史镜片：${code}${rxInfo ? ' | ' + rxInfo : ''}`;
       const matched = lensOptions.value.find(l => l.externalCode === code);
-      if (matched) createForm.structureStandardCode = matched.structureId;
+      if (matched) createForm.structureStandardCode = matched.structureId as string;
     }
-  } catch {}
+  } catch { /* ignore */ }
 }
 
 function calcActual() {
@@ -533,7 +540,7 @@ async function confirmOrder(row: Record<string, unknown>) {
 
 // ===== 发货 =====
 const shipVisible = ref(false);
-const shipOrder = ref<any>(null);
+const shipOrder = ref<Record<string, unknown> | null>(null);
 const shipForm = reactive({ carrier: 'sf', trackingNo: '' });
 
 function openShipDialog(row: Record<string, unknown>) {
@@ -546,7 +553,8 @@ async function submitShip() {
   if (!shipForm.trackingNo) return ElMessage.warning('请输入运单号');
   submitting.value = true;
   try {
-    await createShipment({ orderId: shipOrder.value.orderId, ...shipForm });
+    if (!shipOrder.value) return;
+    await createShipment({ orderId: shipOrder.value.orderId as string, ...shipForm });
     ElMessage.success('发货成功');
     shipVisible.value = false;
     loadData();
@@ -578,7 +586,7 @@ async function loadStats() {
   try {
     const res = await getOrderStats();
     // axios 拦截器已解包 data，res 就是 stats 对象
-    stats.value = ensureStats(res);
+    stats.value = ensureStats(res as unknown as OrderStats | null);
   } catch (e: unknown) { const _err = e instanceof Error ? e.message : String(e);
     console.error('loadStats error:', _err);
   }
@@ -588,16 +596,16 @@ async function loadCustomers() {
   try {
     const res = await getCustomerList({ page: 1, pageSize: 200 });
     // axios 拦截器已解包 data
-    customerOptions.value = res?.items || [];
-  } catch {}
+    customerOptions.value = (res?.items as unknown as Record<string, unknown>[]) || [];
+  } catch { /* ignore */ }
 }
 
 async function loadLensOptions() {
   try {
     const res = await getStructureList({ page: 1, pageSize: 200, status: 'active' });
     // axios 拦截器已解包 data
-    lensOptions.value = res?.items || [];
-  } catch {}
+    lensOptions.value = (res?.items as unknown as Record<string, unknown>[]) || [];
+  } catch { /* ignore */ }
 }
 
 function resetQuery() {
