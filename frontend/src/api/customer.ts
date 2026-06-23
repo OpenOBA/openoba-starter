@@ -63,8 +63,8 @@ export interface TierPricing {
 
 // ===== Customer CRUD =====
 // 过滤空字符串，避免后端 @IsEnum 验证失败
-const cleanParams = (p: Record<string, any>) => {
-  const cleaned: Record<string, any> = {}
+const cleanParams = (p: Record<string, unknown>) => {
+  const cleaned: Record<string, unknown> = {}
   for (const [k, v] of Object.entries(p)) {
     if (v !== '' && v !== null && v !== undefined) cleaned[k] = v
   }
@@ -127,40 +127,40 @@ export const deleteTierPricing = (id: string) =>
 
 // ===== 处方 =====
 export const getPrescriptions = (customerId: string): Promise<Record<string, unknown>[]> =>
-  request.get<any[]>(`/customers/${customerId}/prescriptions`)
+  request.get<Record<string, unknown>[]>(`/customers/${customerId}/prescriptions`)
 
 export const addPrescription = (data: CreateUpdateData) =>
-  request.post<any>('/customers/prescriptions', data)
+  request.post<Record<string, unknown>>('/customers/prescriptions', data)
 
 export const deletePrescription = (id: string) =>
   request.delete(`/customers/prescriptions/${id}`)
 
 // ===== 客户镜片 =====
 export const getCustomerLenses = (customerId: string): Promise<Record<string, unknown>[]> =>
-  request.get<any[]>(`/customers/${customerId}/lenses`)
+  request.get<Record<string, unknown>[]>(`/customers/${customerId}/lenses`)
 
 export const getCustomerLensSummary = (customerId: string): Promise<{ lenses: Array<Record<string, unknown>> }> =>
   request.get(`/customers/${customerId}/lens-summary`)
 
 export const addCustomerLens = (data: CreateUpdateData) =>
-  request.post<any>('/customers/lenses', data)
+  request.post<Record<string, unknown>>('/customers/lenses', data)
 
 export const deleteCustomerLens = (id: string) =>
   request.delete(`/customers/lenses/${id}`)
 
 // ===== 客户镜框 =====
 export const getCustomerFrames = (lensId: string): Promise<Record<string, unknown>[]> =>
-  request.get<any[]>(`/customers/lenses/${lensId}/frames`)
+  request.get<Record<string, unknown>[]>(`/customers/lenses/${lensId}/frames`)
 
 export const addCustomerFrame = (data: CreateUpdateData) =>
-  request.post<any>('/customers/frames', data)
+  request.post<Record<string, unknown>>('/customers/frames', data)
 
 export const deleteCustomerFrame = (id: string) =>
   request.delete(`/customers/frames/${id}`)
 
 // ===== TASK-010: 会员管理 =====
 export const getMemberLevels = () =>
-  request.get<any[]>('/pricing/members/levels')
+  request.get<Record<string, unknown>[]>('/pricing/members/levels')
 
 export const createMemberLevel = (data: Record<string, unknown>) =>
   request.post('/pricing/members/levels', data)
@@ -172,7 +172,7 @@ export const deleteMemberLevel = (levelCode: string) =>
   request.delete(`/pricing/members/levels/${levelCode}`)
 
 export const getMemberPricingRules = (params?: Record<string, string>) =>
-  request.get<any[]>('/pricing/members/rules', { params })
+  request.get<Record<string, unknown>[]>('/pricing/members/rules', { params })
 
 export const createMemberPricingRule = (data: Record<string, unknown>) =>
   request.post('/pricing/members/rules', data)
@@ -184,31 +184,31 @@ export const deleteMemberPricingRule = (ruleId: string) =>
   request.delete(`/pricing/members/rules/${ruleId}`)
 
 export const scanMemberDowngrades = () =>
-  request.post<any>('/pricing/members/downgrade-scan')
+  request.post<Record<string, unknown>>('/pricing/members/downgrade-scan')
 
 // ===== 会员仪表盘 =====
 export const getMemberDashboard = () =>
-  request.get<any>('/customers/member-dashboard')
+  request.get<Record<string, unknown>>('/customers/member-dashboard')
 
 export const getMemberAnalytics = (params?: Record<string, string | number>) =>
-  request.get<any>('/customers/member-analytics', { params })
+  request.get<Record<string, unknown>>('/customers/member-analytics', { params })
 
 export const scanMemberDowngradesNew = () =>
-  request.post<any>('/customers/member-downgrade-scan')
+  request.post<Record<string, unknown>>('/customers/member-downgrade-scan')
 
 // ===== P1+ 客户管理重构 =====
 export const getMemberLevelLogs = (customerId: string): Promise<Record<string, unknown>[]> =>
-  request.get<any[]>(`/customers/${customerId}/member-level-logs`)
+  request.get<Record<string, unknown>[]>(`/customers/${customerId}/member-level-logs`)
 
 export const getPointsTransactions = (customerId: string): Promise<Record<string, unknown>[]> =>
-  request.get<any[]>(`/customers/${customerId}/points-transactions`)
+  request.get<Record<string, unknown>[]>(`/customers/${customerId}/points-transactions`)
 
 export const getAccountInfo = (customerId: string): Promise<Record<string, unknown>> =>
-  request.get<any>(`/customers/${customerId}/account-info`)
+  request.get<Record<string, unknown>>(`/customers/${customerId}/account-info`)
 
 // ===== 客户订单列表（复用 order API） =====
 export const getCustomerOrders = (customerId: string, page = 1, pageSize = 20): Promise<Record<string, unknown>> =>
-  request.get<any>(`/orders`, { params: { customerId, page, pageSize } })
+  request.get<Record<string, unknown>>(`/orders`, { params: { customerId, page, pageSize } })
 
 // ===== 官网账户管理（管理端 API） =====
 
