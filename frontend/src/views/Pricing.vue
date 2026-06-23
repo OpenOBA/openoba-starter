@@ -10,7 +10,7 @@
               <template #reference><el-button type="danger" :disabled="!selectedTiers.length">删除</el-button></template>
             </el-popconfirm>
           </div>
-          <el-table :data="tierList" v-loading="tierLoading" stripe @selection-change="(rows: any[]) => selectedTiers = rows" @row-dblclick="(row: any) => openTierDialog(row)" highlight-current-row>
+          <el-table :data="tierList" v-loading="tierLoading" stripe @selection-change="(rows: Record<string, unknown>[]) => selectedTiers = rows" @row-dblclick="(row: Record<string, unknown>) => openTierDialog(row)" highlight-current-row>
             <el-table-column type="selection" width="45" />
             <el-table-column prop="tierCode" label="分级 Code" width="140" />
             <el-table-column prop="tierName" label="分级名称" width="120" />
@@ -30,7 +30,7 @@
               <template #reference><el-button type="danger" :disabled="!selectedWholesales.length">删除</el-button></template>
             </el-popconfirm>
           </div>
-          <el-table :data="wholesaleList" v-loading="wholesaleLoading" stripe @selection-change="(rows: any[]) => selectedWholesales = rows" @row-dblclick="(row: any) => openWholesaleDialog(row)" highlight-current-row>
+          <el-table :data="wholesaleList" v-loading="wholesaleLoading" stripe @selection-change="(rows: Record<string, unknown>[]) => selectedWholesales = rows" @row-dblclick="(row: Record<string, unknown>) => openWholesaleDialog(row)" highlight-current-row>
             <el-table-column type="selection" width="45" />
             <el-table-column prop="tierCode" label="阶梯 Code" width="120" />
             <el-table-column prop="tierName" label="阶梯名称" width="120" />
@@ -120,7 +120,7 @@
             <el-button type="primary" @click="loadMemberPricingRules">查询</el-button>
             <el-button type="success" @click="openMemberPricingRuleDialog()">新增规则</el-button>
           </div>
-          <el-table :data="memberPricingRules" v-loading="memberRulesLoading" stripe @row-dblclick="(row: any) => openMemberPricingRuleDialog(row)" highlight-current-row>
+          <el-table :data="memberPricingRules" v-loading="memberRulesLoading" stripe @row-dblclick="(row: Record<string, unknown>) => openMemberPricingRuleDialog(row)" highlight-current-row>
             <el-table-column prop="memberLevel?.levelName" label="等级" width="80" />
             <el-table-column prop="skuId" label="SKU" width="200" show-overflow-tooltip />
             <el-table-column label="规则类型" width="120"><template #default="{ row }"><el-tag :type="({ discount: '', fixed_price: 'danger', extra_discount: 'success' } as Record<string, string>)[row.ruleType] || 'info'" size="small">{{ ({ discount: '折扣率', fixed_price: '固定价', extra_discount: '额外折扣' } as Record<string, string>)[row.ruleType] }}</el-tag></template></el-table-column>
@@ -173,10 +173,10 @@
       <template v-if="historyDetailRow">
         <el-descriptions :column="2" border size="large">
           <el-descriptions-item label="SKU 编码" :span="2"><strong>{{ historyDetailRow.skuCode || historyDetailRow.skuId }}</strong><span v-if="historyDetailRow.skuName" style="color: #909399; margin-left: 8px">{{ historyDetailRow.skuName }}</span></el-descriptions-item>
-          <el-descriptions-item label="价格类型"><el-tag :type="({ cost: 'warning', retail: 'success', min: 'info' } as Record<string, string>)[historyDetailRow.priceType] || 'info'" size="small">{{ ({ cost: '成本价', retail: '统一零售价', min: '最低售价' } as Record<string, string>)[historyDetailRow.priceType] || historyDetailRow.priceType }}</el-tag></el-descriptions-item>
+          <el-descriptions-item label="价格类型"><el-tag :type="({ cost: 'warning', retail: 'success', min: 'info' } as Record<string, string>)[historyDetailRow.priceType as string] || 'info'" size="small">{{ ({ cost: '成本价', retail: '统一零售价', min: '最低售价' } as Record<string, string>)[historyDetailRow.priceType as string] || historyDetailRow.priceType }}</el-tag></el-descriptions-item>
           <el-descriptions-item label="变更幅度"><span v-if="historyDetailRow.oldValue !== null && historyDetailRow.oldValue !== undefined"><span style="color: #909399; text-decoration: line-through">¥{{ Number(historyDetailRow.oldValue).toFixed(2) }}</span><span style="margin: 0 8px">→</span><span :style="{ color: Number(historyDetailRow.newValue) > Number(historyDetailRow.oldValue) ? '#f56c6c' : '#67c23a', fontWeight: 'bold' }">¥{{ Number(historyDetailRow.newValue).toFixed(2) }}</span></span><span v-else><el-tag type="primary" size="small">首次定价</el-tag><span style="margin-left: 8px; font-weight: bold">¥{{ Number(historyDetailRow.newValue).toFixed(2) }}</span></span></el-descriptions-item>
           <el-descriptions-item label="操作人">{{ historyDetailRow.changedBy || '系统' }}</el-descriptions-item>
-          <el-descriptions-item label="变更时间">{{ new Date(historyDetailRow.changedAt).toLocaleString('zh-CN') }}</el-descriptions-item>
+          <el-descriptions-item label="变更时间">{{ new Date(historyDetailRow.changedAt as string).toLocaleString('zh-CN') }}</el-descriptions-item>
           <el-descriptions-item label="变更原因" :span="2">{{ historyDetailRow.changeReason || '无' }}</el-descriptions-item>
         </el-descriptions>
       </template>
@@ -241,93 +241,99 @@ const loadedTabs = ref(new Set<string>(['tiers', 'wholesale']))
 const loadingTabs = ref(new Set<string>())
 
 // ===== 分级定义 =====
-const tierList = ref<any[]>([])
+interface TierForm { tierId: string; tierCode: string; tierName: string; positioning: string; sortOrder: number }
+const tierList = ref<Record<string, unknown>[]>([])
 const tierLoading = ref(false)
 const tierDialogVisible = ref(false)
-const selectedTiers = ref<any[]>([])
-const tierForm = reactive<any>({ tierId: '', tierCode: '', tierName: '', positioning: '', sortOrder: 0 })
+const selectedTiers = ref<Record<string, unknown>[]>([])
+const tierForm = reactive<TierForm>({ tierId: '', tierCode: '', tierName: '', positioning: '', sortOrder: 0 })
 
-const loadTiers = async () => { tierLoading.value = true; try { const res: any = await getTierPricings(); tierList.value = res.data || res.items || res || [] } catch (e: unknown) { ElMessage.error('加载分级失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } finally { tierLoading.value = false } }
-const openTierDialog = (row?: any) => { if (row) Object.assign(tierForm, { tierId: row.tierId, tierCode: row.tierCode, tierName: row.tierName, positioning: row.positioning || '', sortOrder: row.sortOrder }); else Object.assign(tierForm, { tierId: '', tierCode: '', tierName: '', positioning: '', sortOrder: tierList.value.length + 1 }); tierDialogVisible.value = true }
-const handleSaveTier = async () => { try { if (tierForm.tierId) { await updateTierPricing(tierForm.tierId, { tierName: tierForm.tierName, positioning: tierForm.positioning, sortOrder: tierForm.sortOrder }); ElMessage.success('更新成功') } else { tierForm.tierId = 'tier-' + Date.now() + '-' + crypto.randomUUID().slice(0, 8); await createTierPricing({ ...tierForm, isActive: true }); ElMessage.success('创建成功') } tierDialogVisible.value = false; selectedTiers.value = []; await loadTiers() } catch (e: unknown) { ElMessage.error('保存失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } }
-const handleDeleteTier = async (tierId: string) => { try { await deleteTierPricing(tierId); ElMessage.success('已删除'); await loadTiers() } catch (e: unknown) { ElMessage.error('删除失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } }
-const batchDeleteTiers = async () => { try { await ElMessageBox.confirm('确认删除选中的 ' + selectedTiers.value.length + ' 个分级？（软删除）', '批量删除', { type: 'warning' }); for (const row of selectedTiers.value) { if (row.tierId) await handleDeleteTier(row.tierId) } selectedTiers.value = [] } catch (e: unknown) { if (e !== 'cancel') ElMessage.error('批量删除失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } }
+const loadTiers = async () => { tierLoading.value = true; try { const res = await getTierPricings(); tierList.value = res as unknown as Record<string, unknown>[] } catch (e: unknown) { ElMessage.error('加载分级失败: ' + ((e as Error)?.message || String(e))) } finally { tierLoading.value = false } }
+const openTierDialog = (row?: Record<string, unknown>) => { if (row) Object.assign(tierForm, { tierId: row.tierId, tierCode: row.tierCode, tierName: row.tierName, positioning: row.positioning || '', sortOrder: row.sortOrder }); else Object.assign(tierForm, { tierId: '', tierCode: '', tierName: '', positioning: '', sortOrder: tierList.value.length + 1 }); tierDialogVisible.value = true }
+const handleSaveTier = async () => { try { if (tierForm.tierId) { await updateTierPricing(tierForm.tierId, { tierName: tierForm.tierName, positioning: tierForm.positioning, sortOrder: tierForm.sortOrder }); ElMessage.success('更新成功') } else { tierForm.tierId = 'tier-' + Date.now() + '-' + crypto.randomUUID().slice(0, 8); await createTierPricing({ ...tierForm, isActive: true }); ElMessage.success('创建成功') } tierDialogVisible.value = false; selectedTiers.value = []; await loadTiers() } catch (e: unknown) { ElMessage.error('保存失败: ' + ((e as Error)?.message || String(e))) } }
+const handleDeleteTier = async (tierId: string) => { try { await deleteTierPricing(tierId); ElMessage.success('已删除'); await loadTiers() } catch (e: unknown) { ElMessage.error('删除失败: ' + ((e as Error)?.message || String(e))) } }
+const batchDeleteTiers = async () => { try { await ElMessageBox.confirm('确认删除选中的 ' + selectedTiers.value.length + ' 个分级？（软删除）', '批量删除', { type: 'warning' }); for (const row of selectedTiers.value) { if (row.tierId) await handleDeleteTier(row.tierId as string) } selectedTiers.value = [] } catch (e: unknown) { if (e !== 'cancel') ElMessage.error('批量删除失败: ' + ((e as Error)?.message || String(e))) } }
 
 // ===== 阶梯定价 =====
-const wholesaleList = ref<any[]>([])
+interface WholesaleForm { tierId: string; tierCode: string; tierName: string; minQuantity: number; maxQuantity: number | null; discountRate: number; description: string; _discountDisplay: number }
+const wholesaleList = ref<Record<string, unknown>[]>([])
 const wholesaleLoading = ref(false)
 const wholesaleDialogVisible = ref(false)
-const selectedWholesales = ref<any[]>([])
-const wholesaleForm = reactive<any>({ tierId: '', tierCode: '', tierName: '', minQuantity: 1, maxQuantity: null, discountRate: 0.8, description: '', _discountDisplay: 80 })
+const selectedWholesales = ref<Record<string, unknown>[]>([])
+const wholesaleForm = reactive<WholesaleForm>({ tierId: '', tierCode: '', tierName: '', minQuantity: 1, maxQuantity: null, discountRate: 0.8, description: '', _discountDisplay: 80 })
 
-const loadWholesale = async () => { wholesaleLoading.value = true; try { const res: any = await getWholesaleTiers(); wholesaleList.value = res.data || res.items || res || [] } catch (e: unknown) { ElMessage.error('加载阶梯失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } finally { wholesaleLoading.value = false } }
-const openWholesaleDialog = (row?: any) => { if (row) Object.assign(wholesaleForm, { ...row, _discountDisplay: Math.round(row.discountRate * 100) }); else Object.assign(wholesaleForm, { tierId: '', tierCode: '', tierName: '', minQuantity: 1, maxQuantity: null, discountRate: 0.8, description: '', _discountDisplay: 80 }); wholesaleDialogVisible.value = true }
+const loadWholesale = async () => { wholesaleLoading.value = true; try { const res = await getWholesaleTiers(); wholesaleList.value = res as unknown as Record<string, unknown>[] } catch (e: unknown) { ElMessage.error('加载阶梯失败: ' + ((e as Error)?.message || String(e))) } finally { wholesaleLoading.value = false } }
+const openWholesaleDialog = (row?: Record<string, unknown>) => { if (row) Object.assign(wholesaleForm, { ...row, _discountDisplay: Math.round((row.discountRate as number) * 100) }); else Object.assign(wholesaleForm, { tierId: '', tierCode: '', tierName: '', minQuantity: 1, maxQuantity: null, discountRate: 0.8, description: '', _discountDisplay: 80 }); wholesaleDialogVisible.value = true }
 const handleSaveWholesale = async () => { try { if (wholesaleForm.tierId) { await updateWholesaleTier(wholesaleForm.tierId, { tierName: wholesaleForm.tierName, minQuantity: wholesaleForm.minQuantity, maxQuantity: wholesaleForm.maxQuantity || null, discountRate: wholesaleForm.discountRate, description: wholesaleForm.description }); ElMessage.success('更新成功') } else { wholesaleForm.tierId = 'wt-' + Date.now() + '-' + crypto.randomUUID().slice(0, 8); await createWholesaleTier({ tierId: wholesaleForm.tierId, tierCode: wholesaleForm.tierCode, tierName: wholesaleForm.tierName, minQuantity: wholesaleForm.minQuantity, maxQuantity: wholesaleForm.maxQuantity || null, discountRate: wholesaleForm.discountRate, description: wholesaleForm.description }); ElMessage.success('创建成功') } wholesaleDialogVisible.value = false; selectedWholesales.value = []; await loadWholesale() } catch (e: unknown) { const err = e instanceof Error ? e.message : String(e); ElMessage.error('保存失败: ' + err) } }
-const batchDeleteWholesales = async () => { try { await ElMessageBox.confirm('确认删除选中的 ' + selectedWholesales.value.length + ' 个阶梯？（软删除）', '批量删除', { type: 'warning' }); for (const row of selectedWholesales.value) { if (row.tierId) await deleteWholesaleTier(row.tierId) } selectedWholesales.value = []; ElMessage.success('已删除'); await loadWholesale() } catch (e: unknown) { if (e !== 'cancel') ElMessage.error('批量删除失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } }
+const batchDeleteWholesales = async () => { try { await ElMessageBox.confirm('确认删除选中的 ' + selectedWholesales.value.length + ' 个阶梯？（软删除）', '批量删除', { type: 'warning' }); for (const row of selectedWholesales.value) { if (row.tierId) await deleteWholesaleTier(row.tierId as string) } selectedWholesales.value = []; ElMessage.success('已删除'); await loadWholesale() } catch (e: unknown) { if (e !== 'cancel') ElMessage.error('批量删除失败: ' + ((e as Error)?.message || String(e))) } }
 
 // ===== 协议价管理 =====
-const agreementList = ref<any[]>([])
+interface AgreementForm { pricingId: string; pricingMode: string; fixedPrice: number | null; discountRate: number; _discountDisplay: number; productSkuId: string; agreementNo: string; agreementStart: string | null; agreementEnd: string | null; salesRep: string; isActive: boolean }
+const agreementList = ref<Record<string, unknown>[]>([])
 const agreementLoading = ref(false)
 const agreementDialogVisible = ref(false)
 const agreementFilter = reactive({ customerId: '' })
-const agreementForm = reactive<any>({ pricingId: '', pricingMode: 'discount', fixedPrice: null, discountRate: 0.9, _discountDisplay: 90, productSkuId: '', agreementNo: '', agreementStart: null, agreementEnd: null, salesRep: '', isActive: true })
-const businessCustomerOptions = ref<any[]>([])
+const agreementForm = reactive<AgreementForm>({ pricingId: '', pricingMode: 'discount', fixedPrice: null, discountRate: 0.9, _discountDisplay: 90, productSkuId: '', agreementNo: '', agreementStart: null, agreementEnd: null, salesRep: '', isActive: true })
+const businessCustomerOptions = ref<Record<string, unknown>[]>([])
 const skuNameMap = ref<Record<string, string>>({})
 
-const loadBusinessCustomers = async () => { try { const res: any = await getCustomerList({ page: 1, pageSize: 200, customerType: CUSTOMER_TYPES[1] }); const list = res.data?.items || res.items || res || []; businessCustomerOptions.value = list.map((c: any) => ({ customerId: c.customerId, contactName: c.contactName, companyName: c.companyName, customerType: c.customerType })) } catch {} }
+const loadBusinessCustomers = async () => { try { const res = await getCustomerList({ page: 1, pageSize: 200, customerType: CUSTOMER_TYPES[1] }); const list = res.items || []; businessCustomerOptions.value = list.map((c) => ({ customerId: c.customerId, contactName: c.contactName, companyName: c.companyName, customerType: c.customerType })) } catch { /* ignore */ } }
 const onAgreementCustomerChange = () => { loadAgreements() }
-const loadAgreements = async () => { if (!agreementFilter.customerId) return; agreementLoading.value = true; try { const res: any = await getCustomerPricings(agreementFilter.customerId); agreementList.value = res.data || res.items || res || [] } catch (e: unknown) { ElMessage.error('加载协议价失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } finally { agreementLoading.value = false } }
-const openAgreementDialog = (row?: any) => { if (row) Object.assign(agreementForm, { ...row, _discountDisplay: row.discountRate ? Math.round(row.discountRate * 100) : 90 }); else Object.assign(agreementForm, { pricingId: '', pricingMode: 'discount', fixedPrice: null, discountRate: 0.9, _discountDisplay: 90, productSkuId: '', agreementNo: '', agreementStart: null, agreementEnd: null, salesRep: '', isActive: true }); agreementDialogVisible.value = true }
-const handleSaveAgreement = async () => { try { const payload = { pricingMode: agreementForm.pricingMode, fixedPrice: agreementForm.pricingMode === 'fixed' ? agreementForm.fixedPrice : null, discountRate: agreementForm.pricingMode === 'discount' ? agreementForm.discountRate : null, productSkuId: agreementForm.productSkuId || null, agreementNo: agreementForm.agreementNo || null, agreementStart: agreementForm.agreementStart || null, agreementEnd: agreementForm.agreementEnd || null, salesRep: agreementForm.salesRep || null, isActive: agreementForm.isActive }; if (agreementForm.pricingId) { await updateCustomerPricing(agreementForm.pricingId, payload); ElMessage.success('更新成功') } else { await addTierPricing({ customerId: agreementFilter.customerId, ...payload }); ElMessage.success('创建成功') } agreementDialogVisible.value = false; loadAgreements() } catch (e: unknown) { ElMessage.error('保存失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } }
-const handleDeleteAgreement = async (id: string) => { try { await deleteCustomerPricing(id); ElMessage.success('已删除'); loadAgreements() } catch (e: unknown) { ElMessage.error('删除失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } }
+const loadAgreements = async () => { if (!agreementFilter.customerId) return; agreementLoading.value = true; try { const res = await getCustomerPricings(agreementFilter.customerId); agreementList.value = res as unknown as Record<string, unknown>[] } catch (e: unknown) { ElMessage.error('加载协议价失败: ' + ((e as Error)?.message || String(e))) } finally { agreementLoading.value = false } }
+const openAgreementDialog = (row?: Record<string, unknown>) => { if (row) Object.assign(agreementForm, { ...row, _discountDisplay: row.discountRate ? Math.round((row.discountRate as number) * 100) : 90 }); else Object.assign(agreementForm, { pricingId: '', pricingMode: 'discount', fixedPrice: null, discountRate: 0.9, _discountDisplay: 90, productSkuId: '', agreementNo: '', agreementStart: null, agreementEnd: null, salesRep: '', isActive: true }); agreementDialogVisible.value = true }
+const handleSaveAgreement = async () => { try { const payload = { pricingMode: agreementForm.pricingMode, fixedPrice: agreementForm.pricingMode === 'fixed' ? agreementForm.fixedPrice : null, discountRate: agreementForm.pricingMode === 'discount' ? agreementForm.discountRate : null, productSkuId: agreementForm.productSkuId || null, agreementNo: agreementForm.agreementNo || null, agreementStart: agreementForm.agreementStart || null, agreementEnd: agreementForm.agreementEnd || null, salesRep: agreementForm.salesRep || null, isActive: agreementForm.isActive }; if (agreementForm.pricingId) { await updateCustomerPricing(agreementForm.pricingId, payload); ElMessage.success('更新成功') } else { await addTierPricing({ customerId: agreementFilter.customerId, ...payload }); ElMessage.success('创建成功') } agreementDialogVisible.value = false; loadAgreements() } catch (e: unknown) { ElMessage.error('保存失败: ' + ((e as Error)?.message || String(e))) } }
+const handleDeleteAgreement = async (id: string) => { try { await deleteCustomerPricing(id); ElMessage.success('已删除'); loadAgreements() } catch (e: unknown) { ElMessage.error('删除失败: ' + ((e as Error)?.message || String(e))) } }
 
 // ===== 价格历史 =====
-const historyList = ref<any[]>([])
+const historyList = ref<Record<string, unknown>[]>([])
 const historyLoading = ref(false)
 const historyFilter = reactive({ skuId: '', priceType: '' })
-const skuOptions = ref<any[]>([])
+const skuOptions = ref<Record<string, unknown>[]>([])
 
-const loadHistory = async () => { historyLoading.value = true; try { const res: any = await getPriceHistory(historyFilter); historyList.value = res.data || res.items || res || [] } catch (e: unknown) { ElMessage.error('加载价格历史失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } finally { historyLoading.value = false } }
+const loadHistory = async () => { historyLoading.value = true; try { const res = await getPriceHistory(historyFilter) as unknown as Record<string, unknown>; historyList.value = (res?.data || res?.items || res || []) as Record<string, unknown>[] } catch (e: unknown) { ElMessage.error('加载价格历史失败: ' + ((e as Error)?.message || String(e))) } finally { historyLoading.value = false } }
 const historyDetailVisible = ref(false)
-const historyDetailRow = ref<any>(null)
-const showHistoryDetail = (row: any) => { historyDetailRow.value = row; historyDetailVisible.value = true }
+const historyDetailRow = ref<Record<string, unknown> | null>(null)
+const showHistoryDetail = (row: Record<string, unknown>) => { historyDetailRow.value = row; historyDetailVisible.value = true }
 
-const loadSkuOptions = async () => { try { const res: any = await getSkus({ page: 1, pageSize: 200 }); const list = res.data?.items || res.items || res || []; skuOptions.value = list.map((s: any) => ({ skuId: s.skuId, skuCode: s.skuCode, skuName: s.skuName })); list.forEach((s: any) => { if (s.skuId) skuNameMap.value[s.skuId] = s.skuCode + (s.skuName ? ' (' + s.skuName + ')' : '') }) } catch {} }
+const loadSkuOptions = async () => { try { const res = await getSkus({ page: 1, pageSize: 200 }) as unknown as Record<string, unknown>; const list = (res?.items as unknown as Record<string, unknown>[]) || (res as unknown as Record<string, unknown>[]) || []; skuOptions.value = list.map((s) => ({ skuId: s.skuId, skuCode: s.skuCode, skuName: s.skuName })); list.forEach((s) => { if (s.skuId) skuNameMap.value[s.skuId as string] = String(s.skuCode) + (s.skuName ? ' (' + s.skuName + ')' : '') }) } catch { /* ignore */ } }
 
 // ===== 促销管理 =====
-const promoList = ref<any[]>([])
+interface PromoForm { promotionId: string; promotionCode: string; name: string; type: string; scope: string; scopeIds: string[]; discountType: string; discountValue: number; minAmount: number | null; maxDiscount: number | null; startTime: string; endTime: string; userLimit: number | null; totalLimit: number | null; priority: number; stackable: boolean; status: string; _isNew?: boolean }
+const promoList = ref<Record<string, unknown>[]>([])
 const promoLoading = ref(false)
 const promoDialogVisible = ref(false)
-const promoForm = reactive<any>({ promotionId: '', promotionCode: '', name: '', type: 'discount', scope: 'all', scopeIds: [], discountType: 'percent', discountValue: 10, minAmount: null, maxDiscount: null, startTime: '', endTime: '', userLimit: null, totalLimit: null, priority: 0, stackable: false, status: 'draft' })
+const promoForm = reactive<PromoForm>({ promotionId: '', promotionCode: '', name: '', type: 'discount', scope: 'all', scopeIds: [], discountType: 'percent', discountValue: 10, minAmount: null, maxDiscount: null, startTime: '', endTime: '', userLimit: null, totalLimit: null, priority: 0, stackable: false, status: 'draft' })
 
-const loadPromotions = async () => { promoLoading.value = true; try { const res: any = await getPromotions({}); promoList.value = res.data || res.items || res || [] } catch (e: unknown) { ElMessage.error('加载促销失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } finally { promoLoading.value = false } }
-const openPromoDialog = (row?: any) => { if (row) Object.assign(promoForm, { ...row, startTime: row.startTime ? new Date(row.startTime).toISOString().split('T')[0] : '', endTime: row.endTime ? new Date(row.endTime).toISOString().split('T')[0] : '' }); else Object.assign(promoForm, { promotionId: 'promo-' + Date.now(), promotionCode: '', name: '', type: 'discount', scope: 'all', scopeIds: [], discountType: 'percent', discountValue: 10, minAmount: null, maxDiscount: null, startTime: '', endTime: '', userLimit: null, totalLimit: null, priority: 0, stackable: false, status: 'draft' }); promoDialogVisible.value = true }
-const handleSavePromo = async () => { try { if (promoForm.promotionId && !promoForm._isNew) { await updatePromotion(promoForm.promotionId, promoForm); ElMessage.success('更新成功') } else { await createPromotion(promoForm); ElMessage.success('创建成功') } promoDialogVisible.value = false; loadPromotions() } catch (e: unknown) { ElMessage.error('保存失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } }
-const handleDeletePromo = async (id: string) => { try { await deletePromotion(id); ElMessage.success('已删除'); loadPromotions() } catch (e: unknown) { ElMessage.error('删除失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } }
-const handlePromoStatus = async (row: any, status: string) => { try { await updatePromotionStatus(row.promotionId, status); ElMessage.success('状态已更新'); loadPromotions() } catch (e: unknown) { ElMessage.error('操作失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } }
-const handleCopyPromo = (row: any) => { Object.assign(promoForm, { ...row, promotionId: 'promo-' + Date.now(), promotionCode: '', _isNew: true, name: row.name + ' (副本)' }); promoDialogVisible.value = true }
+const loadPromotions = async () => { promoLoading.value = true; try { const res = await getPromotions({}); promoList.value = res as unknown as Record<string, unknown>[] } catch (e: unknown) { ElMessage.error('加载促销失败: ' + ((e as Error)?.message || String(e))) } finally { promoLoading.value = false } }
+const openPromoDialog = (row?: Record<string, unknown>) => { if (row) Object.assign(promoForm, { ...row, startTime: row.startTime ? new Date(row.startTime as string).toISOString().split('T')[0] : '', endTime: row.endTime ? new Date(row.endTime as string).toISOString().split('T')[0] : '' }); else Object.assign(promoForm, { promotionId: 'promo-' + Date.now(), promotionCode: '', name: '', type: 'discount', scope: 'all', scopeIds: [], discountType: 'percent', discountValue: 10, minAmount: null, maxDiscount: null, startTime: '', endTime: '', userLimit: null, totalLimit: null, priority: 0, stackable: false, status: 'draft' }); promoDialogVisible.value = true }
+const handleSavePromo = async () => { try { if (promoForm.promotionId && !promoForm._isNew) { await updatePromotion(promoForm.promotionId, promoForm); ElMessage.success('更新成功') } else { await createPromotion(promoForm); ElMessage.success('创建成功') } promoDialogVisible.value = false; loadPromotions() } catch (e: unknown) { ElMessage.error('保存失败: ' + ((e as Error)?.message || String(e))) } }
+const handleDeletePromo = async (id: string) => { try { await deletePromotion(id); ElMessage.success('已删除'); loadPromotions() } catch (e: unknown) { ElMessage.error('删除失败: ' + ((e as Error)?.message || String(e))) } }
+const handlePromoStatus = async (row: Record<string, unknown>, status: string) => { try { await updatePromotionStatus(row.promotionId as string, status); ElMessage.success('状态已更新'); loadPromotions() } catch (e: unknown) { ElMessage.error('操作失败: ' + ((e as Error)?.message || String(e))) } }
+const handleCopyPromo = (row: Record<string, unknown>) => { Object.assign(promoForm, { promotionId: 'promo-' + Date.now(), promotionCode: (row.promotionCode as string) || '', name: (row.name as string) + ' (副本)', type: (row.type as string) || 'discount', scope: (row.scope as string) || 'all', scopeIds: (row.scopeIds as string[]) || [], discountType: (row.discountType as string) || 'percent', discountValue: (row.discountValue as number) || 10, minAmount: (row.minAmount as number) || null, maxDiscount: (row.maxDiscount as number) || null, startTime: (row.startTime as string) || '', endTime: (row.endTime as string) || '', userLimit: (row.userLimit as number) || null, totalLimit: (row.totalLimit as number) || null, priority: (row.priority as number) || 0, stackable: Boolean(row.stackable), status: (row.status as string) || 'draft' }); promoDialogVisible.value = true }
 const formatDate = (d: string) => d ? new Date(d).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-'
-const getPromoUsagePercent = (row: any) => row.totalLimit ? Math.round((row.usedCount || 0) / row.totalLimit * 100) : 0
-const getPromoUsageStatus = (row: any) => { const pct = getPromoUsagePercent(row); if (pct >= 90) return 'exception'; if (pct >= 70) return 'warning'; return '' }
+const getPromoUsagePercent = (row: Record<string, unknown>) => (row.totalLimit as number) ? Math.round(((row.usedCount as number) || 0) / (row.totalLimit as number) * 100) : 0
+const getPromoUsageStatus = (row: Record<string, unknown>) => { const pct = getPromoUsagePercent(row); if (pct >= 90) return 'exception'; if (pct >= 70) return 'warning'; return '' }
 
 // ===== 会员定价规则 =====
-const memberLevels = ref<any[]>([])
-const memberPricingRules = ref<any[]>([])
+const memberLevels = ref<Record<string, unknown>[]>([])
+const memberPricingRules = ref<Record<string, unknown>[]>([])
 const memberRulesLoading = ref(false)
 const memberRuleFilter = reactive({ levelCode: '', skuId: '' })
 const memberPricingRuleDialogVisible = ref(false)
-const memberPricingRuleForm = reactive<any>({ ruleId: '', levelCode: '', skuId: '', ruleType: 'discount', discountRate: 0.9, fixedPrice: null, extraDiscount: null, priority: 0, minQuantity: 1, startTime: null, endTime: null, notes: '' })
+interface MemberPricingRuleForm { ruleId: string; levelCode: string; skuId: string; ruleType: string; discountRate: number; fixedPrice: number | null; extraDiscount: number | null; priority: number; minQuantity: number; startTime: string | null; endTime: string | null; notes: string }
+const memberPricingRuleForm = reactive<MemberPricingRuleForm>({ ruleId: '', levelCode: '', skuId: '', ruleType: 'discount', discountRate: 0.9, fixedPrice: null, extraDiscount: null, priority: 0, minQuantity: 1, startTime: null, endTime: null, notes: '' })
 
-const loadMemberPricingRules = async () => { memberRulesLoading.value = true; try { const params: Record<string, string> = {}; if (memberRuleFilter.levelCode) params.levelCode = memberRuleFilter.levelCode; if (memberRuleFilter.skuId) params.skuId = memberRuleFilter.skuId; const res: any = await getMemberPricingRules(params); memberPricingRules.value = res.data || res.items || res || [] } catch { memberPricingRules.value = [] } finally { memberRulesLoading.value = false } }
-const openMemberPricingRuleDialog = (row?: any) => { if (row) Object.assign(memberPricingRuleForm, { ruleId: row.ruleId, levelCode: row.levelCode, skuId: row.skuId, ruleType: row.ruleType, discountRate: row.discountRate, fixedPrice: row.fixedPrice, extraDiscount: row.extraDiscount, priority: row.priority, minQuantity: row.minQuantity || 1, startTime: row.startTime?.split('T')[0] || null, endTime: row.endTime?.split('T')[0] || null, notes: row.notes || '' }); else Object.assign(memberPricingRuleForm, { ruleId: '', levelCode: memberRuleFilter.levelCode || '', skuId: memberRuleFilter.skuId || '', ruleType: 'discount', discountRate: 0.9, fixedPrice: null, extraDiscount: null, priority: 0, minQuantity: 1, startTime: null, endTime: null, notes: '' }); memberPricingRuleDialogVisible.value = true }
-const handleSaveMemberPricingRule = async () => { try { if (memberPricingRuleForm.ruleId) { await updateMemberPricingRule(memberPricingRuleForm.ruleId, memberPricingRuleForm); ElMessage.success('更新成功') } else { await createMemberPricingRule(memberPricingRuleForm); ElMessage.success('创建成功') } memberPricingRuleDialogVisible.value = false; loadMemberPricingRules() } catch (e: unknown) { ElMessage.error('保存失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } }
-const handleDeleteMemberPricingRule = async (ruleId: string) => { try { await deleteMemberPricingRule(ruleId); ElMessage.success('已停用'); loadMemberPricingRules() } catch (e: unknown) { ElMessage.error('操作失败: ' + ((e as any)?.response?.data?.message || (e as Error).message)) } }
+const loadMemberPricingRules = async () => { memberRulesLoading.value = true; try { const params: Record<string, string> = {}; if (memberRuleFilter.levelCode) params.levelCode = memberRuleFilter.levelCode; if (memberRuleFilter.skuId) params.skuId = memberRuleFilter.skuId; const res = await getMemberPricingRules(params); memberPricingRules.value = res as unknown as Record<string, unknown>[] } catch { memberPricingRules.value = [] } finally { memberRulesLoading.value = false } }
+const openMemberPricingRuleDialog = (row?: Record<string, unknown>) => { if (row) Object.assign(memberPricingRuleForm, { ruleId: row.ruleId as string, levelCode: row.levelCode as string, skuId: row.skuId as string, ruleType: row.ruleType as string, discountRate: row.discountRate as number, fixedPrice: row.fixedPrice as number | null, extraDiscount: row.extraDiscount as number | null, priority: row.priority as number, minQuantity: (row.minQuantity as number) || 1, startTime: (row.startTime as string)?.split('T')[0] || null, endTime: (row.endTime as string)?.split('T')[0] || null, notes: (row.notes as string) || '' }); else Object.assign(memberPricingRuleForm, { ruleId: '', levelCode: memberRuleFilter.levelCode || '', skuId: memberRuleFilter.skuId || '', ruleType: 'discount', discountRate: 0.9, fixedPrice: null, extraDiscount: null, priority: 0, minQuantity: 1, startTime: null, endTime: null, notes: '' }); memberPricingRuleDialogVisible.value = true }
+const handleSaveMemberPricingRule = async () => { try { if (memberPricingRuleForm.ruleId) { await updateMemberPricingRule(memberPricingRuleForm.ruleId, memberPricingRuleForm); ElMessage.success('更新成功') } else { await createMemberPricingRule(memberPricingRuleForm); ElMessage.success('创建成功') } memberPricingRuleDialogVisible.value = false; loadMemberPricingRules() } catch (e: unknown) { ElMessage.error('保存失败: ' + ((e as Error)?.message || String(e))) } }
+const handleDeleteMemberPricingRule = async (ruleId: string) => { try { await deleteMemberPricingRule(ruleId); ElMessage.success('已停用'); loadMemberPricingRules() } catch (e: unknown) { ElMessage.error('操作失败: ' + ((e as Error)?.message || String(e))) } }
 
 // ===== 生命周期 =====
 onMounted(() => { loadTiers(); loadWholesale(); loadSkuOptions(); loadBusinessCustomers() })
 
-const onTabChange = async (tab: any) => {
+const onTabChange = async (tab: { props?: { name?: string }; name?: string }) => {
   const tabName = tab.props?.name || tab.name
+  if (!tabName) return
   if (loadedTabs.value.has(tabName) || loadingTabs.value.has(tabName)) return
   loadingTabs.value.add(tabName)
   try {
