@@ -48,9 +48,9 @@ function simulateResponseInterceptor(responseData: unknown, status: number) {
   // 数组直接返回
   if (Array.isArray(responseData)) return responseData
   // 标准解包 { code, message, data }
-  const { code, message, data } = responseData || {}
+  const { code, message, data } = (responseData as Record<string, unknown>) || {}
   if (code === 0) return data
-  const errMsg = Array.isArray(message) ? message.join('; ') : (message || '请求失败')
+  const errMsg = Array.isArray(message) ? (message as string[]).join('; ') : ((message as string) || '请求失败')
   return Promise.reject(new Error(errMsg))
 }
 

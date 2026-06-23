@@ -19,9 +19,9 @@ import { describe, it, expect } from 'vitest'
 // ═══════════════════════════════════════
 
 function computeDisplayName(opts: {
-  spuId: string; colorCode: string; spuList: unknown[]; structureStandards: unknown[]
+  spuId: string; colorCode: string; spuList: Record<string, unknown>[]; structureStandards: Record<string, unknown>[]
   form: { skinToneEffect?: string; faceShapeEffect?: string; structureStandardCode?: string }
-  colorList: unknown[]; schemaConfig?: unknown
+  colorList: Record<string, unknown>[]; schemaConfig?: Record<string, unknown>
 }): string {
   const { spuId, colorCode, spuList, structureStandards, form, colorList, schemaConfig } = opts
   if (!spuId || !colorCode) return ''
@@ -32,16 +32,16 @@ function computeDisplayName(opts: {
   )
   if (!struct) return ''
   const color = colorList.find(c => c.colorCode === colorCode)
-  const shapeM: Record<string, string> = schemaConfig?.shapeLabels || {}
-  const seriesM: Record<string, string> = schemaConfig?.seriesLabels || {}
+  const shapeM: Record<string, string> = (schemaConfig?.shapeLabels as Record<string, string>) || {}
+  const seriesM: Record<string, string> = (schemaConfig?.seriesLabels as Record<string, string>) || {}
   const genderM: Record<string, string> = schemaConfig?.genderOptions
-    ? Object.fromEntries(schemaConfig.genderOptions.map((o: unknown) => [o.value, o.label]))
+    ? Object.fromEntries((schemaConfig.genderOptions as unknown as Record<string, string>[]).map((o) => [o.value, o.label]))
     : { female: '女款', male: '男款', unisex: '中性', limited: '限量' }
-  const shapeName = shapeM[struct.shapeCode] || struct.shapeCode || ''
-  const seriesName = seriesM[spu.seriesCode] || ''
-  const colorName = color?.colorName || '未知色'
+  const shapeName = shapeM[struct.shapeCode as string] || struct.shapeCode || ''
+  const seriesName = seriesM[spu.seriesCode as string] || ''
+  const colorName = (color as Record<string, unknown>)?.colorName as string || '未知色'
   const effect = form.faceShapeEffect || form.skinToneEffect || '中性百搭'
-  const genderLabel = genderM[spu.gender] || '中性'
+  const genderLabel = genderM[spu.gender as string] || '中性'
   return `${effect} · ${colorName} · ${shapeName}${seriesName}系列 · ${genderLabel}`
 }
 
@@ -73,7 +73,7 @@ describe('SkuDialog — 展示名预览 (displayName computed)', () => {
   const baseOpts = {
     spuId: 'spu-001', colorCode: 'macaron_pink',
     spuList: mockSpuList, structureStandards: mockStructures,
-    form: { skinToneEffect: '黄皮肤增白', faceShapeEffect: '' } as unknown,
+    form: { skinToneEffect: '黄皮肤增白', faceShapeEffect: '' },
     colorList: mockColors, schemaConfig: mockSchemaConfig,
   }
 
@@ -95,7 +95,7 @@ describe('SkuDialog — 展示名预览 (displayName computed)', () => {
   it('脸型效果优先于肤色效果', () => {
     const name = computeDisplayName({
       ...baseOpts,
-      form: { skinToneEffect: '黄皮肤增白', faceShapeEffect: '圆脸显瘦' } as unknown,
+      form: { skinToneEffect: '黄皮肤增白', faceShapeEffect: '圆脸显瘦' },
     })
     expect(name).toContain('圆脸显瘦')
     expect(name).not.toContain('黄皮肤增白')
@@ -105,7 +105,7 @@ describe('SkuDialog — 展示名预览 (displayName computed)', () => {
     const name = computeDisplayName({
       spuId: 'spu-002', colorCode: 'gunmetal',
       spuList: mockSpuList, structureStandards: mockStructures,
-      form: { skinToneEffect: '中性百搭', faceShapeEffect: '' } as unknown,
+      form: { skinToneEffect: '中性百搭', faceShapeEffect: '' },
       colorList: mockColors, schemaConfig: mockSchemaConfig,
     })
     expect(name).toBe('中性百搭 · 枪灰色 · 威灵顿框商务系列 · 男款')
@@ -114,7 +114,7 @@ describe('SkuDialog — 展示名预览 (displayName computed)', () => {
   it('无效果词 → 兜底"中性百搭"', () => {
     const name = computeDisplayName({
       ...baseOpts,
-      form: { skinToneEffect: '', faceShapeEffect: '' } as unknown,
+      form: { skinToneEffect: '', faceShapeEffect: '' },
     })
     expect(name).toContain('中性百搭')
   })
