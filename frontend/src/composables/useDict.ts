@@ -21,13 +21,8 @@ import request from '@/api/request'
 
 // ============================================================
 
-export interface DictItem {
-  code: string
-  name: string
-  sort_order: number
-  is_active: number
-  color?: string
-}
+import type { DictItem } from '@/api/api-types'
+export type { DictItem }
 
 // ---------- 全局缓存：跨组件共享已加载的字典 ----------
 const globalCache = new Map<string, DictItem[]>()
