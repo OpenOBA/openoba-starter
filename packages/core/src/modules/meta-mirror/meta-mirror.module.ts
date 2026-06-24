@@ -14,6 +14,7 @@ import { ErdlAuditScanner } from './scanners/erdl-audit.scanner'
 import { KnowledgeWriter } from './generators/knowledge-writer.generator'
 import { DepGraphGenerator } from './generators/depgraph.generator'
 import { ContextInjector } from './generators/context-injector.generator'
+import { QualityGateGenerator } from './generators/quality-gate.generator'
 import { ManifestService } from './manifest'
 
 @Module({
@@ -29,6 +30,7 @@ import { ManifestService } from './manifest'
     KnowledgeWriter,
     DepGraphGenerator,
     ContextInjector,
+    QualityGateGenerator,
     ManifestService,
   ],
 })

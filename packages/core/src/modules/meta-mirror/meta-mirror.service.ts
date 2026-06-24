@@ -16,6 +16,7 @@ import { ErdlAuditScanner } from './scanners/erdl-audit.scanner'
 import type { EnhancedRuleInfo } from './scanners/rule.scanner'
 import { ContextInjector } from './generators/context-injector.generator'
 import { ManifestService } from './manifest'
+import { QualityGateGenerator } from './generators/quality-gate.generator'
 import type { ConventionInfo, MirrorRefs, InjectedContext } from './types'
 
 @Injectable()
@@ -33,6 +34,7 @@ export class MetaMirrorService implements OnModuleInit {
     private readonly contextInjector: ContextInjector,
     private readonly erdlAudit: ErdlAuditScanner,
     private readonly manifest: ManifestService,
+    private readonly qualityGate: QualityGateGenerator,
   ) {
     // process.cwd() = backend/，projectRoot = backend/.. = Phase-0-地基
     this.projectRoot = path.resolve(process.cwd(), '..')
@@ -85,6 +87,11 @@ export class MetaMirrorService implements OnModuleInit {
     const depGraph = this.depGraph.generate(entities)
     await this.depGraph.write(depGraph, path.join(process.cwd(), 'knowledge'))
 
+    // V3.0: 生成质量门禁
+    this.logger.log('  🔒 生成质量门禁...')
+    const gateRules = this.qualityGate.generate(this.projectRoot)
+    this.qualityGate.writeRules(gateRules, path.join(process.cwd(), 'knowledge'))
+
     // Step 4: 保存 Manifest
     const sourceHash = this.manifest.computeSourceHash(this.projectRoot)
     this.manifest.save({
@@ -106,7 +113,7 @@ export class MetaMirrorService implements OnModuleInit {
     const auditReport = this.erdlAudit.audit(enhancedRules as unknown as EnhancedRuleInfo[], dtos, entities)
     this.erdlAudit.writeReport(auditReport, outputDir)
 
-    this.logger.log(`  ✅ 元镜知识图谱已更新 · ${new Date().toISOString()}`)
+    this.logger.log(`  ✅ 元镜知识图谱已更新 · ${6 + 1} 个知识文件 · ${new Date().toISOString()}`)
     this.logger.log('🔮 元镜就绪 · 反观自照')
   }
 
