@@ -11,7 +11,7 @@
       <div class="mm-card" :class="statusCardClass">
         <div class="mm-card-body">
           <div class="mm-card-title">元镜状态</div>
-          <div class="mm-card-value">{{ manifest?.status === 'active' ? '运行中' : '未初始化' }}</div>
+          <div class="mm-card-value status-active">{{ manifest?.status === 'active' ? '运行中' : '未初始化' }}</div>
           <div class="mm-card-detail" v-if="manifest">
             {{ manifest.entityCount }} 实体 · {{ manifest.apiCount }} API · {{ manifest.moduleCount }} 模块
           </div>
@@ -21,7 +21,7 @@
       <div class="mm-card" :class="versionCardClass">
         <div class="mm-card-body">
           <div class="mm-card-title">版本一致性</div>
-          <div class="mm-card-value">{{ versionConsistent ? '一致' : '不一致' }}</div>
+          <div class="mm-card-value version-ok">{{ versionConsistent ? '一致' : '不一致' }}</div>
           <div class="mm-card-detail" v-if="versionInfo">{{ vCurrent?.version || '—' }}</div>
         </div>
       </div>
@@ -29,7 +29,7 @@
       <div class="mm-card" :class="gateCardClass">
         <div class="mm-card-body">
           <div class="mm-card-title">质量门禁</div>
-          <div class="mm-card-value">{{ gateCount }} 条规则</div>
+          <div class="mm-card-value gates-normal">{{ gateCount }} 条规则</div>
           <div class="mm-card-detail">error {{ errorGateCount }} · warning {{ warnGateCount }}</div>
         </div>
       </div>
@@ -37,7 +37,7 @@
       <div class="mm-card" :class="rollbackCardClass">
         <div class="mm-card-body">
           <div class="mm-card-title">回滚安全网</div>
-          <div class="mm-card-value">{{ checkpointCount }} 个检查点</div>
+          <div class="mm-card-value rollback-safe">{{ checkpointCount }} 个检查点</div>
           <div class="mm-card-detail" v-if="nearestSafe">最近安全: {{ nearestSafe.id }}</div>
         </div>
       </div>
@@ -262,10 +262,10 @@ const vAudit = computed(() => (v('commitAudit') as Record<string, unknown>))
 const vChangelog = computed(() => (v('changelogStatus') as Record<string, unknown>))
 const vRecs = computed(() => (v('recommendations') as string[]))
 
-const statusCardClass = computed(() => manifest.value?.status === 'active' ? 'mm-card-ok' : 'mm-card-warn')
-const versionCardClass = computed(() => versionConsistent.value ? 'mm-card-ok' : 'mm-card-warn')
-const gateCardClass = computed(() => 'mm-card-ok')
-const rollbackCardClass = computed(() => checkpointCount.value > 0 ? 'mm-card-ok' : 'mm-card-warn')
+const statusCardClass = computed(() => manifest.value?.status === 'active' ? 'mm-card-status' : 'mm-card-warn')
+const versionCardClass = computed(() => versionConsistent.value ? 'mm-card-version' : 'mm-card-warn')
+const gateCardClass = computed(() => 'mm-card-gates')
+const rollbackCardClass = computed(() => checkpointCount.value > 0 ? 'mm-card-rollback' : 'mm-card-warn')
 
 // ── Fetch ──
 async function fetchAll() {
@@ -377,10 +377,16 @@ onMounted(fetchAll)
   padding: 14px 16px;
   border: 1px solid #e4e7ed;
 }
-.mm-card-ok { border-left: 4px solid #67c23a; }
-.mm-card-warn { border-left: 4px solid #e6a23c; }
+.mm-card-status { border-left: 4px solid #409eff; }
+.mm-card-version { border-left: 4px solid #67c23a; }
+.mm-card-gates { border-left: 4px solid #e6a23c; }
+.mm-card-rollback { border-left: 4px solid #909399; }
 .mm-card-title { font-size: 12px; color: #909399; }
 .mm-card-value { font-size: 20px; font-weight: 700; color: #1e293b; }
+.mm-card-value.status-active { color: #409eff; }
+.mm-card-value.version-ok { color: #67c23a; }
+.mm-card-value.gates-normal { color: #e6a23c; }
+.mm-card-value.rollback-safe { color: #909399; }
 .mm-card-detail { font-size: 11px; color: #c0c4cc; margin-top: 2px; }
 .mm-tabs { background: #fff; border-radius: 10px; padding: 0 16px; }
 .mm-section { margin-bottom: 16px; }
