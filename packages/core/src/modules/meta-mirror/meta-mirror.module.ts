@@ -15,6 +15,7 @@ import { KnowledgeWriter } from './generators/knowledge-writer.generator'
 import { DepGraphGenerator } from './generators/depgraph.generator'
 import { ContextInjector } from './generators/context-injector.generator'
 import { QualityGateGenerator } from './generators/quality-gate.generator'
+import { VersionGuardGenerator } from './generators/version-guard.generator'
 import { ManifestService } from './manifest'
 
 @Module({
@@ -31,6 +32,7 @@ import { ManifestService } from './manifest'
     DepGraphGenerator,
     ContextInjector,
     QualityGateGenerator,
+    VersionGuardGenerator,
     ManifestService,
   ],
 })

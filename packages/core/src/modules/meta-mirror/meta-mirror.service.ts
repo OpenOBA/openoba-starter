@@ -17,6 +17,7 @@ import type { EnhancedRuleInfo } from './scanners/rule.scanner'
 import { ContextInjector } from './generators/context-injector.generator'
 import { ManifestService } from './manifest'
 import { QualityGateGenerator } from './generators/quality-gate.generator'
+import { VersionGuardGenerator } from './generators/version-guard.generator'
 import type { ConventionInfo, MirrorRefs, InjectedContext } from './types'
 
 @Injectable()
@@ -35,6 +36,7 @@ export class MetaMirrorService implements OnModuleInit {
     private readonly erdlAudit: ErdlAuditScanner,
     private readonly manifest: ManifestService,
     private readonly qualityGate: QualityGateGenerator,
+    private readonly versionGuard: VersionGuardGenerator,
   ) {
     // process.cwd() = backend/，projectRoot = backend/.. = Phase-0-地基
     this.projectRoot = path.resolve(process.cwd(), '..')
@@ -91,6 +93,11 @@ export class MetaMirrorService implements OnModuleInit {
     this.logger.log('  🔒 生成质量门禁...')
     const gateRules = this.qualityGate.generate(this.projectRoot)
     this.qualityGate.writeRules(gateRules, path.join(process.cwd(), 'knowledge'))
+
+    // V3.1: 生成版本守护报告
+    this.logger.log('  🛡️ 生成版本守护报告...')
+    const versionReport = this.versionGuard.generate(this.projectRoot)
+    this.versionGuard.writeReport(versionReport, path.join(process.cwd(), 'knowledge'))
 
     // Step 4: 保存 Manifest
     const sourceHash = this.manifest.computeSourceHash(this.projectRoot)
