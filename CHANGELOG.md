@@ -8,6 +8,13 @@
 ## [Unreleased]
 
 ### Added
+- **Chat 会话持久化**：统一到 `chat_message` 表，DB 优先 + JSONL 降级，流式 thought/tool 合并写入
+- **消息恢复接口**：`GET /eros/chat/:sessionKey/messages`，前端三层降级恢复（DB → localStorage → AgentTask.context）
+- **元镜引擎 V3.0**：代码质量操作系统
+  - 质量门禁 DSL：23 条规则，工具名 + 操作类型 + 文件模式三级匹配
+  - 版本守护：monorepo 版本一致性检测、Conventional Commits 审计、CHANGELOG 追踪
+  - 回滚安全网：Checkpoint 快照 + 7 步回滚路径 + Schema 兼容检测
+  - 前端面板（/meta-mirror）：四维卡片 + 质量门禁/版本守护/回滚安全网三个 Tab
 - **开源合规文件补齐**：根目录新增 SECURITY.md / CODE_OF_CONDUCT.md / GOVERNANCE.md / CLA.md（均引用 `docs/open-source/policies/` 完整文档）
 - **前端拆分 8 个新组件**：
   - CustomerDetailDrawer (530行) — 客户详情抽屉（内部自管理 composable，策略 B）
@@ -27,6 +34,11 @@
   - TaskDashboard.vue 841→635 (-25%)
 
 ### Fixed
+- **Vue 模板语法修复**：SkuDialog/SkuImagePanel/AgentManagement 三文件多行 @click 加分号 + 去除模板中 as 断言
+- **套装管理 API 路径修复**：SetDialog 中 `/product-sets` → `/products/sets`，skuIds → skuList
+- **工具结果渲染修复**：历史任务重开后 tool result 逐字换行（根因：流式 thought 被拆分为单字记录），后端合并写入 + 前端 CSS 归一
+- **ChatMessage 实体注册修复**：新增到 TypeORM forRoot entities + @openoba/core barrel 导出
+- **元镜面板 UI**：去除 emoji + 图标，纯文字极简风格，卡片四色区分
 - **P0-1: Core 许可证头修正**：36 个 TypeScript 源文件 `@license AGPL-3.0` → `@license BSL-1.1`
 - **P0-1: 根 LICENSE 中文乱码修复**：UTF-8 编码恢复为 "深圳市秒镜科技有限公司"
 - **P0-1: Core BSL Change Date 修正**：2030-06-05 → 2030-06-09（与开源战略总纲对齐）
