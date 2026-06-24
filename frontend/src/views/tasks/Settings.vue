@@ -85,7 +85,7 @@
       </el-tab-pane>
 
       <!-- 元镜引擎 -->
-      <el-tab-pane label="🔮 元镜引擎" name="metamirror">
+      <el-tab-pane label="元镜引擎" name="metamirror">
         <div class="mm-tab-wrap">
           <p class="mm-tab-desc">
             代码质量看板 — 质量门禁 · 版本守护 · 回滚安全网。由元镜引擎自动扫描生成。

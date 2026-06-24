@@ -2,14 +2,14 @@
   <div class="mm-dashboard">
     <!-- Header -->
     <div class="mm-header">
-      <h2>🔮 元镜引擎 · 代码质量看板</h2>
+      <h2>元镜引擎 · 代码质量看板</h2>
       <el-button size="small" :icon="Refresh" :loading="loading" @click="fetchAll">刷新</el-button>
     </div>
 
     <!-- Status Cards -->
     <div class="mm-cards">
       <div class="mm-card" :class="statusCardClass">
-        <div class="mm-card-icon">🔮</div>
+        <div class="mm-card-icon">◉</div>
         <div class="mm-card-body">
           <div class="mm-card-title">元镜状态</div>
           <div class="mm-card-value">{{ manifest?.status === 'active' ? '运行中' : '未初始化' }}</div>
@@ -20,7 +20,7 @@
       </div>
 
       <div class="mm-card" :class="versionCardClass">
-        <div class="mm-card-icon">{{ versionConsistent ? '✅' : '⚠️' }}</div>
+        <div class="mm-card-icon">{{ versionConsistent ? '✓' : '✗' }}</div>
         <div class="mm-card-body">
           <div class="mm-card-title">版本一致性</div>
           <div class="mm-card-value">{{ versionConsistent ? '一致' : '不一致' }}</div>
@@ -29,7 +29,7 @@
       </div>
 
       <div class="mm-card" :class="gateCardClass">
-        <div class="mm-card-icon">🔒</div>
+        <div class="mm-card-icon">∥</div>
         <div class="mm-card-body">
           <div class="mm-card-title">质量门禁</div>
           <div class="mm-card-value">{{ gateCount }} 条规则</div>
@@ -38,7 +38,7 @@
       </div>
 
       <div class="mm-card" :class="rollbackCardClass">
-        <div class="mm-card-icon">🔄</div>
+        <div class="mm-card-icon">↺</div>
         <div class="mm-card-body">
           <div class="mm-card-title">回滚安全网</div>
           <div class="mm-card-value">{{ checkpointCount }} 个检查点</div>
@@ -50,7 +50,7 @@
     <!-- Tabs -->
     <el-tabs v-model="activeTab" class="mm-tabs">
       <!-- ═══ 质量门禁 ═══ -->
-      <el-tab-pane label="🔒 质量门禁" name="gates">
+      <el-tab-pane label="质量门禁" name="gates">
         <div class="mm-section">
           <h4>激活条件</h4>
           <p class="mm-hint">门禁仅在代码文件修改时自动激活（.ts / .tsx / .vue / .json），读文件/查询/聊天不触发。</p>
@@ -76,7 +76,7 @@
       </el-tab-pane>
 
       <!-- ═══ 版本守护 ═══ -->
-      <el-tab-pane label="🛡️ 版本守护" name="version">
+      <el-tab-pane label="版本守护" name="version">
         <div v-if="versionInfo" class="mm-section">
           <h4>版本信息</h4>
           <div class="mm-version-row">
@@ -91,7 +91,7 @@
                 <code>{{ v.source }}</code> → {{ v.version }}
               </span>
               <span v-if="(vConsistency?.conflicts as Array<unknown>)?.length" class="mm-conflict-alert">
-                ⚠️ {{ (vConsistency?.conflicts as Array<unknown>).length }} 处冲突
+                ! {{ (vConsistency?.conflicts as Array<unknown>).length }} 处冲突
               </span>
             </div>
           </div>
@@ -110,7 +110,7 @@
             <el-table-column label="信息" min-width="300">
               <template #default="{ row }">
                 <span :style="{ color: row.passesConvention ? '#67c23a' : '#e6a23c' }">
-                  {{ row.passesConvention ? '✅' : '⚠️' }}
+                  {{ row.passesConvention ? 'OK' : 'NO' }}
                 </span>
                 {{ row.message?.length > 70 ? row.message.substring(0, 67) + '...' : row.message }}
               </template>
@@ -135,13 +135,13 @@
               <strong>{{ vChangelog?.unreleasedEntries }}</strong>
             </div>
             <div v-if="vChangelog?.needsUpdate">
-              <el-tag type="warning" size="small">⚠️ CHANGELOG 需更新</el-tag>
+              <el-tag type="warning" size="small">! CHANGELOG 需更新</el-tag>
             </div>
           </div>
         </div>
 
         <div v-if="vRecs?.length" class="mm-recommendations">
-          <h4>💡 建议</h4>
+          <h4>建议</h4>
           <ul>
             <li v-for="(r, i) in vRecs" :key="i">{{ r }}</li>
           </ul>
@@ -149,7 +149,7 @@
       </el-tab-pane>
 
       <!-- ═══ 回滚安全网 ═══ -->
-      <el-tab-pane label="🔄 回滚安全网" name="rollback">
+      <el-tab-pane label="回滚安全网" name="rollback">
         <div class="mm-section">
           <h4>创建检查点</h4>
           <div class="mm-checkpoint-create">
@@ -331,7 +331,7 @@ function parseGateRules(md: string): Array<Record<string, unknown>> {
     const body = sections[i + 1] || ''
     const titleMatch = body.match(/— (.+)/)
     const title = titleMatch?.[1]?.trim() || id
-    const severity = body.includes('🔴 阻断') ? 'error' : 'warning'
+    const severity = body.includes('阻断') ? 'error' : 'warning'
     const categoryMatch = body.match(/- \*\*触发\*\*:\s*(.+)/)
     const triggers = categoryMatch?.[1]?.trim() || ''
     const fixMatch = body.match(/- \*\*修复\*\*:\s*(.+)/)
