@@ -118,10 +118,7 @@
         <el-button
           circle
           size="small"
-          @click.stop="
-            previewScale = 1
-            previewVisible = false
-          "
+          @click.stop="previewScale = 1; previewVisible = false"
           >✕</el-button
         >
       </div>

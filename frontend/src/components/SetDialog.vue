@@ -171,16 +171,18 @@ async function handleSaveSet() {
   }
 
   try {
+    const { setId, setCode: _sc, ...rest } = setForm
     if (setForm.setId) {
-      await request.put(`/product-sets/${setForm.setId}`, {
-        ...setForm,
-        skuIds: selectedSkuIds.value,
+      await request.put(`/products/sets/${setForm.setId}`, {
+        ...rest,
+        skuList: selectedSkuIds.value,
       })
       ElMessage.success('套装已更新')
     } else {
-      await request.post('/product-sets', {
-        ...setForm,
-        skuIds: selectedSkuIds.value,
+      await request.post('/products/sets', {
+        ...rest,
+        skuList: selectedSkuIds.value,
+        setCode: setForm.setCode,
       })
       ElMessage.success('套装已创建')
     }

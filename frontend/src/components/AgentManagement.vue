@@ -139,20 +139,14 @@
         <template v-if="editMode === 'view'">
           <el-button
             type="primary"
-            @click="
-              editMode = 'edit'
-              Object.assign(editForm, { ...editing! })
-            "
+            @click="editMode = 'edit'; Object.assign(editForm, { ...editing! })"
             >进入编辑</el-button
           >
           <el-button @click="editVisible = false">关闭</el-button>
         </template>
         <template v-else>
           <el-button
-            @click="
-              editMode = 'view'
-              Object.assign(editForm, { ...editing! })
-            "
+            @click="editMode = 'view'; Object.assign(editForm, { ...editing! })"
             >取消编辑</el-button
           >
           <el-button type="primary" :loading="saving" @click="handleSave">保存</el-button>

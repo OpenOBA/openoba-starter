@@ -41,7 +41,7 @@
                           width: '14px',
                           height: '14px',
                           borderRadius: '2px',
-                          background: (c.hexValue as string) || '#ccc',
+                          background: c.hexValue || '#ccc',
                           border: '1px solid #ddd',
                         }"
                       ></span>
@@ -109,10 +109,7 @@
                     :key="tag.effectCode"
                     class="effect-tag"
                     :class="{ active: form.skinToneEffect === (tag.effectName || tag) }"
-                    @click="
-                      form.skinToneEffect = (tag.effectName as string) || tag
-                      updateDisplayName()
-                    "
+                    @click="form.skinToneEffect = tag.effectName || tag; updateDisplayName()"
                   >
                     {{ tag.effectName || tag }}
                   </span>
@@ -129,10 +126,7 @@
                     :key="tag.effectCode"
                     class="effect-tag"
                     :class="{ active: form.faceShapeEffect === (tag.effectName || tag) }"
-                    @click="
-                      form.faceShapeEffect = (tag.effectName as string) || tag
-                      updateDisplayName()
-                    "
+                    @click="form.faceShapeEffect = tag.effectName || tag; updateDisplayName()"
                   >
                     {{ tag.effectName || tag }}
                   </span>
