@@ -432,7 +432,7 @@ watch(
   border: 1px solid #d3d6db;
   border-radius: 6px;
   margin-bottom: 4px;
-  overflow: hidden;
+  min-width: 0;
 }
 .tool-card.done {
   border-color: #67c23a;
@@ -455,6 +455,8 @@ watch(
 .tool-card-body {
   padding: 6px 8px;
   font-size: 10px;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 .tool-args {
   color: #909399;
@@ -462,13 +464,13 @@ watch(
   word-break: break-all;
 }
 .tool-result {
-  white-space: pre-wrap;
   max-height: 200px;
   overflow-y: auto;
   background: #fff;
   padding: 4px 6px;
   border-radius: 4px;
   color: #606266;
+  overflow-wrap: break-word;
 }
 .tool-progress {
   margin-bottom: 4px;

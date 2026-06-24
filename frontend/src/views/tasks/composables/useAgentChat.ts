@@ -152,46 +152,114 @@ export function useAgentChat(
         .then((l) => (logs.value = l as unknown as Record<string, unknown>[]))
         .catch(() => {})
 
+      // ═══ V2: 消息恢复优先级：DB → localStorage → AgentTask.context ═══
+
+      // 第 1 层：从后端 chat_message 表恢复（完整历史 + reactTimeline）
+      try {
+        const dbRes = await request.get(`/eros/chat/${taskId.value}/messages`) as unknown as {
+          messages?: Array<Record<string, unknown>>
+        }
+        if (dbRes?.messages && dbRes.messages.length > 0) {
+          messages.value = dbRes.messages.map((m): ChatMsg => {
+            let timeline = (m.reactTimeline as TimelineItem[]) || undefined
+            // V2: 合并 tool_start + tool_end（DB 中为两条独立记录）
+            if (timeline && timeline.length > 0) {
+              const merged: TimelineItem[] = []
+              const runningMap = new Map<string, number>() // toolName → index
+              for (const item of timeline) {
+                if (item.kind === 'tool') {
+                  if (item.status === 'running') {
+                    runningMap.set(item.name || '', merged.length)
+                    merged.push({ ...item, _expanded: false })
+                  } else if (item.status === 'done' && runningMap.has(item.name || '')) {
+                    const idx = runningMap.get(item.name || '')!
+                    const running = merged[idx]
+                    merged[idx] = { ...running, ...item, _expanded: running._expanded }
+                  } else {
+                    merged.push({ ...item, _expanded: false })
+                  }
+                } else {
+                  merged.push(item)
+                }
+              }
+              timeline = merged
+            }
+            return {
+              role: (m.role as ChatMsg['role']) || 'agent',
+              content: (m.content as string) || '',
+              time: (m.time as string) || '',
+              reactTimeline: timeline,
+              streaming: false,
+            }
+          })
+          syncProposals(t.proposals || [])
+          console.log(`🔍 AgentChat: 从 chat_message DB 恢复 ${dbRes.messages.length} 条消息`)
+          // 同步到 localStorage 做离线缓存
+          saveCache()
+          onScrollBottom()
+          return
+        }
+      } catch (e: unknown) {
+        console.log('🔍 AgentChat: DB 恢复失败，尝试 localStorage:', (e as Error)?.message || e)
+      }
+
+      // 第 2 层：localStorage 缓存
       const cached = localStorage.getItem(LS_KEY.value)
       if (cached) {
         try {
           const parsed = JSON.parse(cached)
           if (Array.isArray(parsed) && parsed.length > 0) {
             const arr = parsed as unknown as Array<Record<string, unknown>>
-            messages.value = arr.map(
-              (m): ChatMsg => ({
+            const restored: ChatMsg[] = []
+            for (const m of arr) {
+              let timeline = (m.reactTimeline as TimelineItem[]) || undefined
+              // V2: 合并 tool_start + tool_end + 加 _expanded
+              if (timeline && timeline.length > 0) {
+                const merged: TimelineItem[] = []
+                const runningMap = new Map<string, number>()
+                for (const item of timeline) {
+                  if (item.kind === 'tool') {
+                    if (item.status === 'running') {
+                      runningMap.set(item.name || '', merged.length)
+                      merged.push({ ...item, _expanded: false })
+                    } else if (item.status === 'done' && runningMap.has(item.name || '')) {
+                      const idx = runningMap.get(item.name || '')!
+                      const running = merged[idx]
+                      merged[idx] = { ...running, ...item, _expanded: false }
+                    } else {
+                      merged.push({ ...item, _expanded: false })
+                    }
+                  } else {
+                    merged.push(item)
+                  }
+                }
+                timeline = merged
+              }
+              // 旧格式兼容
+              if (!timeline && (m.thoughts || m.toolCalls || m.observations)) {
+                timeline = [
+                  ...((m.thoughts as TimelineItem[]) || []).map((t) => ({
+                    kind: 'thought' as const, text: t.text, ts: Date.now(),
+                  })),
+                  ...((m.toolCalls as TimelineItem[]) || []).map((t) => ({
+                    kind: 'tool' as const, name: t.name, args: t.args,
+                    status: t.status, result: t.result, _expanded: false, ts: Date.now(),
+                  })),
+                  ...((m.observations as TimelineItem[]) || []).map((o) => ({
+                    kind: 'observation' as const, text: o.text, ts: Date.now(),
+                  })),
+                ]
+              }
+              restored.push({
                 role: (m.role as ChatMsg['role']) || 'agent',
                 content: (m.content as string) || '',
                 time: (m.time as string) || '',
                 agentFooter: (m.agentFooter as ChatMsg['agentFooter']) || undefined,
-                reactTimeline:
-                  (m.reactTimeline as TimelineItem[]) ||
-                  (m.thoughts || m.toolCalls || m.observations
-                    ? [
-                        ...((m.thoughts as TimelineItem[]) || []).map((t) => ({
-                          kind: 'thought' as const,
-                          text: t.text,
-                          ts: Date.now(),
-                        })),
-                        ...((m.toolCalls as TimelineItem[]) || []).map((t) => ({
-                          kind: 'tool' as const,
-                          name: t.name,
-                          args: t.args,
-                          status: t.status,
-                          result: t.result,
-                          _expanded: false,
-                          ts: Date.now(),
-                        })),
-                        ...((m.observations as TimelineItem[]) || []).map((o) => ({
-                          kind: 'observation' as const,
-                          text: o.text,
-                          ts: Date.now(),
-                        })),
-                      ]
-                    : undefined),
+                reactTimeline: timeline,
                 streaming: false,
-              }),
-            )
+              })
+            }
+            messages.value = restored
             syncProposals(t.proposals || [])
             console.log('🔍 AgentChat: 从 localStorage 恢复 ' + parsed.length + ' 条消息（含 ReAct 状态）')
             onScrollBottom()
@@ -202,9 +270,10 @@ export function useAgentChat(
         }
       }
 
+      // 第 3 层：从 AgentTask 上下文拼凑（fallback）
       const ctx = (t.context || {}) as Record<string, unknown>
       const proposals = (t.proposals || []) as unknown as Record<string, unknown>[]
-      console.log('🔍 AgentChat: localStorage 无缓存, proposals=' + proposals.length + '条, status=' + t.status)
+      console.log('🔍 AgentChat: 无缓存, proposals=' + proposals.length + '条, status=' + t.status)
 
       if (proposals.length > 0) {
         const initMsg = String(ctx['任务主体'] || t.title)
