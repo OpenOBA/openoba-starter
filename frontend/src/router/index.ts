@@ -202,14 +202,17 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/System.vue'),
         meta: { title: '系统管理', icon: 'Setting' },
       },
-      {
-        path: 'meta-mirror',
-        name: 'MetaMirror',
-        component: () => import('@/views/meta-mirror/Dashboard.vue'),
-        meta: { title: '元镜引擎', icon: 'Monitor' },
-      },
     ],
   },
+
+  // ═══ 元镜引擎（独立页面，无侧边栏） ═══
+  {
+    path: '/meta-mirror',
+    name: 'MetaMirror',
+    component: () => import('@/views/meta-mirror/Dashboard.vue'),
+    meta: { title: '元镜引擎' },
+  },
+
   {
     path: '/:pathMatch(.*)*',
     redirect: '/chat',
