@@ -56,6 +56,10 @@ tmp-core/
 
 # CORE tgz 包
 *.tgz
+
+# WorkBuddy / OpenClaw 工作目录（不入仓库）
+.workbuddy/
+**/.workbuddy/
 # 旧 CORE 源码（已搬迁至 packages/core/src/）— 排除外部遗留
 openoba-core/
 # 通过 npm workspaces 管理的 node_modules symlink（不直接跟踪）
