@@ -26,3 +26,5 @@ export { ModelRegistry } from './modules/system/model-registry.entity'
 export { ModelProvider } from './modules/system/model-provider.entity'
 export { ModelConnectionLog } from './modules/system/model-connection-log.entity'
 export { TokenUsage } from './modules/system/token-usage.entity'
+
+export { ChatMessage } from './modules/eros/chat/chat-message.entity'

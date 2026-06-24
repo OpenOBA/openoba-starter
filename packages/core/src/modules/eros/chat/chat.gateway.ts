@@ -194,14 +194,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // S7: 仅记录元数据
     this.logger.log(`WS chat.send: runId=${runId} userId=${clientInfo.userId} session=${sessionKey}`)
 
-    // M3.3: 持久化用户消息
-    this.messageService.append(sessionKey, { role: 'human', content: cleanMessage }).catch(() => {})
+    // M3.3: 持久化用户消息（带日志）
+    this.messageService.append(sessionKey, { role: 'human', content: cleanMessage }).catch(
+      (e: unknown) => this.logger.warn(`持久化用户消息失败: ${(e as Error)?.message || e}`),
+    )
 
     // 清洗 history
     const cleanHistory = (data.history || []).map((h: Record<string, unknown>) => ({
       role: (h.role as string) || 'human',
       content: ((h.content as string) || '').replace(/<[^>]*>/g, ''),
     }))
+
+    // V2: 本地收集 reactTimeline，done 时写入 DB
+    const reactTimeline: Array<{
+      kind: string; text?: string; name?: string;
+      args?: Record<string, unknown>; status?: string;
+      result?: string; durationMs?: number;
+    }> = []
 
     // 异步执行 Agent
     try {
@@ -216,6 +225,31 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             this.runRegistry.appendContent(runId, event.delta)
           }
 
+          // V2: 收集 ReAct 时间线事件（合并流式增量 thought）
+          if (event.type === 'thought') {
+            const last = reactTimeline[reactTimeline.length - 1]
+            if (last?.kind === 'thought') {
+              last.text = (last.text || '') + (event.text || '')
+            } else {
+              reactTimeline.push({ kind: 'thought', text: event.text })
+            }
+          } else if (event.type === 'tool_start') {
+            reactTimeline.push({ kind: 'tool', name: event.tool, args: event.args, status: 'running' })
+          } else if (event.type === 'tool_end') {
+            // 合并到最后一个 running 的 tool 中
+            for (let i = reactTimeline.length - 1; i >= 0; i--) {
+              const item = reactTimeline[i]
+              if (item.kind === 'tool' && item.name === event.tool && item.status === 'running') {
+                item.status = 'done'
+                item.result = event.result
+                item.durationMs = event.durationMs
+                break
+              }
+            }
+          } else if (event.type === 'observation') {
+            reactTimeline.push({ kind: 'observation', text: event.text })
+          }
+
           // M2: StreamEvent → chat.event 统一通道
           client.emit('chat.event', { runId, ...event })
         },
@@ -223,11 +257,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       )
 
       if (!abortController.signal.aborted) {
-        // M3.3: 持久化 Agent 回复
+        // M3.3: 持久化 Agent 回复（含 reactTimeline）
+        const agentContent = this.runRegistry.getPartialContent(runId)
         this.messageService.append(sessionKey, {
           role: 'agent',
-          content: this.runRegistry.getPartialContent(runId),
-        }).catch(() => {})
+          content: agentContent,
+          reactTimeline: reactTimeline.length > 0 ? reactTimeline : undefined,
+        }).catch((e: unknown) => this.logger.warn(`持久化 Agent 回复失败: ${(e as Error)?.message || e}`))
         const usedModel = this.executor.getUsedModel() || data.model || ''
         const modelDisplay = getModelDisplayName(usedModel)
         client.emit('chat.done', { runId, model: modelDisplay, agentName: 'AI 执行官' })

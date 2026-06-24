@@ -72,26 +72,35 @@ export class MessageService {
           content: message.content,
           reactTimeline: message.reactTimeline || null,
         })
+        this.logger.debug(`Message persisted to DB: session=${sessionKey} role=${message.role}`)
+        return // DB 写入成功，跳过 JSONL
       } catch (e: unknown) {
-        this.logger.warn(`DB 写入失败，fallback 到 JSONL: ${(e as Error).message}`)
+        const errMsg = e instanceof Error ? e.message : String(e)
+        this.logger.warn(`DB 写入失败，fallback 到 JSONL: session=${sessionKey} role=${message.role} error=${errMsg}`)
       }
     }
 
-    // JSONL 追加（向后兼容）
+    // JSONL 追加（DB 不可用时的降级）
     const filePath = path.join(this.baseDir, `${key}.jsonl`)
     const line = JSON.stringify({
       ...message,
       timestamp: new Date().toISOString(),
     })
-    // 追加模式（不阻塞），每行独立写入
-    fs.appendFileSync(filePath, line + '\n', 'utf-8')
-    this.logger.debug(`Message appended: session=${sessionKey}`)
+    try {
+      fs.appendFileSync(filePath, line + '\n', 'utf-8')
+      this.logger.debug(`Message appended to JSONL: session=${sessionKey}`)
+    } catch (e: unknown) {
+      const errMsg = e instanceof Error ? e.message : String(e)
+      this.logger.error(`JSONL 写入也失败: session=${sessionKey} error=${errMsg}`)
+    }
   }
 
   /**
-   * 获取会话历史
+   * 获取会话历史（DB 优先，JSONL 降级）
+   * @param sessionKey 会话标识
+   * @param limit 最大返回条数，默认 200（全量恢复用）
    */
-  async getHistory(sessionKey: string, limit = 50): Promise<ChatMessageRecord[]> {
+  async getHistory(sessionKey: string, limit = 200): Promise<ChatMessageRecord[]> {
     const key = this.validateSessionKey(sessionKey)  // P0-2
 
     // DB 优先
@@ -103,6 +112,7 @@ export class MessageService {
           take: limit,
         })
         if (rows.length > 0) {
+          this.logger.debug(`History loaded from DB: session=${sessionKey} count=${rows.length}`)
           return rows.map((r) => ({
             role: r.role as ChatMessageRecord['role'],
             content: r.content,
@@ -111,7 +121,8 @@ export class MessageService {
           }))
         }
       } catch (e: unknown) {
-        this.logger.warn(`DB 查询失败，fallback 到 JSONL: ${(e as Error).message}`)
+        const errMsg = e instanceof Error ? e.message : String(e)
+        this.logger.warn(`DB 查询失败，fallback 到 JSONL: session=${sessionKey} error=${errMsg}`)
       }
     }
 
@@ -125,8 +136,6 @@ export class MessageService {
     const messages = lines.slice(-limit).map(line => {
       try { return JSON.parse(line) } catch { return null }
     }).filter(Boolean) as ChatMessageRecord[]
-
-    return messages
 
     return messages
   }

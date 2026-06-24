@@ -51,6 +51,7 @@ import {
   ModelProvider,
   TokenUsage,
   ModelConnectionLog,
+  ChatMessage,
 } from '@openoba/core'
 // Core 模块（按需导入，barrel 不导出模块）
 import { ERDLModule } from '@openoba/core/dist/modules/erdl/erdl.module'
@@ -106,6 +107,8 @@ import { SoulModule } from '@openoba/core/dist/modules/soul/soul.module'
           ModelProvider,
           TokenUsage,
           ModelConnectionLog,
+          // V2: Chat 会话消息持久化
+          ChatMessage,
         ],
         synchronize: false,
         logging: configService.get('APP_ENV') === 'development',

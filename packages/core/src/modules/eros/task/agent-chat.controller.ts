@@ -25,6 +25,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 import { ChatMessage, cleanInput, getUserId, classifyError, getUserFriendlyMessage, MAX_MESSAGE_LENGTH, MAX_HISTORY_ENTRIES, RATE_LIMIT_MAX, RATE_LIMIT_WINDOW_MS } from './dto/agent-chat.dto'
+import { MessageService } from '../chat/message.service'
 
 @ApiTags('ER-OS �� Agent �Ự')
 @UseGuards(JwtAuthGuard)
@@ -46,6 +47,7 @@ export class AgentChatController {
     @InjectRepository(DraftSpu) private draftSpuRepo: Repository<DraftSpu>,
     private readonly deployment: DeploymentService,
     private readonly entitySync: EntitySyncService,
+    private readonly messageService: MessageService,
   ) {
     // P1-3: ���� rateLimitMap ��������
     this.rateLimitCleanupTimer = setInterval(() => {
@@ -112,6 +114,20 @@ export class AgentChatController {
     res.flushHeaders()
     const socket = (res as import("express").Response).socket
     if (socket) socket.setNoDelay(true)
+  }
+
+  // ═══════════════════════════════════════════
+  // V2: 会话消息持久化读取
+  // ═══════════════════════════════════════════
+
+  /**
+   * GET /eros/chat/:sessionKey/messages — 从 chat_message 表恢复完整对话历史
+   */
+  @Get('chat/:sessionKey/messages')
+  @ApiOperation({ summary: '[V2] 获取会话完整消息历史（含 ReAct 时间线）' })
+  async getChatMessages(@Param('sessionKey') sessionKey: string) {
+    const messages = await this.messageService.getHistory(sessionKey, 500)
+    return { sessionKey, messages }
   }
 
   // �T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T�T
@@ -212,15 +228,63 @@ export class AgentChatController {
       content: this.cleanInput(h.content || ''),
     }))
 
+    // V2: 持久化用户消息
+    if (body.sessionKey) {
+      this.messageService.append(body.sessionKey, { role: 'human', content: cleanMessage }).catch(
+        (e: unknown) => this.logger.warn(`SSE持久化用户消息失败: ${(e as Error)?.message || e}`),
+      )
+    }
+
+    // V2: 本地收集 reactTimeline
+    const reactTimeline: Array<{
+      kind: string; text?: string; name?: string;
+      args?: Record<string, unknown>; status?: string;
+      result?: string; durationMs?: number;
+    }> = []
+
     try {
       // ?? @ ȫ֪ģʽ���
-      const isFullMode = /@(�ƺ�Ȼ|��Ȼ)\b/.test(cleanMessage)
-      if (isFullMode) this.logger.log(`?? @ȫ֪ģʽ����`)
+      const isFullMode = /@(唐浩然|浩然)\b/.test(cleanMessage)
+      if (isFullMode) this.logger.log(`?? @全知模式触发`)
       await this.executor.chatExecute(cleanHistory, cleanMessage, (event) => {
         if (abortController.signal.aborted) return
+
+        // V2: 收集 ReAct 时间线（合并流式增量 thought，合并 tool_start/tool_end）
+        if (event.type === 'thought') {
+          const last = reactTimeline[reactTimeline.length - 1]
+          if (last?.kind === 'thought') {
+            last.text = (last.text || '') + (event.text || '')
+          } else {
+            reactTimeline.push({ kind: 'thought', text: event.text })
+          }
+        } else if (event.type === 'tool_start') {
+          reactTimeline.push({ kind: 'tool', name: event.tool, args: event.args, status: 'running' })
+        } else if (event.type === 'tool_end') {
+          for (let i = reactTimeline.length - 1; i >= 0; i--) {
+            const item = reactTimeline[i]
+            if (item.kind === 'tool' && item.name === event.tool && item.status === 'running') {
+              item.status = 'done'
+              item.result = event.result
+              item.durationMs = event.durationMs
+              break
+            }
+          }
+        } else if (event.type === 'observation') {
+          reactTimeline.push({ kind: 'observation', text: event.text })
+        }
+
         send(event)
       }, { userId, agentCode: 'tanghaoran', forceFullMode: isFullMode })
       if (!abortController.signal.aborted) {
+        // V2: 持久化 Agent 回复（含 reactTimeline）
+        const agentContent = this.runRegistry.getPartialContent(runId)
+        if (body.sessionKey) {
+          this.messageService.append(body.sessionKey, {
+            role: 'agent',
+            content: agentContent,
+            reactTimeline: reactTimeline.length > 0 ? reactTimeline : undefined,
+          }).catch((e: unknown) => this.logger.warn(`SSE持久化Agent回复失败: ${(e as Error)?.message || e}`))
+        }
         // ��������������Agent �޸Ĵ�����Զ����ͱ�������¼�
         // ��� sessionDeltaFiles �� ������޸� �� �� delta_report
         const deltaSummary = this.executor.getDeltaSummary()

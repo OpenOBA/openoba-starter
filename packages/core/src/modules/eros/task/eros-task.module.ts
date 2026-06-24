@@ -33,10 +33,12 @@ import { AestheticsModule } from '../../aesthetics/aesthetics.module'
 import { InventoryModule } from '../../inventory/inventory.module'
 import { SystemModule } from '../../system/system.module'
 import { DeliverableModule } from '../deliverable/deliverable.module'
+import { ChatMessage } from '../chat/chat-message.entity'
+import { MessageService } from '../chat/message.service'
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AgentTask, ReportTarget, AgentRegistry, CognitiveLog, KnowledgeEntry, PublishPackage, SystemModuleRegistry, DraftSpu]),
+    TypeOrmModule.forFeature([AgentTask, ReportTarget, AgentRegistry, CognitiveLog, KnowledgeEntry, PublishPackage, SystemModuleRegistry, DraftSpu, ChatMessage]),
     HttpModule,
     forwardRef(() => ERDLModule),
     DraftPoolModule,
@@ -46,7 +48,7 @@ import { DeliverableModule } from '../deliverable/deliverable.module'
     DeliverableModule,
   ],
   controllers: [AgentTaskController, KnowledgeController, AgentStreamController, AgentChatController],
-  providers: [AgentTaskService, AgentExecutorService, KnowledgeService, HotwordService, AgentToolRegistry, AgentSecurityGuard, AgentToolRegistrar, AgentToolImplementations, ToolRegistryBridge, RunRegistry],
+  providers: [AgentTaskService, AgentExecutorService, KnowledgeService, HotwordService, AgentToolRegistry, AgentSecurityGuard, AgentToolRegistrar, AgentToolImplementations, ToolRegistryBridge, RunRegistry, MessageService],
   exports: [AgentTaskService, AgentExecutorService, KnowledgeService, ToolRegistryBridge],
 })
 export class ErosTaskModule {}
