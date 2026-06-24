@@ -84,6 +84,19 @@
         </div>
       </el-tab-pane>
 
+      <!-- 元镜引擎 -->
+      <el-tab-pane label="🔮 元镜引擎" name="metamirror">
+        <div class="mm-tab-wrap">
+          <p class="mm-tab-desc">
+            代码质量看板 — 质量门禁 · 版本守护 · 回滚安全网。由元镜引擎自动扫描生成。
+          </p>
+          <div class="mm-tab-links">
+            <el-button type="primary" @click="$router.push('/meta-mirror')">打开元镜引擎</el-button>
+            <span class="mm-tab-hint">包含 23 条代码质量门禁、版本一致性检测、Checkpoint 回滚点管理</span>
+          </div>
+        </div>
+      </el-tab-pane>
+
       <!-- 10. 关于 -->
       <el-tab-pane label="关于" name="about">
         <el-descriptions :column="1" border size="small" style="max-width: 500px">
@@ -224,4 +237,8 @@ onMounted(() => {
   font-size: 11px;
   color: #c0c4cc;
 }
+.mm-tab-wrap { padding: 20px 0; }
+.mm-tab-desc { color: #606266; font-size: 13px; margin-bottom: 16px; }
+.mm-tab-links { display: flex; align-items: center; gap: 12px; }
+.mm-tab-hint { font-size: 12px; color: #909399; }
 </style>

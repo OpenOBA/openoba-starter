@@ -9,7 +9,6 @@
         <nav class="nav-links">
           <router-link to="/chat" class="nav-item" :class="{ active: isChatActive }"> ERA-Chat </router-link>
           <router-link to="/dashboard" class="nav-item" :class="{ active: isErpActive }"> ERP 工作台 </router-link>
-          <router-link to="/meta-mirror" class="nav-item" :class="{ active: isMetaMirror }"> 元镜引擎 </router-link>
         </nav>
         <div class="nav-right">
           <!-- 运行状态：双行紧凑 -->
@@ -139,8 +138,7 @@ const router = useRouter()
 const menuOpen = ref(false)
 
 const isChatActive = computed(() => route.path.startsWith('/chat'))
-const isMetaMirror = computed(() => route.path.startsWith('/meta-mirror'))
-const isErpActive = computed(() => !isChatActive.value && !isMetaMirror.value && route.path !== '/login')
+const isErpActive = computed(() => !isChatActive.value && route.path !== '/login')
 
 // ============================================
 // 版本 / 升级信息
