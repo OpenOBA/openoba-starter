@@ -79,6 +79,10 @@
           <el-icon><Setting /></el-icon>
           <template #title>系统管理</template>
         </el-menu-item>
+        <el-menu-item index="/meta-mirror">
+          <el-icon><Monitor /></el-icon>
+          <template #title>元镜引擎</template>
+        </el-menu-item>
       </el-menu>
     </el-aside>
 
