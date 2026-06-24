@@ -16,6 +16,7 @@ import { DepGraphGenerator } from './generators/depgraph.generator'
 import { ContextInjector } from './generators/context-injector.generator'
 import { QualityGateGenerator } from './generators/quality-gate.generator'
 import { VersionGuardGenerator } from './generators/version-guard.generator'
+import { CheckpointGenerator } from './generators/checkpoint.generator'
 import { ManifestService } from './manifest'
 
 @Module({
@@ -33,6 +34,7 @@ import { ManifestService } from './manifest'
     ContextInjector,
     QualityGateGenerator,
     VersionGuardGenerator,
+    CheckpointGenerator,
     ManifestService,
   ],
 })
