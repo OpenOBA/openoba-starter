@@ -9,7 +9,6 @@
     <!-- Status Cards -->
     <div class="mm-cards">
       <div class="mm-card" :class="statusCardClass">
-        <div class="mm-card-icon">◉</div>
         <div class="mm-card-body">
           <div class="mm-card-title">元镜状态</div>
           <div class="mm-card-value">{{ manifest?.status === 'active' ? '运行中' : '未初始化' }}</div>
@@ -20,7 +19,6 @@
       </div>
 
       <div class="mm-card" :class="versionCardClass">
-        <div class="mm-card-icon">{{ versionConsistent ? '✓' : '✗' }}</div>
         <div class="mm-card-body">
           <div class="mm-card-title">版本一致性</div>
           <div class="mm-card-value">{{ versionConsistent ? '一致' : '不一致' }}</div>
@@ -29,7 +27,6 @@
       </div>
 
       <div class="mm-card" :class="gateCardClass">
-        <div class="mm-card-icon">∥</div>
         <div class="mm-card-body">
           <div class="mm-card-title">质量门禁</div>
           <div class="mm-card-value">{{ gateCount }} 条规则</div>
@@ -38,7 +35,6 @@
       </div>
 
       <div class="mm-card" :class="rollbackCardClass">
-        <div class="mm-card-icon">↺</div>
         <div class="mm-card-body">
           <div class="mm-card-title">回滚安全网</div>
           <div class="mm-card-value">{{ checkpointCount }} 个检查点</div>
@@ -379,14 +375,10 @@ onMounted(fetchAll)
   background: #fff;
   border-radius: 10px;
   padding: 14px 16px;
-  display: flex;
-  gap: 12px;
-  align-items: center;
   border: 1px solid #e4e7ed;
 }
 .mm-card-ok { border-left: 4px solid #67c23a; }
 .mm-card-warn { border-left: 4px solid #e6a23c; }
-.mm-card-icon { font-size: 28px; flex-shrink: 0; }
 .mm-card-title { font-size: 12px; color: #909399; }
 .mm-card-value { font-size: 20px; font-weight: 700; color: #1e293b; }
 .mm-card-detail { font-size: 11px; color: #c0c4cc; margin-top: 2px; }
