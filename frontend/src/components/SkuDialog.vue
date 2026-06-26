@@ -41,7 +41,7 @@
                           width: '14px',
                           height: '14px',
                           borderRadius: '2px',
-                          background: c.hexValue || '#ccc',
+                          background: String(c.hexValue || '#ccc'),
                           border: '1px solid #ddd',
                         }"
                       ></span>

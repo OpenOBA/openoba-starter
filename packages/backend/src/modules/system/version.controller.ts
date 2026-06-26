@@ -3,7 +3,7 @@ import { Controller, Get, Query, Logger } from '@nestjs/common'
 import { request as httpsRequest } from 'https'
 import { TIMEOUT } from '@openoba/core/dist/common/constants/timeouts'
 
-const DEFAULT_VERSION = '1.4.0-alpha9'
+const DEFAULT_VERSION = '1.5.0-alpha'
 
 /**
  * 版本检查 / 升级信息控制器
