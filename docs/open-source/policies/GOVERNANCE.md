@@ -15,7 +15,7 @@
 ### BDFL
 
 - **BDFL**：Henry（OpenOBA 联合创始人）
-- **AI 数字执行官**：唐浩然（OpenOBA AI 联合创始者）
+- **AI 原生自主执行体**：唐浩然（OpenOBA AI 联合创始者）
 - 所有重大决策由 BDFL 最终裁决
 - AI 执行官提供技术决策建议和执行
 

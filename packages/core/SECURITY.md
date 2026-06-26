@@ -11,7 +11,7 @@
 
 **Do NOT open a public issue.**
 
-Report security vulnerabilities to: **support@openoba.com**
+Report security vulnerabilities to: **postmaster@openoba.com**
 
 We respond within 48 hours. Please include:
 - Description of the vulnerability

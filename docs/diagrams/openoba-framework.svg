@@ -1,0 +1,265 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 860" font-family="'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0b1120"/>
+      <stop offset="100%" stop-color="#0b1120"/>
+    </linearGradient>
+    <linearGradient id="llmGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a2332"/>
+      <stop offset="100%" stop-color="#141e2b"/>
+    </linearGradient>
+    <linearGradient id="coreGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a2744"/>
+      <stop offset="100%" stop-color="#152033"/>
+    </linearGradient>
+    <linearGradient id="entGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a2332"/>
+      <stop offset="100%" stop-color="#141e2b"/>
+    </linearGradient>
+    <linearGradient id="cellGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.04)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0.02)"/>
+    </linearGradient>
+    <linearGradient id="erdlGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(167,139,250,0.06)"/>
+      <stop offset="100%" stop-color="rgba(167,139,250,0.03)"/>
+    </linearGradient>
+    <linearGradient id="pillarGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a2332"/>
+      <stop offset="100%" stop-color="#1a2332"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1100" height="860" fill="url(#bg)"/>
+
+  <!-- ═══ Title ═══ -->
+  <text x="550" y="32" text-anchor="middle" fill="#e2e8f0" font-size="20" font-weight="700" letter-spacing="2">OpenOBA 执行及开发框架</text>
+  <text x="550" y="50" text-anchor="middle" fill="#475569" font-size="11">基于 LLM 的企业原生 AI 数字系统执行及开发框架</text>
+
+  <!-- ═══════════════ ARCHITECTURE ═══════════════ -->
+
+  <!-- LLM Panel -->
+  <rect x="10" y="66" width="170" height="340" rx="8" fill="url(#llmGrad)" stroke="#1e293b"/>
+  <rect x="10" y="66" width="170" height="340" rx="8" fill="none" stroke="#1e293b"/>
+  <text x="95" y="130" text-anchor="middle" fill="#64748b" font-size="12" font-weight="600">LLM</text>
+  <text x="95" y="152" text-anchor="middle" fill="#475569" font-size="9">DeepSeek / Qwen</text>
+  <text x="95" y="172" text-anchor="middle" fill="#475569" font-size="9">自然语言理解</text>
+  <text x="95" y="192" text-anchor="middle" fill="#475569" font-size="9">任务规划</text>
+  <text x="95" y="212" text-anchor="middle" fill="#475569" font-size="9">代码生成</text>
+  <!-- Arrow LLM → Core -->
+  <polygon points="176,236 188,230 188,242" fill="#1e293b"/>
+
+  <!-- Core Panel -->
+  <rect x="190" y="66" width="690" height="340" fill="url(#coreGrad)" stroke="#1e293b"/>
+  <rect x="190" y="66" width="690" height="340" fill="none" stroke="#2563eb" stroke-width="2"/>
+
+  <!-- Core Label -->
+  <rect x="204" y="78" width="72" height="18" rx="3" fill="#2563eb"/>
+  <text x="240" y="91" text-anchor="middle" fill="#fff" font-size="9" font-weight="700" letter-spacing="1">OpenOBA</text>
+  <text x="284" y="92" fill="#e2e8f0" font-size="14" font-weight="700">AI 数字执行官 · 执行引擎</text>
+  <text x="284" y="106" fill="#64748b" font-size="9">基于五项发明专利的确定性执行架构</text>
+
+  <!-- ═══ L1: ERDL ═══ -->
+  <rect x="204" y="118" width="16" height="16" rx="3" fill="#a78bfa"/>
+  <text x="212" y="130" text-anchor="middle" fill="#fff" font-size="8" font-weight="700">1</text>
+  <text x="226" y="130" fill="#94a3b8" font-size="10" font-weight="600" letter-spacing="1">ERDL 语义协议</text>
+  <text x="330" y="130" fill="#475569" font-size="8">P01 + P04 · 五层语义模型 · 确定性执行的前提</text>
+
+  <!-- L1 cells -->
+  <rect x="204" y="140" width="162" height="42" rx="4" fill="url(#cellGrad)" stroke="rgba(255,255,255,0.06)"/>
+  <text x="285" y="154" text-anchor="middle" fill="#a78bfa" font-size="9" font-weight="600">五层语义模型</text>
+  <text x="285" y="168" text-anchor="middle" fill="#64748b" font-size="8">Entity / Relation / Rule</text>
+  <text x="285" y="178" text-anchor="middle" fill="#64748b" font-size="8">Alias / Action</text>
+
+  <rect x="374" y="140" width="162" height="42" rx="4" fill="url(#cellGrad)" stroke="rgba(255,255,255,0.06)"/>
+  <text x="455" y="154" text-anchor="middle" fill="#a78bfa" font-size="9" font-weight="600">语义字段映射</text>
+  <text x="455" y="168" text-anchor="middle" fill="#64748b" font-size="8">别名 → 语义 → 物理列</text>
+  <text x="455" y="178" text-anchor="middle" fill="#64748b" font-size="8">三向确定性翻译</text>
+
+  <rect x="544" y="140" width="162" height="42" rx="4" fill="url(#cellGrad)" stroke="rgba(255,255,255,0.06)"/>
+  <text x="625" y="154" text-anchor="middle" fill="#a78bfa" font-size="9" font-weight="600">规则校验引擎</text>
+  <text x="625" y="168" text-anchor="middle" fill="#64748b" font-size="8">13 项语义校验</text>
+  <text x="625" y="178" text-anchor="middle" fill="#64748b" font-size="8">零停机热替换</text>
+
+  <rect x="714" y="140" width="152" height="42" rx="4" fill="url(#cellGrad)" stroke="rgba(255,255,255,0.06)"/>
+  <text x="790" y="154" text-anchor="middle" fill="#a78bfa" font-size="9" font-weight="600">Meta-Mirror 自指</text>
+  <text x="790" y="168" text-anchor="middle" fill="#64748b" font-size="8">扫描 Entity/API/DTO</text>
+  <text x="790" y="178" text-anchor="middle" fill="#64748b" font-size="8">精准上下文注入</text>
+
+  <!-- Separator -->
+  <line x1="230" y1="196" x2="850" y2="196" stroke="#1e293b"/>
+
+  <!-- ═══ L2: Action Guard + ReAct ═══ -->
+  <rect x="204" y="206" width="16" height="16" rx="3" fill="#60a5fa"/>
+  <text x="212" y="218" text-anchor="middle" fill="#fff" font-size="8" font-weight="700">2</text>
+  <text x="226" y="218" fill="#94a3b8" font-size="10" font-weight="600" letter-spacing="1">Action Guard 协议转换 + ReAct 决策</text>
+  <text x="450" y="218" fill="#475569" font-size="8">P02 + P03 · LLM 输出确定化 + 推理链</text>
+
+  <!-- L2 cells -->
+  <rect x="204" y="228" width="162" height="42" rx="4" fill="url(#cellGrad)" stroke="rgba(255,255,255,0.06)"/>
+  <text x="285" y="242" text-anchor="middle" fill="#60a5fa" font-size="9" font-weight="600">四格式自适应解析</text>
+  <text x="285" y="256" text-anchor="middle" fill="#64748b" font-size="8">FC / JSON / XML / 文本</text>
+  <text x="285" y="266" text-anchor="middle" fill="#64748b" font-size="8">三级校验拦截</text>
+
+  <rect x="374" y="228" width="162" height="42" rx="4" fill="url(#cellGrad)" stroke="rgba(255,255,255,0.06)"/>
+  <text x="455" y="242" text-anchor="middle" fill="#60a5fa" font-size="9" font-weight="600">ReAct 单工具决策</text>
+  <text x="455" y="256" text-anchor="middle" fill="#64748b" font-size="8">每轮单工具 基于结果再决策</text>
+  <text x="455" y="266" text-anchor="middle" fill="#64748b" font-size="8">四层防线防失控</text>
+
+  <rect x="544" y="228" width="162" height="42" rx="4" fill="url(#cellGrad)" stroke="rgba(255,255,255,0.06)"/>
+  <text x="625" y="242" text-anchor="middle" fill="#60a5fa" font-size="9" font-weight="600">流式可视化推理</text>
+  <text x="625" y="256" text-anchor="middle" fill="#64748b" font-size="8">T → T → O 时间线</text>
+  <text x="625" y="266" text-anchor="middle" fill="#64748b" font-size="8">全透明推理过程</text>
+
+  <rect x="714" y="228" width="152" height="42" rx="4" fill="url(#cellGrad)" stroke="rgba(255,255,255,0.06)"/>
+  <text x="790" y="242" text-anchor="middle" fill="#60a5fa" font-size="9" font-weight="600">Agent Memory 自进化</text>
+  <text x="790" y="256" text-anchor="middle" fill="#64748b" font-size="8">P06 · 失败→记忆转化</text>
+  <text x="790" y="266" text-anchor="middle" fill="#64748b" font-size="8">按作用域精准注入</text>
+
+  <!-- Separator -->
+  <line x1="230" y1="284" x2="850" y2="284" stroke="#1e293b"/>
+
+  <!-- ═══ L3: 运营与开发 ═══ -->
+  <rect x="204" y="294" width="16" height="16" rx="3" fill="#34d399"/>
+  <text x="212" y="306" text-anchor="middle" fill="#fff" font-size="8" font-weight="700">3</text>
+  <text x="226" y="306" fill="#94a3b8" font-size="10" font-weight="600" letter-spacing="1">运营与开发执行能力</text>
+  <text x="380" y="306" fill="#475569" font-size="8">面向业务与技术岗位的统一能力接口</text>
+
+  <!-- L3 cells -->
+  <rect x="204" y="316" width="162" height="42" rx="4" fill="url(#cellGrad)" stroke="rgba(255,255,255,0.06)"/>
+  <text x="285" y="330" text-anchor="middle" fill="#34d399" font-size="9" font-weight="600">结构化表单读写</text>
+  <text x="285" y="344" text-anchor="middle" fill="#64748b" font-size="8">NL → 参数化 SQL</text>
+  <text x="285" y="354" text-anchor="middle" fill="#64748b" font-size="8">任意表单增删改查</text>
+
+  <rect x="374" y="316" width="162" height="42" rx="4" fill="url(#cellGrad)" stroke="rgba(255,255,255,0.06)"/>
+  <text x="455" y="330" text-anchor="middle" fill="#34d399" font-size="9" font-weight="600">数据分析与报表</text>
+  <text x="455" y="344" text-anchor="middle" fill="#64748b" font-size="8">多表聚合 / 排行 / 趋势</text>
+  <text x="455" y="354" text-anchor="middle" fill="#64748b" font-size="8">自然语言驱动</text>
+
+  <rect x="544" y="316" width="162" height="42" rx="4" fill="url(#cellGrad)" stroke="rgba(255,255,255,0.06)"/>
+  <text x="625" y="330" text-anchor="middle" fill="#34d399" font-size="9" font-weight="600">File-Edit 自开发</text>
+  <text x="625" y="344" text-anchor="middle" fill="#64748b" font-size="8">改代码 → 编译验证</text>
+  <text x="625" y="354" text-anchor="middle" fill="#64748b" font-size="8">失败自动修正重试</text>
+
+  <rect x="714" y="316" width="152" height="42" rx="4" fill="url(#cellGrad)" stroke="rgba(255,255,255,0.06)"/>
+  <text x="790" y="330" text-anchor="middle" fill="#34d399" font-size="9" font-weight="600">18 个 Skill 工具</text>
+  <text x="790" y="344" text-anchor="middle" fill="#64748b" font-size="8">erdl-crud / tsc-check</text>
+  <text x="790" y="354" text-anchor="middle" fill="#64748b" font-size="8">data-analyze / csv-export</text>
+
+  <!-- Separator -->
+  <line x1="230" y1="372" x2="850" y2="372" stroke="#1e293b"/>
+
+  <!-- ═══ L4: 审计 ═══ -->
+  <rect x="204" y="382" width="16" height="16" rx="3" fill="#fbbf24"/>
+  <text x="212" y="394" text-anchor="middle" fill="#fff" font-size="8" font-weight="700">4</text>
+  <text x="226" y="394" fill="#94a3b8" font-size="10" font-weight="600" letter-spacing="1">认知审计与回滚安全网</text>
+  <text x="410" y="394" fill="#475569" font-size="8">金融级全链路可追溯 · 可回滚 · 可举证</text>
+
+  <!-- L4 cells -->
+  <rect x="204" y="404" width="162" height="42" rx="4" fill="url(#cellGrad)" stroke="rgba(255,255,255,0.06)"/>
+  <text x="285" y="418" text-anchor="middle" fill="#fbbf24" font-size="9" font-weight="600">ReAct 全过程日志</text>
+  <text x="285" y="432" text-anchor="middle" fill="#64748b" font-size="8">T/T/O 每一步有痕</text>
+  <text x="285" y="442" text-anchor="middle" fill="#64748b" font-size="8">谁 / 何时 / 做了什么</text>
+
+  <rect x="374" y="404" width="162" height="42" rx="4" fill="url(#cellGrad)" stroke="rgba(255,255,255,0.06)"/>
+  <text x="455" y="418" text-anchor="middle" fill="#fbbf24" font-size="9" font-weight="600">ERDL ↔ DTO 交叉审计</text>
+  <text x="455" y="432" text-anchor="middle" fill="#64748b" font-size="8">规则层与代码层双向比对</text>
+  <text x="455" y="442" text-anchor="middle" fill="#64748b" font-size="8">防止双轨分歧</text>
+
+  <rect x="544" y="404" width="162" height="42" rx="4" fill="url(#cellGrad)" stroke="rgba(255,255,255,0.06)"/>
+  <text x="625" y="418" text-anchor="middle" fill="#fbbf24" font-size="9" font-weight="600">Checkpoint 快照</text>
+  <text x="625" y="432" text-anchor="middle" fill="#64748b" font-size="8">关键操作前自动保存</text>
+  <text x="625" y="442" text-anchor="middle" fill="#64748b" font-size="8">版本 / commit / schema</text>
+
+  <rect x="714" y="404" width="152" height="42" rx="4" fill="url(#cellGrad)" stroke="rgba(255,255,255,0.06)"/>
+  <text x="790" y="418" text-anchor="middle" fill="#fbbf24" font-size="9" font-weight="600">一键回滚路径</text>
+  <text x="790" y="432" text-anchor="middle" fill="#64748b" font-size="8">7 步自动回滚</text>
+  <text x="790" y="442" text-anchor="middle" fill="#64748b" font-size="8">Git + 编译 + 测试 + 重启</text>
+
+  <!-- Enterprise Panel -->
+  <rect x="890" y="66" width="200" height="340" rx="8" fill="url(#entGrad)" stroke="#1e293b"/>
+  <!-- Arrow Core → Ent -->
+  <polygon points="886,236 898,230 898,242" fill="#1e293b"/>
+  <text x="990" y="130" text-anchor="middle" fill="#64748b" font-size="12" font-weight="600">企业系统</text>
+  <text x="990" y="160" text-anchor="middle" fill="#475569" font-size="9">关系数据库</text>
+  <text x="990" y="180" text-anchor="middle" fill="#475569" font-size="9">业务后端</text>
+  <text x="990" y="200" text-anchor="middle" fill="#475569" font-size="9">Web 前端</text>
+  <text x="990" y="220" text-anchor="middle" fill="#475569" font-size="9">文件系统</text>
+  <text x="990" y="240" text-anchor="middle" fill="#475569" font-size="9">缓存 / 队列</text>
+
+  <!-- ═══ ERDL Base Bar ═══ -->
+  <rect x="20" y="420" width="1060" height="60" rx="6" fill="url(#erdlGrad)" stroke="#a78bfa33"/>
+  <text x="120" y="452" text-anchor="end" fill="#a78bfa" font-size="13" font-weight="700" letter-spacing="2">ERDL 语义基座</text>
+  <line x1="130" y1="428" x2="130" y2="472" stroke="#a78bfa33"/>
+  <text x="450" y="442" text-anchor="middle" fill="#94a3b8" font-size="9">填补 LLM 与数字系统之间的天然鸿沟</text>
+  <text x="450" y="458" text-anchor="middle" fill="#94a3b8" font-size="9">YAML 超集协议 · 五层语义模型 · 确定性执行的前提</text>
+  <line x1="770" y1="428" x2="770" y2="472" stroke="#a78bfa33"/>
+  <text x="790" y="436" fill="#94a3b8" font-size="8"><tspan fill="#a78bfa" font-weight="600">Entity</tspan> — 实体定义与表映射</text>
+  <text x="790" y="450" fill="#94a3b8" font-size="8"><tspan fill="#a78bfa" font-weight="600">Relation</tspan> — 关联关系声明 · <tspan fill="#a78bfa" font-weight="600">Rule</tspan> — 校验/触发/计算规则</text>
+  <text x="790" y="464" fill="#94a3b8" font-size="8"><tspan fill="#a78bfa" font-weight="600">Alias</tspan> — 别名→语义→物理列三向翻译 · <tspan fill="#a78bfa" font-weight="600">Action</tspan> — 可执行操作与参数约束</text>
+
+  <!-- ═══ Execution Loop ═══ -->
+  <rect x="20" y="498" width="160" height="56" rx="6" fill="url(#cellGrad)" stroke="#1e293b"/>
+  <text x="100" y="514" text-anchor="middle" fill="#2563eb" font-size="8" font-weight="700">Step 1</text>
+  <text x="100" y="528" text-anchor="middle" fill="#475569" font-size="7">LLM</text>
+  <text x="100" y="540" text-anchor="middle" fill="#e2e8f0" font-size="9" font-weight="600">意图理解</text>
+  <text x="100" y="552" text-anchor="middle" fill="#64748b" font-size="7">解析自然语言 规划路径</text>
+
+  <rect x="196" y="498" width="160" height="56" rx="6" fill="url(#cellGrad)" stroke="#1e293b"/>
+  <text x="276" y="514" text-anchor="middle" fill="#2563eb" font-size="8" font-weight="700">Step 2</text>
+  <text x="276" y="528" text-anchor="middle" fill="#a78bfa" font-size="7">ERDL</text>
+  <text x="276" y="540" text-anchor="middle" fill="#e2e8f0" font-size="9" font-weight="600">语义解析</text>
+  <text x="276" y="552" text-anchor="middle" fill="#64748b" font-size="7">别名→语义→物理 规则校验</text>
+
+  <rect x="372" y="498" width="160" height="56" rx="6" fill="url(#cellGrad)" stroke="#1e293b"/>
+  <text x="452" y="514" text-anchor="middle" fill="#2563eb" font-size="8" font-weight="700">Step 3</text>
+  <text x="452" y="528" text-anchor="middle" fill="#60a5fa" font-size="7">Action Guard</text>
+  <text x="452" y="540" text-anchor="middle" fill="#e2e8f0" font-size="9" font-weight="600">协议转换</text>
+  <text x="452" y="552" text-anchor="middle" fill="#64748b" font-size="7">四格式解析 三级校验拦截</text>
+
+  <rect x="548" y="498" width="160" height="56" rx="6" fill="url(#cellGrad)" stroke="#1e293b"/>
+  <text x="628" y="514" text-anchor="middle" fill="#2563eb" font-size="8" font-weight="700">Step 4</text>
+  <text x="628" y="528" text-anchor="middle" fill="#60a5fa" font-size="7">ReAct</text>
+  <text x="628" y="540" text-anchor="middle" fill="#e2e8f0" font-size="9" font-weight="600">单工具决策</text>
+  <text x="628" y="552" text-anchor="middle" fill="#64748b" font-size="7">执行→观察→再决策 四层防线</text>
+
+  <rect x="724" y="498" width="160" height="56" rx="6" fill="url(#cellGrad)" stroke="#1e293b"/>
+  <text x="804" y="514" text-anchor="middle" fill="#2563eb" font-size="8" font-weight="700">Step 5</text>
+  <text x="804" y="528" text-anchor="middle" fill="#34d399" font-size="7">Skill</text>
+  <text x="804" y="540" text-anchor="middle" fill="#e2e8f0" font-size="9" font-weight="600">确定性执行</text>
+  <text x="804" y="552" text-anchor="middle" fill="#64748b" font-size="7">参数化SQL 编译+测试+文件</text>
+
+  <rect x="900" y="498" width="180" height="56" rx="6" fill="url(#cellGrad)" stroke="#1e293b"/>
+  <text x="990" y="514" text-anchor="middle" fill="#2563eb" font-size="8" font-weight="700">Step 6</text>
+  <text x="990" y="528" text-anchor="middle" fill="#fbbf24" font-size="7">Memory</text>
+  <text x="990" y="540" text-anchor="middle" fill="#e2e8f0" font-size="9" font-weight="600">审计 + 记忆</text>
+  <text x="990" y="552" text-anchor="middle" fill="#64748b" font-size="7">认知日志记录 结果反馈LLM</text>
+
+  <!-- Arrows between steps -->
+  <text x="186" y="530" text-anchor="middle" fill="#2563eb" font-size="13" font-weight="700">→</text>
+  <text x="362" y="530" text-anchor="middle" fill="#2563eb" font-size="13" font-weight="700">→</text>
+  <text x="538" y="530" text-anchor="middle" fill="#2563eb" font-size="13" font-weight="700">→</text>
+  <text x="714" y="530" text-anchor="middle" fill="#2563eb" font-size="13" font-weight="700">→</text>
+  <text x="890" y="530" text-anchor="middle" fill="#2563eb" font-size="13" font-weight="700">→</text>
+
+  <!-- ═══ Three Pillars ═══ -->
+  <rect x="20" y="574" width="340" height="80" rx="6" fill="url(#pillarGrad)" stroke="#1e293b"/>
+  <text x="190" y="596" text-anchor="middle" fill="#e2e8f0" font-size="11" font-weight="600">确定性架构 · 不以 Prompt 为防线</text>
+  <text x="190" y="614" text-anchor="middle" fill="#64748b" font-size="8">ERDL 五层语义模型填补 LLM 与数字系统鸿沟</text>
+  <text x="190" y="628" text-anchor="middle" fill="#64748b" font-size="8">Action Guard 协议转换使 LLM 输出可控</text>
+  <text x="190" y="642" text-anchor="middle" fill="#64748b" font-size="8">不赌模型听话，约束层保证执行确定性</text>
+
+  <rect x="375" y="574" width="340" height="80" rx="6" fill="url(#pillarGrad)" stroke="#1e293b"/>
+  <text x="545" y="596" text-anchor="middle" fill="#e2e8f0" font-size="11" font-weight="600">全链路审计 · 金融级合规</text>
+  <text x="545" y="614" text-anchor="middle" fill="#64748b" font-size="8">ReAct T/T/O 每一步有痕可追溯</text>
+  <text x="545" y="628" text-anchor="middle" fill="#64748b" font-size="8">ERDL ↔ DTO 交叉审计防双轨分歧</text>
+  <text x="545" y="642" text-anchor="middle" fill="#64748b" font-size="8">Checkpoint 快照保证任意时期可应急回滚</text>
+
+  <rect x="730" y="574" width="350" height="80" rx="6" fill="url(#pillarGrad)" stroke="#1e293b"/>
+  <text x="905" y="596" text-anchor="middle" fill="#e2e8f0" font-size="11" font-weight="600">自进化闭环 · 越用越聪明</text>
+  <text x="905" y="614" text-anchor="middle" fill="#64748b" font-size="8">LLM 推理 → ERDL 语义执行 → 结果验证</text>
+  <text x="905" y="628" text-anchor="middle" fill="#64748b" font-size="8">失败自动转化为 Agent Memory</text>
+  <text x="905" y="642" text-anchor="middle" fill="#64748b" font-size="8">按作用域精准注入，持续优化系统行为</text>
+
+</svg>

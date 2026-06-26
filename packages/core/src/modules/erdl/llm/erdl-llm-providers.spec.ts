@@ -34,7 +34,7 @@ describe('erdl-llm-providers', () => {
     })
 
     it('设置有效的 DEEPSEEK_API_KEY 后应有可用 Provider', () => {
-      process.env.DEEPSEEK_API_KEY = 'sk-1234567890abcdef1234567890abcdef'
+      process.env.DEEPSEEK_API_KEY = 'ds-test-key-1234567890abcdef1234567890abc'
       const providers = getAvailableProviders()
       // 需要重新 import 以获取新的 env 值
       const { getAvailableProviders: fresh } = require('./erdl-llm-providers')
@@ -66,7 +66,7 @@ describe('erdl-llm-providers', () => {
     })
 
     it('有可用 Provider 时应返回第一个', () => {
-      process.env.DEEPSEEK_API_KEY = 'sk-1234567890abcdef1234567890abcdef'
+      process.env.DEEPSEEK_API_KEY = 'ds-test-key-1234567890abcdef1234567890abc'
       const { getDefaultProvider: fresh } = require('./erdl-llm-providers')
       const result = fresh()
       expect(result).toBeDefined()

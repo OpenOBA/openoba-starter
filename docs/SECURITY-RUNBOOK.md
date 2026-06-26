@@ -10,7 +10,7 @@
 
 | 角色 | 渠道 | 说明 |
 |------|------|------|
-| 安全报告 | support@openoba.com | PGP: 待发布 |
+| 安全报告 | postmaster@openoba.com | PGP: 待发布 |
 | 社区 | GitHub Issues | 非紧急问题 |
 | 维护者 | GitHub CODEOWNERS | 代码级安全问题 |
 
@@ -85,4 +85,4 @@
 
 ---
 
-> 本文件随版本迭代持续更新。发现安全漏洞请发送至 support@openoba.com
+> 本文件随版本迭代持续更新。发现安全漏洞请发送至 postmaster@openoba.com

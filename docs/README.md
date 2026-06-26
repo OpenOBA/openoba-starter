@@ -95,7 +95,7 @@
 ## 📖 文档约定
 
 - **语言**：中文为主，代码标识符保留英文
-- **版本**：文档与代码版本对齐，当前对应 `1.4.0-alpha9`
+- **版本**：文档与代码版本对齐，当前对应 `1.5.0-alpha`
 - **反馈**：发现文档问题？[提 Issue](https://github.com/openoba/openoba-starter/issues) 并打上 `documentation` 标签
 
 ---

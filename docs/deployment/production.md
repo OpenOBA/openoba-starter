@@ -1,434 +1,324 @@
-# 生产部署指南
+# Production Deployment
 
-> 把 OpenOBA Starter 部署到生产环境的完整步骤和检查清单
-
-## 部署前检查清单
-
-### 代码与构建
-
-- [ ] 代码版本已锁定（使用 git tag 或 commit hash）
-- [ ] `npm run build:backend` 编译成功
-- [ ] 前端 `npm run build` 构建成功（产物在 `frontend/dist/`）
-- [ ] 所有测试通过（`npm test`）
-- [ ] ESLint 无错误（`npm run lint:all`）
-- [ ] `npm audit` 无 high/critical 漏洞
-
-### 环境配置
-
-- [ ] `.env` 中所有密钥已替换为强随机字符串
-- [ ] `JWT_SECRET` 和 `CUSTOMER_JWT_SECRET` 长度 ≥ 32 字符
-- [ ] `APP_ENV=production`
-- [ ] `OPENOBA_MODE=operator`
-- [ ] `CORS_ORIGIN` 设置为生产域名
-- [ ] 数据库密码为强密码
-- [ ] Redis 已配置（生产推荐）
-
-### 数据库
-
-- [ ] MySQL 版本 ≥ 8.0
-- [ ] 字符集 `utf8mb4`
-- [ ] 已创建生产数据库
-- [ ] 已完成初始化向导（建表 + 种子）
-- [ ] 已修改 admin 默认密码
-- [ ] 已配置数据库备份
-
-### 基础设施
-
-- [ ] 服务器 Node.js ≥ 18
-- [ ] Nginx（或同类反向代理）已配置
-- [ ] HTTPS 证书已配置
-- [ ] 防火墙仅开放 80/443 端口
-- [ ] 日志收集已配置
+> Guide for deploying OpenOBA in production.
 
 ---
 
-## 部署架构
+## Deployment Mode
 
-### 推荐架构（单机）
+Set `OPENOBA_MODE=operator` in production. This hides development/debug features and enables production-only safeguards.
 
-```
-                    ┌─────────────┐
-                    │   用户浏览器  │
-                    └──────┬──────┘
-                           │ HTTPS
-                    ┌──────▼──────┐
-                    │    Nginx    │  ← 80/443
-                    │  反向代理    │
-                    └──┬───────┬──┘
-                       │       │
-            ┌──────────┘       └──────────┐
-            ▼                              ▼
-    ┌───────────────┐              ┌──────────────┐
-    │  前端静态文件  │              │  Node.js 后端 │  ← 内网 :3400
-    │  dist/        │              │  (PM2 管理)   │
-    └───────────────┘              └──────┬───────┘
-                                          │
-                          ┌───────────────┼───────────────┐
-                          ▼               ▼               ▼
-                   ┌────────────┐  ┌────────────┐  ┌────────────┐
-                   │   MySQL    │  │   Redis    │  │  LLM API   │
-                   │   8.0      │  │  (限流缓存) │  │ (DeepSeek) │
-                   └────────────┘  └────────────┘  └────────────┘
-```
-
-### 端口规划
-
-| 服务 | 端口 | 暴露 |
-|------|------|------|
-| Nginx | 80, 443 | ✅ 公网 |
-| Node.js 后端 | 3400 | ❌ 仅内网 |
-| MySQL | 3306 | ❌ 仅本机 |
-| Redis | 6379 | ❌ 仅本机 |
-
-> ⚠️ 后端、MySQL、Redis 端口**绝不**对公网开放。仅 Nginx 的 80/443 暴露。
+| Mode | Purpose |
+|------|---------|
+| `operator` | **Production** — hide dev features, enable all guards |
+| `developer` | Local development — debug tools, auto-reload |
+| `maintainer` | Diagnostics — system internals exposed |
 
 ---
 
-## 部署步骤
+## Production Checklist
 
-### 1. 服务器准备
+### Pre-deployment
 
-```bash
-# 安装 Node.js 20 LTS（推荐用 nvm）
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-source ~/.bashrc
-nvm install 20
-nvm use 20
+- [ ] `.env` file configured (never committed — excluded by `.gitignore`)
+- [ ] `NODE_ENV=production` set
+- [ ] `OPENOBA_MODE=operator` set
+- [ ] JWT secret rotated from default
+- [ ] LLM API keys configured
+- [ ] Database connection string set (production credentials)
+- [ ] Redis connection string set (for rate limiting)
+- [ ] CORS whitelist configured (no `*`)
+- [ ] `npm ci --production` run (no devDependencies)
+- [ ] `npm run build:backend` passes with 0 errors
+- [ ] `npm test` passes
 
-# 安装 PM2（进程管理）
-npm install -g pm2
+### Security
 
-# 安装 MySQL 8.0（Ubuntu/Debian 示例）
-sudo apt update
-sudo apt install mysql-server-8.0
+- [ ] HTTPS enabled (TLS termination at Nginx or load balancer)
+- [ ] Firewall: only ports 80, 443 open to public; 3000 restricted to localhost
+- [ ] Helmet middleware enabled (security headers)
+- [ ] Rate limiting active (Redis-backed)
+- [ ] JWT expiration ≤ 2 hours with refresh mechanism
+- [ ] Password hashing: Argon2id (preferred) or bcrypt (cost ≥ 12)
+- [ ] CORS restricted to specific origins
 
-# 安装 Redis（可选但推荐）
-sudo apt install redis-server
+### Database
 
-# 安装 Nginx
-sudo apt install nginx
-```
+- [ ] MySQL 8.0 installed and configured
+- [ ] Database charset: `utf8mb4`
+- [ ] `synchronize: false` in TypeORM config
+- [ ] Connection pool: `connectionLimit: 50`
+- [ ] Initial schema loaded: `database/init-structure.sql`
+- [ ] Automated backups configured (see Backup section)
+- [ ] Database user has minimal required privileges (no DROP/ALTER in app user)
 
-### 2. 获取代码并构建
+### Infrastructure
 
-```bash
-# 创建部署目录
-sudo mkdir -p /opt/openoba
-sudo chown $USER:$USER /opt/openoba
-cd /opt/openoba
+- [ ] SSL certificate installed (Let's Encrypt / commercial)
+- [ ] Nginx reverse proxy configured (see below)
+- [ ] PM2 process manager installed and configured
+- [ ] Log rotation configured
+- [ ] Monitoring: `/health` endpoint accessible internally
 
-# 克隆代码（用特定 tag）
-git clone --branch v1.4.0-alpha9 <repo-url> .
-# 或：git clone <repo-url> . && git checkout v1.4.0-alpha9
+---
 
-# 安装依赖（生产依赖）
-npm ci --omit=dev
-
-# 编译后端
-npm run build:backend
-
-# 构建前端
-cd frontend
-npm ci
-npm run build
-cd ..
-```
-
-### 3. 配置环境变量
-
-```bash
-cp .env.example .env
-vim .env
-```
-
-**生产环境 `.env` 关键配置**：
-
-```ini
-APP_ENV=production
-APP_PORT=3400
-OPENOBA_MODE=operator
-
-DB_HOST=localhost
-DB_PORT=3306
-DB_USERNAME=openoba
-DB_PASSWORD=强随机密码
-DB_DATABASE=openoba_starter
-
-# 用 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))" 生成
-JWT_SECRET=64位hex字符串
-CUSTOMER_JWT_SECRET=另一个不同的64位hex字符串
-
-CORS_ORIGIN=https://erp.yourcompany.com
-
-REDIS_URL=redis://:redis密码@localhost:6379
-```
-
-> ⚠️ `.env` 文件权限设为 600：`chmod 600 .env`
-
-### 4. 初始化数据库
-
-```bash
-# 创建数据库
-mysql -u root -p -e "CREATE DATABASE openoba_starter DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-
-# 创建专用用户（不要用 root）
-mysql -u root -p -e "CREATE USER 'openoba'@'localhost' IDENTIFIED BY '强随机密码'; GRANT ALL ON openoba_starter.* TO 'openoba'@'localhost'; FLUSH PRIVILEGES;"
-```
-
-启动后端，通过初始化向导完成建表和种子数据。
-
-### 5. 配置 PM2 进程管理
-
-创建 `ecosystem.config.js`：
-
-```javascript
-module.exports = {
-  apps: [{
-    name: 'openoba-backend',
-    script: 'packages/backend/dist/main.js',
-    cwd: '/opt/openoba',
-    instances: 1,           // 单实例（多实例需 Redis 共享状态）
-    autorestart: true,
-    max_memory_restart: '1G',
-    env: {
-      NODE_ENV: 'production',
-    },
-    error_file: '/var/log/openoba/error.log',
-    out_file: '/var/log/openoba/out.log',
-    log_date_format: 'YYYY-MM-DD HH:mm:ss',
-  }],
-};
-```
-
-启动：
-
-```bash
-sudo mkdir -p /var/log/openoba
-pm2 start ecosystem.config.js
-pm2 save
-pm2 startup  # 开机自启
-```
-
-### 6. 配置 Nginx
-
-创建 `/etc/nginx/sites-available/openoba`：
+## Nginx Reverse Proxy
 
 ```nginx
 server {
     listen 80;
-    server_name erp.yourcompany.com;
+    server_name your-domain.com;
     return 301 https://$host$request_uri;
 }
 
 server {
     listen 443 ssl http2;
-    server_name erp.yourcompany.com;
+    server_name your-domain.com;
 
-    # SSL 证书（用 certbot 申请 Let's Encrypt）
-    ssl_certificate /etc/letsencrypt/live/erp.yourcompany.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/erp.yourcompany.com/privkey.pem;
+    ssl_certificate     /etc/letsencrypt/live/your-domain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
 
-    # 安全头
-    add_header X-Frame-Options "SAMEORIGIN";
-    add_header X-Content-Type-Options "nosniff";
-    add_header X-XSS-Protection "1; mode=block";
-    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-
-    # 前端静态文件
-    root /opt/openoba/frontend/dist;
-    index index.html;
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # 后端 API 反向代理
+    # Backend API
     location /api/ {
-        proxy_pass http://127.0.0.1:3400/;
-        proxy_http_version 1.1;
+        proxy_pass http://127.0.0.1:3000/api/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-    }
 
-    # WebSocket（Socket.io）
-    location /socket.io/ {
-        proxy_pass http://127.0.0.1:3400;
+        # WebSocket support for /chat
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_read_timeout 86400;  # WebSocket 长连接
     }
 
-    # 上传文件大小限制
-    client_max_body_size 20M;
-
-    # 静态资源缓存
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff2?)$ {
-        expires 30d;
-        add_header Cache-Control "public, immutable";
+    # Frontend static files
+    location / {
+        root /var/www/openoba/frontend/dist;
+        try_files $uri $uri/ /index.html;
     }
 
-    # Gzip
-    gzip on;
-    gzip_types text/plain text/css application/json application/javascript text/xml;
+    # Health check (internal only)
+    location /health {
+        proxy_pass http://127.0.0.1:3000/health;
+        allow 127.0.0.1;
+        deny all;
+    }
 }
 ```
 
-启用：
+---
 
-```bash
-sudo ln -s /etc/nginx/sites-available/openoba /etc/nginx/sites-enabled/
-sudo nginx -t          # 测试配置
-sudo systemctl reload nginx
+## Process Management (PM2)
+
+### Ecosystem Config (`ecosystem.config.js`)
+
+```javascript
+module.exports = {
+  apps: [{
+    name: 'openoba-backend',
+    script: 'dist/main.js',
+    cwd: '/opt/openoba/packages/backend',
+    instances: 'max',          // Auto-scale to CPU cores
+    exec_mode: 'cluster',
+    env_production: {
+      NODE_ENV: 'production',
+      OPENOBA_MODE: 'operator'
+    },
+    max_memory_restart: '1G',
+    error_file: '/var/log/openoba/error.log',
+    out_file: '/var/log/openoba/out.log',
+    merge_logs: true,
+    log_date_format: 'YYYY-MM-DD HH:mm:ss'
+  }]
+};
 ```
 
-### 7. 配置 HTTPS
+### PM2 Commands
 
 ```bash
-# 用 certbot 申请 Let's Encrypt 免费证书
-sudo apt install certbot python3-certbot-nginx
-sudo certbot --nginx -d erp.yourcompany.com
-```
-
-### 8. 验证部署
-
-```bash
-# 健康检查
-curl https://erp.yourcompany.com/api/health
-# 应返回 {"status":"ok",...}
-
-# 检查 PM2 状态
-pm2 status
-
-# 检查 Nginx 状态
-sudo systemctl status nginx
-
-# 检查日志
-pm2 logs openoba-backend --lines 50
+pm2 start ecosystem.config.js --env production
+pm2 save                       # Persist process list
+pm2 startup                    # Auto-start on boot
+pm2 logs openoba-backend       # View logs
+pm2 restart openoba-backend    # Zero-downtime restart
+pm2 monit                      # Real-time monitoring
 ```
 
 ---
 
-## 运维操作
+## Database: Backup Strategy
 
-### 更新版本
+### Automated Backup
 
 ```bash
-cd /opt/openoba
-git fetch --tags
-git checkout v1.4.1   # 新版本
+#!/bin/bash
+# /opt/openoba/scripts/backup.sh
+BACKUP_DIR="/var/backups/openoba"
+DATE=$(date +%Y%m%d_%H%M%S)
+mysqldump -u openoba_backup -p'${DB_PASSWORD}' \
+  --single-transaction \
+  --routines \
+  --triggers \
+  --databases openoba \
+  | gzip > "${BACKUP_DIR}/openoba_${DATE}.sql.gz"
 
-npm ci --omit=dev
-npm run build:backend
-cd frontend && npm ci && npm run build && cd ..
+# Retain last 30 days
+find "${BACKUP_DIR}" -name "openoba_*.sql.gz" -mtime +30 -delete
+```
 
+### Schedule (cron)
+
+```
+0 2 * * * /opt/openoba/scripts/backup.sh
+```
+
+### Recovery
+
+```bash
+gunzip -c openoba_20260625_020000.sql.gz | mysql -u root -p openoba
+```
+
+Backup files should be encrypted at rest (AES-256) and stored off-server.
+
+---
+
+## Redis Setup
+
+Required for production rate limiting and recommended for session storage:
+
+```bash
+# Install
+apt install redis-server
+
+# Secure
+redis-cli CONFIG SET requirepass "${REDIS_PASSWORD}"
+redis-cli CONFIG SET bind 127.0.0.1
+
+# Verify
+redis-cli -a "${REDIS_PASSWORD}" ping
+```
+
+Configure in `.env`:
+
+```
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+REDIS_PASSWORD=your-secure-password
+```
+
+---
+
+## SSL/TLS Setup
+
+### Let's Encrypt (Recommended)
+
+```bash
+apt install certbot python3-certbot-nginx
+certbot --nginx -d your-domain.com
+# Auto-renewal is configured automatically
+```
+
+### Manual Certificate
+
+Place certificate files and configure in Nginx (see Nginx config above).
+
+---
+
+## Monitoring
+
+### Health Endpoint
+
+```
+GET /health
+```
+
+Returns service status, database connectivity, and memory usage. Configure external monitoring (Uptime Kuma, Pingdom) to poll this endpoint every 60 seconds.
+
+### Log Files
+
+| Log | Location |
+|-----|----------|
+| Application | `/var/log/openoba/out.log` |
+| Errors | `/var/log/openoba/error.log` |
+| Nginx access | `/var/log/nginx/access.log` |
+| Nginx error | `/var/log/nginx/error.log` |
+| MySQL slow query | `/var/log/mysql/mysql-slow.log` |
+
+### Log Rotation
+
+```
+/var/log/openoba/*.log {
+    daily
+    rotate 30
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+}
+```
+
+---
+
+## Security Hardening
+
+| Measure | Configuration |
+|---------|--------------|
+| Helmet | `app.use(helmet())` — CSP, HSTS, X-Frame-Options |
+| CORS | `app.enableCors({ origin: ['https://your-domain.com'] })` |
+| Rate limiting | Redis-backed, per-IP and per-endpoint |
+| CSRF | Not required for stateless JWT API |
+| Input validation | Zod + class-validator on all DTOs |
+| SQL injection | Parameterized queries only (TypeORM) |
+| XSS | Output encoding in frontend templates |
+
+---
+
+## Secret Management
+
+- `.env` excluded from git via `.gitignore`
+- Never log secrets, tokens, or keys
+- Rotate all secrets every 90 days
+- Use `openssl rand -hex 32` to generate new JWT secrets
+- Store backup encryption keys separately from backup files
+
+---
+
+## Rollback Procedure
+
+If a deployment causes issues, execute the 7-step rollback:
+
+```bash
+# 1. Git: revert to last known-good commit
+git checkout <stable-commit>
+
+# 2. Build: rebuild
+npm ci --production && npm run build:backend
+
+# 3. Test: verify
+npm test
+
+# 4. Restart: PM2 zero-downtime restart
 pm2 reload openoba-backend
-```
 
-> ⚠️ 更新前备份数据库：`mysqldump -u root -p openoba_starter > backup_$(date +%Y%m%d).sql`
+# 5. Verify: check /health endpoint
+curl http://127.0.0.1:3000/health
 
-### 查看日志
+# 6. Monitor: watch logs for 15 minutes
+pm2 logs openoba-backend --lines 100
 
-```bash
-# 实时日志
-pm2 logs openoba-backend
-
-# 错误日志
-pm2 logs openoba-backend --err
-
-# Nginx 日志
-sudo tail -f /var/log/nginx/access.log
-sudo tail -f /var/log/nginx/error.log
-```
-
-### 数据库备份
-
-```bash
-# 手动备份
-mysqldump -u root -p openoba_starter > /backup/openoba_$(date +%Y%m%d_%H%M%S).sql
-
-# 定时备份（crontab）
-crontab -e
-# 添加：每天 3 点备份
-0 3 * * * mysqldump -u root -pYOUR_PASSWORD openoba_starter | gzip > /backup/openoba_$(date +\%Y\%m\%d).sql.gz
-```
-
-### 性能监控
-
-```bash
-# PM2 监控面板
-pm2 monit
-
-# MySQL 连接数
-mysql -u root -p -e "SHOW STATUS LIKE 'Threads_connected';"
-
-# Redis 状态
-redis-cli info
+# 7. Database: restore from backup if needed
+#    gunzip -c backup.sql.gz | mysql -u root -p openoba
 ```
 
 ---
 
-## 安全加固清单
+## Further Reading
 
-- [ ] `.env` 权限 600，且不提交到 Git
-- [ ] admin 默认密码已修改
-- [ ] MySQL 仅监听 127.0.0.1（`bind-address = 127.0.0.1`）
-- [ ] Redis 已设置密码且仅监听 127.0.0.1
-- [ ] 服务器 SSH 禁用密码登录，仅用密钥
-- [ ] 防火墙仅开放 22/80/443
-- [ ] HTTPS 已强制（HTTP 自动跳转）
-- [ ] Swagger 在生产环境关闭（`APP_ENV=production` 自动关闭）
-- [ ] 定期备份并验证可恢复
-- [ ] LLM API Key 已配置并设置用量上限
-
----
-
-## 故障排查
-
-### 后端无法启动
-
-```bash
-pm2 logs openoba-backend --err --lines 100
-```
-
-常见原因：
-- 数据库连接失败（检查 `.env` 的 DB 配置）
-- 端口 3400 被占用（`lsof -i :3400`）
-- 编译产物缺失（重新 `npm run build:backend`）
-
-### 前端页面 502
-
-```bash
-# 检查后端是否运行
-pm2 status
-curl http://127.0.0.1:3400/health
-
-# 检查 Nginx 配置
-sudo nginx -t
-```
-
-### WebSocket 连接失败
-
-检查 Nginx 的 `/socket.io/` 配置，确保 `Upgrade` 和 `Connection` 头正确传递。
-
-### 数据库连接耗尽
-
-```bash
-mysql -u root -p -e "SHOW PROCESSLIST;"
-# 检查连接数
-mysql -u root -p -e "SHOW STATUS LIKE 'Threads_connected';"
-```
-
-调大 `max_connections` 或排查连接泄漏。
-
----
-
-## 下一步
-
-- 📖 [安装指南](../getting-started/installation.md) — 开发环境安装
-- 📖 [配置说明](../getting-started/configuration.md) — 环境变量详解
-- 📖 [安全架构](../security/security-architecture.md) — 安全机制
-- 📖 [数据库 Schema](../database/schema.md) — 数据库结构
+- [Security Architecture](../security/security-architecture.md)
+- [Security Policy](/SECURITY.md) (repo root)
+- [Installation Guide](../getting-started/installation.md)
+- [Environment Setup](../development/environment-setup.md)

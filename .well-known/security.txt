@@ -1,0 +1,15 @@
+# OpenOBA Security Policy
+# https://www.rfc-editor.org/rfc/rfc9116
+
+Contact: mailto:postmaster@openoba.com
+Contact: https://github.com/openoba/openoba-starter/security/advisories
+Expires: 2027-06-26T00:00:00.000Z
+Preferred-Languages: en, zh-CN
+Canonical: https://openoba.com/.well-known/security.txt
+
+Policy: https://github.com/openoba/openoba-starter/blob/master/SECURITY.md
+Encryption: https://openoba.com/.well-known/security-pgp-key.asc
+
+# Security researchers: please report vulnerabilities via email or GitHub Security Advisory.
+# We aim to acknowledge within 24 hours and provide a substantive response within 7 days.
+# Safe Harbor: https://github.com/openoba/openoba-starter/blob/master/SECURITY.md#safe-harbor

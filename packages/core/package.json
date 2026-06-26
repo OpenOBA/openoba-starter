@@ -1,6 +1,6 @@
 {
   "name": "@openoba/core",
-  "version": "1.4.0-alpha9",
+  "version": "1.5.0-alpha",
   "private": true,
   "description": "OpenOBA Core Engine — AI Agent Execution Runtime",
   "license": "BSL-1.1",
