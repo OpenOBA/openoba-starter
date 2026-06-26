@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenOBA 执行及开发框架</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: #0b1120;
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100vh; padding: 20px;
+  }
+  .frame { max-width: 1100px; width: 100%; }
+
+  .title-bar {
+    text-align: center; margin-bottom: 20px;
+  }
+  .title-bar h1 {
+    font-size: 26px; font-weight: 700; color: #e2e8f0; letter-spacing: 1px;
+  }
+  .title-bar p {
+    font-size: 12px; color: #475569; margin-top: 4px;
+  }
+
+  /* ── Main Architecture: 3 cols ── */
+  .arch {
+    display: grid;
+    grid-template-columns: 180px 1fr 180px;
+    gap: 0;
+    margin-bottom: 10px;
+  }
+  .llm-panel {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 14px 8px;
+    border: 1px solid #1e293b;
+    border-radius: 10px 0 0 10px;
+    background: linear-gradient(180deg, #1a2332 0%, #141e2b 100%);
+    position: relative;
+  }
+  .llm-panel h3 { font-size: 12px; color: #64748b; font-weight: 600; letter-spacing: 1px; }
+  .llm-panel .llm-desc { font-size: 9px; color: #475569; margin-top: 3px; text-align: center; }
+  .flow-arrow {
+    position: absolute; right: -12px; top: 50%;
+    transform: translateY(-50%);
+    width: 0; height: 0;
+    border-left: 12px solid #1e293b;
+    border-top: 9px solid transparent;
+    border-bottom: 9px solid transparent;
+  }
+
+  .core-panel {
+    padding: 16px 22px 10px;
+    background: linear-gradient(180deg, #1a2744 0%, #152033 100%);
+    border-top: 2px solid #2563eb;
+  }
+  .core-label {
+    display: inline-block;
+    background: #2563eb;
+    color: #fff; font-size: 10px; font-weight: 700;
+    padding: 2px 9px; border-radius: 3px;
+    letter-spacing: 1px; margin-bottom: 8px;
+  }
+  .core-title {
+    font-size: 16px; font-weight: 700; color: #e2e8f0; margin-bottom: 2px;
+  }
+  .core-desc {
+    font-size: 10px; color: #64748b; margin-bottom: 12px;
+  }
+
+  /* Layer */
+  .layer { margin-bottom: 8px; }
+  .layer-header {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 5px;
+  }
+  .layer-header .lh-num {
+    width: 18px; height: 18px; border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; color: #fff;
+  }
+  .layer-header .lh-title {
+    font-size: 11px; font-weight: 600; color: #94a3b8;
+    letter-spacing: 1px;
+  }
+  .layer-header .lh-desc {
+    font-size: 9px; color: #475569;
+  }
+  .cap-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .cap-cell {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 5px;
+    padding: 7px 9px;
+  }
+  .cap-cell h4 { font-size: 10px; font-weight: 600; margin-bottom: 3px; }
+  .cap-cell .cap-sub { font-size: 8px; color: #64748b; line-height: 1.4; }
+
+  .l1 .lh-num { background: #a78bfa; }
+  .cap-cell.l1 h4 { color: #a78bfa; }
+  .l2 .lh-num { background: #60a5fa; }
+  .cap-cell.l2 h4 { color: #60a5fa; }
+  .l3 .lh-num { background: #34d399; }
+  .cap-cell.l3 h4 { color: #34d399; }
+  .l4 .lh-num { background: #fbbf24; }
+  .cap-cell.l4 h4 { color: #fbbf24; }
+  .cap-cell:hover { border-color: #ffffff33; }
+
+  .layer-sep {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #1e293b, transparent);
+    margin: 6px 0;
+  }
+
+  .ent-panel {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 14px 8px;
+    border: 1px solid #1e293b;
+    border-radius: 0 10px 10px 0;
+    background: linear-gradient(180deg, #1a2332 0%, #141e2b 100%);
+    position: relative;
+  }
+  .ent-panel .flow-arrow {
+    left: -12px; border-left: none;
+    border-right: 12px solid #1e293b;
+  }
+  .ent-panel h3 { font-size: 12px; color: #64748b; font-weight: 600; letter-spacing: 1px; }
+  .ent-item { font-size: 9px; color: #475569; padding: 2px 0; }
+
+  /* ── ERDL Base Bar ── */
+  .erdl-base {
+    margin: 0 20px 14px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 16px;
+    align-items: center;
+    padding: 10px 20px;
+    border: 1px solid #a78bfa33;
+    border-radius: 8px;
+    background: rgba(167,139,250,0.04);
+  }
+  .erdl-base .eb-label {
+    font-size: 14px; font-weight: 700; color: #a78bfa;
+    letter-spacing: 2px; text-align: right;
+  }
+  .erdl-base .eb-desc {
+    font-size: 10px; color: #94a3b8; line-height: 1.5;
+    text-align: center;
+    border-left: 1px solid #a78bfa33;
+    border-right: 1px solid #a78bfa33;
+    padding: 0 16px;
+  }
+  .erdl-base .eb-points { text-align: left; }
+  .erdl-base .eb-points div {
+    font-size: 9px; color: #94a3b8; padding: 2px 0;
+  }
+  .erdl-base .eb-points span {
+    color: #a78bfa; font-weight: 600;
+  }
+
+  /* ── Execution Loop ── */
+  .exec-loop {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .loop-step {
+    background: #1a2332;
+    border: 1px solid #1e293b;
+    border-radius: 6px;
+    padding: 10px 8px;
+    text-align: center;
+    position: relative;
+  }
+  .loop-step::after {
+    content: '→';
+    position: absolute;
+    right: -12px; top: 50%;
+    transform: translateY(-50%);
+    color: #2563eb; font-size: 14px; font-weight: 700;
+  }
+  .loop-step:last-child::after { display: none; }
+  .loop-step .step-num {
+    font-size: 8px; color: #2563eb; font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .loop-step .step-engine {
+    font-size: 8px; color: #475569;
+    margin-bottom: 2px;
+  }
+  .loop-step .step-title {
+    font-size: 10px; color: #e2e8f0; font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .loop-step .step-desc {
+    font-size: 8px; color: #64748b; line-height: 1.3;
+  }
+
+  .pillars {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .pillar {
+    background: #1a2332;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+  }
+  .pillar h4 { font-size: 12px; color: #e2e8f0; font-weight: 600; margin-bottom: 5px; }
+  .pillar p { font-size: 9px; color: #64748b; line-height: 1.5; }
+
+  @media (max-width: 900px) {
+    .arch { grid-template-columns: 1fr; }
+    .llm-panel, .ent-panel {
+      border-radius: 10px; flex-direction: row; gap: 10px; padding: 12px;
+    }
+    .flow-arrow { display: none; }
+    .cap-row { grid-template-columns: 1fr 1fr; }
+    .exec-loop { grid-template-columns: 1fr 1fr 1fr; }
+    .loop-step::after { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+
+  <div class="title-bar">
+    <h1>OpenOBA 执行及开发框架</h1>
+    <p>基于 LLM 的企业原生 AI 数字系统执行及开发框架</p>
+  </div>
+
+  <!-- Architecture -->
+  <div class="arch">
+    <div class="llm-panel">
+      <div class="flow-arrow"></div>
+      <h3>LLM</h3>
+      <div class="llm-desc">DeepSeek / Qwen</div>
+      <div class="llm-desc">自然语言理解</div>
+      <div class="llm-desc">任务规划</div>
+      <div class="llm-desc">代码生成</div>
+    </div>
+
+    <div class="core-panel">
+      <span class="core-label">OpenOBA</span>
+      <div class="core-title">AI 数字执行官 · 执行引擎</div>
+      <div class="core-desc">基于五项发明专利的确定性执行架构</div>
+
+      <!-- L1: ERDL 语义基座 -->
+      <div class="layer l1">
+        <div class="layer-header">
+          <span class="lh-num">1</span>
+          <span class="lh-title">ERDL 语义协议</span>
+          <span class="lh-desc">P01 + P04 · 确定性执行的前提</span>
+        </div>
+        <div class="cap-row">
+          <div class="cap-cell l1">
+            <h4>五层语义模型</h4>
+            <div class="cap-sub">Entity / Relation / Rule<br>Alias / Action</div>
+          </div>
+          <div class="cap-cell l1">
+            <h4>语义字段映射</h4>
+            <div class="cap-sub">别名→语义→物理列<br>三向确定翻译</div>
+          </div>
+          <div class="cap-cell l1">
+            <h4>规则校验引擎</h4>
+            <div class="cap-sub">13 项语义校验<br>零停机热替换</div>
+          </div>
+          <div class="cap-cell l1">
+            <h4>Meta-Mirror 自指</h4>
+            <div class="cap-sub">扫描 Entity/API/DTO<br>精准上下文注入</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="layer-sep"></div>
+
+      <!-- L2: 协议转换 + 决策 -->
+      <div class="layer l2">
+        <div class="layer-header">
+          <span class="lh-num">2</span>
+          <span class="lh-title">Action Guard 协议转换 + ReAct 决策</span>
+          <span class="lh-desc">P02 + P03 · LLM 输出确定化 + 推理链</span>
+        </div>
+        <div class="cap-row">
+          <div class="cap-cell l2">
+            <h4>四格式自适应解析</h4>
+            <div class="cap-sub">FC / JSON / XML / 文本<br>三级校验拦截</div>
+          </div>
+          <div class="cap-cell l2">
+            <h4>ReAct 单工具决策</h4>
+            <div class="cap-sub">每轮单工具 基于结果再决策<br>四层防线防失控</div>
+          </div>
+          <div class="cap-cell l2">
+            <h4>流式可视化推理</h4>
+            <div class="cap-sub">Thought → Tool → Observation<br>全透明时间线</div>
+          </div>
+          <div class="cap-cell l2">
+            <h4>Agent Memory 自进化</h4>
+            <div class="cap-sub">P06 · 失败→记忆转化<br>按作用域精准注入</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="layer-sep"></div>
+
+      <!-- L3: 能力层 -->
+      <div class="layer l3">
+        <div class="layer-header">
+          <span class="lh-num">3</span>
+          <span class="lh-title">运营与开发执行能力</span>
+          <span class="lh-desc">面向业务与技术岗位的统一能力接口</span>
+        </div>
+        <div class="cap-row">
+          <div class="cap-cell l3">
+            <h4>结构化表单读写</h4>
+            <div class="cap-sub">NL→参数化 SQL<br>任意表单增删改查</div>
+          </div>
+          <div class="cap-cell l3">
+            <h4>数据分析与报表</h4>
+            <div class="cap-sub">多表聚合/排行/趋势<br>自然语言驱动</div>
+          </div>
+          <div class="cap-cell l3">
+            <h4>File-Edit 自开发</h4>
+            <div class="cap-sub">改代码→编译验证<br>失败自动修正重试</div>
+          </div>
+          <div class="cap-cell l3">
+            <h4>18 个 Skill 工具</h4>
+            <div class="cap-sub">erdl-crud / tsc-check<br>data-analyze / csv-export</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="layer-sep"></div>
+
+      <!-- L4: 审计 -->
+      <div class="layer l4">
+        <div class="layer-header">
+          <span class="lh-num">4</span>
+          <span class="lh-title">认知审计与回滚安全网</span>
+          <span class="lh-desc">金融级全链路可追溯 · 可回滚 · 可举证</span>
+        </div>
+        <div class="cap-row">
+          <div class="cap-cell l4">
+            <h4>ReAct 全过程日志</h4>
+            <div class="cap-sub">T/T/O 每一步有痕<br>谁/何时/做了什么</div>
+          </div>
+          <div class="cap-cell l4">
+            <h4>ERDL ↔ DTO 交叉审计</h4>
+            <div class="cap-sub">规则层与代码层双向比对<br>防止双轨分歧</div>
+          </div>
+          <div class="cap-cell l4">
+            <h4>Checkpoint 快照</h4>
+            <div class="cap-sub">关键操作前自动保存<br>版本/commit/schema</div>
+          </div>
+          <div class="cap-cell l4">
+            <h4>一键回滚路径</h4>
+            <div class="cap-sub">7步自动回滚<br>Git+编译+测试+重启</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ent-panel">
+      <div class="flow-arrow"></div>
+      <h3>企业系统</h3>
+      <div style="margin-top:8px">
+        <div class="ent-item">关系数据库</div>
+        <div class="ent-item">业务后端</div>
+        <div class="ent-item">Web 前端</div>
+        <div class="ent-item">文件系统</div>
+        <div class="ent-item">缓存 / 队列</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ERDL Foundation -->
+  <div class="erdl-base">
+    <div class="eb-label">ERDL 语义基座</div>
+    <div class="eb-desc">
+      填补 LLM 与数字系统之间的天然鸿沟<br>
+      YAML 超集协议 · 五层语义模型 · 确定性执行的前提
+    </div>
+    <div class="eb-points">
+      <div><span>Entity</span> — 实体定义与表映射</div>
+      <div><span>Relation</span> — 关联关系声明</div>
+      <div><span>Rule</span> — 校验/触发/计算规则</div>
+      <div><span>Alias</span> — 别名→语义→物理列三向翻译</div>
+      <div><span>Action</span> — 可执行操作与参数约束</div>
+    </div>
+  </div>
+
+  <!-- Execution Loop -->
+  <div class="exec-loop">
+    <div class="loop-step">
+      <div class="step-num">Step 1</div>
+      <div class="step-engine">LLM</div>
+      <div class="step-title">意图理解</div>
+      <div class="step-desc">解析自然语言<br>规划执行路径</div>
+    </div>
+    <div class="loop-step">
+      <div class="step-num">Step 2</div>
+      <div class="step-engine">ERDL</div>
+      <div class="step-title">语义解析</div>
+      <div class="step-desc">别名→语义→物理<br>规则约束校验</div>
+    </div>
+    <div class="loop-step">
+      <div class="step-num">Step 3</div>
+      <div class="step-engine">Action Guard</div>
+      <div class="step-title">协议转换</div>
+      <div class="step-desc">四格式解析<br>三级校验拦截</div>
+    </div>
+    <div class="loop-step">
+      <div class="step-num">Step 4</div>
+      <div class="step-engine">ReAct</div>
+      <div class="step-title">单工具决策</div>
+      <div class="step-desc">执行→观察→再决策<br>四层防线</div>
+    </div>
+    <div class="loop-step">
+      <div class="step-num">Step 5</div>
+      <div class="step-engine">Skill</div>
+      <div class="step-title">确定性执行</div>
+      <div class="step-desc">参数化 SQL<br>编译+测试+文件</div>
+    </div>
+    <div class="loop-step">
+      <div class="step-num">Step 6</div>
+      <div class="step-engine">Memory</div>
+      <div class="step-title">审计+记忆</div>
+      <div class="step-desc">认知日志记录<br>结果反馈 LLM</div>
+    </div>
+  </div>
+
+  <div class="pillars">
+    <div class="pillar">
+      <h4>确定性架构 · 不以 Prompt 为防线</h4>
+      <p>ERDL 五层语义模型填补 LLM 与数字系统鸿沟<br>Action Guard 协议转换使 LLM 输出可控<br>不赌模型听话，约束层保证执行确定性</p>
+    </div>
+    <div class="pillar">
+      <h4>全链路审计 · 金融级合规</h4>
+      <p>ReAct T/T/O 每一步有痕可追溯<br>ERDL ↔ DTO 交叉审计防双轨分歧<br>Checkpoint 快照保证任意时期可应急回滚</p>
+    </div>
+    <div class="pillar">
+      <h4>自进化闭环 · 越用越聪明</h4>
+      <p>LLM 推理 → ERDL 语义执行 → 结果验证<br>失败自动转化为 Agent Memory<br>按作用域精准注入，持续优化系统行为</p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
