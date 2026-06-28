@@ -10,7 +10,18 @@ export function useChatMessages(taskId: { value: string }) {
 
   function renderMarkdown(text: string): string {
     if (!text) return ''
-    return DOMPurify.sanitize(marked.parse(text, { breaks: true, gfm: true }) as string)
+    // V1.6.0: 过滤 Agent 工具调用 XML 标签，防止泄露到前端渲染层
+    const cleaned = text
+      .replace(/<invoke[\s\S]*?<\/invoke>/gi, '')
+      .replace(/<function[\s\S]*?<\/function>/gi, '')
+      .replace(/<parameter[\s\S]*?<\/parameter>/gi, '')
+      .replace(/<tool_call>[\s\S]*?<\/tool_call>/gi, '')
+      .replace(/<thought>[\s\S]*?<\/thought>/gi, '')
+      .replace(/<\/?invoke[^>]*>/gi, '')
+      .replace(/<\/?function[^>]*>/gi, '')
+      .replace(/<\/?parameter[^>]*>/gi, '')
+      .trim()
+    return DOMPurify.sanitize(marked.parse(cleaned, { breaks: true, gfm: true }) as string)
   }
 
   function formatTime(isoStr?: string): string {

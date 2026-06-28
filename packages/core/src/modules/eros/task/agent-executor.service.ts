@@ -383,15 +383,25 @@ export class AgentExecutorService implements OnModuleInit {
 
     // 🧠 认知日志闭环：每次 Chat 结束时写入记忆（使用真实 agentCode）
     const logAgentCode = agentCode || 'tanghaoran'
-    const summary = (result.content || '').substring(0, 100).replace(/\n/g, ' ')
+
+    // V1.6.0: 清理 Agent 工具调用 XML 标签（防泄露到前端）
+    const cleanResultContent = result.content
+      ?.replace(/<invoke[\s\S]*?<\/invoke>/gi, '')
+      .replace(/<function[\s\S]*?<\/function>/gi, '')
+      .replace(/<parameter[\s\S]*?<\/parameter>/gi, '')
+      .replace(/<tool_call>[\s\S]*?<\/tool_call>/gi, '')
+      .trim() || ''
+
+    const summary = cleanResultContent.substring(0, 100).replace(/\n/g, ' ')
     this.soulService.logCognitive(logAgentCode, `Chat: ${summary}`, {
       message: cleanMessage.substring(0, 200),
-      responseLen: result.content?.length || 0,
+      responseLen: cleanResultContent.length || 0,
       model: this.usedModel,
       userId: userId || 'unknown',
     }).catch(() => {})
 
-    return result
+    // 返回清理后的结果
+    return { ...result, content: cleanResultContent }
   }
 
   /** 公开 buildReportFooter 供 StreamController 使用 */
