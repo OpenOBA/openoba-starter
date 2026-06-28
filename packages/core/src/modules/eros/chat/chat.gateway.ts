@@ -57,8 +57,8 @@ function getModelDisplayName(rawModelRef: string): string {
       : ['http://localhost:5173', 'http://localhost:3000'],
     credentials: true,
   },
-  pingInterval: 25000,    // Socket.IO 内置心跳
-  pingTimeout: 10000,
+  pingInterval: 45000,    // V1.5.1: 25s→45s，长 Agent 任务（3min+）不因心跳超时断开
+  pingTimeout: 60000,     // V1.5.1: 10s→60s，Agent 执行中无 IO 也不会误判断连
   connectTimeout: 10000,
   maxHttpBufferSize: 1e6, // 1MB
 })
@@ -253,7 +253,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           // M2: StreamEvent → chat.event 统一通道
           client.emit('chat.event', { runId, ...event })
         },
-        { userId: clientInfo.userId, agentCode: 'tanghaoran', model: data.model },
+        { userId: clientInfo.userId, agentCode: 'tanghaoran', model: data.model, abortSignal: abortController.signal },
       )
 
       if (!abortController.signal.aborted) {

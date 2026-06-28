@@ -269,9 +269,9 @@ export class AgentExecutorService implements OnModuleInit {
     history: { role: string; content: string }[],
     userMessage: string,
     onEvent: (e: StreamEvent) => void,
-    options: { userId?: string; agentCode?: string; forceFullMode?: boolean; model?: string } = {},
+    options: { userId?: string; agentCode?: string; forceFullMode?: boolean; model?: string; abortSignal?: AbortSignal } = {},
   ): Promise<{ content: string; model: string; provider: string } | null> {
-    const { userId, agentCode, forceFullMode = false, model } = options
+    const { userId, agentCode, forceFullMode = false, model, abortSignal } = options
     this.logger.log(`💬 Agent 会话回复 | userId=${userId || 'unknown'} agent=${agentCode || 'default'} history=${history.length}条 ${forceFullMode ? '🔵 全知模式' : ''}`)
 
     // 🔐 请求级隔离：每个会话清理缓存，防止跨用户数据泄漏
@@ -373,7 +373,7 @@ export class AgentExecutorService implements OnModuleInit {
       : systemPrompt
 
     const result = await this.llmBridge.queryWithToolsLegacy(
-      enhancedSystemPrompt, fullUserMessage, tools, toolExecutor, onEvent, defaultProviderCode,
+      enhancedSystemPrompt, fullUserMessage, tools, toolExecutor, onEvent, defaultProviderCode, abortSignal,
     )
 
     // V1.3: 用实际 Provider 的名称（name）而非 id 显示签名

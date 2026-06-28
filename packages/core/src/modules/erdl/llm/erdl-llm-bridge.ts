@@ -270,6 +270,7 @@ export class ERDLLLMBridge implements ILlmSseHandler, ILlmPromptBuilder {
     toolExecutor: (name: string, args: Record<string, unknown>) => Promise<string>,
     onEvent: (e: import('../../eros/stream/stream-event.types').StreamEvent) => void,
     preferredProviderCode?: string,
+    abortSignal?: AbortSignal,
   ): Promise<{ content: string; model: string; provider: string }> {
     const messages: ERDLLLMMessage[] = [
       { role: 'system', content: systemPrompt },
@@ -279,9 +280,15 @@ export class ERDLLLMBridge implements ILlmSseHandler, ILlmPromptBuilder {
     let finalModel = ''
     let finalProvider = ''
     // P0-2: ������ 3 �����ԣ��������쳣�жϣ�������ֱֹ�ӷ��أ�
+    // V1.5.1: abort signal check before loop
+    if (abortSignal?.aborted) {
+      onEvent({ type: 'observation', text: '✋ User aborted' })
+      return { content: '(Aborted)', model: '', provider: '' }
+    }
     const MAX = 3
     for (let i = 0; i < MAX; i++) {
-      const round = await this.queryWithToolsStream(messages, tools, toolExecutor, onEvent, undefined, preferredProviderCode)
+      if (abortSignal?.aborted) break
+      const round = await this.queryWithToolsStream(messages, tools, toolExecutor, onEvent, abortSignal, preferredProviderCode)
       if (!round.toolCalls || round.toolCalls.length === 0) {
         // ������ֹ��LLM �����˴��ı��ظ� �� ֱ�ӷ��أ�������
         finalContent = round.content || ''
