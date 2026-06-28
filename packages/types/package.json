@@ -1,6 +1,6 @@
 {
   "name": "@openoba/types",
-  "version": "1.5.0-alpha",
+  "version": "1.6.0-alpha",
   "description": "OpenOBA shared TypeScript types — enums and interfaces for CORE ↔ ERP decoupling",
   "author": "OpenOBA",
   "license": "MIT",
