@@ -320,6 +320,22 @@ ${erdlHint}
     }
 
     if (!manifest) {
+      // V1.6.0: 已知核心 Agent 硬编码兜底 — 防止 DB 空表导致降级为 sub/L1
+      const KNOWN_MAIN_AGENTS = new Set(['tanghaoran', 'main-agent', 'main_agent', 'agent-main'])
+      if (KNOWN_MAIN_AGENTS.has(agentCode)) {
+        this.logger.warn(`Agent ${agentCode} 未注册，使用 Main Agent 兜底身份（L4全权限）`)
+        return {
+          agentCode,
+          agentName: '唐浩然（OpenOBA AI 执行官）',
+          agentType: 'main',
+          icon: '🤖',
+          roleCodes: ['admin'],
+          roleNames: ['AI 执行官'],
+          securityClearance: 'L4',
+          status: 'active',
+        }
+      }
+
       this.logger.warn(`Agent ${agentCode} 未注册，使用兜底身份`)
       return {
         agentCode, agentName: `${agentCode} 的 AI 助手`, agentType: 'sub',

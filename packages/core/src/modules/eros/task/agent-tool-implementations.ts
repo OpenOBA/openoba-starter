@@ -411,7 +411,16 @@ export class AgentToolImplementations {
       const dir = project === 'frontend' ? nodePath.resolve(process.cwd(), '..', 'frontend') : process.cwd();
       cp.execSync('npx tsc --noEmit', { cwd: dir, timeout: TIMEOUT.TSC_CHECK });
       return '✅ TS编译通过';
-    } catch (e: unknown) { const err = e as { stderr?: string; message?: string }; return '❌ 编译失败: ' + (err.stderr || err.message || '').substring(0, 300); }
+    } catch (e: unknown) {
+      // V1.6.0: Buffer 安全 — execSync error 的 stderr/stdout 可能是 Buffer
+      const err = e as { stderr?: unknown; stdout?: unknown; message?: string };
+      const errText = typeof err.stderr === 'string' ? err.stderr
+        : Buffer.isBuffer(err.stderr) ? err.stderr.toString('utf-8')
+        : typeof err.stdout === 'string' ? err.stdout
+        : Buffer.isBuffer(err.stdout) ? err.stdout.toString('utf-8')
+        : err.message || '';
+      return '❌ 编译失败: ' + String(errText).substring(0, 500);
+    }
   }
 
   // ═══════════════════════════════════════════
@@ -433,7 +442,12 @@ export class AgentToolImplementations {
       const out = cp.execFileSync('git', gitArgs, { cwd: projectRoot, timeout: TIMEOUT.GIT_CMD, encoding: 'utf-8' }).trim();
       return out || '无变更';
     } catch (e: unknown) {
-      return 'Git 操作失败: ' + ((e as { stderr?: string }).stderr || (e as Error).message || '');
+      // V1.6.0: Buffer 安全
+      const err = e as { stderr?: unknown; message?: string };
+      const errText = typeof err.stderr === 'string' ? err.stderr
+        : Buffer.isBuffer(err.stderr) ? err.stderr.toString('utf-8')
+        : err.message || '';
+      return 'Git 操作失败: ' + String(errText).substring(0, 300);
     }
   }
 
