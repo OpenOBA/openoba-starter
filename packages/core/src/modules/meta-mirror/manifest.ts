@@ -80,6 +80,13 @@ export class ManifestService {
     const manifest = this.load()
     if (!manifest) return true
 
+    // V1.6.0: 兜底检查 — manifest 存在但知识文件缺失 → 强制 regenerate
+    const indexPath = path.join(path.dirname(this.manifestPath), 'entities', '_index.md')
+    if (!fs.existsSync(indexPath)) {
+      this.logger.warn('知识文件缺失，强制重新生成')
+      return true
+    }
+
     const currentHash = this.computeSourceHash(projectRoot)
     const needs = manifest.sourceHash !== currentHash
 

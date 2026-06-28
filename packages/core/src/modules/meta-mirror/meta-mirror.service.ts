@@ -128,6 +128,8 @@ export class MetaMirrorService implements OnModuleInit {
     this.erdlAudit.writeReport(auditReport, outputDir)
 
     this.logger.log(`  ✅ 元镜知识图谱已更新 · ${6 + 1} 个知识文件 · ${new Date().toISOString()}`)
+    this.logger.log(`  📁 知识文件路径: ${outputDir}`)
+    this.logger.log(`  📄 entities/_index.md · architecture.md · apis.md · rules.md`)
     this.logger.log('🔮 元镜就绪 · 反观自照')
   }
 
