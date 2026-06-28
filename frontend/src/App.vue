@@ -143,7 +143,7 @@ const isErpActive = computed(() => !isChatActive.value && route.path !== '/login
 // ============================================
 // 版本 / 升级信息
 // ============================================
-const currentVersion = ref('1.6.0-alpha')
+const currentVersion = ref(__APP_VERSION__)
 const latestVersion = ref('')
 const hasUpdate = ref(false)
 const updateChannel = ref('stable')

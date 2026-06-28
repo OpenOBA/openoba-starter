@@ -157,14 +157,14 @@ const about = reactive({
 
 async function loadAbout() {
   try {
-    const res = (await request.get('/system/version/check', { params: { current: '1.6.0-alpha' } })) as Record<
+    const res = (await request.get('/system/version/check', { params: { current: __APP_VERSION__ } })) as Record<
       string,
       unknown
     >
-    about.version = (res?.currentVersion as string) || '1.6.0-alpha'
+    about.version = (res?.currentVersion as string) || __APP_VERSION__
     about.deployMode = 'operator'
   } catch {
-    about.version = '1.6.0-alpha'
+    about.version = __APP_VERSION__
     about.deployMode = 'operator'
   }
   try {

@@ -71,23 +71,23 @@ function selectAgent(agent: AgentEntry) {
   emit('select', agent)
 }
 
-// 版本信息
-const versionText = ref('v1.6.0-alpha')
+// 版本信息 — V1.6.0: 单一来源，从 vite.config define 注入
+const versionText = ref(__APP_VERSION__)
 const hasUpdate = ref(false)
 const latestVersion = ref('')
 
 async function loadVersion() {
   try {
-    const res = (await request.get('/system/version/check', { params: { current: '1.6.0-alpha' } })) as unknown as {
+    const res = (await request.get('/system/version/check', { params: { current: __APP_VERSION__ } })) as unknown as {
       currentVersion?: string
       hasUpdate?: boolean
       latestVersion?: string
     }
-    versionText.value = res?.currentVersion || 'v1.6.0-alpha'
+    versionText.value = res?.currentVersion || __APP_VERSION__
     hasUpdate.value = res?.hasUpdate || false
     latestVersion.value = res?.latestVersion || ''
   } catch {
-    versionText.value = 'v1.6.0-alpha'
+    versionText.value = __APP_VERSION__
   }
 }
 
