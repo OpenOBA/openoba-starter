@@ -21,17 +21,17 @@ export class ManifestService {
   computeSourceHash(projectRoot: string): string {
     const hash = crypto.createHash('sha256')
 
-    // 源码在 backend/src
-    const srcDir = path.join(projectRoot, 'backend', 'src')
+    // V1.6.0修复: projectRoot 已是 monorepo 根，源码在 packages/core/src
+    const srcDir = path.join(projectRoot, 'packages', 'core', 'src')
     this.hashDirectory(hash, srcDir)
 
     // ERDL 文件
-    const erdlDir = path.join(projectRoot, 'backend', 'erdl')
+    const erdlDir = path.join(projectRoot, 'packages', 'core', 'erdl')
     if (fs.existsSync(erdlDir)) this.hashDirectory(hash, erdlDir)
 
     // 配置文件
     for (const f of ['package.json', 'tsconfig.json', '.eslintrc.js', '.eslintrc.json']) {
-      const fp = path.join(projectRoot, 'backend', f)
+      const fp = path.join(projectRoot, 'packages', 'core', f)
       if (fs.existsSync(fp)) hash.update(fs.readFileSync(fp))
     }
 

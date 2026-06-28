@@ -40,8 +40,8 @@ export class MetaMirrorService implements OnModuleInit {
     private readonly versionGuard: VersionGuardGenerator,
     private readonly checkpoint: CheckpointGenerator,
   ) {
-    // process.cwd() = backend/，projectRoot = backend/.. = Phase-0-地基
-    this.projectRoot = path.resolve(process.cwd(), '..')
+    // process.cwd() = packages/core,  .. = packages,  ../.. = monorepo根
+    this.projectRoot = path.resolve(process.cwd(), '..', '..')
   }
 
   async onModuleInit(): Promise<void> {
@@ -67,8 +67,8 @@ export class MetaMirrorService implements OnModuleInit {
 
   /** 强制重新扫描 + 生成 */
   async regenerate(): Promise<void> {
-    // 源码在 backend/src（不是根目录/src）
-    const srcDir = path.join(this.projectRoot, 'backend', 'src')
+    // V1.6.0修复: projectRoot 已指向 monorepo 根，src 在 packages/core/src
+    const srcDir = path.join(this.projectRoot, 'packages', 'core', 'src')
 
     // Step 1: 扫描
     this.logger.log('  ⚡ 扫描源码...')
