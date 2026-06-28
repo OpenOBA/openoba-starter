@@ -47,6 +47,9 @@ export interface RuntimeConfig {
   /** 场景标签列表 */
   sceneTags?: string[]
 
+  /** 适用季节标签列表 */
+  seasonTags?: string[]
+
   /** 款式映射 (key 存 DB, value 展示名) */
   genderOptions?: { value: string; label: string; tagType?: string }[]
 

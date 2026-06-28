@@ -18,6 +18,15 @@ export const SKU_STATUS = {
   discontinued: 'discontinued', // 已停产
 } as const
 
+// ===== 适用季节 =====
+export const SEASON_TAGS = {
+  spring: '春季',
+  summer: '夏季',
+  autumn: '秋季',
+  winter: '冬季',
+  all_season: '四季通用',
+} as const
+
 // ===== 促销状态（dict_promotion_status） =====
 export const PROMOTION_STATUS = {
   draft: 'draft', // 草稿

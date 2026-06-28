@@ -12,6 +12,7 @@ export const eyewearSchema: IndustrySchema = {
 
   config: {
     sceneTags: ['通勤', '职场', '约会', '拍照', '运动', '旅行', '休闲', '派对'],
+    seasonTags: ['春季', '夏季', '秋季', '冬季', '四季通用'],
 
     genderOptions: [
       { value: 'female', label: '女款', tagType: 'danger' },
@@ -96,6 +97,12 @@ export const eyewearSchema: IndustrySchema = {
         label: '场景标签',
         type: 'enum',
         values: ['通勤', '职场', '约会', '拍照', '运动', '旅行', '休闲', '派对'],
+      },
+      {
+        key: 'seasonTags',
+        label: '适用季节',
+        type: 'enum',
+        values: ['春季', '夏季', '秋季', '冬季', '四季通用'],
       },
       { key: 'description', label: '描述', type: 'text' },
       { key: 'status', label: '状态', type: 'enum', values: ['on_sale', 'draft', 'off_sale'], required: true },

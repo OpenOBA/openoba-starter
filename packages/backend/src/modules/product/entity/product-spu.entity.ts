@@ -50,6 +50,9 @@ export class ProductSpu {
   @Column({ comment: '场景标签', name: 'scene_tags', type: 'json', nullable: true })
   sceneTags?: string[] // ["通勤", "拍照", "职场"]
 
+  @Column({ comment: '适用季节', name: 'season_tags', type: 'json', nullable: true })
+  seasonTags?: string[] // ["春季", "夏季", "秋季", "冬季"]
+
   @Column({ comment: '描述', type: 'text', nullable: true })
   description?: string
 
