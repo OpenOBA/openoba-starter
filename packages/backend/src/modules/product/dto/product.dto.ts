@@ -78,7 +78,8 @@ export class CreateSpuDto {
   @ApiPropertyOptional() @IsOptional() @IsString() categoryId?: string
   @ApiPropertyOptional() @IsOptional() @IsString() seriesCode?: string
   @ApiPropertyOptional() @IsOptional() @IsString() gender?: string // æ¬¾å¼ï¼female/male/unisex/limited
-  @ApiPropertyOptional() @IsOptional() @IsArray() sceneTags?: string[] // ["éå¤", "æç §"]
+  @ApiPropertyOptional() @IsOptional() @IsArray() sceneTags?: string[] // V1.5.1
+  @ApiPropertyOptional() @IsOptional() @IsArray() seasonTags?: string[] // ["éå¤", "æç §"]
   @ApiPropertyOptional() @IsOptional() @IsString() description?: string
   @ApiPropertyOptional() @IsOptional() @IsString() mainImage?: string
   @ApiPropertyOptional() @IsOptional() @IsArray() images?: string[]
@@ -97,7 +98,8 @@ export class UpdateSpuDto {
   @ApiPropertyOptional() @IsOptional() @IsString() productTier?: string
   @ApiPropertyOptional() @IsOptional() @IsString() seriesCode?: string
   @ApiPropertyOptional() @IsOptional() @IsString() gender?: string
-  @ApiPropertyOptional() @IsOptional() @IsArray() sceneTags?: string[]
+  @ApiPropertyOptional() @IsOptional() @IsArray() sceneTags?: string[] // V1.5.1
+  @ApiPropertyOptional() @IsOptional() @IsArray() seasonTags?: string[]
   @ApiPropertyOptional() @IsOptional() @IsString() description?: string
   @ApiPropertyOptional() @IsOptional() @IsString() mainImage?: string
   @ApiPropertyOptional() @IsOptional() @IsArray() images?: string[]
