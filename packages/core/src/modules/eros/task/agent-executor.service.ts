@@ -273,8 +273,23 @@ export class AgentExecutorService implements OnModuleInit {
     onEvent: (e: StreamEvent) => void,
     options: { userId?: string; agentCode?: string; forceFullMode?: boolean; model?: string; abortSignal?: AbortSignal } = {},
   ): Promise<{ content: string; model: string; provider: string } | null> {
-    const { userId, agentCode, forceFullMode = false, model, abortSignal } = options
+    const { userId, agentCode, forceFullMode = false, model, abortSignal: externalSignal } = options
     this.logger.log(`💬 Agent 会话回复 | userId=${userId || 'unknown'} agent=${agentCode || 'default'} history=${history.length}条 ${forceFullMode ? '🔵 全知模式' : ''}`)
+
+    // V1.6.0: 整体超时控制 — 无外部 AbortSignal 时创建默认超时 AbortController
+    let timeoutController: AbortController | null = null
+    let effectiveSignal = externalSignal || undefined
+    if (!effectiveSignal) {
+      timeoutController = new AbortController()
+      effectiveSignal = timeoutController.signal
+      const timeoutMs = TIMEOUT.AGENT_CHAT
+      setTimeout(() => {
+        if (timeoutController && !timeoutController.signal.aborted) {
+          this.logger.warn(`⏰ Agent 会话超时 (${timeoutMs / 1000}s)，自动中止`)
+          timeoutController.abort()
+        }
+      }, timeoutMs)
+    }
 
     // 🔐 请求级隔离：每个会话清理缓存，防止跨用户数据泄漏
     this.queryCache.clear()
@@ -375,7 +390,7 @@ export class AgentExecutorService implements OnModuleInit {
       : systemPrompt
 
     const result = await this.llmBridge.queryWithToolsLegacy(
-      enhancedSystemPrompt, fullUserMessage, tools, toolExecutor, onEvent, defaultProviderCode, abortSignal,
+      enhancedSystemPrompt, fullUserMessage, tools, toolExecutor, onEvent, defaultProviderCode, effectiveSignal,
     )
 
     // V1.3: 用实际 Provider 的名称（name）而非 id 显示签名

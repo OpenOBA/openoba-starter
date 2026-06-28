@@ -32,4 +32,7 @@ export const TIMEOUT = {
 
   /** 部署操作（migrate/rollback） */
   DEPLOY_CMD: 30_000,
+
+  /** V1.6.0: Agent 会话整体超时（5 分钟） */
+  AGENT_CHAT: 300_000,
 } as const
