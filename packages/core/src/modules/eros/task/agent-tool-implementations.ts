@@ -28,6 +28,19 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { EntityDataBridge, IEntityDataRegistry } from '../../erdl/core/entity-data-bridge'
 
+/** V1.6.0: Agent 工作区隔离 — 优先从 AGENT_WORKSPACE 环境变量读取 */
+let _agentWorkspace: string | null = null
+function getAgentWorkspace(): string {
+  if (_agentWorkspace !== null) return _agentWorkspace
+  const envWs = process.env['AGENT_WORKSPACE']
+  if (envWs && require('fs').existsSync(envWs)) {
+    _agentWorkspace = envWs
+    return envWs
+  }
+  _agentWorkspace = path.resolve(process.cwd(), '..', '..')
+  return _agentWorkspace
+}
+
 type DbRow = Record<string, string>
 
 @Injectable()
@@ -342,7 +355,7 @@ export class AgentToolImplementations {
     try {
       const nodePath = require('path');
       const { operation, filePath, oldStr, newStr, content } = args;
-      const projectRoot = nodePath.resolve(process.cwd(), '..');
+      const projectRoot = getAgentWorkspace();
       const resolved = nodePath.resolve(nodePath.isAbsolute(filePath) ? filePath : nodePath.join(projectRoot, filePath));
       if (!resolved.startsWith(projectRoot + nodePath.sep) && resolved !== projectRoot) {
         return '❌ 禁止越界访问：' + filePath + ' 不在项目目录内';
@@ -408,7 +421,8 @@ export class AgentToolImplementations {
     try {
       const cp = require('child_process');
       const nodePath = require('path');
-      const dir = project === 'frontend' ? nodePath.resolve(process.cwd(), '..', 'frontend') : process.cwd();
+      const ws = getAgentWorkspace()
+      const dir = project === 'frontend' ? nodePath.join(ws, 'frontend') : nodePath.join(ws, 'packages', 'core');
       cp.execSync('npx tsc --noEmit', { cwd: dir, timeout: TIMEOUT.TSC_CHECK });
       return '✅ TS编译通过';
     } catch (e: unknown) {
@@ -438,7 +452,7 @@ export class AgentToolImplementations {
         if (!/^[a-zA-Z0-9_\-./\\ ]+$/.test(filePath)) return 'filePath 包含非法字符';
         gitArgs.push('--', filePath);
       }
-      const projectRoot = nodePath.resolve(process.cwd(), '..');
+      const projectRoot = getAgentWorkspace();
       const out = cp.execFileSync('git', gitArgs, { cwd: projectRoot, timeout: TIMEOUT.GIT_CMD, encoding: 'utf-8' }).trim();
       return out || '无变更';
     } catch (e: unknown) {
@@ -458,7 +472,7 @@ export class AgentToolImplementations {
   async executeAutoCommit(commitMessage: string): Promise<string> {
     const cp = require('child_process')
     const nodePath = require('path')
-    const projectRoot = nodePath.resolve(process.cwd(), '..')
+    const projectRoot = getAgentWorkspace()
 
     if (!commitMessage || commitMessage.trim().length < 3) {
       return '❌ commit message 太短，至少 3 个字符'
