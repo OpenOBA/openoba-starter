@@ -77,6 +77,7 @@ export interface ToolRegisterCallbacks {
   executeFileEdit: (args: FileEditArgs) => string
   executeTscCheck: (project: string) => string
   executeGitDiff: (mode: string, filePath?: string) => string
+  executeAutoCommit: (commitMessage: string) => Promise<string>
 }
 
 export interface ToolRegisterArgs {
@@ -489,6 +490,27 @@ export class AgentToolRegistrar {
     toolRegistry.register({ definition: { type: 'function', function: { name: 'file_edit', description: '精准编辑项目源代码文件。read=读取(默认5000行，可设limit+offset分页), replace=替换, write=覆写。大文件用 offset 分段读取。目录输入返回文件列表。', parameters: { type: 'object', properties: { operation: { type: 'string', enum: ['read','replace','write'] }, filePath: { type: 'string', description: '文件路径，如 backend/src/modules/soul/soul.service.ts' }, oldStr: { type: 'string', description: 'replace 时：要替换的原文本' }, newStr: { type: 'string' }, content: { type: 'string', description: 'write 时：完整文件内容' } }, required: ['operation','filePath'], additionalProperties: false } } }, execute: async (_n, args) => callbacks.executeFileEdit(args as unknown as FileEditArgs), agentTypes: ADMIN_TOOLS })
     toolRegistry.register({ definition: { type: 'function', function: { name: 'tsc_check', description: 'TypeScript 编译检查。修改代码后调用验证。project: backend/frontend/both', parameters: { type: 'object', properties: { project: { type: 'string', description: 'backend | frontend | both' } } } } }, execute: async (_n, args) => callbacks.executeTscCheck(String(args['project'] || 'backend')), agentTypes: ADMIN_TOOLS })
     toolRegistry.register({ definition: { type: 'function', function: { name: 'git_diff', description: '查看 Git 工作区变更。mode: status/diff/stat', parameters: { type: 'object', properties: { mode: { type: 'string' }, filePath: { type: 'string' } } } } }, execute: async (_n, args) => callbacks.executeGitDiff(String(args['mode'] || 'stat'), args['filePath'] as string), agentTypes: ADMIN_TOOLS })
+
+    // ── V1.6.0: auto_commit — Agent 变更自动提交 + build + test ──
+    toolRegistry.register({
+      definition: {
+        type: 'function',
+        function: {
+          name: 'auto_commit',
+          description: '自动提交代码变更：git add → commit → npm run build:backend → npm test。修改代码文件后应调用此工具确保变更通过编译和测试。commitMessage 需简明描述本次修改内容（如 fix: 修复类型错误 / feat: 新增 Entity 字段）。成功后返回 commit hash 和 build/test 结果。',
+          parameters: {
+            type: 'object',
+            properties: {
+              commitMessage: { type: 'string', description: 'commit message，简明描述修改内容' },
+            },
+            required: ['commitMessage'],
+            additionalProperties: false,
+          },
+        },
+      },
+      execute: async (_n, args) => callbacks.executeAutoCommit(String(args['commitMessage'] || '')),
+      agentTypes: ADMIN_TOOLS,
+    })
 
     this.logger.log(`已注册 ${toolRegistry.getDefinitions().length} 个 Agent 工具`)
   }

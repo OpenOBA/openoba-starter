@@ -129,6 +129,8 @@ export class AgentExecutorService implements OnModuleInit {
         executeFileEdit: (args) => this.executeFileEdit(args),
         executeTscCheck: (p) => this.executeTscCheck(p),
         executeGitDiff: (m,fp) => this.executeGitDiff(m,fp),
+        // V1.6.0
+        executeAutoCommit: (msg) => this.executeAutoCommit(msg),
       },
     })
   }
@@ -1239,6 +1241,11 @@ export class AgentExecutorService implements OnModuleInit {
   private executeGitDiff(mode: string, filePath?: string): string {
     return this.toolImpls.executeGitDiff(mode, filePath);
   }
+
+  private async executeAutoCommit(commitMessage: string): Promise<string> {
+    return this.toolImpls.executeAutoCommit(commitMessage)
+  }
+
 private buildRuleBlock(): string {
     return [
       '## 美学规则（静态）',

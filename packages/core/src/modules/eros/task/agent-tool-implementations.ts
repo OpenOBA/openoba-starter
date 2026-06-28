@@ -452,6 +452,101 @@ export class AgentToolImplementations {
   }
 
   // ═══════════════════════════════════════════
+  // executeAutoCommit — V1.6.0: Agent 变更自动提交
+  // ═══════════════════════════════════════════
+
+  async executeAutoCommit(commitMessage: string): Promise<string> {
+    const cp = require('child_process')
+    const nodePath = require('path')
+    const projectRoot = nodePath.resolve(process.cwd(), '..')
+
+    if (!commitMessage || commitMessage.trim().length < 3) {
+      return '❌ commit message 太短，至少 3 个字符'
+    }
+
+    const cleanMsg = commitMessage.replace(/[\n\r]/g, ' ').substring(0, 200)
+    const lines: string[] = []
+
+    try {
+      // Step 1: git add -A
+      cp.execSync('git add -A', { cwd: projectRoot, timeout: 10000 })
+
+      // Step 2: git diff --cached --stat
+      let stat = ''
+      try {
+        stat = cp.execFileSync('git', ['diff', '--cached', '--stat'], {
+          cwd: projectRoot, timeout: 10000, encoding: 'utf-8',
+        }).trim()
+      } catch {
+        return '❌ 无变更可提交'
+      }
+
+      if (!stat) return '❌ 无变更可提交'
+
+      // Step 3: git commit
+      cp.execSync(`git commit -m "${cleanMsg.replace(/"/g, '\\"')}"`, {
+        cwd: projectRoot, timeout: 15000,
+      })
+
+      // Step 4: 获取 commit hash
+      const hash = cp.execFileSync('git', ['rev-parse', '--short', 'HEAD'], {
+        cwd: projectRoot, timeout: 5000, encoding: 'utf-8',
+      }).trim()
+
+      lines.push(`✅ commit ${hash}: ${cleanMsg}`)
+      lines.push('')
+      lines.push('📊 变更:')
+      lines.push(stat)
+
+      // Step 5: build
+      try {
+        cp.execSync('npm run build:backend', {
+          cwd: projectRoot, timeout: TIMEOUT.TSC_CHECK * 3,
+        })
+        lines.push('')
+        lines.push('✅ Build: 0 errors')
+      } catch (e: unknown) {
+        const err = e as { stderr?: unknown; stdout?: unknown }
+        const errText = typeof err.stderr === 'string' ? err.stderr
+          : Buffer.isBuffer(err.stderr) ? err.stderr.toString('utf-8')
+          : typeof err.stdout === 'string' ? err.stdout
+          : Buffer.isBuffer(err.stdout) ? err.stdout.toString('utf-8')
+          : ''
+        lines.push('')
+        lines.push('❌ Build 失败:')
+        lines.push(String(errText).substring(0, 500))
+      }
+
+      // Step 6: test
+      try {
+        cp.execSync('npm test', {
+          cwd: nodePath.join(projectRoot, 'packages', 'core'),
+          timeout: TIMEOUT.TSC_CHECK * 2,
+        })
+        lines.push('✅ Test: 全部通过')
+      } catch (e: unknown) {
+        const err = e as { stderr?: unknown; stdout?: unknown }
+        const errText = typeof err.stderr === 'string' ? err.stderr
+          : Buffer.isBuffer(err.stderr) ? err.stderr.toString('utf-8')
+          : typeof err.stdout === 'string' ? err.stdout
+          : Buffer.isBuffer(err.stdout) ? err.stdout.toString('utf-8')
+          : ''
+        lines.push('')
+        lines.push('⚠️ Test 有失败:')
+        lines.push(String(errText).substring(0, 500))
+      }
+
+      return lines.join('\n')
+    } catch (e: unknown) {
+      const err = e as { stderr?: unknown; message?: string }
+      const errText = typeof err.stderr === 'string' ? err.stderr
+        : Buffer.isBuffer(err.stderr) ? err.stderr.toString('utf-8')
+        : (err.message || '')
+      return '❌ commit 失败: ' + String(errText).substring(0, 300)
+    }
+  }
+
+  // ═══════════════════════════════════════════
   // executeDraftCreate — 创建草稿
   // ═══════════════════════════════════════════
 
