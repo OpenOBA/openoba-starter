@@ -415,6 +415,7 @@
       :structure-standards="structureStandardList"
       :series-list="computedSeriesList"
       :scene-tags="sceneTagOptions"
+      :season-tags="seasonTagOptions"
       :gender-options="genderOptions"
       :status-options="statusOptions"
       :category-list="categoryList"
@@ -511,6 +512,10 @@ const loadSchema = async () => {
 const schemaConfig = computed(() => schemaData.value?.config)
 const sceneTagOptions = computed(
   () => schemaConfig.value?.sceneTags || ['通勤', '职场', '约会', '拍照', '运动', '旅行', '休闲', '派对'],
+)
+// V1.5.1: seasonTags from Schema
+const seasonTagOptions = computed(
+  () => schemaConfig.value?.seasonTags || ['春季', '夏季', '秋季', '冬季', '四季通用'],
 )
 const genderOptions = computed(
   () =>

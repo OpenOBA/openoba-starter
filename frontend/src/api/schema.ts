@@ -40,6 +40,7 @@ export interface EffectThesaurus {
 /** 运行时配置项 */
 export interface RuntimeConfig {
   sceneTags?: string[]
+  seasonTags?: string[]
   genderOptions?: { value: string; label: string; tagType?: string }[]
   statusOptions?: { value: string; label: string; tagType?: string }[]
   shapeLabels?: Record<string, string>

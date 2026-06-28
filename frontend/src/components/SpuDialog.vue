@@ -97,6 +97,12 @@
         </el-select>
       </el-form-item>
 
+      <el-form-item label="适用季节">
+        <el-select v-model="form.seasonTags" multiple filterable placeholder="选择季节">
+          <el-option v-for="tag in seasonTags" :key="tag" :label="tag" :value="tag" />
+        </el-select>
+      </el-form-item>
+
       <el-form-item label="描述">
         <el-input v-model="form.description" type="textarea" :rows="2" />
       </el-form-item>
@@ -132,6 +138,7 @@ const props = defineProps<{
   structureStandards: Record<string, unknown>[]
   seriesList: Record<string, unknown>[]
   sceneTags: string[]
+  seasonTags: string[]
   genderOptions: Record<string, unknown>[]
   statusOptions: Record<string, unknown>[]
   categoryList: Record<string, unknown>[]
@@ -182,6 +189,7 @@ const form = reactive<Record<string, unknown>>({
   seriesCode: '',
   status: 'draft',
   sceneTags: [],
+  seasonTags: [],
   description: '',
 })
 
@@ -238,6 +246,7 @@ function resetForm() {
   form.seriesCode = ''
   form.status = 'draft'
   form.sceneTags = []
+  form.seasonTags = []
   form.description = ''
   formRef.value?.resetFields()
 }
@@ -256,6 +265,7 @@ watch(
         seriesCode: row.seriesCode || '',
         status: row.status || 'draft',
         sceneTags: row.sceneTags || [],
+        seasonTags: row.seasonTags || [],
         description: row.description || '',
       })
     } else {
@@ -282,6 +292,7 @@ async function handleSave() {
       'seriesCode',
       'status',
       'sceneTags',
+      'seasonTags',
       'description',
     ]
     const payload: Record<string, unknown> = {}

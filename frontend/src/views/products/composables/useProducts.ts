@@ -54,6 +54,10 @@ export function useProducts() {
   const sceneTagOptions = computed(
     () => schemaConfig.value?.sceneTags || ['通勤', '职场', '约会', '拍照', '运动', '旅行', '休闲', '派对'],
   )
+  // V1.5.1: seasonTags from Schema (Schema-driven rendering)
+  const seasonTagOptions = computed(
+    () => schemaConfig.value?.seasonTags || ['春季', '夏季', '秋季', '冬季', '四季通用'],
+  )
   const genderOptions = computed(
     () =>
       schemaConfig.value?.genderOptions || [
@@ -434,6 +438,7 @@ export function useProducts() {
     // Schema & options
     schemaData,
     sceneTagOptions,
+    seasonTagOptions,
     genderOptions,
     statusOptions,
     tierList,
