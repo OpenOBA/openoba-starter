@@ -74,6 +74,16 @@
                 <span v-else>-</span>
               </template>
             </el-table-column>
+            <el-table-column label="适用季节" min-width="120">
+              <template #default="{ row }">
+                <template v-if="row.season_tags && row.season_tags.length">
+                  <el-tag v-for="tag in row.season_tags" :key="tag" size="small" type="warning" style="margin-right: 4px">{{
+                    tag
+                  }}</el-tag>
+                </template>
+                <span v-else>-</span>
+              </template>
+            </el-table-column>
             <el-table-column label="状态" width="80">
               <template #default="{ row }">
                 <el-tag
@@ -385,6 +395,7 @@
       :structure-standards="structureStandardList"
       :series-list="computedSeriesList"
       :scene-tags="sceneTagOptions"
+      :season-tags="seasonTagOptions"
       :gender-options="genderOptions"
       :status-options="statusOptions"
       :category-list="categoryList"
@@ -443,6 +454,7 @@ const {
   getFaceShapeLabel,
   skinEffectTags,
   faceEffectTags,
+  seasonTagOptions,
   spuList,
   spuSelection,
   spuListAll,
