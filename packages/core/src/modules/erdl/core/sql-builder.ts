@@ -5,6 +5,8 @@
  * @author 唐浩然（秒镜 AI 联合创始人）
  * @since 2026-06-21
  * @license BSL-1.1
+ *
+ * V1.6.0: 运行时字段补全 — update 时遇未知字段，查询 DB schema 动态补注册
  */
 
 import { BadRequestException } from '@nestjs/common'
@@ -27,19 +29,32 @@ interface EntityMapping {
   primaryKey: string
   fields: Map<string /* semanticName */, FieldDefinition>
   dbToSemantic: Map<string /* dbColumn */, string /* semanticName */>
+  /** V1.6.0: 运行时发现的额外列（未在 ERDL 定义中声明） */
+  autoDiscovered?: Set<string>
 }
 
 /** resolveAlias 函数签名（从 registry 注入） */
 type ResolveAliasFn = (namespace: string, entity: string, key: string) => string
+
+/** 外部提供的 DB schema 查询回调 */
+type DiscoverColumnsFn = (table: string, columns: string[]) => Promise<string[]>
 
 // ============================================
 // SQL Builder
 // ============================================
 
 export class SqlBuilder {
+  /** V1.6.0: 运行时字段发现回调（由 EntityProxyService 注入） */
+  private discoverColumnsFn: DiscoverColumnsFn | null = null
+
   constructor(
     private readonly resolveAlias: ResolveAliasFn,
   ) {}
+
+  /** V1.6.0: 注册 DB schema 发现回调 */
+  setDiscoverColumnsFn(fn: DiscoverColumnsFn): void {
+    this.discoverColumnsFn = fn
+  }
 
   /**
    * 将值转换为数据库可用形式（JSON 序列化等）
@@ -161,26 +176,65 @@ export class SqlBuilder {
 
   /**
    * 构建 UPDATE 语句
+   * V1.6.0: 运行时字段补全 — 未知字段尝试从 DB schema 发现
    */
-  buildUpdate(params: {
+  async buildUpdate(params: {
     mapping: EntityMapping
     namespace: string
     entity: string
     data: Record<string, unknown>
     where: Record<string, unknown>
-  }): { sql: string; values: unknown[] } {
+  }): Promise<{ sql: string; values: unknown[]; autoDiscovered?: string[] }> {
     const { mapping } = params
 
     const values: unknown[] = []
     const setParts: string[] = []
+    const autoDiscovered: string[] = []
 
     for (const [key, val] of Object.entries(params.data)) {
       const resolved = this.resolveAlias(params.namespace, params.entity, key)
-      const def = mapping.fields.get(resolved)
+      let def = mapping.fields.get(resolved)
+
+      // V1.6.0: 未知字段 → 尝试 DB schema 发现
       if (!def) {
-        const available = Array.from(mapping.fields.keys()).slice(0, 10).join(', ')
-        throw new Error(`未知字段: "${key}"。${params.entity} 可用字段: ${available}`)
+        if (this.discoverColumnsFn) {
+          try {
+            // 先查缓存
+            const cachedDef = mapping.fields.get('__auto__' + key)
+            if (cachedDef) {
+              def = cachedDef
+            } else {
+              const discovered = await this.discoverColumnsFn(mapping.table, [key])
+              if (discovered.length > 0) {
+                // DB 中存在该列 → 动态注册为直通字段
+                def = {
+                  fieldName: key,
+                  dbColumn: discovered[0], // 保持原样作为列名
+                  type: 'dynamic',
+                  required: false,
+                  isEnum: false,
+                  enumValues: [],
+                  isJSON: false,
+                }
+                mapping.fields.set('__auto__' + key, def)
+                if (!mapping.autoDiscovered) mapping.autoDiscovered = new Set()
+                mapping.autoDiscovered.add(key)
+                autoDiscovered.push(key)
+              }
+            }
+          } catch {
+            // 发现失败，继续抛错
+          }
+        }
+
+        if (!def) {
+          const available = Array.from(mapping.fields.keys())
+            .filter(k => !k.startsWith('__auto__'))
+            .slice(0, 10).join(', ')
+          throw new Error(`未知字段: "${key}"。${params.entity} 可用字段: ${available}`)
+        }
       }
+
       setParts.push(`\`${def.dbColumn}\` = ?`)
       values.push(this.toDbValue(def, val))
     }
@@ -199,7 +253,7 @@ export class SqlBuilder {
     }
 
     const sql = `UPDATE \`${mapping.table}\` SET ${setParts.join(', ')} WHERE ${whereParts.join(' AND ')} LIMIT 100`
-    return { sql, values }
+    return { sql, values, autoDiscovered: autoDiscovered.length > 0 ? autoDiscovered : undefined }
   }
 
   /**

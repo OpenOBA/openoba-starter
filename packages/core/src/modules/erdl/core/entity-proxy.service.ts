@@ -64,6 +64,30 @@ export class EntityProxyService {
     this.sqlBuilder = new SqlBuilder(
       (namespace, entity, key) => this.registry.resolveAlias(namespace, entity, key),
     )
+
+    // V1.6.0: 注册运行时 DB schema 发现回调（buildUpdate 遇未知字段时使用）
+    this.sqlBuilder.setDiscoverColumnsFn((table, columns) => this.discoverColumns(table, columns))
+  }
+
+  /**
+   * V1.6.0: 查询 DB schema — 检查物理表中是否存在指定列
+   * 用于 buildUpdate 运行时字段补全
+   */
+  private async discoverColumns(table: string, columns: string[]): Promise<string[]> {
+    if (!this.dataSource) return []
+
+    try {
+      // 使用参数化查询获取该表所有列
+      const rows = await this.dataSource.query(
+        `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?`,
+        [table],
+      )
+      const dbColumns = new Set((rows as Array<{ COLUMN_NAME: string }>).map(r => r.COLUMN_NAME))
+      // 返回在 DB 中实际存在的列
+      return columns.filter(col => dbColumns.has(col))
+    } catch {
+      return []
+    }
   }
 
   /**
@@ -302,7 +326,7 @@ export class EntityProxyService {
     if (!params.where || Object.keys(params.where).length === 0) return { success: false, error: 'update 必须带 where' }
 
     try {
-      const { sql, values } = this.sqlBuilder.buildUpdate({
+      const { sql, values, autoDiscovered } = await this.sqlBuilder.buildUpdate({
         mapping,
         namespace: params.namespace,
         entity: params.entity,
@@ -311,6 +335,9 @@ export class EntityProxyService {
       })
 
       this.logger.log(`[EntityProxy] UPDATE: ${sql}`)
+      if (autoDiscovered?.length) {
+        this.logger.warn(`[EntityProxy] 运行时字段补全: ${params.entity} ← ${autoDiscovered.join(', ')}（未在 ERDL 中预声明，从 DB schema 发现）`)
+      }
 
       if (!this.dataSource) {
         return { success: false, sql, error: 'No database connection' }
