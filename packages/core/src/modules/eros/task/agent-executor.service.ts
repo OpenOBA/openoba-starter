@@ -331,8 +331,8 @@ export class AgentExecutorService implements OnModuleInit {
       `⚠️ 当前系统真实状态：ERP 中有 ${sysStatus.spuCount} 个 SPU、${sysStatus.skuCount} 个 SKU、${sysStatus.effectCount} 个激活效果词。`,
       '所有回答中涉及的数据必须与以上系统状态一致。绝不允许编造不存在的数据。',
       '',
-      // P0-4: 元镜知识 — 告知 Agent 可用知识库位置
-      '知识库在 backend/knowledge/ 目录（由元镜自动生成）。不确定业务规则时调 query_knowledge 查询。',
+      // V1.6.0: 元镜上下文动态注入 — 从 knowledge/ 目录读取实体/API/规则/约定
+      this.injectMirrorContext(taskType, cleanMessage),
       '',
       // 🔐 动态工具列表（根据 agentType 过滤，不再 hardcode 全部）
       `可用工具：${tools.map((t: { function: { name: string } }) => t.function.name).join('、')}`,
@@ -1238,6 +1238,87 @@ private buildRuleBlock(): string {
       '- 暖色调肤色 → 暖色效果词',
       '- 冷色调肤色 → 冷色效果词',
     ].join('\n')
+  }
+
+  /**
+   * V1.6.0: 注入元镜上下文到 System Prompt
+   *
+   * 从 knowledge/ 目录（元镜自动生成）读取实体索引/API/规则/约定，
+   * 注入到 Agent 的 System Prompt，让 Agent 在不需要工具调用的情况下
+   * 就知道自己面对什么系统、有哪些表、有哪些 API、有哪些规则。
+   */
+  private injectMirrorContext(taskType: string, userMessage: string): string {
+    const fs = require('fs')
+    const nodePath = require('path')
+    const knowledgeDir = nodePath.join(process.cwd(), 'knowledge')
+    const indexPath = nodePath.join(knowledgeDir, 'entities', '_index.md')
+
+    if (!fs.existsSync(indexPath)) {
+      return '【元镜】知识库尚未生成。启动后自动扫描。不确定 Entity 结构时先用 erdl_crud read 查看。'
+    }
+
+    const blocks: string[] = []
+    blocks.push('【元镜自省 · 系统知识】（自动注入，无需工具调用）')
+
+    // 实体索引
+    try {
+      const indexContent = fs.readFileSync(indexPath, 'utf-8')
+      const lines = indexContent.split('\n')
+      const entityLines = lines.filter((l: string) => l.startsWith('| ') && l.includes('`') && !l.includes('模块 |') && !l.includes('---'))
+      if (entityLines.length > 0) {
+        const summary = entityLines.slice(0, 20).map((l: string) => {
+          const parts = l.split('|').map(p => p.trim()).filter(Boolean)
+          return '- ' + (parts[1] || '') + ' (\\`' + (parts[2]?.replace(/`/g, '') || '') + '\\`, ' + (parts[3] || '?') + ' 字段)'
+        })
+        blocks.push('\n📦 可用 Entity:')
+        blocks.push(summary.join('\n'))
+        if (entityLines.length > 20) blocks.push('... 共 ' + entityLines.length + ' 个实体')
+      }
+    } catch { /* 静默 */ }
+
+    // API 概览（仅 tech_support 或代码关键词触发）
+    const apisPath = nodePath.join(knowledgeDir, 'apis.md')
+    if (fs.existsSync(apisPath) && (
+      taskType === 'tech_support' ||
+      /api|接口|endpoint|controller/i.test(userMessage)
+    )) {
+      try {
+        const apiContent = fs.readFileSync(apisPath, 'utf-8')
+        const epLines = apiContent.split('\n').filter((l: string) =>
+          l.startsWith('| ') && l.includes('`') &&
+          !l.includes('方法 |') && !l.includes('---')
+        ).slice(0, 10)
+        if (epLines.length > 0) {
+          const apiSummary = epLines.map((l: string) => {
+            const parts = l.split('|').map(p => p.trim()).filter(Boolean)
+            return '- ' + (parts[0] || '') + ' \\`' + (parts[2] || parts[1] || '') + '\\`: ' + (parts[3] || '')
+          })
+          blocks.push('\n🔌 可用 API:')
+          blocks.push(apiSummary.join('\n'))
+        }
+      } catch { /* 静默 */ }
+    }
+
+    // 业务规则
+    const rulesPath = nodePath.join(knowledgeDir, 'rules.md')
+    if (fs.existsSync(rulesPath)) {
+      try {
+        const rulesContent = fs.readFileSync(rulesPath, 'utf-8')
+        const ruleLines = rulesContent.split('\n').filter((l: string) =>
+          l.startsWith('| ') && !l.includes('---') && !l.includes('规则 |')
+        ).slice(0, 8)
+        if (ruleLines.length > 0) {
+          const ruleSummary = ruleLines.map((l: string) => {
+            const parts = l.split('|').map(p => p.trim()).filter(Boolean)
+            return '- ⛔ ' + (parts[0] || '') + ': ' + parts.slice(3).join(' ')
+          })
+          blocks.push('\n📐 业务规则:')
+          blocks.push(ruleSummary.join('\n'))
+        }
+      } catch { /* 静默 */ }
+    }
+
+    return blocks.join('\n')
   }
 
   /** SSRF 防护：校验 web_fetch URL（H05+H07修复：IPv6映射+DNS重绑定标记）

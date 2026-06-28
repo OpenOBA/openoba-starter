@@ -17,6 +17,7 @@ import { AgentIdentityBuilder } from './agent-identity.builder'
 import { OrgInfoBuilder } from './org-info.builder'
 import { RoleCapabilityBuilder } from './role-capability.builder'
 import { IronRulesBuilder } from './iron-rules.builder'
+import { MirrorKnowledgeReader } from './mirror-knowledge-reader'
 
 @Global() // 全局模块，所有 Module 均可直接注入 SoulService
 @Module({
@@ -29,6 +30,7 @@ import { IronRulesBuilder } from './iron-rules.builder'
     OrgInfoBuilder,
     RoleCapabilityBuilder,
     IronRulesBuilder,
+    MirrorKnowledgeReader,
   ],
   exports: [
     SoulService,
